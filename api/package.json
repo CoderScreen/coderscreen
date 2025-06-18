@@ -1,0 +1,27 @@
+{
+	"name": "api",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"cf-typegen": "wrangler types",
+		"postinstall": "patch-package"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.36",
+		"typescript": "^5.8.3",
+		"vitest": "~3.0.9",
+		"wrangler": "^4.19.1"
+	},
+	"dependencies": {
+		"@openai/agents": "^0.0.2",
+		"@openai/agents-core": "^0.0.2",
+		"agents": "^0.0.94",
+		"debug": "^4.4.1",
+		"hono": "^4.7.11",
+		"patch-package": "^8.0.0"
+	}
+}

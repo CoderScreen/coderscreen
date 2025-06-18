@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 3.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 217.2 32.6% 17.5%;
+    --lightgreen: 120 60% 70%;
+    --darkgreen: 120 60% 40%;
+
+    --sidebar: 0 0% 15%;
+
+    --primary: 0 0% 15%;
+    --primary-foreground: 204 100% 58%;
+
+    --secondary: 230 95% 70%;
+    --secondary-foreground: 210 40% 98%;
+
+    --layer-watermark: 50 !important;
+  }
+
+  body {
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+  }
+}
+
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: #676767;
+    border-radius: 4px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+.tlui-layout {
+  z-index: 49 !important;
+}

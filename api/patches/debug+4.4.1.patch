@@ -1,0 +1,18 @@
+diff --git a/node_modules/debug/src/node.js b/node_modules/debug/src/node.js
+index 715560a..99223dc 100644
+--- a/node_modules/debug/src/node.js
++++ b/node_modules/debug/src/node.js
+@@ -153,9 +153,10 @@ exports.inspectOpts = Object.keys(process.env).filter(key => {
+  */
+ 
+ function useColors() {
+-	return 'colors' in exports.inspectOpts ?
+-		Boolean(exports.inspectOpts.colors) :
+-		tty.isatty(process.stderr.fd);
++	return true
++	// return 'colors' in exports.inspectOpts ?
++	// 	Boolean(exports.inspectOpts.colors) :
++	// 	tty.isatty(process.stderr.fd);
+ }
+ 
+ /**
