@@ -11,7 +11,7 @@ import { InstructionEditor } from '@/components/room/InstructionEditor';
 
 export const RoomView = () => {
   // You can get this from URL params or props
-  const roomId = 'interview-room-1';
+  const roomId = 'test';
 
   return (
     <div className='h-screen w-screen'>
@@ -21,7 +21,7 @@ export const RoomView = () => {
         </Panel>
         <PanelResizeHandle />
         <Panel>
-          <Tabs className='p-4 h-full w-full'>
+          <Tabs defaultValue='instructions' className='p-4 h-full w-full'>
             <TabsList>
               <TabsTrigger
                 value='instructions'
@@ -54,8 +54,8 @@ export const RoomView = () => {
               <div className='h-full w-full bg-blue-500'> </div>
             </TabsContent>
 
-            <TabsContent value='instructions'>
-              <InstructionEditor />
+            <TabsContent value='instructions' className='h-full w-full'>
+              <InstructionEditor roomId={roomId} />
             </TabsContent>
           </Tabs>
         </Panel>

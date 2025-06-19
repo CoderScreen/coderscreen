@@ -33,13 +33,13 @@ const SUPPORTED_LANGUAGES = [
 ];
 
 interface CodeEditorProps {
-  roomId?: string;
+  roomId: string;
   websocketUrl?: string;
 }
 
 export function CodeEditor({
-  roomId = 'default-room',
-  websocketUrl = 'ws://localhost:8000/room',
+  roomId,
+  websocketUrl = 'ws://localhost:8000/room/code',
 }: CodeEditorProps) {
   const [language, setLanguage] = useState('javascript');
   const [isConnected, setIsConnected] = useState(false);
@@ -54,6 +54,7 @@ export function CodeEditor({
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText('monaco');
 
+    // Use the code-specific WebSocket endpoint
     const provider = new WebsocketProvider(websocketUrl, roomId, ydoc);
     providerRef.current = provider;
 
@@ -92,7 +93,7 @@ export function CodeEditor({
   return (
     <div className='h-full w-full border rounded-lg bg-[#2D2D30] text-white overflow-hidden'>
       {/* Menu Bar */}
-      <div className='flex items-center justify-between p-3 border-b border-gray-700 bg-[#1E1E1E]'>
+      <div className='flex items-center justify-between p-2 border-b border-gray-700 bg-[#1E1E1E]'>
         <div className='flex items-center gap-2'>
           <select
             value={language}

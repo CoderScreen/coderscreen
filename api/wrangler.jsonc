@@ -19,6 +19,10 @@
 			{
 				"name": "CODE_ROOM",
 				"class_name": "CodeRoom"
+			},
+			{
+				"name": "INSTRUCTION_ROOM",
+				"class_name": "InstructionRoom"
 			}
 		]
 	},
@@ -26,6 +30,10 @@
 		{
 			"tag": "0.0.1",
 			"new_classes": ["CodeRoom"]
+		},
+		{
+			"tag": "0.0.2",
+			"new_classes": ["InstructionRoom"]
 		}
 	]
 	/**
