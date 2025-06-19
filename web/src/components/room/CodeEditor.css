@@ -1,0 +1,22 @@
+/* Remote cursor styles */
+.remote-cursor {
+  background-color: transparent !important;
+}
+
+.remote-cursor::before {
+  content: '|';
+  color: var(--cursor-color, #ff0000) !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  position: absolute !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Individual cursor colors will be set via inline styles */ 

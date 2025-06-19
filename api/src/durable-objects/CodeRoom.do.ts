@@ -4,11 +4,28 @@ export interface Env {
 	// Add any environment variables you need
 }
 
+interface AwarenessState {
+	user: {
+		name: string;
+		color: string;
+		id: string;
+	};
+	cursor?: {
+		index: number;
+		length: number;
+	};
+	selection?: {
+		anchor: number;
+		head: number;
+	};
+}
+
 export class CodeRoom implements DurableObject {
 	private state: DurableObjectState;
 	private env: Env;
 	private ydoc: Y.Doc;
-	private connections: Set<WebSocket> = new Set();
+	private connections: Map<WebSocket, string> = new Map(); // ws -> clientId
+	private clientCounter: number = 0;
 
 	constructor(state: DurableObjectState, env: Env) {
 		this.state = state;
@@ -52,17 +69,34 @@ export class CodeRoom implements DurableObject {
 			// Set up y-websocket connection manually since we can't import the utils
 			this.setupYWebSocketConnection(server, request);
 
-			// Track the connection
-			this.connections.add(server);
-
 			// Handle WebSocket events
 			server.addEventListener('close', () => {
-				this.connections.delete(server);
+				const clientId = this.connections.get(server);
+				if (clientId) {
+					// Remove from awareness
+					const awareness = this.ydoc.getMap('awareness');
+					awareness.delete(clientId);
+					this.connections.delete(server);
+
+					// Broadcast removal to other clients
+					this.broadcastAwareness(
+						{
+							type: 'awareness-remove',
+							clientId: clientId,
+						},
+						server
+					);
+				}
 			});
 
 			server.addEventListener('error', (error) => {
 				console.error('WebSocket error:', error);
-				this.connections.delete(server);
+				const clientId = this.connections.get(server);
+				if (clientId) {
+					const awareness = this.ydoc.getMap('awareness');
+					awareness.delete(clientId);
+					this.connections.delete(server);
+				}
 			});
 
 			return new Response(null, {
@@ -85,7 +119,10 @@ export class CodeRoom implements DurableObject {
 	}
 
 	private setupYWebSocketConnection(ws: WebSocket, request: Request) {
-		// Simple y-websocket protocol implementation
+		// Generate unique client ID
+		const clientId = `client-${++this.clientCounter}-${Date.now()}`;
+		this.connections.set(ws, clientId);
+
 		const awareness = this.ydoc.getMap('awareness');
 
 		ws.addEventListener('message', (event) => {
@@ -102,6 +139,15 @@ export class CodeRoom implements DurableObject {
 								data: Array.from(docState),
 							})
 						);
+
+						// Send current awareness state
+						const awarenessState = Array.from(awareness.entries());
+						ws.send(
+							JSON.stringify({
+								type: 'awareness-sync',
+								data: awarenessState,
+							})
+						);
 						break;
 
 					case 'update':
@@ -115,8 +161,36 @@ export class CodeRoom implements DurableObject {
 
 					case 'awareness':
 						// Handle awareness updates
-						awareness.set(message.clientId, message.awareness);
-						this.broadcastAwareness(message, ws);
+						const awarenessData: AwarenessState = message.awareness;
+						awareness.set(clientId, awarenessData);
+						this.broadcastAwareness(
+							{
+								type: 'awareness',
+								clientId: clientId,
+								awareness: awarenessData,
+							},
+							ws
+						);
+						break;
+
+					case 'cursor-update':
+						// Handle cursor position updates
+						const cursorData = message.cursor;
+						const currentAwareness = awareness.get(clientId) || {};
+						const updatedAwareness = {
+							...currentAwareness,
+							cursor: cursorData,
+						};
+						awareness.set(clientId, updatedAwareness);
+
+						this.broadcastAwareness(
+							{
+								type: 'cursor-update',
+								clientId: clientId,
+								cursor: cursorData,
+							},
+							ws
+						);
 						break;
 				}
 			} catch (error) {
@@ -131,7 +205,7 @@ export class CodeRoom implements DurableObject {
 			data: Array.from(update),
 		});
 
-		for (const connection of this.connections) {
+		for (const [connection] of this.connections) {
 			if (connection !== exclude && connection.readyState === WebSocket.OPEN) {
 				connection.send(message);
 			}
@@ -141,7 +215,7 @@ export class CodeRoom implements DurableObject {
 	private broadcastAwareness(awarenessMessage: any, exclude: WebSocket) {
 		const message = JSON.stringify(awarenessMessage);
 
-		for (const connection of this.connections) {
+		for (const [connection] of this.connections) {
 			if (connection !== exclude && connection.readyState === WebSocket.OPEN) {
 				connection.send(message);
 			}
@@ -182,7 +256,7 @@ export class CodeRoom implements DurableObject {
 		await this.state.storage.delete('ydoc');
 
 		// Close all connections
-		for (const ws of this.connections) {
+		for (const [ws] of this.connections) {
 			ws.close(1000, 'Document reset');
 		}
 		this.connections.clear();
