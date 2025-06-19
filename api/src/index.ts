@@ -1,11 +1,7 @@
 import { Hono } from 'hono';
-import { TestAgent } from './agent/test.agent';
-import { getAgentByName, routeAgentRequest } from 'agents';
 
 export interface AppContext {
-	Bindings: {
-		TestAgent: DurableObjectNamespace<TestAgent>;
-	};
+	Bindings: {};
 }
 
 const app = new Hono<AppContext>();
@@ -23,5 +19,4 @@ app.get('/', async (ctx) => {
 	return ctx.json({ message: 'Hello, World!' });
 });
 
-export { TestAgent };
 export default app;
