@@ -122,7 +122,7 @@ export function CodeEditor({
         <div className='flex items-center gap-2'>
           <Button className='bg-green-600 hover:bg-green-700 text-white'>
             <RiPlayFill className='size-4 shrink-0' />
-            Run
+            Run code
           </Button>
         </div>
       </div>
