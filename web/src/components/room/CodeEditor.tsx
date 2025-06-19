@@ -1,7 +1,14 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
-import Editor, { type OnMount } from '@monaco-editor/react';
 import { RiPlayFill } from '@remixicon/react';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { MonacoBinding } from 'y-monaco';
+import { Editor } from '@monaco-editor/react';
+import { editor } from 'monaco-editor';
+import * as monaco from 'monaco-editor';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -25,27 +32,62 @@ const SUPPORTED_LANGUAGES = [
   { value: 'markdown', label: 'Markdown' },
 ];
 
-export function CodeEditor() {
-  const [code, setCode] = useState('');
+interface CodeEditorProps {
+  roomId?: string;
+  websocketUrl?: string;
+}
+
+export function CodeEditor({
+  roomId = 'default-room',
+  websocketUrl = 'ws://localhost:8000/room',
+}: CodeEditorProps) {
   const [language, setLanguage] = useState('javascript');
+  const [isConnected, setIsConnected] = useState(false);
+  const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
+  const bindingRef = useRef<MonacoBinding>(null);
+  const providerRef = useRef<WebsocketProvider>(null);
 
-  const [editorHeight, setEditorHeight] = useState('400px');
+  // Set up Yjs provider and attach Monaco editor
+  useEffect(() => {
+    if (!editorRef) return;
 
-  const handleEditorDidMount: OnMount = (editor) => {
-    // Auto-resize editor based on content
-    const updateHeight = () => {
-      const lineCount = editor.getModel()?.getLineCount() || 1;
-      const lineHeight = 20; // Default line height
-      const newHeight = Math.max(
-        200,
-        Math.min(600, lineCount * lineHeight + 50)
-      );
-      setEditorHeight(`${newHeight}px`);
+    const ydoc = new Y.Doc();
+    const ytext = ydoc.getText('monaco');
+
+    const provider = new WebsocketProvider(websocketUrl, roomId, ydoc);
+    providerRef.current = provider;
+
+    // Handle connection status
+    provider.on('status', ({ status }: { status: string }) => {
+      setIsConnected(status === 'connected');
+    });
+
+    // Attach Yjs to Monaco
+    const binding = new MonacoBinding(
+      ytext,
+      editorRef.getModel() as editor.ITextModel,
+      new Set([editorRef]),
+      provider.awareness
+    );
+    bindingRef.current = binding;
+
+    return () => {
+      binding?.destroy();
+      provider.destroy();
+      ydoc.destroy();
     };
+  }, [editorRef, roomId, websocketUrl]);
 
-    editor.onDidChangeModelContent(updateHeight);
-    updateHeight();
-  };
+  const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
+    setEditorRef(e);
+  }, []);
+
+  // Handle language change
+  useEffect(() => {
+    if (editorRef) {
+      monaco.editor.setModelLanguage(editorRef.getModel()!, language);
+    }
+  }, [language, editorRef]);
 
   return (
     <div className='h-full w-full border rounded-lg bg-[#2D2D30] text-white overflow-hidden'>
@@ -63,6 +105,18 @@ export function CodeEditor() {
               </option>
             ))}
           </select>
+
+          {/* Connection Status */}
+          <div className='flex items-center gap-2 text-sm'>
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isConnected ? 'bg-green-500' : 'bg-red-500'
+              }`}
+            />
+            <span className={isConnected ? 'text-green-400' : 'text-red-400'}>
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
         </div>
 
         <div className='flex items-center gap-2'>
@@ -75,11 +129,9 @@ export function CodeEditor() {
 
       {/* Monaco Editor */}
       <Editor
+        onMount={handleOnMount}
+        height='100%'
         defaultLanguage={language}
-        language={language}
-        value={code}
-        onChange={(value) => setCode(value || '')}
-        onMount={handleEditorDidMount}
         theme='vs-dark'
         options={{
           minimap: { enabled: false },

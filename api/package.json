@@ -12,16 +12,13 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.36",
+		"@types/node": "^24.0.3",
 		"typescript": "^5.8.3",
 		"vitest": "~3.0.9",
 		"wrangler": "^4.19.1"
 	},
 	"dependencies": {
-		"@openai/agents": "^0.0.2",
-		"@openai/agents-core": "^0.0.2",
-		"agents": "^0.0.94",
-		"debug": "^4.4.1",
 		"hono": "^4.7.11",
-		"patch-package": "^8.0.0"
+		"yjs": "^13.6.27"
 	}
 }

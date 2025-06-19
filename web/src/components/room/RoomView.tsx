@@ -10,11 +10,14 @@ import {
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 
 export const RoomView = () => {
+  // You can get this from URL params or props
+  const roomId = 'interview-room-1';
+
   return (
     <div className='h-screen w-screen'>
       <PanelGroup direction='horizontal'>
         <Panel>
-          <CodeEditor />
+          <CodeEditor roomId={roomId} />
         </Panel>
         <PanelResizeHandle />
         <Panel>

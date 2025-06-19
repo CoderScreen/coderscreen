@@ -17,15 +17,15 @@
 	"durable_objects": {
 		"bindings": [
 			{
-				"name": "TestAgent",
-				"class_name": "TestAgent"
+				"name": "CODE_ROOM",
+				"class_name": "CodeRoom"
 			}
 		]
 	},
 	"migrations": [
 		{
 			"tag": "0.0.1",
-			"new_sqlite_classes": ["TestAgent"]
+			"new_classes": ["CodeRoom"]
 		}
 	]
 	/**
