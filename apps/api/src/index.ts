@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { CodeRoom } from './durable-objects/code-room.do';
 import { InstructionRoom } from './durable-objects/instruction-room.do';
-
+import { CodeRunService } from './service/CodeRun.service';
+import { openAPISpecs } from 'hono-openapi';
+import { roomRouter } from './routes/room.routes';
 export interface AppContext {
 	Bindings: {
 		CODE_ROOM: DurableObjectNamespace;
@@ -9,9 +11,17 @@ export interface AppContext {
 	};
 }
 
-const app = new Hono<AppContext>();
+const app = new Hono<AppContext>().route('/room', roomRouter);
 
 app.get('/', async (ctx) => {
+	const codeRunService = new CodeRunService(ctx);
+
+	const result = await codeRunService.runCode({
+		roomId: 'r_123',
+		code: 'console.log("Hello, world!"); // This is a comment',
+	});
+	console.log(result);
+
 	return ctx.json({
 		message: 'Code Interview API',
 		version: '1.0.0',
@@ -19,6 +29,7 @@ app.get('/', async (ctx) => {
 			code: '/room/:roomId/code',
 			instructions: '/room/:roomId/instructions',
 		},
+		result,
 	});
 });
 
@@ -118,5 +129,31 @@ app.get('/room/:roomId/instructions/status', async (ctx) => {
 	return obj.fetch(request);
 });
 
+app.get(
+	'/openapi',
+	openAPISpecs(app, {
+		documentation: {
+			info: {
+				title: 'CoderScreen API',
+				version: '1.0.0',
+				description: 'API for coder screen',
+			},
+			servers: [
+				{
+					url: 'https://api.coderscreen.com',
+					description: 'Production server',
+				},
+				{
+					url: 'http://localhost:8000',
+					description: 'Local server',
+				},
+			],
+		},
+	})
+);
+
 export default app;
+
+export type AppRouter = typeof app;
+
 export { CodeRoom, InstructionRoom };

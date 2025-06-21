@@ -1,0 +1,6 @@
+{
+  "installation": {
+    "version": "21.2.1"
+  },
+  "$schema": "./node_modules/nx/schemas/nx-schema.json"
+}

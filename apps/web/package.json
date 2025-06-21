@@ -1,5 +1,5 @@
 {
-  "name": ".",
+  "name": "@coderscreen/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -51,6 +51,7 @@
     "@tiptap/starter-kit": "^2.14.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "hono": "^4.7.11",
     "monaco-editor": "^0.52.2",
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
@@ -69,6 +70,7 @@
     "yjs": "^13.6.27"
   },
   "devDependencies": {
+    "@coderscreen/api": "workspace:*",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^24.0.3",

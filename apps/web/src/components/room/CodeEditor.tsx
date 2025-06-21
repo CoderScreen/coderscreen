@@ -9,6 +9,7 @@ import { MonacoBinding } from 'y-monaco';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
+import { client } from '@/query/client';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -90,6 +91,20 @@ export function CodeEditor({
     }
   }, [language, editorRef]);
 
+  const handleRunCode = useCallback(async () => {
+    if (!editorRef) return;
+
+    const res = await client.room.$get({
+      query: {
+        roomId,
+      },
+    });
+
+    const data = await res.text();
+
+    console.log(data);
+  }, [editorRef]);
+
   return (
     <div className='h-full w-full border rounded-lg bg-[#2D2D30] text-white overflow-hidden'>
       {/* Menu Bar */}
@@ -121,7 +136,10 @@ export function CodeEditor({
         </div>
 
         <div className='flex items-center gap-2'>
-          <Button className='bg-green-600 hover:bg-green-700 text-white'>
+          <Button
+            className='bg-green-600 hover:bg-green-700 text-white'
+            onClick={handleRunCode}
+          >
             <RiPlayFill className='size-4 shrink-0' />
             Run code
           </Button>

@@ -103,9 +103,9 @@ export const InstructionEditor = ({
     editor?.chain().focus().toggleCodeBlock().run();
   };
 
-  const toggleHeading = (level: 1 | 2 | 3) => {
-    editor?.chain().focus().toggleHeading({ level }).run();
-  };
+  // const toggleHeading = (level: 1 | 2 | 3) => {
+  //   editor?.chain().focus().toggleHeading({ level }).run();
+  // };
 
   const toggleBulletList = () => {
     editor?.chain().focus().toggleBulletList().run();

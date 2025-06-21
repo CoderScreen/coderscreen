@@ -1,5 +1,5 @@
 {
-	"name": "api",
+	"name": "@coderscreen/api",
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
@@ -7,8 +7,7 @@
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"test": "vitest",
-		"cf-typegen": "wrangler types",
-		"postinstall": "patch-package"
+		"cf-typegen": "wrangler types"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.36",
@@ -18,7 +17,15 @@
 		"wrangler": "^4.19.1"
 	},
 	"dependencies": {
+		"@daytonaio/sdk": "0.21.1",
+		"@hono/zod-validator": "^0.7.0",
 		"hono": "^4.7.11",
-		"yjs": "^13.6.27"
+		"hono-openapi": "^0.4.8",
+		"yjs": "^13.6.27",
+		"zod": "^3.25.67",
+		"zod-openapi": "^4.2.4"
+	},
+	"exports": {
+		".": "./src/index.ts"
 	}
 }
