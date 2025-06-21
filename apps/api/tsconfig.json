@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"outDir": "./dist",
 		/* Visit https://aka.ms/tsconfig.json to read more about this file */
 
 		/* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
@@ -22,7 +23,9 @@
 		"checkJs": false,
 
 		/* Disable emitting files from a compilation. */
-		"noEmit": true,
+		"noEmit": false,
+		/* Generate corresponding .d.ts file for each TypeScript file. */
+		"declaration": true,
 
 		/* Ensure that each file can be safely transpiled without relying on other imports. */
 		"isolatedModules": true,
@@ -36,7 +39,10 @@
 
 		/* Skip type checking all .d.ts files. */
 		"skipLibCheck": true,
-		"types": ["./worker-configuration.d.ts", "node"]
+		"types": ["./worker-configuration.d.ts", "node"],
+		"paths": {
+			"@/*": ["./src/*"]
+		}
 	},
 	"exclude": ["test"],
 	"include": ["worker-configuration.d.ts", "src/**/*.ts"]

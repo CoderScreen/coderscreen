@@ -9,7 +9,6 @@ import { MonacoBinding } from 'y-monaco';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
-import { client } from '@/query/client';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -93,16 +92,6 @@ export function CodeEditor({
 
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;
-
-    const res = await client.room.$get({
-      query: {
-        roomId,
-      },
-    });
-
-    const data = await res.text();
-
-    console.log(data);
   }, [editorRef]);
 
   return (

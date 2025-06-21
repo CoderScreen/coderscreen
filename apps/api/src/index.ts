@@ -4,34 +4,21 @@ import { InstructionRoom } from './durable-objects/instruction-room.do';
 import { CodeRunService } from './service/CodeRun.service';
 import { openAPISpecs } from 'hono-openapi';
 import { roomRouter } from './routes/room.routes';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
+
 export interface AppContext {
+	Variables: {
+		appFactory: AppFactory;
+	};
 	Bindings: {
 		CODE_ROOM: DurableObjectNamespace;
 		INSTRUCTION_ROOM: DurableObjectNamespace;
 	};
 }
 
-const app = new Hono<AppContext>().route('/room', roomRouter);
-
-app.get('/', async (ctx) => {
-	const codeRunService = new CodeRunService(ctx);
-
-	const result = await codeRunService.runCode({
-		roomId: 'r_123',
-		code: 'console.log("Hello, world!"); // This is a comment',
-	});
-	console.log(result);
-
-	return ctx.json({
-		message: 'Code Interview API',
-		version: '1.0.0',
-		endpoints: {
-			code: '/room/:roomId/code',
-			instructions: '/room/:roomId/instructions',
-		},
-		result,
-	});
-});
+const app = new Hono<AppContext>().use(logger()).use(cors()).use(appFactoryMiddleware).route('/rooms', roomRouter);
 
 // Route for CodeRoom durable object - handles both HTTP and WebSocket connections
 app.all('/room/code/:roomId', async (ctx) => {
@@ -149,7 +136,7 @@ app.get(
 				},
 			],
 		},
-	})
+	}),
 );
 
 export default app;

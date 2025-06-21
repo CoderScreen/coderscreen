@@ -158,11 +158,6 @@ export const InstructionEditor = ({
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
-
-          <div className='flex items-center gap-1 text-gray-500'>
-            <RiCheckLine className='size-4 text-green-500' />
-            Saved
-          </div>
         </div>
       </div>
 

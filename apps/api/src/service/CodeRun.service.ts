@@ -1,6 +1,6 @@
 import { AppContext } from '..';
 import { Daytona } from '@daytonaio/sdk';
-import { Id } from '../lib/generateId';
+import { Id } from '@coderscreen/common/id';
 import { Context } from 'hono';
 
 const DAYTONA_API_KEY = process.env.DAYTONA_API_KEY;

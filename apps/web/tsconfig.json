@@ -22,7 +22,8 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@coderscreen/api/schema/*": ["../api/src/schema/*.zod.ts"]
     }
   }
 }

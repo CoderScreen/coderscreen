@@ -1,0 +1,24 @@
+{
+  "name": "@coderscreen/db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@coderscreen/common": "workspace:^",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.44.2",
+    "pg": "^8.16.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3"
+  },
+  "exports": {
+    "./room.db": "./src/room.db.ts"
+  }
+}
