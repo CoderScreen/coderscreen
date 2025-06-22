@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { cx } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const TableRoot = React.forwardRef<
   HTMLDivElement,
@@ -48,7 +49,11 @@ const TableHead = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, forwardedRef) => (
-  <thead ref={forwardedRef} className={cx(className)} {...props} />
+  <thead
+    ref={forwardedRef}
+    className={cx('rounded-full', className)}
+    {...props}
+  />
 ));
 
 TableHead.displayName = 'TableHead';
@@ -61,9 +66,9 @@ const TableHeaderCell = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       // base
-      'border-b px-4 py-3.5 text-left text-sm font-semibold',
+      'border-b px-4 py-3.5 text-left text-sm font-medium',
       // text color
-      'text-gray-900',
+      'text-muted-foreground',
       // border color
       'border-gray-200',
       className
@@ -171,6 +176,30 @@ const TableCaption = React.forwardRef<
 
 TableCaption.displayName = 'TableCaption';
 
+const TableSkeleton = (props: { numRows: number; numCols: number }) => {
+  return (
+    <>
+      {Array.from({ length: props.numRows }).map((_, index) => (
+        <TableSkeletonRow key={index} numCols={props.numCols} />
+      ))}
+    </>
+  );
+};
+TableSkeleton.displayName = 'TableSkeleton';
+
+const TableSkeletonRow = (props: { numCols: number }) => {
+  return (
+    <TableRow>
+      {Array.from({ length: props.numCols }).map((_, index) => (
+        <TableCell key={index}>
+          <Skeleton className='h-4 w-full' />
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
+TableSkeletonRow.displayName = 'TableSkeletonRow';
+
 export {
   Table,
   TableBody,
@@ -181,4 +210,6 @@ export {
   TableHeaderCell,
   TableRoot,
   TableRow,
+  TableSkeleton,
+  TableSkeletonRow,
 };

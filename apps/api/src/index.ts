@@ -7,10 +7,12 @@ import { roomRouter } from './routes/room.routes';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 export interface AppContext {
 	Variables: {
 		appFactory: AppFactory;
+		db: PostgresJsDatabase;
 	};
 	Bindings: {
 		CODE_ROOM: DurableObjectNamespace;
@@ -18,7 +20,16 @@ export interface AppContext {
 	};
 }
 
-const app = new Hono<AppContext>().use(logger()).use(cors()).use(appFactoryMiddleware).route('/rooms', roomRouter);
+const app = new Hono<AppContext>()
+	.use(logger())
+	.use(
+		cors({
+			origin: ['https://coderscreen.com', 'http://localhost:3000'],
+			credentials: true,
+		}),
+	)
+	.use(appFactoryMiddleware)
+	.route('/rooms', roomRouter);
 
 // Route for CodeRoom durable object - handles both HTTP and WebSocket connections
 app.all('/room/code/:roomId', async (ctx) => {

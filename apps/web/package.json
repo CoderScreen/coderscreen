@@ -52,6 +52,8 @@
     "@tiptap/starter-kit": "^2.14.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "devicons-react": "^1.4.1",
     "hono": "^4.7.11",
     "monaco-editor": "^0.52.2",
     "react": "^19.0.0",

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Slot } from '@radix-ui/react-slot';
-import { RiLoader2Fill } from '@remixicon/react';
+import { RemixiconComponentType, RiLoader2Fill } from '@remixicon/react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
 import { cx, focusRing } from '@/lib/utils';
@@ -28,7 +28,7 @@ const buttonVariants = tv({
         // hover color
         'hover:bg-primary/70',
         // disabled
-        'disabled:bg-primary/50 disabled:text-neutral-400',
+        'disabled:bg-primary/50 disabled:text-neutral-200',
       ],
       secondary: [
         // border
@@ -36,9 +36,9 @@ const buttonVariants = tv({
         // text color
         'text-gray-900',
         // background color
-        'bg-neutral-200',
-        //hover color
-        'hover:bg-neutral-300',
+        'bg-white',
+        // hover color
+        'hover:bg-gray-100',
         // disabled
         'disabled:text-gray-400',
       ],
@@ -115,6 +115,8 @@ interface ButtonProps
   extends React.ComponentPropsWithoutRef<'button'>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  icon?: RemixiconComponentType;
+  iconPosition?: 'left' | 'right';
   isLoading?: boolean;
   loadingText?: string;
 }
@@ -123,6 +125,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       asChild,
+      icon,
+      iconPosition = 'left',
       isLoading = false,
       loadingText,
       className,
@@ -134,6 +138,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     forwardedRef
   ) => {
     const Component = asChild ? Slot : 'button';
+
     return (
       <Component
         ref={forwardedRef}
@@ -141,20 +146,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        {isLoading ? (
-          <span className='pointer-events-none flex shrink-0 items-center justify-center gap-1.5'>
+        <span
+          className={cx(
+            'pointer-events-none flex  shrink-0 items-center justify-center gap-1.5',
+            iconPosition === 'left' ? 'flex-row' : 'flex-row-reverse'
+          )}
+        >
+          {isLoading ? (
             <RiLoader2Fill
               className='size-4 shrink-0 animate-spin'
               aria-hidden='true'
             />
-            <span className='sr-only'>
-              {loadingText ? loadingText : 'Loading'}
-            </span>
-            {loadingText ? loadingText : children}
-          </span>
-        ) : (
-          children
-        )}
+          ) : icon ? (
+            React.createElement(icon, { className: 'size-4 shrink-0' })
+          ) : null}
+          {loadingText ? loadingText : children}
+        </span>
       </Component>
     );
   }

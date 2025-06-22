@@ -91,8 +91,8 @@ export const roomRouter = new Hono<AppContext>()
 			return ctx.json(rooms[0]);
 		},
 	)
-	// PUT /rooms/:id - Update a room
-	.put(
+	// PATCH /rooms/:id - Update a room
+	.patch(
 		'/:id',
 		describeRoute({
 			description: 'Update a room',
@@ -116,7 +116,7 @@ export const roomRouter = new Hono<AppContext>()
 				id: idString('room'),
 			}),
 		),
-		zValidator('json', RoomSchema),
+		zValidator('json', RoomSchema.partial()),
 		async (ctx) => {
 			const roomService = new RoomService(ctx);
 			const { id } = ctx.req.valid('param');

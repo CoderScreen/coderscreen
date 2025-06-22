@@ -14,7 +14,6 @@ import {
   RiDoubleQuotesL,
   RiListOrdered,
   RiListUnordered,
-  RiCheckLine,
 } from '@remixicon/react';
 
 interface InstructionEditorProps {

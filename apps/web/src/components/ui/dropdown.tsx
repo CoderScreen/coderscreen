@@ -151,7 +151,7 @@ const DropdownMenuItem = React.forwardRef<
       // base
       'group/DropdownMenuItem relative flex cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm',
       // text color
-      'text-gray-900',
+      'text-neutral-800',
       // disabled
       'data-[disabled]:pointer-events-none data-[disabled]:text-gray-400 data-[disabled]:hover:bg-none',
       // focus
@@ -245,7 +245,7 @@ const DropdownMenuRadioItem = React.forwardRef<
       // base
       'group/DropdownMenuRadioItem relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm',
       // text color
-      'text-gray-900',
+      'text-muted-foreground',
       // disabled
       'data-[disabled]:pointer-events-none  data-[disabled]:text-gray-400 data-[disabled]:hover:bg-none',
       // focus
@@ -295,7 +295,7 @@ const DropdownMenuLabel = React.forwardRef<
       // base
       'px-2 py-2 text-xs font-medium tracking-wide',
       // text color
-      ' text-gray-500',
+      'text-muted-foreground',
       className
     )}
     {...props}
@@ -323,7 +323,7 @@ const DropdownMenuIconWrapper = ({
     <div
       className={cx(
         // text color
-        'text-gray-600',
+        'text-muted-foreground mr-2',
         // disabled
         'group-data-[disabled]/DropdownMenuItem:text-gray-400 group-data-[disabled]/',
         className

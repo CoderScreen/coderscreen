@@ -5,7 +5,7 @@ import { RoomSchema } from '@coderscreen/api/schema/room';
 
 // Get all rooms
 export const useRooms = () => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['rooms'],
     queryFn: async () => {
       const response = await apiClient.rooms.$get();
@@ -18,6 +18,11 @@ export const useRooms = () => {
       ERROR_MESSAGE: 'Failed to fetch rooms',
     },
   });
+
+  return {
+    rooms: query.data,
+    ...query,
+  };
 };
 
 // Get a specific room
@@ -45,7 +50,7 @@ export const useRoom = () => {
 export const useCreateRoom = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (
       data: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt'>
     ) => {
@@ -66,6 +71,12 @@ export const useCreateRoom = () => {
       ERROR_MESSAGE: 'Failed to create room',
     },
   });
+
+  return {
+    createRoom: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
 };
 
 // Update a room
@@ -80,7 +91,7 @@ export const useUpdateRoom = () => {
       id: string;
       data: Partial<RoomSchema>;
     }) => {
-      const response = await apiClient.rooms[':id'].$put({
+      const response = await apiClient.rooms[':id'].$patch({
         param: { id },
         json: data,
       });

@@ -1,40 +1,65 @@
 import { createFileRoute } from '@tanstack/react-router';
-import logo from '../logo.svg';
-import { Button } from '@/components/ui/button';
+import { useState, useMemo } from 'react';
+import Sidebar from '../components/dashboard/Sidebar';
+import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { RoomTable } from '@/components/dashboard/RoomTable';
+import {
+  RoomFilters,
+  filterRooms,
+  type RoomFilters as RoomFiltersType,
+} from '@/components/dashboard/RoomFilters';
+import { useRooms } from '@/query/room.query';
 
 export const Route = createFileRoute('/')({
-  component: App,
+  component: RouteComponent,
 });
 
-function App() {
-  return (
-    <div className='App'>
-      <header className='App-header'>
-        <img src={logo} className='App-logo' alt='logo' />
+function RouteComponent() {
+  const { rooms } = useRooms();
 
-        <Button className='bg-red-500 hover:bg-red-600 border-red-500 hover:border-red-600'>
-          Click me
-        </Button>
-        <p className='text-red-500'>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className='App-link'
-          href='https://reactjs.org'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          Learn React
-        </a>
-        <a
-          className='App-link'
-          href='https://tanstack.com'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          Learn TanStack
-        </a>
-      </header>
+  // Initialize filters state
+  const [filters, setFilters] = useState<RoomFiltersType>({
+    search: '',
+    language: '',
+    dateRange: 'all',
+  });
+
+  // Filter rooms based on current filters
+  const filteredRooms = useMemo(() => {
+    if (!rooms) return [];
+    return filterRooms(rooms, filters);
+  }, [rooms, filters]);
+
+  const handleFiltersChange = (newFilters: RoomFiltersType) => {
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      language: '',
+      dateRange: 'all',
+    });
+  };
+
+  return (
+    <div className='flex h-screen text-gray-800'>
+      <Sidebar />
+      <div className='flex-1 flex flex-col min-w-0'>
+        <DashboardHeader />
+        <main className='flex-1 overflow-auto px-4'>
+          <div className='space-y-6'>
+            <RoomFilters
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={handleClearFilters}
+              totalRooms={rooms?.length ?? 0}
+              filteredRooms={filteredRooms.length}
+            />
+            <RoomTable rooms={filteredRooms} />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

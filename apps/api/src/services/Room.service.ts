@@ -1,16 +1,21 @@
 import { roomTable } from '@coderscreen/db/room.db';
-import { db } from '@/db/client';
+import { useDb } from '@/db/client';
 import { Context } from 'hono';
 import { AppContext } from '@/index';
 import { RoomSchema } from '@/schema/room.zod';
 import { generateId, Id } from '@coderscreen/common/id';
 import { eq } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 export class RoomService {
-	constructor(private readonly ctx: Context<AppContext>) {}
+	private readonly db: PostgresJsDatabase;
+
+	constructor(private readonly ctx: Context<AppContext>) {
+		this.db = useDb(ctx);
+	}
 
 	async createRoom(values: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt'>) {
-		return db.insert(roomTable).values({
+		return this.db.insert(roomTable).values({
 			id: generateId('room'),
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
@@ -19,15 +24,15 @@ export class RoomService {
 	}
 
 	async getRoom(id: Id<'room'>) {
-		return db.select().from(roomTable).where(eq(roomTable.id, id));
+		return this.db.select().from(roomTable).where(eq(roomTable.id, id));
 	}
 
 	async listRooms() {
-		return db.select().from(roomTable);
+		return this.db.select().from(roomTable);
 	}
 
 	async updateRoom(id: Id<'room'>, values: Partial<RoomSchema>) {
-		return db
+		return this.db
 			.update(roomTable)
 			.set({
 				...values,
@@ -37,6 +42,6 @@ export class RoomService {
 	}
 
 	async deleteRoom(id: Id<'room'>) {
-		return db.delete(roomTable).where(eq(roomTable.id, id));
+		return this.db.delete(roomTable).where(eq(roomTable.id, id));
 	}
 }

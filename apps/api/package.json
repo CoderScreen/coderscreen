@@ -25,6 +25,7 @@
 		"drizzle-orm": "^0.44.2",
 		"hono": "^4.7.11",
 		"hono-openapi": "^0.4.8",
+		"postgres": "^3.4.7",
 		"yjs": "^13.6.27",
 		"zod": "^3.25.67",
 		"zod-openapi": "^4.2.4"
