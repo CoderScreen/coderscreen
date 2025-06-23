@@ -26,9 +26,11 @@ export class CodeRunService {
 		});
 
 		// Run the code securely inside the Sandbox
-		// const response = await sandbox.process.codeRun('console.log("Hello World from code!")');
+		const response = await sandbox.process.codeRun(code);
 		// console.log(response.result);
 
-		return sandbox;
+		await sandbox.delete();
+
+		return response;
 	}
 }

@@ -33,6 +33,6 @@
 		"zod-openapi": "^4.2.4"
 	},
 	"exports": {
-		".": "./dist/index.d.ts"
+		".": "./dist/src/index.d.ts"
 	}
 }

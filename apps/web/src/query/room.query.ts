@@ -139,3 +139,45 @@ export const useDeleteRoom = () => {
     },
   });
 };
+
+export const useRoomCodeResult = () => {
+  const currentRoomId = useCurrentRoomId();
+
+  const query = useQuery<{ codeOutput: string }>({
+    queryKey: ['rooms', currentRoomId, 'codeResult'],
+    enabled: false,
+  });
+
+  return {
+    roomCodeResult: query.data,
+  };
+};
+
+export const useRunRoomCode = () => {
+  const currentRoomId = useCurrentRoomId();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ code }: { code: string }) => {
+      const response = await apiClient.rooms[':id'].run.$post({
+        param: { id: currentRoomId },
+        json: { code },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to run room code');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['rooms', currentRoomId, 'codeResult'], data);
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Room code run successfully',
+      ERROR_MESSAGE: 'Failed to run room code',
+    },
+  });
+  return {
+    runRoomCode: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};

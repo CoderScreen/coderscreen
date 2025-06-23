@@ -1,9 +1,7 @@
 import { Hono } from 'hono';
-import { CodeRoom } from './durable-objects/code-room.do';
-import { InstructionRoom } from './durable-objects/instruction-room.do';
-import { CodeRunService } from './service/CodeRun.service';
 import { openAPISpecs } from 'hono-openapi';
 import { roomRouter } from './routes/room.routes';
+import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
@@ -11,6 +9,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { useAuth } from '@/lib/auth';
 import { auth } from '../better-auth.config';
 import { authMiddleware } from '@/middleware/auth.middleware';
+import { except } from 'hono/combine';
 
 export interface AppContext {
 	Variables: {
@@ -22,8 +21,7 @@ export interface AppContext {
 		session: typeof auth.$Infer.Session.session | null;
 	};
 	Bindings: {
-		CODE_ROOM: DurableObjectNamespace;
-		INSTRUCTION_ROOM: DurableObjectNamespace;
+		ROOM_DO: DurableObjectNamespace;
 
 		FE_APP_URL: string;
 		DATABASE_URL: string;
@@ -44,104 +42,9 @@ const app = new Hono<AppContext>()
 	.all('/auth/*', (ctx) => {
 		return useAuth(ctx).handler(ctx.req.raw);
 	})
-	.use(authMiddleware)
-	.route('/rooms', roomRouter);
-
-// Route for CodeRoom durable object - handles both HTTP and WebSocket connections
-app.all('/room/code/:roomId', async (ctx) => {
-	const roomId = ctx.req.param('roomId')!;
-
-	// Get the durable object stub
-	const id = ctx.env.CODE_ROOM.idFromName(roomId);
-	const obj = ctx.env.CODE_ROOM.get(id);
-
-	// Forward the request to the durable object
-	return obj.fetch(ctx.req.raw);
-});
-
-// Route for InstructionRoom durable object - handles both HTTP and WebSocket connections
-app.all('/room/instructions/:roomId', async (ctx) => {
-	const roomId = ctx.req.param('roomId')!;
-
-	// Get the durable object stub
-	const id = ctx.env.INSTRUCTION_ROOM.idFromName(roomId);
-	const obj = ctx.env.INSTRUCTION_ROOM.get(id);
-
-	// Forward the request to the durable object
-	return obj.fetch(ctx.req.raw);
-});
-
-// HTTP route to get code room information
-app.get('/room/:roomId/code/info', async (ctx) => {
-	const roomId = ctx.req.param('roomId');
-
-	// Get the durable object stub
-	const id = ctx.env.CODE_ROOM.idFromName(roomId);
-	const obj = ctx.env.CODE_ROOM.get(id);
-
-	// Create a request to the durable object's info endpoint
-	const request = new Request(`${ctx.req.url.replace('/info', '')}`, {
-		method: 'GET',
-		headers: ctx.req.raw.headers,
-	});
-
-	// Forward the request to the durable object
-	return obj.fetch(request);
-});
-
-// HTTP route to get instruction room information
-app.get('/room/:roomId/instructions/info', async (ctx) => {
-	const roomId = ctx.req.param('roomId');
-
-	// Get the durable object stub
-	const id = ctx.env.INSTRUCTION_ROOM.idFromName(roomId);
-	const obj = ctx.env.INSTRUCTION_ROOM.get(id);
-
-	// Create a request to the durable object's info endpoint
-	const request = new Request(`${ctx.req.url.replace('/info', '')}`, {
-		method: 'GET',
-		headers: ctx.req.raw.headers,
-	});
-
-	// Forward the request to the durable object
-	return obj.fetch(request);
-});
-
-// HTTP route to get code room status
-app.get('/room/:roomId/code/status', async (ctx) => {
-	const roomId = ctx.req.param('roomId');
-
-	// Get the durable object stub
-	const id = ctx.env.CODE_ROOM.idFromName(roomId);
-	const obj = ctx.env.CODE_ROOM.get(id);
-
-	// Create a request to the durable object's status endpoint
-	const request = new Request(`${ctx.req.url.replace('/status', '')}/status`, {
-		method: 'GET',
-		headers: ctx.req.raw.headers,
-	});
-
-	// Forward the request to the durable object
-	return obj.fetch(request);
-});
-
-// HTTP route to get instruction room status
-app.get('/room/:roomId/instructions/status', async (ctx) => {
-	const roomId = ctx.req.param('roomId');
-
-	// Get the durable object stub
-	const id = ctx.env.INSTRUCTION_ROOM.idFromName(roomId);
-	const obj = ctx.env.INSTRUCTION_ROOM.get(id);
-
-	// Create a request to the durable object's status endpoint
-	const request = new Request(`${ctx.req.url.replace('/status', '')}/status`, {
-		method: 'GET',
-		headers: ctx.req.raw.headers,
-	});
-
-	// Forward the request to the durable object
-	return obj.fetch(request);
-});
+	.use('*', except('/rooms/:roomId/public', authMiddleware))
+	.route('/rooms', roomRouter)
+	.route('/rooms/:roomId/public', publicRoomRouter);
 
 app.get(
 	'/openapi',
@@ -170,4 +73,4 @@ export default app;
 
 export type AppRouter = typeof app;
 
-export { CodeRoom, InstructionRoom };
+export { UnifiedRoomDo } from './durable-objects/room.do';

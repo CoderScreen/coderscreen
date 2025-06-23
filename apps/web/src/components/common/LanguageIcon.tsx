@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { RoomSchema } from '@coderscreen/api/schema/room';
 import TypescriptPlain from 'devicons-react/icons/TypescriptPlain';
 
@@ -12,6 +13,6 @@ export const LanguageIcon = ({
     case 'typescript':
       return <TypescriptPlain className={iconStyle} />;
     default:
-      return <div className={iconStyle} />;
+      return <div className={cn(iconStyle, 'bg-gray-200')} />;
   }
 };

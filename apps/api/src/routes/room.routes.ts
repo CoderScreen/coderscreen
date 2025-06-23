@@ -6,6 +6,7 @@ import { AppContext } from '..';
 import { RoomService } from '@/services/Room.service';
 import { RoomSchema } from '@/schema/room.zod';
 import { idString } from '@coderscreen/common/id';
+import { useAppFactory } from '@/services/AppFactory';
 
 export const roomRouter = new Hono<AppContext>()
 	// GET /rooms - List all rooms
@@ -149,5 +150,40 @@ export const roomRouter = new Hono<AppContext>()
 
 			await roomService.deleteRoom(id);
 			return ctx.json(null, 200);
+		},
+	)
+	// POST /rooms/:id/run - Run the code in the room
+	.post(
+		'/:id/run',
+		describeRoute({
+			description: 'Run the code in the room',
+			responses: {
+				200: {
+					description: 'Room code run successfully',
+					content: {
+						'application/json': {
+							schema: resolver(z.object({ result: z.string() })),
+						},
+					},
+				},
+			},
+		}),
+		zValidator(
+			'param',
+			z.object({
+				id: idString('room'),
+			}),
+		),
+		zValidator('json', z.object({ code: z.string() })),
+		async (ctx) => {
+			const { id } = ctx.req.valid('param');
+			const { code } = ctx.req.valid('json');
+
+			const { codeRunService } = useAppFactory(ctx);
+
+			const result = await codeRunService.runCode({ roomId: id, code });
+
+			const codeOutput = result.result;
+			return ctx.json({ codeOutput });
 		},
 	);

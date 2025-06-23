@@ -8,6 +8,7 @@ import {
   RiChatAiLine,
 } from '@remixicon/react';
 import { InstructionEditor } from '@/components/room/InstructionEditor';
+import { CodeOutput } from '@/components/room/CodeOutput';
 
 export const RoomView = () => {
   // You can get this from URL params or props
@@ -50,8 +51,8 @@ export const RoomView = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value='terminal' className='h-full w-full'>
-              <div className='h-full w-full bg-blue-500'> </div>
+            <TabsContent value='program-output' className='h-full w-full'>
+              <CodeOutput />
             </TabsContent>
 
             <TabsContent value='instructions' className='h-full w-full'>

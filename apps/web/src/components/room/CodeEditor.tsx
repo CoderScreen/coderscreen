@@ -2,13 +2,23 @@
 
 import { Button } from '@/components/ui/button';
 import { RiPlayFill } from '@remixicon/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
-import { MonacoBinding } from 'y-monaco';
+import { useCallback, useEffect, useState } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
+import { useRunRoomCode } from '@/query/room.query';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import {
+  useCodeEditorCollaboration,
+  defaultConfigs,
+} from '@/query/realtime.query';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -24,60 +34,27 @@ const SUPPORTED_LANGUAGES = [
   { value: 'swift', label: 'Swift' },
   { value: 'kotlin', label: 'Kotlin' },
   { value: 'scala', label: 'Scala' },
-  { value: 'html', label: 'HTML' },
-  { value: 'css', label: 'CSS' },
-  { value: 'sql', label: 'SQL' },
-  { value: 'json', label: 'JSON' },
-  { value: 'yaml', label: 'YAML' },
-  { value: 'markdown', label: 'Markdown' },
 ];
 
 interface CodeEditorProps {
   roomId: string;
-  websocketUrl?: string;
+  baseUrl?: string;
 }
 
-export function CodeEditor({
-  roomId,
-  websocketUrl = 'ws://localhost:8000/room/code',
-}: CodeEditorProps) {
+export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
   const [language, setLanguage] = useState('javascript');
-  const [isConnected, setIsConnected] = useState(false);
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
-  const bindingRef = useRef<MonacoBinding>(null);
-  const providerRef = useRef<WebsocketProvider>(null);
+  const { runRoomCode, isLoading } = useRunRoomCode();
 
-  // Set up Yjs provider and attach Monaco editor
-  useEffect(() => {
-    if (!editorRef) return;
-
-    const ydoc = new Y.Doc();
-    const ytext = ydoc.getText('monaco');
-
-    // Use the code-specific WebSocket endpoint
-    const provider = new WebsocketProvider(websocketUrl, roomId, ydoc);
-    providerRef.current = provider;
-
-    // Handle connection status
-    provider.on('status', ({ status }: { status: string }) => {
-      setIsConnected(status === 'connected');
-    });
-
-    // Attach Yjs to Monaco
-    const binding = new MonacoBinding(
-      ytext,
-      editorRef.getModel() as editor.ITextModel,
-      new Set([editorRef]),
-      provider.awareness
-    );
-    bindingRef.current = binding;
-
-    return () => {
-      binding?.destroy();
-      provider.destroy();
-      ydoc.destroy();
-    };
-  }, [editorRef, roomId, websocketUrl]);
+  // Use the new realtime collaboration hook
+  const { connectionStatus } = useCodeEditorCollaboration(
+    {
+      roomId,
+      baseUrl: baseUrl || defaultConfigs.code.baseUrl,
+      documentType: 'code',
+    },
+    editorRef
+  );
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     setEditorRef(e);
@@ -92,44 +69,62 @@ export function CodeEditor({
 
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;
-  }, [editorRef]);
+    const code = editorRef.getModel()?.getValue() ?? '';
+    runRoomCode({ code });
+  }, [editorRef, runRoomCode]);
 
   return (
-    <div className='h-full w-full border rounded-lg bg-[#2D2D30] text-white overflow-hidden'>
+    <div className='h-full w-full border rounded-lg bg-white text-gray-900 overflow-hidden'>
       {/* Menu Bar */}
-      <div className='flex items-center justify-between p-2 border-b border-gray-700 bg-[#1E1E1E]'>
+      <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
-          <select
+          <Select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className='bg-[#3C3C3C] text-white border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500'
+            onValueChange={(value) => setLanguage(value)}
           >
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <option key={lang.value} value={lang.value}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder='Select a language' />
+            </SelectTrigger>
+            <SelectContent>
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  <span className='flex items-center gap-2'>
+                    <LanguageIcon language={lang.value as any} />
+                    {lang.label}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Connection Status */}
           <div className='flex items-center gap-2 text-sm'>
             <div
               className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
+                connectionStatus.isConnected ? 'bg-green-500' : 'bg-red-500'
               }`}
             />
-            <span className={isConnected ? 'text-green-400' : 'text-red-400'}>
-              {isConnected ? 'Connected' : 'Disconnected'}
+            <span
+              className={
+                connectionStatus.isConnected ? 'text-green-600' : 'text-red-600'
+              }
+            >
+              {connectionStatus.isConnected ? 'Connected' : 'Disconnected'}
             </span>
+            {connectionStatus.error && (
+              <span className='text-red-600 text-xs'>
+                {connectionStatus.error}
+              </span>
+            )}
           </div>
         </div>
 
         <div className='flex items-center gap-2'>
           <Button
-            className='bg-green-600 hover:bg-green-700 text-white'
             onClick={handleRunCode}
+            isLoading={isLoading}
+            icon={RiPlayFill}
           >
-            <RiPlayFill className='size-4 shrink-0' />
             Run code
           </Button>
         </div>
@@ -140,7 +135,7 @@ export function CodeEditor({
         onMount={handleOnMount}
         height='100%'
         defaultLanguage={language}
-        theme='vs-dark'
+        theme='vs'
         options={{
           minimap: { enabled: false },
           fontSize: 14,

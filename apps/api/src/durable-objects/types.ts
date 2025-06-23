@@ -24,6 +24,7 @@ export interface CollaborationMessage {
 	awareness?: AwarenessState;
 	cursor?: any;
 	clientId?: string;
+	documentType?: 'code' | 'instructions';
 }
 
 export interface RoomInfo {
@@ -31,12 +32,12 @@ export interface RoomInfo {
 	connections: number;
 	documentSize: number;
 	lastModified: string;
-	roomType: 'code' | 'instructions';
+	roomType: 'code' | 'instructions' | 'unified';
 }
 
 export interface RoomStatus {
 	connected: boolean;
 	connectionCount: number;
 	documentExists: boolean;
-	roomType: 'code' | 'instructions';
+	roomType: 'code' | 'instructions' | 'unified';
 }
