@@ -9,86 +9,133 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as RoomsRouteImport } from './routes/rooms'
-import { Route as RoomRouteImport } from './routes/room'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as RoomRoomIdRouteImport } from './routes/room/$roomId'
+import { Route as AppTestRouteImport } from './routes/_app/test'
+import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 
-const RoomsRoute = RoomsRouteImport.update({
-  id: '/rooms',
-  path: '/rooms',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoomRoute = RoomRouteImport.update({
-  id: '/room',
-  path: '/room',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const RoomRoomIdRoute = RoomRoomIdRouteImport.update({
+  id: '/room/$roomId',
+  path: '/room/$roomId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTestRoute = AppTestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRoomsRoute = AppRoomsRouteImport.update({
+  id: '/rooms',
+  path: '/rooms',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/room': typeof RoomRoute
-  '/rooms': typeof RoomsRoute
+  '/rooms': typeof AppRoomsRoute
+  '/test': typeof AppTestRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/room': typeof RoomRoute
-  '/rooms': typeof RoomsRoute
+  '/rooms': typeof AppRoomsRoute
+  '/test': typeof AppTestRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/room': typeof RoomRoute
-  '/rooms': typeof RoomsRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/rooms': typeof AppRoomsRoute
+  '/_app/test': typeof AppTestRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/room' | '/rooms'
+  fullPaths: '/rooms' | '/test' | '/room/$roomId' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/room' | '/rooms'
-  id: '__root__' | '/' | '/room' | '/rooms'
+  to: '/rooms' | '/test' | '/room/$roomId' | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/rooms'
+    | '/_app/test'
+    | '/room/$roomId'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  RoomRoute: typeof RoomRoute
-  RoomsRoute: typeof RoomsRoute
+  AppRoute: typeof AppRouteWithChildren
+  RoomRoomIdRoute: typeof RoomRoomIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/rooms': {
-      id: '/rooms'
-      path: '/rooms'
-      fullPath: '/rooms'
-      preLoaderRoute: typeof RoomsRouteImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/room': {
-      id: '/room'
-      path: '/room'
-      fullPath: '/room'
-      preLoaderRoute: typeof RoomRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/room/$roomId': {
+      id: '/room/$roomId'
+      path: '/room/$roomId'
+      fullPath: '/room/$roomId'
+      preLoaderRoute: typeof RoomRoomIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/test': {
+      id: '/_app/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof AppTestRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/rooms': {
+      id: '/_app/rooms'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof AppRoomsRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppRoomsRoute: typeof AppRoomsRoute
+  AppTestRoute: typeof AppTestRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppRoomsRoute: AppRoomsRoute,
+  AppTestRoute: AppTestRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  RoomRoute: RoomRoute,
-  RoomsRoute: RoomsRoute,
+  AppRoute: AppRouteWithChildren,
+  RoomRoomIdRoute: RoomRoomIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

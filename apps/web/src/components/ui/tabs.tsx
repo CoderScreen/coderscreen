@@ -69,7 +69,7 @@ function getVariantStyles(tabVariant: TabsListVariant) {
         // border hover
         'hover:border-gray-300 ',
         // selected
-        'data-[state=active]:border-gray-900 data-[state=active]:text-gray-900',
+        'data-[state=active]:border-primary data-[state=active]:text-primary',
         ' ',
         // disabled
         'disabled:pointer-events-none',

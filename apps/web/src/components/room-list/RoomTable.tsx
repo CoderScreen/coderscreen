@@ -23,18 +23,13 @@ import {
   DropdownMenuIconWrapper,
 } from '@/components/ui/dropdown';
 import {
-  RiEditLine,
-  RiEyeLine,
   RiMore2Line,
-  RiMoreLine,
   RiLink,
   RiFileCopyLine,
   RiDeleteBinLine,
-  RiArrowRightLine,
   RiCornerDownRightLine,
 } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
-import { siteConfig } from '@/lib/siteConfig';
 
 interface RoomTableProps {
   rooms: RoomSchema[];
@@ -75,7 +70,7 @@ const RowActions = ({ room }: { room: RoomSchema }) => {
 
   return (
     <div className='flex items-center gap-2'>
-      <Link to={'/rooms'}>
+      <Link to={'/room/$roomId'} params={{ roomId: room.id }}>
         <Button
           variant='secondary'
           icon={RiCornerDownRightLine}

@@ -59,8 +59,9 @@ const ACCOUNT_NAVIGATION: {
 
 // Styling constants
 const SidebarItemClassNames = {
-  base: 'group flex items-center gap-x-2 rounded px-2 py-1.5 text-sm transition-all duration-200 hover:bg-muted/5',
-  active: 'bg-white text-foreground border border-muted-foreground/20',
+  base: 'group flex items-center gap-x-2 rounded px-2 py-1.5 text-sm transition-all duration-200 hover:bg-muted/5 border border-transparent',
+  active:
+    'bg-white hover:bg-white text-foreground border border-muted-foreground/20',
   inactive: 'text-muted-foreground hover:text-gray-900',
   icon: 'shrink-0 transition-colors duration-200 p-1 flex items-center justify-center',
   activeIcon: 'text-primary',
