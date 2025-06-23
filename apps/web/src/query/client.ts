@@ -9,6 +9,7 @@ import {
   QueryKey,
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { createAuthClient } from 'better-auth/react';
 
 const API_URL = 'http://localhost:8000';
 export const apiClient = hc<AppRouter>(API_URL, {
@@ -64,4 +65,8 @@ export const TanstackQueryClient = new QueryClient({
       }
     },
   }),
+});
+
+export const authClient = createAuthClient({
+  baseURL: `${API_URL}/auth`,
 });

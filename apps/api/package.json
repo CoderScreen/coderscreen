@@ -8,7 +8,8 @@
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"test": "vitest",
-		"cf-typegen": "wrangler types"
+		"cf-typegen": "wrangler types",
+		"auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./better-auth.config.ts --output ../../packages/db/src/user.db.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.36",
@@ -22,6 +23,7 @@
 		"@coderscreen/db": "workspace:^",
 		"@daytonaio/sdk": "0.21.1",
 		"@hono/zod-validator": "^0.7.0",
+		"better-auth": "^1.2.10",
 		"drizzle-orm": "^0.44.2",
 		"hono": "^4.7.11",
 		"hono-openapi": "^0.4.8",

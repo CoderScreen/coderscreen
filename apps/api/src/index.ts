@@ -8,15 +8,27 @@ import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { useAuth } from '@/lib/auth';
+import { auth } from '../better-auth.config';
+import { authMiddleware } from '@/middleware/auth.middleware';
 
 export interface AppContext {
 	Variables: {
 		appFactory: AppFactory;
 		db: PostgresJsDatabase;
+
+		// auth stuff
+		user: typeof auth.$Infer.Session.user | null;
+		session: typeof auth.$Infer.Session.session | null;
 	};
 	Bindings: {
 		CODE_ROOM: DurableObjectNamespace;
 		INSTRUCTION_ROOM: DurableObjectNamespace;
+
+		FE_APP_URL: string;
+		DATABASE_URL: string;
+		BETTER_AUTH_SECRET: string;
+		BETTER_AUTH_URL: string;
 	};
 }
 
@@ -29,6 +41,10 @@ const app = new Hono<AppContext>()
 		}),
 	)
 	.use(appFactoryMiddleware)
+	.all('/auth/*', (ctx) => {
+		return useAuth(ctx).handler(ctx.req.raw);
+	})
+	.use(authMiddleware)
 	.route('/rooms', roomRouter);
 
 // Route for CodeRoom durable object - handles both HTTP and WebSocket connections

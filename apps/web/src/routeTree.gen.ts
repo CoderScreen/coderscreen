@@ -14,6 +14,10 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as RoomRoomIdRouteImport } from './routes/room/$roomId'
 import { Route as AppTestRouteImport } from './routes/_app/test'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as authVerifyRouteImport } from './routes/(auth)/verify'
+import { Route as authRegisterRouteImport } from './routes/(auth)/register'
+import { Route as authLoginRouteImport } from './routes/(auth)/login'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -39,14 +43,42 @@ const AppRoomsRoute = AppRoomsRouteImport.update({
   path: '/rooms',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const authVerifyRoute = authVerifyRouteImport.update({
+  id: '/(auth)/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authRegisterRoute = authRegisterRouteImport.update({
+  id: '/(auth)/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authLoginRoute = authLoginRouteImport.update({
+  id: '/(auth)/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/login': typeof authLoginRoute
+  '/register': typeof authRegisterRoute
+  '/verify': typeof authVerifyRoute
+  '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/test': typeof AppTestRoute
   '/room/$roomId': typeof RoomRoomIdRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof authLoginRoute
+  '/register': typeof authRegisterRoute
+  '/verify': typeof authVerifyRoute
+  '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/test': typeof AppTestRoute
   '/room/$roomId': typeof RoomRoomIdRoute
@@ -55,6 +87,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/(auth)/login': typeof authLoginRoute
+  '/(auth)/register': typeof authRegisterRoute
+  '/(auth)/verify': typeof authVerifyRoute
+  '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/_app/test': typeof AppTestRoute
   '/room/$roomId': typeof RoomRoomIdRoute
@@ -62,12 +98,32 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/rooms' | '/test' | '/room/$roomId' | '/'
+  fullPaths:
+    | '/login'
+    | '/register'
+    | '/verify'
+    | '/profile'
+    | '/rooms'
+    | '/test'
+    | '/room/$roomId'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/rooms' | '/test' | '/room/$roomId' | '/'
+  to:
+    | '/login'
+    | '/register'
+    | '/verify'
+    | '/profile'
+    | '/rooms'
+    | '/test'
+    | '/room/$roomId'
+    | '/'
   id:
     | '__root__'
     | '/_app'
+    | '/(auth)/login'
+    | '/(auth)/register'
+    | '/(auth)/verify'
+    | '/_app/profile'
     | '/_app/rooms'
     | '/_app/test'
     | '/room/$roomId'
@@ -76,6 +132,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  authLoginRoute: typeof authLoginRoute
+  authRegisterRoute: typeof authRegisterRoute
+  authVerifyRoute: typeof authVerifyRoute
   RoomRoomIdRoute: typeof RoomRoomIdRoute
 }
 
@@ -116,16 +175,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRoomsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/(auth)/verify': {
+      id: '/(auth)/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof authVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/register': {
+      id: '/(auth)/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof authRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/login': {
+      id: '/(auth)/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof authLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppProfileRoute: typeof AppProfileRoute
   AppRoomsRoute: typeof AppRoomsRoute
   AppTestRoute: typeof AppTestRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppProfileRoute: AppProfileRoute,
   AppRoomsRoute: AppRoomsRoute,
   AppTestRoute: AppTestRoute,
   AppIndexRoute: AppIndexRoute,
@@ -135,6 +224,9 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  authLoginRoute: authLoginRoute,
+  authRegisterRoute: authRegisterRoute,
+  authVerifyRoute: authVerifyRoute,
   RoomRoomIdRoute: RoomRoomIdRoute,
 }
 export const routeTree = rootRouteImport

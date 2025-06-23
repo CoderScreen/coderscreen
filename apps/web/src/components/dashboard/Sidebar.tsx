@@ -3,29 +3,23 @@
 import { useLocation, Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { cn, cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MutedText } from '@/components/ui/typography';
 import {
-  RiDashboardLine,
   RiSettings3Line,
-  RiMoneyDollarBoxLine,
   RiCodeBoxLine,
-  RiQuestionLine,
-  RiLogoutBoxRLine,
   RiBuildingLine,
   RiFeedbackLine,
   RiQuestionAnswerLine,
   RiMenuLine,
   RiCloseLine,
   RiHome3Line,
-  RiPlayListLine,
-  RiMusic2Line,
-  RiTerminalWindowFill,
   RiMenuFoldLine,
 } from '@remixicon/react';
 import { siteConfig } from '@/lib/siteConfig';
+import { useSession } from '@/query/auth.query';
 
 // Navigation configuration
 const MAIN_NAVIGATION: {
@@ -71,12 +65,6 @@ const SidebarItemClassNames = {
 const SectionHeaderClassNames =
   'px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2';
 
-// Mock user data - replace with actual user data
-const mockUser = {
-  email: 'user@example.com',
-  balance: 1000,
-};
-
 export default function Sidebar() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -95,6 +83,7 @@ export default function Sidebar() {
 
 const SidebarBody = () => {
   const location = useLocation();
+  const { user, isLoading } = useSession();
 
   const isActive = (itemHref: string) => {
     if (itemHref === '/') {
@@ -216,31 +205,44 @@ const SidebarBody = () => {
       </nav>
 
       {/* User Info */}
-      <div className='px-4 pt-4'>
+      <Link to='/profile' className='p-4'>
         <div className='space-y-3'>
-          <div className='flex items-center gap-3'>
-            <Link to='/'>
-              <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border'>
+          {isLoading ? (
+            <div className='flex items-center gap-3'>
+              <Skeleton className='w-8 h-8 rounded-full' />
+              <div className='flex-1 space-y-1'>
+                <Skeleton className='h-4 w-24' />
+                <Skeleton className='h-3 w-16' />
+              </div>
+            </div>
+          ) : user ? (
+            <div className='flex items-center gap-2'>
+              <div className='flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center border'>
                 <span className='text-white text-sm font-medium'>
-                  {mockUser.email.charAt(0).toUpperCase()}
+                  {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
-            </Link>
-            <div className='flex-1 min-w-0'>
-              <Link to='/'>
+              <div className='flex-1 min-w-0'>
                 <p className='text-sm font-medium text-gray-900 cursor-pointer truncate'>
-                  {mockUser.email}
+                  {user.name}
                 </p>
-              </Link>
-              <Link to='/'>
-                <MutedText className='text-xs cursor-pointer'>
-                  {mockUser.balance} credits
-                </MutedText>
-              </Link>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className='flex items-center gap-3'>
+              <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border'>
+                <span className='text-gray-500 text-sm font-medium'>?</span>
+              </div>
+              <div className='flex-1 min-w-0'>
+                <p className='text-sm font-medium text-gray-500 truncate'>
+                  Not signed in
+                </p>
+                <MutedText className='text-xs'>Sign in to continue</MutedText>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </Link>
     </div>
   );
 };
@@ -281,6 +283,7 @@ interface MobileSidebarProps {
 
 export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
   const location = useLocation();
+  const { user, isLoading } = useSession();
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -440,27 +443,53 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
           {/* User Info */}
           <div className='px-4 py-4'>
             <div className='space-y-3'>
-              <div className='flex items-center gap-3'>
-                <Link to='/' onClick={onClose}>
-                  <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border'>
-                    <span className='text-white text-sm font-medium'>
-                      {mockUser.email.charAt(0).toUpperCase()}
-                    </span>
+              {isLoading ? (
+                <div className='flex items-center gap-3'>
+                  <Skeleton className='w-8 h-8 rounded-full' />
+                  <div className='flex-1 space-y-1'>
+                    <Skeleton className='h-4 w-24' />
+                    <Skeleton className='h-3 w-16' />
                   </div>
-                </Link>
-                <div className='flex-1 min-w-0'>
-                  <Link to='/' onClick={onClose}>
-                    <p className='text-sm font-medium text-gray-900 cursor-pointer truncate'>
-                      {mockUser.email}
-                    </p>
-                  </Link>
-                  <Link to='/' onClick={onClose}>
-                    <MutedText className='text-xs cursor-pointer'>
-                      {mockUser.balance} credits
-                    </MutedText>
-                  </Link>
                 </div>
-              </div>
+              ) : user ? (
+                <div className='flex items-center gap-3'>
+                  <Link to='/' onClick={onClose}>
+                    <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border'>
+                      <span className='text-white text-sm font-medium'>
+                        {user.email?.charAt(0).toUpperCase() ||
+                          user.name?.charAt(0).toUpperCase() ||
+                          'U'}
+                      </span>
+                    </div>
+                  </Link>
+                  <div className='flex-1 min-w-0'>
+                    <Link to='/' onClick={onClose}>
+                      <p className='text-sm font-medium text-gray-900 cursor-pointer truncate'>
+                        {user.email || user.name || 'User'}
+                      </p>
+                    </Link>
+                    <Link to='/' onClick={onClose}>
+                      <MutedText className='text-xs cursor-pointer'>
+                        {user.email ? 'Signed in' : 'Guest user'}
+                      </MutedText>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className='flex items-center gap-3'>
+                  <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border'>
+                    <span className='text-gray-500 text-sm font-medium'>?</span>
+                  </div>
+                  <div className='flex-1 min-w-0'>
+                    <p className='text-sm font-medium text-gray-500 truncate'>
+                      Not signed in
+                    </p>
+                    <MutedText className='text-xs'>
+                      Sign in to continue
+                    </MutedText>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
