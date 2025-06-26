@@ -10,24 +10,11 @@ import {
   RiListOrdered,
   RiListUnordered,
 } from '@remixicon/react';
-import {
-  useInstructionEditorCollaboration,
-  defaultConfigs,
-} from '@/query/realtime.query';
+import { useInstructionEditorCollaboration } from '@/query/realtime.query';
 
-interface InstructionEditorProps {
-  roomId: string;
-  baseUrl?: string;
-}
-
-export const InstructionEditor = ({
-  roomId,
-  baseUrl,
-}: InstructionEditorProps) => {
+export const InstructionEditor = () => {
   // Use the new realtime collaboration hook
-  const { editor, connectionStatus } = useInstructionEditorCollaboration({
-    roomId,
-    baseUrl: baseUrl || defaultConfigs.instructions.baseUrl,
+  const { editor } = useInstructionEditorCollaboration({
     documentType: 'instructions',
   });
 
@@ -84,29 +71,6 @@ export const InstructionEditor = ({
           <Button variant='icon' onClick={toggleBulletList}>
             <RiListUnordered className='size-4' />
           </Button>
-        </div>
-
-        <div className='flex items-center gap-2 text-sm'>
-          {/* Connection Status */}
-          <div className='flex items-center gap-1'>
-            <div
-              className={`w-2 h-2 rounded-full ${
-                connectionStatus.isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}
-            />
-            <span
-              className={
-                connectionStatus.isConnected ? 'text-green-600' : 'text-red-600'
-              }
-            >
-              {connectionStatus.isConnected ? 'Connected' : 'Disconnected'}
-            </span>
-            {connectionStatus.error && (
-              <span className='text-red-600 text-xs'>
-                {connectionStatus.error}
-              </span>
-            )}
-          </div>
         </div>
       </div>
 

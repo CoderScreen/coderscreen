@@ -27,6 +27,24 @@ export interface CollaborationMessage {
 	documentType?: 'code' | 'instructions';
 }
 
+export interface CodeExecutionState {
+	isRunning: boolean;
+	output?: string;
+	error?: string;
+	timestamp: number;
+}
+
+export interface CodeExecutionMessage {
+	type: 'execution_start' | 'execution_output' | 'execution_complete' | 'execution_error' | 'execution_state' | 'sync' | 'update';
+	data:
+		| {
+				output?: string;
+				error?: string;
+				timestamp: number;
+		  }
+		| number[]; // For Y.js updates (ArrayBuffer as number array)
+}
+
 export interface RoomInfo {
 	roomId: string;
 	connections: number;

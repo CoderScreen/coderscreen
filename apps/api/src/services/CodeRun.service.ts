@@ -1,36 +1,41 @@
 import { AppContext } from '..';
-import { Daytona } from '@daytonaio/sdk';
 import { Id } from '@coderscreen/common/id';
 import { Context } from 'hono';
 
-const DAYTONA_API_KEY = process.env.DAYTONA_API_KEY;
-if (!DAYTONA_API_KEY) {
-	throw new Error('DAYTONA_API_KEY is not set');
-}
-
-// Initialize the Daytona client
-const daytona = new Daytona({
-	apiKey: DAYTONA_API_KEY,
-	serverUrl: 'https://app.daytona.io/api',
-	target: 'us',
-});
-
 export class CodeRunService {
-	constructor(ctx: Context<AppContext>) {}
+	private ctx: Context<AppContext>;
+
+	constructor(ctx: Context<AppContext>) {
+		this.ctx = ctx;
+	}
 
 	async runCode(params: { roomId: Id<'room'>; code: string }) {
 		const { roomId, code } = params;
 
-		const sandbox = await daytona.create({
-			language: 'typescript',
-		});
+		// Get the durable object to broadcast execution status
+		const id = this.ctx.env.ROOM_DO.idFromName(roomId);
+		const roomDo = this.ctx.env.ROOM_DO.get(id);
 
-		// Run the code securely inside the Sandbox
-		const response = await sandbox.process.codeRun(code);
-		// console.log(response.result);
+		try {
+			// Broadcast execution start
+			await roomDo.handleCodeExecution({ type: 'start' });
 
-		await sandbox.delete();
+			// Simulate code execution delay
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 
-		return response;
+			// Generate random output as placeholder
+			const randomOutput = `Output: ${Math.random().toString(36).substring(2, 20)}\nResult: ${Date.now()}\nCode length: ${code.length} characters`;
+
+			// Broadcast execution complete
+			await roomDo.handleCodeExecution({ type: 'complete', output: randomOutput });
+
+			return { result: randomOutput };
+		} catch (error) {
+			// Broadcast execution error
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+			await roomDo.handleCodeExecution({ type: 'error', error: errorMessage });
+
+			throw error;
+		}
 	}
 }

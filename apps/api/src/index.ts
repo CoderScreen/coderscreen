@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { auth } from '../better-auth.config';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { except } from 'hono/combine';
+import { UnifiedRoomDo } from './durable-objects/room.do';
 
 export interface AppContext {
 	Variables: {
@@ -21,7 +22,7 @@ export interface AppContext {
 		session: typeof auth.$Infer.Session.session | null;
 	};
 	Bindings: {
-		ROOM_DO: DurableObjectNamespace;
+		ROOM_DO: DurableObjectNamespace<UnifiedRoomDo>;
 
 		FE_APP_URL: string;
 		DATABASE_URL: string;
@@ -72,5 +73,4 @@ app.get(
 export default app;
 
 export type AppRouter = typeof app;
-
-export { UnifiedRoomDo } from './durable-objects/room.do';
+export { UnifiedRoomDo };

@@ -216,11 +216,11 @@ export const publicRoomRouter = new Hono<AppContext>()
 			return obj.fetch(request);
 		},
 	)
-	// HTTP route to reset both documents
+	// HTTP route to reset all documents
 	.post(
 		'/reset',
 		describeRoute({
-			description: 'Reset both code and instructions documents in unified room',
+			description: 'Reset all documents in unified room',
 			responses: {
 				200: {
 					description: 'All documents reset successfully',

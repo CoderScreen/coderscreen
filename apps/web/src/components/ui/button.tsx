@@ -74,9 +74,9 @@ const buttonVariants = tv({
         // border
         'border-transparent',
         // background color
-        'bg-red-600',
+        'bg-red-500',
         // hover color
-        'hover:bg-red-700',
+        'hover:bg-red-600',
         // disabled
         'disabled:bg-red-300 disabled:text-white',
       ],

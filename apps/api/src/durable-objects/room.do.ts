@@ -1,27 +1,35 @@
 import { CollaborationManager } from './collaboration-manager';
+import { CodeExecutionManager } from './code-execution-manager';
 import { Env, RoomInfo, RoomStatus } from './types';
+import { DurableObject } from 'cloudflare:workers';
+import { AppContext } from '@/index';
 
-export class UnifiedRoomDo {
+export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	private state: DurableObjectState;
-	private env: Env;
 	private codeManager: CollaborationManager;
 	private instructionManager: CollaborationManager;
+	private codeExecutionManager: CodeExecutionManager;
 
-	constructor(state: DurableObjectState, env: Env) {
+	constructor(state: DurableObjectState, env: AppContext['Bindings']) {
+		super(state, env);
 		this.state = state;
 		this.env = env;
+
 		this.codeManager = new CollaborationManager('code');
 		this.instructionManager = new CollaborationManager('instructions');
+		this.codeExecutionManager = new CodeExecutionManager();
 	}
 
 	async initialize(): Promise<void> {
 		// Load existing documents from storage
 		await this.codeManager.loadFromStorage(this.state.storage);
 		await this.instructionManager.loadFromStorage(this.state.storage);
+		await this.codeExecutionManager.loadFromStorage(this.state.storage);
 
 		// Set up persistence for both documents
 		this.codeManager.setupPersistence(this.state.storage);
 		this.instructionManager.setupPersistence(this.state.storage);
+		this.codeExecutionManager.setupPersistence(this.state.storage);
 	}
 
 	async fetch(request: Request): Promise<Response> {
@@ -65,24 +73,53 @@ export class UnifiedRoomDo {
 		});
 	}
 
+	handleCodeExecution(
+		params:
+			| {
+					type: 'start';
+			  }
+			| {
+					type: 'complete';
+					output: string;
+			  }
+			| {
+					type: 'error';
+					error: string;
+			  },
+	) {
+		switch (params.type) {
+			case 'start':
+				this.codeExecutionManager.broadcastExecutionStart(this.state.storage);
+				break;
+			case 'complete':
+				this.codeExecutionManager.broadcastExecutionComplete({ output: params.output }, this.state.storage);
+				break;
+			case 'error':
+				this.codeExecutionManager.broadcastExecutionError({ error: params.error }, this.state.storage);
+				break;
+		}
+	}
 	private setupWebSocketConnection(ws: WebSocket): void {
 		// Generate unique client ID
 		const clientId = this.generateClientId();
 
-		// Add to both managers (client will specify which document they want to work with)
+		// Add to all managers (client will specify which type they want to work with)
 		this.codeManager.addConnection(ws, clientId);
 		this.instructionManager.addConnection(ws, clientId);
+		this.codeExecutionManager.addConnection(ws, clientId);
 
 		// Handle WebSocket events
 		ws.addEventListener('close', () => {
 			this.codeManager.removeConnection(ws);
 			this.instructionManager.removeConnection(ws);
+			this.codeExecutionManager.removeConnection(ws);
 		});
 
 		ws.addEventListener('error', (error) => {
 			console.error('WebSocket error:', error);
 			this.codeManager.removeConnection(ws);
 			this.instructionManager.removeConnection(ws);
+			this.codeExecutionManager.removeConnection(ws);
 		});
 
 		ws.addEventListener('message', (event) => {
@@ -96,8 +133,14 @@ export class UnifiedRoomDo {
 	}
 
 	private handleMessage(ws: WebSocket, message: any, clientId: string): void {
-		// Route message to appropriate manager based on document type
-		if (message.documentType === 'code') {
+		console.log('Message received:', message);
+
+		// Route message to appropriate manager based on message type or document type
+		if (message.type === 'execution') {
+			console.log('Code execution message received:', message);
+			this.codeExecutionManager.handleMessage(ws, message, clientId);
+			return;
+		} else if (message.documentType === 'code') {
 			this.codeManager.handleMessage(ws, message, clientId);
 		} else if (message.documentType === 'instructions') {
 			this.instructionManager.handleMessage(ws, message, clientId);
@@ -149,12 +192,13 @@ export class UnifiedRoomDo {
 	private getRoomInfo(): RoomInfo {
 		const codeConnections = this.codeManager.getConnections();
 		const instructionConnections = this.instructionManager.getConnections();
+		const executionConnections = this.codeExecutionManager.getConnections();
 		const codeDoc = this.codeManager.getDocument();
 		const instructionDoc = this.instructionManager.getDocument();
 
 		return {
 			roomId: this.state.id.toString(),
-			connections: codeConnections.size + instructionConnections.size,
+			connections: codeConnections.size + instructionConnections.size + executionConnections.size,
 			documentSize: codeDoc.store.clients.size + instructionDoc.store.clients.size,
 			lastModified: new Date().toISOString(),
 			roomType: 'unified',
@@ -164,12 +208,13 @@ export class UnifiedRoomDo {
 	private getRoomStatus(): RoomStatus {
 		const codeConnections = this.codeManager.getConnections();
 		const instructionConnections = this.instructionManager.getConnections();
+		const executionConnections = this.codeExecutionManager.getConnections();
 		const codeDoc = this.codeManager.getDocument();
 		const instructionDoc = this.instructionManager.getDocument();
 
 		return {
-			connected: codeConnections.size > 0 || instructionConnections.size > 0,
-			connectionCount: codeConnections.size + instructionConnections.size,
+			connected: codeConnections.size > 0 || instructionConnections.size > 0 || executionConnections.size > 0,
+			connectionCount: codeConnections.size + instructionConnections.size + executionConnections.size,
 			documentExists: codeDoc.store.clients.size > 0 || instructionDoc.store.clients.size > 0,
 			roomType: 'unified',
 		};
@@ -195,6 +240,7 @@ export class UnifiedRoomDo {
 	destroy(): void {
 		this.codeManager.destroy();
 		this.instructionManager.destroy();
+		this.codeExecutionManager.destroy();
 	}
 
 	async alarm(): Promise<void> {

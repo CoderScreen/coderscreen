@@ -29,7 +29,7 @@ const getWebsocketUrl = (id: string) => {
 };
 
 // Hook for managing realtime connections
-export function useRealtimeConnection(config: RealtimeConfig) {
+export function useRealtimeConnection(config?: RealtimeConfig) {
   const currentRoomId = useCurrentRoomId();
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
@@ -61,7 +61,7 @@ export function useRealtimeConnection(config: RealtimeConfig) {
         };
 
         setConnectionStatus(newStatus);
-        config.onStatusChange?.(isConnected ? 'connected' : 'disconnected');
+        config?.onStatusChange?.(isConnected ? 'connected' : 'disconnected');
       });
 
       provider.on(
@@ -74,7 +74,7 @@ export function useRealtimeConnection(config: RealtimeConfig) {
             status: 'disconnected',
             error: errorMessage,
           });
-          config.onError?.(new Error(errorMessage));
+          config?.onError?.(new Error(errorMessage));
         }
       );
     } catch (error) {
@@ -85,11 +85,11 @@ export function useRealtimeConnection(config: RealtimeConfig) {
         status: 'disconnected',
         error: errorMessage,
       });
-      config.onError?.(
+      config?.onError?.(
         error instanceof Error ? error : new Error(errorMessage)
       );
     }
-  }, [currentRoomId, websocketUrl, config.onStatusChange, config.onError]);
+  }, [currentRoomId, websocketUrl, config?.onStatusChange, config?.onError]);
 
   const disconnect = useCallback(() => {
     if (providerRef.current) {

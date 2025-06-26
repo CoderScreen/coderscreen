@@ -76,7 +76,7 @@ export class CollaborationManager {
 					JSON.stringify({
 						type: 'sync',
 						data: Array.from(docState),
-					})
+					}),
 				);
 
 				// Send current awareness state
@@ -85,7 +85,7 @@ export class CollaborationManager {
 					JSON.stringify({
 						type: 'awareness-sync',
 						data: awarenessState,
-					})
+					}),
 				);
 				break;
 
@@ -108,7 +108,7 @@ export class CollaborationManager {
 						clientId: clientId,
 						awareness: awarenessData,
 					},
-					ws
+					ws,
 				);
 				break;
 
@@ -128,7 +128,7 @@ export class CollaborationManager {
 						clientId: clientId,
 						cursor: cursorData,
 					},
-					ws
+					ws,
 				);
 				break;
 		}

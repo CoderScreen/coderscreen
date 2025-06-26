@@ -36,12 +36,7 @@ const SUPPORTED_LANGUAGES = [
   { value: 'scala', label: 'Scala' },
 ];
 
-interface CodeEditorProps {
-  roomId: string;
-  baseUrl?: string;
-}
-
-export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
+export function CodeEditor() {
   const [language, setLanguage] = useState('javascript');
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
   const { runRoomCode, isLoading } = useRunRoomCode();
@@ -49,8 +44,6 @@ export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
   // Use the new realtime collaboration hook
   const { connectionStatus } = useCodeEditorCollaboration(
     {
-      roomId,
-      baseUrl: baseUrl || defaultConfigs.code.baseUrl,
       documentType: 'code',
     },
     editorRef
@@ -74,7 +67,7 @@ export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
   }, [editorRef, runRoomCode]);
 
   return (
-    <div className='h-full w-full border rounded-lg bg-white text-gray-900 overflow-hidden'>
+    <div className='h-full w-full border bg-white text-gray-900 overflow-hidden'>
       {/* Menu Bar */}
       <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
@@ -88,7 +81,7 @@ export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
             <SelectContent>
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <SelectItem key={lang.value} value={lang.value}>
-                  <span className='flex items-center gap-2'>
+                  <span className='flex items-center gap-1'>
                     <LanguageIcon language={lang.value as any} />
                     {lang.label}
                   </span>
@@ -96,27 +89,6 @@ export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
               ))}
             </SelectContent>
           </Select>
-
-          {/* Connection Status */}
-          <div className='flex items-center gap-2 text-sm'>
-            <div
-              className={`w-2 h-2 rounded-full ${
-                connectionStatus.isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}
-            />
-            <span
-              className={
-                connectionStatus.isConnected ? 'text-green-600' : 'text-red-600'
-              }
-            >
-              {connectionStatus.isConnected ? 'Connected' : 'Disconnected'}
-            </span>
-            {connectionStatus.error && (
-              <span className='text-red-600 text-xs'>
-                {connectionStatus.error}
-              </span>
-            )}
-          </div>
         </div>
 
         <div className='flex items-center gap-2'>
@@ -136,6 +108,7 @@ export function CodeEditor({ roomId, baseUrl }: CodeEditorProps) {
         height='100%'
         defaultLanguage={language}
         theme='vs'
+        className='pr-2'
         options={{
           minimap: { enabled: false },
           fontSize: 14,
