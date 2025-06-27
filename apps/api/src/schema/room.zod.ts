@@ -8,6 +8,7 @@ export const RoomSchema = z.object({
 	title: z.string(),
 	language: z.enum(['typescript', 'javascript', 'python', 'rust', 'c++']),
 	status: z.enum(['active', 'scheduled', 'completed', 'archived']),
+	notes: z.string(),
 });
 
 export type RoomSchema = z.infer<typeof RoomSchema>;

@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { RiPlayFill } from '@remixicon/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
@@ -15,11 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
-import {
-  useCodeEditorCollaboration,
-  defaultConfigs,
-} from '@/query/realtime.query';
-import { useRoomContext } from '@/contexts/RoomContext';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -41,16 +36,6 @@ export function CodeEditor() {
   const [language, setLanguage] = useState('javascript');
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
   const { runRoomCode, isLoading } = useRunRoomCode();
-  const { setCollaborationStatus } = useRoomContext();
-
-  // Use the new realtime collaboration hook
-  const { connectionStatus } = useCodeEditorCollaboration(
-    {
-      documentType: 'code',
-    },
-    editorRef,
-    setCollaborationStatus
-  );
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     setEditorRef(e);

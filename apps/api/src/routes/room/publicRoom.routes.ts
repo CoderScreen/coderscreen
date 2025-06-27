@@ -3,7 +3,6 @@ import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import z from 'zod';
 import { AppContext } from '../..';
-import { UnifiedRoom } from '../../durable-objects';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	// Unified room route - handles both HTTP and WebSocket connections

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { EditorContent } from '@tiptap/react';
 import { Button } from '@/components/ui/button';
 import {

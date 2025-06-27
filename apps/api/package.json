@@ -19,6 +19,8 @@
 		"wrangler": "^4.19.1"
 	},
 	"dependencies": {
+		"@cloudflare/containers": "^0.0.13",
+		"@cloudflare/sandbox": "^0.0.5",
 		"@coderscreen/common": "workspace:^",
 		"@coderscreen/db": "workspace:^",
 		"@daytonaio/sdk": "0.21.1",

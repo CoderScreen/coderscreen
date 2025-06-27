@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
 import { useCurrentRoomId } from '@/lib/params';
 import { RoomSchema } from '@coderscreen/api/schema/room';
+import { useRouter } from '@tanstack/react-router';
 
 // Get all rooms
 export const useRooms = () => {
@@ -83,7 +84,7 @@ export const useCreateRoom = () => {
 export const useUpdateRoom = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async ({
       id,
       data,
@@ -101,8 +102,10 @@ export const useUpdateRoom = () => {
       return response.json();
     },
     onSuccess: (data, { id }) => {
+      console.log('onSuccess', data, id);
       // Update the specific room in cache
       queryClient.setQueryData(['rooms', id], data);
+
       // Invalidate and refetch rooms list
       queryClient.invalidateQueries({ queryKey: ['rooms'] });
     },
@@ -111,6 +114,12 @@ export const useUpdateRoom = () => {
       ERROR_MESSAGE: 'Failed to update room',
     },
   });
+
+  return {
+    updateRoom: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
 };
 
 // Delete a room
@@ -177,6 +186,39 @@ export const useRunRoomCode = () => {
   });
   return {
     runRoomCode: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+export const useEndRoom = () => {
+  const router = useRouter();
+  const currentRoomId = useCurrentRoomId();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.rooms[':id'].end.$post({
+        param: { id: currentRoomId },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to end room');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms', currentRoomId] });
+      router.navigate({
+        to: '/room/$roomId/summary',
+        params: { roomId: currentRoomId },
+      });
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Room ended successfully',
+      ERROR_MESSAGE: 'Failed to end room',
+    },
+  });
+  return {
+    endRoom: mutation.mutateAsync,
     isLoading: mutation.isPending,
     ...mutation,
   };

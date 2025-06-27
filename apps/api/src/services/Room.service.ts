@@ -39,10 +39,19 @@ export class RoomService {
 				...values,
 				updatedAt: new Date().toISOString(),
 			})
-			.where(eq(roomTable.id, id));
+			.where(eq(roomTable.id, id))
+			.returning()
+			.then((data) => data[0]);
 	}
 
 	async deleteRoom(id: Id<'room'>) {
 		return this.db.delete(roomTable).where(eq(roomTable.id, id));
+	}
+
+	/**
+	 * Ending the interview should update the status, save final details
+	 */
+	async endRoom(id: Id<'room'>) {
+		await this.db.update(roomTable).set({ status: 'completed' }).where(eq(roomTable.id, id));
 	}
 }

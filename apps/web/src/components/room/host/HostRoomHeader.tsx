@@ -27,6 +27,7 @@ import {
 } from '@remixicon/react';
 import { toast } from 'sonner';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { useEndRoom } from '@/query/room.query';
 
 interface HostRoomHeaderProps {
   roomId: string;
@@ -50,6 +51,8 @@ export const HostRoomHeader = ({
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const { endRoom, isLoading: isEndingRoom } = useEndRoom();
+
   const shareLink = `${window.location.origin}/room/${roomId}`;
 
   const handleCopyLink = async () => {
@@ -71,8 +74,8 @@ export const HostRoomHeader = ({
     //
   };
 
-  const handleEndInterview = () => {
-    //
+  const handleEndInterview = async () => {
+    await endRoom();
   };
 
   const handleResetRoom = () => {
@@ -139,6 +142,7 @@ export const HostRoomHeader = ({
           variant='destructive'
           onClick={() => setIsEndInterviewOpen(true)}
           icon={RiCloseLine}
+          disabled={isEndingRoom}
         >
           End Interview
         </Button>
@@ -219,6 +223,7 @@ export const HostRoomHeader = ({
               variant='destructive'
               onClick={handleEndInterview}
               icon={RiCheckLine}
+              isLoading={isEndingRoom}
             >
               End Interview
             </Button>

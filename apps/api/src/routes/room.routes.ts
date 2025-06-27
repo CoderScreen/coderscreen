@@ -186,4 +186,28 @@ export const roomRouter = new Hono<AppContext>()
 			const codeOutput = result.result;
 			return ctx.json({ codeOutput });
 		},
+	)
+	// POST /rooms/:id/end - End the room
+	.post(
+		'/:id/end',
+		describeRoute({
+			description: 'End the interview',
+			responses: {
+				200: {
+					description: 'Room ended successfully',
+				},
+			},
+		}),
+		zValidator(
+			'param',
+			z.object({
+				id: idString('room'),
+			}),
+		),
+		async (ctx) => {
+			const { id } = ctx.req.valid('param');
+			const { roomService } = useAppFactory(ctx);
+			await roomService.endRoom(id);
+			return ctx.json(null, 200);
+		},
 	);

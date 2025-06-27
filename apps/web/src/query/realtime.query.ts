@@ -79,21 +79,18 @@ export function useRealtimeConnection(
         config?.onStatusChange?.(isConnected ? 'connected' : 'disconnected');
       });
 
-      provider.on(
-        'connection-error',
-        (event: Event, provider: WebsocketProvider) => {
-          const errorMessage =
-            event instanceof ErrorEvent ? event.message : 'Connection error';
-          const errorStatus = {
-            isConnected: false,
-            status: 'disconnected' as const,
-            error: errorMessage,
-          };
-          setConnectionStatus(errorStatus);
-          setCollaborationStatus?.(errorStatus);
-          config?.onError?.(new Error(errorMessage));
-        }
-      );
+      provider.on('connection-error', (event: Event) => {
+        const errorMessage =
+          event instanceof ErrorEvent ? event.message : 'Connection error';
+        const errorStatus = {
+          isConnected: false,
+          status: 'disconnected' as const,
+          error: errorMessage,
+        };
+        setConnectionStatus(errorStatus);
+        setCollaborationStatus?.(errorStatus);
+        config?.onError?.(new Error(errorMessage));
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -151,7 +148,6 @@ export function useRealtimeConnection(
 
 // Unified connection hook that combines both realtime collaboration and code execution
 export function useUnifiedConnection() {
-  const currentRoomId = useCurrentRoomId();
   const [unifiedStatus, setUnifiedStatus] = useState<UnifiedConnectionStatus>({
     isConnected: false,
     status: 'disconnected',

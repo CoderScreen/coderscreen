@@ -16,4 +16,5 @@ export const roomTable = pgTable('rooms', {
     .notNull(),
   language: text('language').$type<RoomLanguage>().notNull(),
   status: text('status').$type<RoomStatus>().notNull(),
+  notes: text('notes').notNull().default(''),
 });

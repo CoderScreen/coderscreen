@@ -11,6 +11,7 @@ import { auth } from '../better-auth.config';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { except } from 'hono/combine';
 import { UnifiedRoomDo } from './durable-objects/room.do';
+import { Sandbox } from './containers/CustomSandbox.do';
 
 export interface AppContext {
 	Variables: {
@@ -23,6 +24,7 @@ export interface AppContext {
 	};
 	Bindings: {
 		ROOM_DO: DurableObjectNamespace<UnifiedRoomDo>;
+		SANDBOX: DurableObjectNamespace<Sandbox>;
 
 		FE_APP_URL: string;
 		DATABASE_URL: string;
@@ -73,4 +75,4 @@ app.get(
 export default app;
 
 export type AppRouter = typeof app;
-export { UnifiedRoomDo };
+export { UnifiedRoomDo, Sandbox };
