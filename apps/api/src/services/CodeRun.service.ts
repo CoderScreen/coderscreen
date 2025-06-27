@@ -10,8 +10,8 @@ export class CodeRunService {
 		this.ctx = ctx;
 	}
 
-	async runCode(params: { roomId: Id<'room'>; code: string; language?: string }) {
-		const { roomId, code, language = 'javascript' } = params;
+	async runCode(params: { roomId: Id<'room'>; code: string; language: string }) {
+		const { roomId, code, language } = params;
 
 		// Get the durable object to broadcast execution status
 		const id = this.ctx.env.ROOM_DO.idFromName(roomId);
@@ -43,12 +43,12 @@ export class CodeRunService {
 			await sandbox.deleteFile(fileName, {});
 
 			// Extract output from the result - handle both void and result object cases
-			let output = 'Execution completed';
+			let output = 'No output from execution';
 			let exitCode = 0;
 			let error = null;
 
 			if (result && typeof result === 'object' && 'stdout' in result) {
-				output = result.stdout || result.stderr || 'Execution completed';
+				output = result.stdout || result.stderr || 'No output from execution';
 				exitCode = result.exitCode || 0;
 				error = result.stderr || null;
 			}

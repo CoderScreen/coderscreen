@@ -44,8 +44,8 @@ export function CodeEditor() {
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;
     const code = editorRef.getModel()?.getValue() ?? '';
-    runRoomCode({ code });
-  }, [editorRef, runRoomCode]);
+    runRoomCode({ code, language });
+  }, [editorRef, runRoomCode, language]);
 
   const handleLanguageChange = useCallback(
     (value: string) => {

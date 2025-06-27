@@ -166,10 +166,16 @@ export const useRunRoomCode = () => {
   const currentRoomId = useCurrentRoomId();
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async ({ code }: { code: string }) => {
+    mutationFn: async ({
+      code,
+      language,
+    }: {
+      code: string;
+      language: string;
+    }) => {
       const response = await apiClient.rooms[':id'].run.$post({
         param: { id: currentRoomId },
-        json: { code },
+        json: { code, language },
       });
       if (!response.ok) {
         throw new Error('Failed to run room code');

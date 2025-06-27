@@ -174,14 +174,14 @@ export const roomRouter = new Hono<AppContext>()
 				id: idString('room'),
 			}),
 		),
-		zValidator('json', z.object({ code: z.string() })),
+		zValidator('json', z.object({ code: z.string(), language: z.string() })),
 		async (ctx) => {
 			const { id } = ctx.req.valid('param');
-			const { code } = ctx.req.valid('json');
+			const { code, language } = ctx.req.valid('json');
 
 			const { codeRunService } = useAppFactory(ctx);
 
-			const result = await codeRunService.runCode({ roomId: id, code });
+			const result = await codeRunService.runCode({ roomId: id, code, language });
 
 			const codeOutput = result.result;
 			return ctx.json({ codeOutput });
