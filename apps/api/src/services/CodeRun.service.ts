@@ -1,4 +1,5 @@
-import { getSandbox } from '@/containers/CustomSandbox.do';
+// import { getSandbox } from '@/containers/CustomSandbox.do';
+import { getSandbox } from '@cloudflare/sandbox';
 import { AppContext } from '..';
 import { Id } from '@coderscreen/common/id';
 import { Context } from 'hono';
@@ -13,15 +14,25 @@ export class CodeRunService {
 	async runCode(params: { roomId: Id<'room'>; code: string; language: string }) {
 		const { roomId, code, language } = params;
 
+		const randomId = crypto.randomUUID();
 		// Get the durable object to broadcast execution status
 		const id = this.ctx.env.ROOM_DO.idFromName(roomId);
 		const roomDo = this.ctx.env.ROOM_DO.get(id);
 
-		const sandbox = await getSandbox(this.ctx.env.SANDBOX, roomId);
+		let start = Date.now();
+		const sandbox = getSandbox(this.ctx.env.SANDBOX, 'code-execution-sandbox');
+		let end = Date.now();
+		console.log('sandbox-time', end - start);
+
+		start = Date.now();
+		await sandbox.startAndWaitForPorts([3000]);
+		end = Date.now();
+		console.log('sandbox-start-time', end - start);
 
 		try {
 			// Broadcast execution start
-			await roomDo.handleCodeExecution({ type: 'start' });
+
+			// await roomDo.handleCodeExecution({ type: 'start' });
 
 			// Determine file extension and command based on language
 			const fileExtension = this.getFileExtension(language);
@@ -33,14 +44,23 @@ export class CodeRunService {
 			console.log('code', code);
 
 			// Write the code to a file in the sandbox
-			await sandbox.writeFile(fileName, code, { encoding: 'utf8' });
+			// start = Date.now();
+			// await sandbox.writeFile(fileName, code, { encoding: 'utf8' });
+			// end = Date.now();
+			// console.log('write-file-time', end - start);
 
 			// Execute the code in the sandbox
-			const result = await sandbox.exec(command, [fileName]);
+			start = Date.now();
+			const result = await sandbox.exec(`node -e "console.log('23131');"`, []);
+			end = Date.now();
+			console.log('exec-time', end - start);
 			console.log('sandbox-result', result);
 
-			// Clean up the file
-			await sandbox.deleteFile(fileName, {});
+			// // Clean up the file
+			// start = Date.now();
+			// await sandbox.deleteFile(fileName, {});
+			// end = Date.now();
+			// console.log('delete-file-time', end - start);
 
 			// Extract output from the result - handle both void and result object cases
 			let output = 'No output from execution';
@@ -54,7 +74,7 @@ export class CodeRunService {
 			}
 
 			// Broadcast execution complete
-			await roomDo.handleCodeExecution({ type: 'complete', output });
+			// await roomDo.handleCodeExecution({ type: 'complete', output });
 
 			return {
 				result: output,

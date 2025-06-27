@@ -1,11 +1,17 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { TanstackQueryClient } from '@/query/client';
 import { Toaster } from '@/components/ui/toast';
+import { AuthContext } from '@/contexts/AuthContext';
 
 // import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
-export const Route = createRootRoute({
+interface RouterContext {
+  queryClient: QueryClient;
+  auth: Promise<AuthContext>;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <QueryClientProvider client={TanstackQueryClient}>

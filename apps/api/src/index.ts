@@ -11,7 +11,7 @@ import { auth } from '../better-auth.config';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { except } from 'hono/combine';
 import { UnifiedRoomDo } from './durable-objects/room.do';
-import { Sandbox } from './containers/CustomSandbox.do';
+import { Sandbox } from '@cloudflare/sandbox';
 
 export interface AppContext {
 	Variables: {
@@ -35,6 +35,11 @@ export interface AppContext {
 
 const app = new Hono<AppContext>()
 	.use(logger())
+	.get('/health', (ctx) => {
+		return ctx.json({
+			status: 'ok',
+		});
+	})
 	.use(
 		cors({
 			origin: ['https://coderscreen.com', 'http://localhost:3000'],
