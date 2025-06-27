@@ -1,7 +1,3 @@
-export interface Env {
-	// Add any environment variables you need
-}
-
 export interface AwarenessState {
 	user: {
 		name: string;

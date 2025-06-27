@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCurrentRoomId } from '@/lib/params';
 import * as Y from 'yjs';
+import { ConnectionStatus } from './realtime.query';
 
 export interface CodeExecutionStatus {
   isRunning: boolean;
@@ -51,14 +52,15 @@ const getCodeExecutionWebsocketUrl = (roomId: string) => {
   return `${API_URL.replace('https', 'wss').replace('http', 'ws')}/rooms/${roomId}/public`;
 };
 
-export function useCodeExecutionWebSocket() {
+export function useCodeExecutionWebSocket(
+  setExecutionStatus?: (status: ConnectionStatus) => void
+) {
   const currentRoomId = useCurrentRoomId();
   const [data, setData] = useState<CodeExecutionStatus>({
     isRunning: false,
     output: '',
     timestamp: Date.now(),
   });
-  const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const ydocRef = useRef<Y.Doc | null>(null);
@@ -79,6 +81,7 @@ export function useCodeExecutionWebSocket() {
       // Set up execution state observer
       const executionState = ydoc.getMap('execution');
       executionState.observe((event) => {
+        console.log('Execution state changed:', event);
         const status = executionState.get('status') as
           | CodeExecutionState
           | undefined;
@@ -93,23 +96,52 @@ export function useCodeExecutionWebSocket() {
       });
 
       ws.onopen = () => {
-        setIsConnected(true);
         console.log('Code execution WebSocket connected');
 
+        // Update connection status
+        setExecutionStatus?.({
+          isConnected: true,
+          status: 'connected',
+        });
+
         // Send sync message to get current state
-        ws.send(JSON.stringify({ type: 'sync' }));
+        ws.send(JSON.stringify({ type: 'execution', messageType: 'sync' }));
       };
 
       ws.onmessage = (event) => {
         try {
           const message: CodeExecutionMessage = JSON.parse(event.data);
+          console.log('Received message:', message);
 
           switch (message.type) {
             case 'sync':
-              if (Array.isArray(message.data) && ydocRef.current) {
+              console.log(
+                'Received sync message:',
+                message,
+                Array.isArray(message.data),
+                ydocRef.current
+              );
+              if (Array.isArray(message.data) && !!ydocRef.current) {
                 // Apply the received document state
                 const update = new Uint8Array(message.data);
                 Y.applyUpdate(ydocRef.current, update);
+
+                // Manually read the current execution state after sync
+                const executionState = ydocRef.current.getMap('execution');
+                const status = executionState.get('status') as
+                  | CodeExecutionState
+                  | undefined;
+
+                console.log('Execution state after sync:', status);
+
+                if (status) {
+                  setData({
+                    isRunning: status.isRunning || false,
+                    output: status.output || '',
+                    error: status.error,
+                    timestamp: status.timestamp || Date.now(),
+                  });
+                }
               }
               break;
 
@@ -176,8 +208,13 @@ export function useCodeExecutionWebSocket() {
       };
 
       ws.onclose = () => {
-        setIsConnected(false);
         console.log('Code execution WebSocket disconnected');
+
+        // Update connection status
+        setExecutionStatus?.({
+          isConnected: false,
+          status: 'disconnected',
+        });
 
         // Clean up Y.js document
         if (ydocRef.current) {
@@ -196,13 +233,25 @@ export function useCodeExecutionWebSocket() {
 
       ws.onerror = (error) => {
         console.error('Code execution WebSocket error:', error);
-        setIsConnected(false);
+
+        // Update connection status
+        setExecutionStatus?.({
+          isConnected: false,
+          status: 'disconnected',
+          error: 'Connection error',
+        });
       };
     } catch (error) {
       console.error('Error creating code execution WebSocket:', error);
-      setIsConnected(false);
+
+      // Update connection status
+      setExecutionStatus?.({
+        isConnected: false,
+        status: 'disconnected',
+        error: 'Failed to create connection',
+      });
     }
-  }, [currentRoomId]);
+  }, [currentRoomId, setExecutionStatus]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -220,8 +269,12 @@ export function useCodeExecutionWebSocket() {
       wsRef.current = null;
     }
 
-    setIsConnected(false);
-  }, []);
+    // Update connection status
+    setExecutionStatus?.({
+      isConnected: false,
+      status: 'disconnected',
+    });
+  }, [setExecutionStatus]);
 
   useEffect(() => {
     connect();
@@ -232,7 +285,6 @@ export function useCodeExecutionWebSocket() {
 
   return {
     data,
-    isConnected,
     connect,
     disconnect,
   };

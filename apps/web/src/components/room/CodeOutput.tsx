@@ -1,32 +1,16 @@
-import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
+import { CodeExecutionStatus } from '@/query/codeExecution.query';
 
-export const CodeOutput = () => {
-  const { data, isConnected } = useCodeExecutionWebSocket();
+interface CodeOutputProps {
+  data: CodeExecutionStatus;
+}
 
+export const CodeOutput = ({ data }: CodeOutputProps) => {
   const hasOutput = data.output && data.output.trim() !== '';
   const hasError = data.error && data.error.trim() !== '';
 
   return (
     <div className='h-full w-full bg-white'>
       <div className='p-4 h-full overflow-auto'>
-        {/* Connection Status Indicator */}
-        <div className='flex items-center gap-2 mb-3 text-xs'>
-          <div
-            className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          />
-          <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </span>
-          {data.isRunning && (
-            <span className='text-blue-600 flex items-center gap-1'>
-              <div className='w-2 h-2 bg-blue-500 rounded-full animate-pulse' />
-              Running...
-            </span>
-          )}
-        </div>
-
         {/* Output Content */}
         {hasOutput || hasError ? (
           <div className='space-y-2'>

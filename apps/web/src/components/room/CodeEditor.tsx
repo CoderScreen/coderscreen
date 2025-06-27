@@ -19,6 +19,7 @@ import {
   useCodeEditorCollaboration,
   defaultConfigs,
 } from '@/query/realtime.query';
+import { useRoomContext } from '@/contexts/RoomContext';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -40,25 +41,20 @@ export function CodeEditor() {
   const [language, setLanguage] = useState('javascript');
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
   const { runRoomCode, isLoading } = useRunRoomCode();
+  const { setCollaborationStatus } = useRoomContext();
 
   // Use the new realtime collaboration hook
   const { connectionStatus } = useCodeEditorCollaboration(
     {
       documentType: 'code',
     },
-    editorRef
+    editorRef,
+    setCollaborationStatus
   );
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     setEditorRef(e);
   }, []);
-
-  // Handle language change
-  useEffect(() => {
-    if (editorRef) {
-      monaco.editor.setModelLanguage(editorRef.getModel()!, language);
-    }
-  }, [language, editorRef]);
 
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;
@@ -66,15 +62,23 @@ export function CodeEditor() {
     runRoomCode({ code });
   }, [editorRef, runRoomCode]);
 
+  const handleLanguageChange = useCallback(
+    (value: string) => {
+      setLanguage(value);
+
+      if (editorRef) {
+        monaco.editor.setModelLanguage(editorRef.getModel()!, language);
+      }
+    },
+    [editorRef, language]
+  );
+
   return (
     <div className='h-full w-full border bg-white text-gray-900 overflow-hidden'>
       {/* Menu Bar */}
       <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
-          <Select
-            value={language}
-            onValueChange={(value) => setLanguage(value)}
-          >
+          <Select value={language} onValueChange={handleLanguageChange}>
             <SelectTrigger>
               <SelectValue placeholder='Select a language' />
             </SelectTrigger>

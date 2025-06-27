@@ -10,6 +10,9 @@ import {
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { HostRoomHeader } from './host/HostRoomHeader';
+import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
+import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
+import { useInstructionEditorCollaboration } from '@/query/realtime.query';
 
 export const RoomView = () => {
   // You can get this from URL params or props
@@ -31,14 +34,50 @@ export const RoomView = () => {
   };
 
   return (
+    <RoomProvider>
+      <RoomContent
+        roomId={roomId}
+        onEndInterview={handleEndInterview}
+        onResetRoom={handleResetRoom}
+        onUpdateRoomTitle={handleUpdateRoomTitle}
+      />
+    </RoomProvider>
+  );
+};
+
+interface RoomContentProps {
+  roomId: string;
+  onEndInterview: () => void;
+  onResetRoom: () => void;
+  onUpdateRoomTitle: (title: string) => void;
+}
+
+const RoomContent = ({
+  roomId,
+  onEndInterview,
+  onResetRoom,
+  onUpdateRoomTitle,
+}: RoomContentProps) => {
+  const { setCollaborationStatus, setExecutionStatus } = useRoomContext();
+
+  // Initialize realtime connections at the top level
+  const { editor: instructionEditor } = useInstructionEditorCollaboration(
+    {
+      documentType: 'instructions',
+    },
+    setCollaborationStatus
+  );
+
+  const { data: executionData } = useCodeExecutionWebSocket(setExecutionStatus);
+
+  return (
     <div className='h-screen w-screen flex flex-col'>
       <HostRoomHeader
         roomId={roomId}
         roomTitle='Frontend Interview - React'
-        connectedUsers={3}
-        onEndInterview={handleEndInterview}
-        onResetRoom={handleResetRoom}
-        onUpdateRoomTitle={handleUpdateRoomTitle}
+        onEndInterview={onEndInterview}
+        onResetRoom={onResetRoom}
+        onUpdateRoomTitle={onUpdateRoomTitle}
       />
       <div className='flex-1'>
         <PanelGroup direction='horizontal'>
@@ -80,11 +119,11 @@ export const RoomView = () => {
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                <CodeOutput />
+                <CodeOutput data={executionData} />
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
-                <InstructionEditor />
+                <InstructionEditor editor={instructionEditor} />
               </TabsContent>
             </Tabs>
           </Panel>

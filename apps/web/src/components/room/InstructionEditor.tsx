@@ -10,14 +10,13 @@ import {
   RiListOrdered,
   RiListUnordered,
 } from '@remixicon/react';
-import { useInstructionEditorCollaboration } from '@/query/realtime.query';
+import { Editor } from '@tiptap/react';
 
-export const InstructionEditor = () => {
-  // Use the new realtime collaboration hook
-  const { editor } = useInstructionEditorCollaboration({
-    documentType: 'instructions',
-  });
+interface InstructionEditorProps {
+  editor: Editor | null;
+}
 
+export const InstructionEditor = ({ editor }: InstructionEditorProps) => {
   const toggleBold = () => {
     editor?.chain().focus().toggleBold().run();
   };

@@ -22,6 +22,15 @@ export interface ConnectionStatus {
   error?: string;
 }
 
+// Enhanced connection status for unified connections
+export interface UnifiedConnectionStatus {
+  isConnected: boolean;
+  status: 'connected' | 'disconnected' | 'connecting';
+  collaborationConnected: boolean;
+  executionConnected: boolean;
+  error?: string;
+}
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 const getWebsocketUrl = (id: string) => {
@@ -29,7 +38,10 @@ const getWebsocketUrl = (id: string) => {
 };
 
 // Hook for managing realtime connections
-export function useRealtimeConnection(config?: RealtimeConfig) {
+export function useRealtimeConnection(
+  config?: RealtimeConfig,
+  setCollaborationStatus?: (status: ConnectionStatus) => void
+) {
   const currentRoomId = useCurrentRoomId();
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
@@ -44,7 +56,9 @@ export function useRealtimeConnection(config?: RealtimeConfig) {
 
   const connect = useCallback(() => {
     try {
-      setConnectionStatus({ isConnected: false, status: 'connecting' });
+      const newStatus = { isConnected: false, status: 'connecting' as const };
+      setConnectionStatus(newStatus);
+      setCollaborationStatus?.(newStatus);
 
       const ydoc = new Y.Doc();
       ydocRef.current = ydoc;
@@ -61,6 +75,7 @@ export function useRealtimeConnection(config?: RealtimeConfig) {
         };
 
         setConnectionStatus(newStatus);
+        setCollaborationStatus?.(newStatus);
         config?.onStatusChange?.(isConnected ? 'connected' : 'disconnected');
       });
 
@@ -69,27 +84,37 @@ export function useRealtimeConnection(config?: RealtimeConfig) {
         (event: Event, provider: WebsocketProvider) => {
           const errorMessage =
             event instanceof ErrorEvent ? event.message : 'Connection error';
-          setConnectionStatus({
+          const errorStatus = {
             isConnected: false,
-            status: 'disconnected',
+            status: 'disconnected' as const,
             error: errorMessage,
-          });
+          };
+          setConnectionStatus(errorStatus);
+          setCollaborationStatus?.(errorStatus);
           config?.onError?.(new Error(errorMessage));
         }
       );
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      setConnectionStatus({
+      const errorStatus = {
         isConnected: false,
-        status: 'disconnected',
+        status: 'disconnected' as const,
         error: errorMessage,
-      });
+      };
+      setConnectionStatus(errorStatus);
+      setCollaborationStatus?.(errorStatus);
       config?.onError?.(
         error instanceof Error ? error : new Error(errorMessage)
       );
     }
-  }, [currentRoomId, websocketUrl, config?.onStatusChange, config?.onError]);
+  }, [
+    currentRoomId,
+    websocketUrl,
+    config?.onStatusChange,
+    config?.onError,
+    setCollaborationStatus,
+  ]);
 
   const disconnect = useCallback(() => {
     if (providerRef.current) {
@@ -100,8 +125,13 @@ export function useRealtimeConnection(config?: RealtimeConfig) {
       ydocRef.current.destroy();
       ydocRef.current = null;
     }
-    setConnectionStatus({ isConnected: false, status: 'disconnected' });
-  }, []);
+    const disconnectedStatus = {
+      isConnected: false,
+      status: 'disconnected' as const,
+    };
+    setConnectionStatus(disconnectedStatus);
+    setCollaborationStatus?.(disconnectedStatus);
+  }, [setCollaborationStatus]);
 
   useEffect(() => {
     connect();
@@ -119,12 +149,61 @@ export function useRealtimeConnection(config?: RealtimeConfig) {
   };
 }
 
+// Unified connection hook that combines both realtime collaboration and code execution
+export function useUnifiedConnection() {
+  const currentRoomId = useCurrentRoomId();
+  const [unifiedStatus, setUnifiedStatus] = useState<UnifiedConnectionStatus>({
+    isConnected: false,
+    status: 'disconnected',
+    collaborationConnected: false,
+    executionConnected: false,
+  });
+
+  // Track individual connection states
+  const [collaborationStatus, setCollaborationStatus] =
+    useState<ConnectionStatus>({
+      isConnected: false,
+      status: 'disconnected',
+    });
+  const [executionStatus, setExecutionStatus] = useState<ConnectionStatus>({
+    isConnected: false,
+    status: 'disconnected',
+  });
+
+  // Update unified status when individual statuses change
+  useEffect(() => {
+    const isConnected =
+      collaborationStatus.isConnected || executionStatus.isConnected;
+    const status = isConnected ? 'connected' : 'disconnected';
+
+    setUnifiedStatus({
+      isConnected,
+      status,
+      collaborationConnected: collaborationStatus.isConnected,
+      executionConnected: executionStatus.isConnected,
+      error: collaborationStatus.error || executionStatus.error,
+    });
+  }, [collaborationStatus, executionStatus]);
+
+  return {
+    connectionStatus: unifiedStatus,
+    collaborationStatus,
+    executionStatus,
+    setCollaborationStatus,
+    setExecutionStatus,
+  };
+}
+
 // Hook for code editor collaboration
 export function useCodeEditorCollaboration(
   config: RealtimeConfig,
-  editorRef: editor.IStandaloneCodeEditor | undefined
+  editorRef: editor.IStandaloneCodeEditor | undefined,
+  setCollaborationStatus?: (status: ConnectionStatus) => void
 ) {
-  const { ydoc, provider, connectionStatus } = useRealtimeConnection(config);
+  const { ydoc, provider, connectionStatus } = useRealtimeConnection(
+    config,
+    setCollaborationStatus
+  );
   const bindingRef = useRef<MonacoBinding | null>(null);
 
   useEffect(() => {
@@ -154,8 +233,14 @@ export function useCodeEditorCollaboration(
 }
 
 // Hook for instruction editor collaboration
-export function useInstructionEditorCollaboration(config: RealtimeConfig) {
-  const { ydoc, provider, connectionStatus } = useRealtimeConnection(config);
+export function useInstructionEditorCollaboration(
+  config: RealtimeConfig,
+  setCollaborationStatus?: (status: ConnectionStatus) => void
+) {
+  const { ydoc, provider, connectionStatus } = useRealtimeConnection(
+    config,
+    setCollaborationStatus
+  );
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {

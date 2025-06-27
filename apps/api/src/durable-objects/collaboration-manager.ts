@@ -66,6 +66,7 @@ export class CollaborationManager {
 	}
 
 	handleMessage(ws: WebSocket, message: CollaborationMessage, clientId: string): void {
+		console.log('collaboration-manager', this.roomType, message);
 		const awareness = this.ydoc.getMap('awareness');
 
 		switch (message.type) {

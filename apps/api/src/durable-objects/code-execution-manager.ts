@@ -58,19 +58,33 @@ export class CodeExecutionManager {
 		return clientId;
 	}
 
-	handleMessage(ws: WebSocket, message: CodeExecutionMessage, clientId: string): void {
+	handleMessage(ws: WebSocket, message: CodeExecutionMessage): void {
 		console.log('Code execution message received:', message);
 
 		switch (message.type) {
 			case 'sync':
 				// Send current document state
 				const docState = Y.encodeStateAsUpdate(this.ydoc);
-				ws.send(
-					JSON.stringify({
-						type: 'sync',
-						data: Array.from(docState),
-					}),
-				);
+				const syncResponse = {
+					type: 'sync',
+					data: Array.from(docState),
+				};
+				ws.send(JSON.stringify(syncResponse));
+
+				// Also send the current execution state immediately after sync
+				const executionState = this.ydoc.getMap('execution');
+				const currentStatus = executionState.get('status') as CodeExecutionState | undefined;
+				if (currentStatus) {
+					const executionMessage: CodeExecutionMessage = {
+						type: currentStatus.isRunning ? 'execution_start' : currentStatus.error ? 'execution_error' : 'execution_complete',
+						data: {
+							output: currentStatus.output,
+							error: currentStatus.error,
+							timestamp: currentStatus.timestamp,
+						},
+					};
+					ws.send(JSON.stringify(executionMessage));
+				}
 				break;
 
 			case 'update':

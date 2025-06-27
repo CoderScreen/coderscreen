@@ -1,6 +1,6 @@
 import { CollaborationManager } from './collaboration-manager';
 import { CodeExecutionManager } from './code-execution-manager';
-import { Env, RoomInfo, RoomStatus } from './types';
+import { RoomInfo, RoomStatus } from './types';
 import { DurableObject } from 'cloudflare:workers';
 import { AppContext } from '@/index';
 
@@ -108,46 +108,81 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		this.instructionManager.addConnection(ws, clientId);
 		this.codeExecutionManager.addConnection(ws, clientId);
 
-		// Handle WebSocket events
-		ws.addEventListener('close', () => {
-			this.codeManager.removeConnection(ws);
-			this.instructionManager.removeConnection(ws);
-			this.codeExecutionManager.removeConnection(ws);
-		});
-
-		ws.addEventListener('error', (error) => {
-			console.error('WebSocket error:', error);
-			this.codeManager.removeConnection(ws);
-			this.instructionManager.removeConnection(ws);
-			this.codeExecutionManager.removeConnection(ws);
-		});
-
-		ws.addEventListener('message', (event) => {
-			try {
-				const message = JSON.parse(event.data as string);
-				this.handleMessage(ws, message, clientId);
-			} catch (error) {
-				console.error('Error processing message:', error);
-			}
-		});
+		console.log(`WebSocket connection established with client ${clientId}`);
 	}
 
-	private handleMessage(ws: WebSocket, message: any, clientId: string): void {
+	// Cloudflare Durable Object WebSocket message handler
+	webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): void {
+		try {
+			// Handle string messages (JSON)
+			if (typeof message === 'string') {
+				console.log('room.do webSocketMessage received:', message);
+				const parsedMessage = JSON.parse(message);
+				this.handleMessage(ws, parsedMessage);
+			} else {
+				// Handle binary messages (Y.js updates)
+				// console.log('Received binary message (likely Y.js update)');
+				// You might want to handle binary messages differently
+			}
+		} catch (error) {
+			console.error('Error processing WebSocket message:', error);
+		}
+	}
+
+	// Cloudflare Durable Object WebSocket close handler
+	webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean): void {
+		console.log(`WebSocket closed: code=${code}, reason=${reason}, wasClean=${wasClean}`);
+
+		this.codeManager.removeConnection(ws);
+		this.instructionManager.removeConnection(ws);
+		this.codeExecutionManager.removeConnection(ws);
+	}
+
+	// Cloudflare Durable Object WebSocket error handler
+	webSocketError(ws: WebSocket, error: unknown): void {
+		console.error('WebSocket error:', error);
+
+		this.codeManager.removeConnection(ws);
+		this.instructionManager.removeConnection(ws);
+		this.codeExecutionManager.removeConnection(ws);
+	}
+
+	private handleMessage(ws: WebSocket, message: any): void {
 		console.log('Message received:', message);
 
 		// Route message to appropriate manager based on message type or document type
 		if (message.type === 'execution') {
 			console.log('Code execution message received:', message);
-			this.codeExecutionManager.handleMessage(ws, message, clientId);
+			// Extract the actual message type and create the proper message format
+			const executionMessage = {
+				type: message.messageType ?? message.type,
+				data: message.data,
+			};
+			this.codeExecutionManager.handleMessage(ws, executionMessage);
 			return;
 		} else if (message.documentType === 'code') {
-			this.codeManager.handleMessage(ws, message, clientId);
+			this.codeManager.handleMessage(ws, message, this.getClientId(ws));
 		} else if (message.documentType === 'instructions') {
-			this.instructionManager.handleMessage(ws, message, clientId);
+			this.instructionManager.handleMessage(ws, message, this.getClientId(ws));
 		} else {
 			// Default to code if no document type specified
-			this.codeManager.handleMessage(ws, message, clientId);
+			this.codeManager.handleMessage(ws, message, this.getClientId(ws));
 		}
+	}
+
+	private getClientId(ws: WebSocket): string {
+		// Try to find the client ID from any of the managers
+		const codeClientId = this.codeManager.getConnections().get(ws);
+		if (codeClientId) return codeClientId;
+
+		const instructionClientId = this.instructionManager.getConnections().get(ws);
+		if (instructionClientId) return instructionClientId;
+
+		const executionClientId = this.codeExecutionManager.getConnections().get(ws);
+		if (executionClientId) return executionClientId;
+
+		// If not found, generate a new one
+		return this.generateClientId();
 	}
 
 	private generateClientId(): string {

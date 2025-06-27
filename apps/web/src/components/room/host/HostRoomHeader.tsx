@@ -26,7 +26,7 @@ import {
   RiMore2Line,
 } from '@remixicon/react';
 import { toast } from 'sonner';
-import { useRealtimeConnection } from '@/query/realtime.query';
+import { useRoomContext } from '@/contexts/RoomContext';
 
 interface HostRoomHeaderProps {
   roomId: string;
@@ -40,7 +40,7 @@ export const HostRoomHeader = ({
   roomId,
   roomTitle = 'Untitled Interview',
 }: HostRoomHeaderProps) => {
-  const { connectionStatus } = useRealtimeConnection();
+  const { connectionStatus } = useRoomContext();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(roomTitle);
