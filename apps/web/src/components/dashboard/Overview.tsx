@@ -1,12 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { SmallHeader } from '@/components/ui/heading';
-import { ProgressBar } from '@/components/ui/progressbar';
-import { QuickActions } from './QuickActions';
-import {
-  RiArrowRightLine,
-  RiSkipRightFill,
-  RiSkipRightLine,
-} from '@remixicon/react';
+import { RiArrowRightLine, RiSkipRightFill } from '@remixicon/react';
 
 export const Overview = () => {
   // Placeholder data
@@ -14,17 +8,6 @@ export const Overview = () => {
     roomTitle: 'Frontend Developer Interview',
     time: '2:30PM',
     roomId: 'room-123',
-  };
-
-  const lastInterview = {
-    candidateName: 'Alex Kim',
-    daysAgo: '2 days ago',
-  };
-
-  const usage = {
-    used: 12,
-    limit: 20,
-    percentage: 60,
   };
 
   const handleJoinInterview = () => {

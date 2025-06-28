@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppTestRouteImport } from './routes/_app/test'
@@ -20,6 +21,11 @@ import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as RoomRoomIdIndexRouteImport } from './routes/room/$roomId/index'
 import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary'
 
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -71,6 +77,7 @@ const RoomRoomIdSummaryRoute = RoomRoomIdSummaryRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/onboarding': typeof OnboardingRoute
   '/login': typeof authLoginRoute
   '/register': typeof authRegisterRoute
   '/verify': typeof authVerifyRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/room/$roomId': typeof RoomRoomIdIndexRoute
 }
 export interface FileRoutesByTo {
+  '/onboarding': typeof OnboardingRoute
   '/login': typeof authLoginRoute
   '/register': typeof authRegisterRoute
   '/verify': typeof authVerifyRoute
@@ -95,6 +103,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/register': typeof authRegisterRoute
   '/(auth)/verify': typeof authVerifyRoute
@@ -108,6 +117,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/onboarding'
     | '/login'
     | '/register'
     | '/verify'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/room/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/onboarding'
     | '/login'
     | '/register'
     | '/verify'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/onboarding'
     | '/(auth)/login'
     | '/(auth)/register'
     | '/(auth)/verify'
@@ -144,6 +156,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
   authLoginRoute: typeof authLoginRoute
   authRegisterRoute: typeof authRegisterRoute
   authVerifyRoute: typeof authVerifyRoute
@@ -153,6 +166,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -244,6 +264,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  OnboardingRoute: OnboardingRoute,
   authLoginRoute: authLoginRoute,
   authRegisterRoute: authRegisterRoute,
   authVerifyRoute: authVerifyRoute,

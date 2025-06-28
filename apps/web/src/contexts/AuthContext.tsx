@@ -7,6 +7,7 @@ export interface AuthContext {
     id: string;
     email: string;
     name: string;
+    isOnboarded: boolean;
   } | null;
   isAuthenticated: boolean;
   isInitalLoading: boolean;
@@ -23,6 +24,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: session.data.user.id,
         email: session.data.user.email,
         name: session.data.user.name || session.data.user.email,
+        // @ts-ignore
+        isOnboarded: !!session.data.user.isOnboarded,
       }
     : null;
 

@@ -12,7 +12,6 @@ import {
   RiTimeLine,
   RiCheckboxCircleLine,
   RiCodeSSlashFill,
-  RiArrowUpLine,
   RiArrowDownLine,
 } from '@remixicon/react';
 import { RoomSchema } from '@coderscreen/api/schema/room';

@@ -9,10 +9,14 @@ export const Route = createFileRoute('/_app')({
   component: RouteComponent,
   wrapInSuspense: true,
   beforeLoad: async ({ context }) => {
-    const { isAuthenticated } = await context.auth; // Call the function
+    const { user, isAuthenticated } = await context.auth; // Call the function
 
-    if (!isAuthenticated) {
-      throw redirect({ to: '/' });
+    if (!isAuthenticated || !user) {
+      throw redirect({ to: '/login' });
+    }
+
+    if (!user.isOnboarded) {
+      throw redirect({ to: '/onboarding' });
     }
   },
 });

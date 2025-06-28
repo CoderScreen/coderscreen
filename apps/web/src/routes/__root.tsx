@@ -4,8 +4,6 @@ import { TanstackQueryClient } from '@/query/client';
 import { Toaster } from '@/components/ui/toast';
 import { AuthContext } from '@/contexts/AuthContext';
 
-// import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-
 interface RouterContext {
   queryClient: QueryClient;
   auth: Promise<AuthContext>;

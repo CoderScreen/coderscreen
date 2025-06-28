@@ -6,11 +6,7 @@ export const DashboardView = () => {
     <div className='w-full px-4'>
       <DashboardHeader />
 
-      {/* <Overview /> */}
-
-      <div>
-        <RoomListView />
-      </div>
+      <RoomListView />
     </div>
   );
 };
