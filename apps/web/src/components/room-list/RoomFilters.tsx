@@ -1,12 +1,5 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Input } from '../ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from '../ui/select';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import {
@@ -33,15 +26,14 @@ import {
   DropdownMenuSubMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown';
 import { cx } from '@/lib/utils';
 
 export interface RoomFilters {
   search: string;
   language: string;
-  dateRange: 'all' | 'today' | 'week' | 'month';
-  status: string;
+  dateRange: '*' | 'today' | 'week' | 'month';
+  status: '*' | 'active' | 'completed';
   sortField: 'createdAt' | 'language' | 'status';
   sortDirection: 'asc' | 'desc';
 }
@@ -49,13 +41,10 @@ export interface RoomFilters {
 interface RoomFiltersProps {
   filters: RoomFilters;
   onFiltersChange: (filters: RoomFilters) => void;
-  onClearFilters: () => void;
-  totalRooms: number;
-  filteredRooms: number;
 }
 
 const LANGUAGE_OPTIONS = [
-  { value: '*', label: 'All Languages' },
+  // { value: '*', label: 'All Languages' },
   { value: 'javascript', label: 'JavaScript' },
   { value: 'python', label: 'Python' },
   { value: 'typescript', label: 'TypeScript' },
@@ -70,80 +59,25 @@ const LANGUAGE_OPTIONS = [
 ];
 
 const DATE_RANGE_OPTIONS = [
-  { value: 'all', label: 'All Time' },
+  // { value: 'all', label: 'All' },
   { value: 'today', label: 'Today' },
   { value: 'week', label: 'This Week' },
   { value: 'month', label: 'This Month' },
 ];
 
 const STATUS_OPTIONS = [
-  { value: '*', label: 'All Status' },
+  // { value: '*', label: 'All' },
   { value: 'active', label: 'Active' },
   { value: 'completed', label: 'Completed' },
-  { value: 'waiting', label: 'Waiting' },
-  { value: 'expired', label: 'Expired' },
 ];
 
-const SORT_OPTIONS = [
-  {
-    field: 'createdAt' as const,
-    direction: 'desc' as const,
-    label: 'Newest First',
-    icon: RiCalendarLine,
-    value: 'createdAt-desc',
-  },
-  {
-    field: 'createdAt' as const,
-    direction: 'asc' as const,
-    label: 'Oldest First',
-    icon: RiCalendarLine,
-    value: 'createdAt-asc',
-  },
-  {
-    field: 'language' as const,
-    direction: 'asc' as const,
-    label: 'Language A-Z',
-    icon: RiCodeBoxLine,
-    value: 'language-asc',
-  },
-  {
-    field: 'language' as const,
-    direction: 'desc' as const,
-    label: 'Language Z-A',
-    icon: RiCodeBoxLine,
-    value: 'language-desc',
-  },
-  {
-    field: 'status' as const,
-    direction: 'asc' as const,
-    label: 'Status A-Z',
-    icon: RiCheckboxCircleLine,
-    value: 'status-asc',
-  },
-  {
-    field: 'status' as const,
-    direction: 'desc' as const,
-    label: 'Status Z-A',
-    icon: RiCheckboxCircleLine,
-    value: 'status-desc',
-  },
-];
-
-export function RoomFilters({
-  filters,
-  onFiltersChange,
-  onClearFilters,
-  totalRooms,
-  filteredRooms,
-}: RoomFiltersProps) {
+export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
   const hasActiveFilters = useMemo(() => {
     return (
       filters.search ||
       filters.language !== '*' ||
-      filters.dateRange !== 'all' ||
-      filters.status !== '*' ||
-      filters.sortField !== 'createdAt' ||
-      filters.sortDirection !== 'desc'
+      filters.dateRange !== '*' ||
+      filters.status !== '*'
     );
   }, [filters]);
 
@@ -151,10 +85,8 @@ export function RoomFilters({
     let count = 0;
     if (filters.search) count++;
     if (filters.language !== '*') count++;
-    if (filters.dateRange !== 'all') count++;
+    if (filters.dateRange !== '*') count++;
     if (filters.status !== '*') count++;
-    if (filters.sortField !== 'createdAt' || filters.sortDirection !== 'desc')
-      count++;
     return count;
   }, [filters]);
 
@@ -165,16 +97,22 @@ export function RoomFilters({
     });
   };
 
-  const handleSortChange = (sortValue: string) => {
-    const [field, direction] = sortValue.split('-') as [
-      RoomFilters['sortField'],
-      RoomFilters['sortDirection'],
-    ];
-    onFiltersChange({
-      ...filters,
-      sortField: field,
-      sortDirection: direction,
-    });
+  const handleSortChange = (sortField: RoomFilters['sortField']) => {
+    const currentSortField = filters.sortField;
+    const currentSortDirection = filters.sortDirection;
+
+    if (currentSortField === sortField) {
+      onFiltersChange({
+        ...filters,
+        sortDirection: currentSortDirection === 'asc' ? 'desc' : 'asc',
+      });
+    } else {
+      onFiltersChange({
+        ...filters,
+        sortField,
+        sortDirection: 'asc',
+      });
+    }
   };
 
   const handleClearFilters = () => {
@@ -182,7 +120,7 @@ export function RoomFilters({
       ...filters,
       search: '',
       language: '*',
-      dateRange: 'all',
+      dateRange: '*',
       status: '*',
       sortField: 'createdAt',
       sortDirection: 'desc',
@@ -208,24 +146,6 @@ export function RoomFilters({
       STATUS_OPTIONS.find((option) => option.value === value)?.label ||
       'All Status'
     );
-  };
-
-  const getSortLabel = () => {
-    const currentSort = SORT_OPTIONS.find(
-      (option) =>
-        option.field === filters.sortField &&
-        option.direction === filters.sortDirection
-    );
-    return currentSort?.label || 'Newest First';
-  };
-
-  const getSortIcon = () => {
-    const currentSort = SORT_OPTIONS.find(
-      (option) =>
-        option.field === filters.sortField &&
-        option.direction === filters.sortDirection
-    );
-    return currentSort?.icon || RiCalendarLine;
   };
 
   return (
@@ -346,53 +266,69 @@ export function RoomFilters({
                 <span className='text-sm font-medium'>Sort</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className='w-48'>
-              <DropdownMenuItem className='flex items-center justify-between px-3 py-2'>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                className='flex items-center justify-between px-3 py-2'
+                onClick={() => handleSortChange('createdAt')}
+                onSelect={(e) => e.preventDefault()}
+              >
                 <div className='flex items-center gap-2'>
-                  <RiCalendarLine className='size-4 text-blue-500' />
+                  <RiCalendarLine className='size-4' />
                   <span className='text-sm'>Created At</span>
                 </div>
-                {filters.sortField === 'createdAt' && (
-                  <div className='flex items-center gap-1'>
-                    {filters.sortDirection === 'asc' ? (
-                      <RiArrowUpLine className='size-3 text-muted-foreground' />
-                    ) : (
-                      <RiArrowDownLine className='size-3 text-muted-foreground' />
-                    )}
-                  </div>
-                )}
+                <RiArrowDownLine
+                  className={cx(
+                    'size-3 text-muted-foreground transition-all duration-200',
+                    filters.sortField === 'createdAt'
+                      ? filters.sortDirection === 'asc'
+                        ? 'transform rotate-180'
+                        : ''
+                      : 'opacity-0'
+                  )}
+                />
               </DropdownMenuItem>
 
-              <DropdownMenuItem className='flex items-center justify-between px-3 py-2'>
+              <DropdownMenuItem
+                className='flex items-center justify-between px-3 py-2'
+                onClick={() => handleSortChange('status')}
+                onSelect={(e) => e.preventDefault()}
+              >
                 <div className='flex items-center gap-2'>
-                  <RiCodeBoxLine className='size-4 text-green-500' />
-                  <span className='text-sm'>Language</span>
-                </div>
-                {filters.sortField === 'language' && (
-                  <div className='flex items-center gap-1'>
-                    {filters.sortDirection === 'asc' ? (
-                      <RiArrowUpLine className='size-3 text-muted-foreground' />
-                    ) : (
-                      <RiArrowDownLine className='size-3 text-muted-foreground' />
-                    )}
-                  </div>
-                )}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem className='flex items-center justify-between px-3 py-2'>
-                <div className='flex items-center gap-2'>
-                  <RiCheckboxCircleLine className='size-4 text-purple-500' />
+                  <RiCheckboxCircleLine className='size-4' />
                   <span className='text-sm'>Status</span>
                 </div>
-                {filters.sortField === 'status' && (
-                  <div className='flex items-center gap-1'>
-                    {filters.sortDirection === 'asc' ? (
-                      <RiArrowUpLine className='size-3 text-muted-foreground' />
-                    ) : (
-                      <RiArrowDownLine className='size-3 text-muted-foreground' />
-                    )}
-                  </div>
-                )}
+                <RiArrowDownLine
+                  className={cx(
+                    'size-3 text-muted-foreground transition-all duration-200',
+                    filters.sortField === 'status'
+                      ? filters.sortDirection === 'asc'
+                        ? 'transform rotate-180'
+                        : ''
+                      : 'opacity-0'
+                  )}
+                />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className='flex items-center justify-between px-3 py-2'
+                onClick={() => handleSortChange('language')}
+                onSelect={(e) => e.preventDefault()}
+              >
+                <div className='flex items-center gap-2'>
+                  <RiCodeBoxLine className='size-4' />
+                  <span className='text-sm'>Language</span>
+                </div>
+
+                <RiArrowDownLine
+                  className={cx(
+                    'size-3 text-muted-foreground transition-all duration-200',
+                    filters.sortField === 'language'
+                      ? filters.sortDirection === 'asc'
+                        ? 'transform rotate-180'
+                        : ''
+                      : 'opacity-0'
+                  )}
+                />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -437,19 +373,19 @@ export function RoomFilters({
                 <RiCloseLine className='size-3' />
               </Button>
             )}
-            {filters.dateRange !== 'all' && (
+            {filters.dateRange !== '*' && (
               <Button
                 variant='secondary'
                 icon={RiCalendarLine}
                 iconClassName='text-primary'
                 className='text-primary'
-                onClick={() => handleFilterChange('dateRange', 'all')}
+                onClick={() => handleFilterChange('dateRange', '*')}
               >
                 {getDateRangeLabel(filters.dateRange)}
                 <RiCloseLine className='size-3' />
               </Button>
             )}
-            {(filters.sortField !== 'createdAt' ||
+            {/* {(filters.sortField !== 'createdAt' ||
               filters.sortDirection !== 'desc') && (
               <Button
                 variant='secondary'
@@ -467,7 +403,7 @@ export function RoomFilters({
                 {getSortLabel()}
                 <RiCloseLine className='size-3' />
               </Button>
-            )}
+            )} */}
           </div>
         )}
 
@@ -495,7 +431,7 @@ export function filterRooms(
     // Search filter
     if (
       filters.search &&
-      !room.id.toLowerCase().includes(filters.search.toLowerCase())
+      !room.title.toLowerCase().includes(filters.search.toLowerCase())
     ) {
       return false;
     }
@@ -519,7 +455,7 @@ export function filterRooms(
     }
 
     // Date range filter
-    if (filters.dateRange !== 'all') {
+    if (filters.dateRange !== '*') {
       const roomDate = new Date(room.createdAt);
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

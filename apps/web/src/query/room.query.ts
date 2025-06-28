@@ -3,6 +3,7 @@ import { apiClient } from './client';
 import { useCurrentRoomId } from '@/lib/params';
 import { RoomSchema } from '@coderscreen/api/schema/room';
 import { useRouter } from '@tanstack/react-router';
+import { InferRequestType } from 'hono/client';
 
 // Get all rooms
 export const useRooms = () => {

@@ -1,31 +1,31 @@
 import { RoomTable } from '@/components/room-list/RoomTable';
-import { RoomListHeader } from '@/components/room-list/RoomListHeader';
 import { useRooms } from '@/query/room.query';
-import { RoomFilters } from '@/components/room-list/RoomFilters';
-import { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { filterRooms, RoomFilters } from '@/components/room-list/RoomFilters';
+import { useMemo, useState } from 'react';
+import { RoomSchema } from '@coderscreen/api/schema/room';
 
 export function RoomListView() {
   const { rooms, isLoading } = useRooms();
 
   const [filters, setFilters] = useState<RoomFilters>({
     search: '',
-    language: '',
-    dateRange: 'all',
+    language: '*',
+    dateRange: '*',
+    status: '*',
+    sortField: 'createdAt',
+    sortDirection: 'desc',
   });
+
+  const filteredRooms = useMemo(() => {
+    if (!rooms) return [];
+
+    return filterRooms(rooms, filters);
+  }, [rooms, filters]);
 
   return (
     <div className='w-full'>
-      {/* <RoomListHeader /> */}
-
-      <RoomFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={() => {}}
-        totalRooms={0}
-        filteredRooms={0}
-      />
-      <RoomTable rooms={rooms ?? []} isLoading={isLoading} />
+      <RoomFilters filters={filters} onFiltersChange={setFilters} />
+      <RoomTable rooms={filteredRooms} isLoading={isLoading} />
     </div>
   );
 }
