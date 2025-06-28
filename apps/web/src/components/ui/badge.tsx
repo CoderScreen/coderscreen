@@ -11,7 +11,7 @@ const badgeVariants = tv({
   ),
   variants: {
     variant: {
-      default: ['bg-blue-50 text-blue-700', ''],
+      default: ['bg-primary text-primary-foreground', ''],
       neutral: ['bg-gray-50 text-gray-700', ''],
       success: ['bg-emerald-50 text-emerald-700', ''],
       error: ['bg-red-50 text-red-700', ''],

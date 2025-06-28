@@ -1,26 +1,20 @@
 import { Button } from '@/components/ui/button';
 import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
-import {
-  RiAddLine,
-  RiQuestionAnswerLine,
-  RiFeedbackLine,
-} from '@remixicon/react';
+import { RiAddLine } from '@remixicon/react';
 
 export function DashboardHeader() {
   return (
     <div className='flex items-center justify-between py-4'>
       <div className='flex flex-col'>
-        <SmallHeader>Dashboard</SmallHeader>
-        <MutedText>Manage your interviews and analytics here.</MutedText>
+        <SmallHeader>Interviews</SmallHeader>
       </div>
 
       <div className='flex items-center gap-2'>
-        <Button variant='secondary' icon={RiFeedbackLine}>
-          Feedback
-        </Button>
-        <Button variant='secondary' icon={RiQuestionAnswerLine}>
-          Help
+        <Button icon={RiAddLine}>
+          <span>Start Interview</span>
+          {/* <div className='flex items-center justify-center bg-white/20 text-white/70 px-1 rounded ml-2'>
+            S
+          </div> */}
         </Button>
       </div>
     </div>

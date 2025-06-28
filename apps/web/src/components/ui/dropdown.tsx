@@ -36,7 +36,7 @@ const DropdownMenuSubMenuTrigger = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       // base
-      'relative flex cursor-default select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm',
+      'relative flex cursor-default select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors sm:text-sm',
       // text color
       'text-gray-900',
       // disabled
@@ -149,7 +149,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       // base
-      'group/DropdownMenuItem relative flex cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm',
+      'group/DropdownMenuItem relative flex cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors sm:text-sm',
       // text color
       'text-neutral-800',
       // disabled
@@ -190,7 +190,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
       ref={forwardedRef}
       className={cx(
         // base
-        'relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm',
+        'relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors sm:text-sm',
         // text color
         'text-gray-900',
         // disabled
@@ -243,7 +243,7 @@ const DropdownMenuRadioItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       // base
-      'group/DropdownMenuRadioItem relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm',
+      'group/DropdownMenuRadioItem relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors sm:text-sm',
       // text color
       'text-muted-foreground',
       // disabled
@@ -259,7 +259,7 @@ const DropdownMenuRadioItem = React.forwardRef<
     <span className='absolute left-2 flex size-4 items-center justify-center'>
       <RiRadioButtonFill
         aria-hidden='true'
-        className='size-full shrink-0 text-blue-500 group-data-[state=checked]/DropdownMenuRadioItem:flex group-data-[state=unchecked]/DropdownMenuRadioItem:hidden'
+        className='size-full shrink-0 text-primary group-data-[state=checked]/DropdownMenuRadioItem:flex group-data-[state=unchecked]/DropdownMenuRadioItem:hidden'
       />
       <RiCheckboxBlankCircleLine
         aria-hidden='true'
@@ -293,7 +293,7 @@ const DropdownMenuLabel = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       // base
-      'px-2 py-2 text-xs font-medium tracking-wide',
+      'px-2 py-2 text-xs tracking-wide',
       // text color
       'text-muted-foreground',
       className

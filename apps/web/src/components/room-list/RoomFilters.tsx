@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Input } from '../ui/input';
 import {
   Select,
@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import {
   RiSearchLine,
   RiFilter3Line,
@@ -15,8 +16,11 @@ import {
   RiCodeBoxLine,
   RiCalendarLine,
   RiArrowUpDownLine,
-  RiAddLine,
-  RiArrowDownSLine,
+  RiTimeLine,
+  RiCheckboxCircleLine,
+  RiCodeSSlashFill,
+  RiArrowUpLine,
+  RiArrowDownLine,
 } from '@remixicon/react';
 import { RoomSchema } from '@coderscreen/api/schema/room';
 import {
@@ -24,12 +28,22 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSubMenu,
+  DropdownMenuSubMenuTrigger,
+  DropdownMenuSubMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown';
+import { cx } from '@/lib/utils';
 
 export interface RoomFilters {
   search: string;
   language: string;
   dateRange: 'all' | 'today' | 'week' | 'month';
+  status: string;
+  sortField: 'createdAt' | 'language' | 'status';
+  sortDirection: 'asc' | 'desc';
 }
 
 interface RoomFiltersProps {
@@ -45,6 +59,14 @@ const LANGUAGE_OPTIONS = [
   { value: 'javascript', label: 'JavaScript' },
   { value: 'python', label: 'Python' },
   { value: 'typescript', label: 'TypeScript' },
+  { value: 'java', label: 'Java' },
+  { value: 'csharp', label: 'C#' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' },
+  { value: 'php', label: 'PHP' },
+  { value: 'ruby', label: 'Ruby' },
+  { value: 'swift', label: 'Swift' },
 ];
 
 const DATE_RANGE_OPTIONS = [
@@ -54,6 +76,59 @@ const DATE_RANGE_OPTIONS = [
   { value: 'month', label: 'This Month' },
 ];
 
+const STATUS_OPTIONS = [
+  { value: '*', label: 'All Status' },
+  { value: 'active', label: 'Active' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'waiting', label: 'Waiting' },
+  { value: 'expired', label: 'Expired' },
+];
+
+const SORT_OPTIONS = [
+  {
+    field: 'createdAt' as const,
+    direction: 'desc' as const,
+    label: 'Newest First',
+    icon: RiCalendarLine,
+    value: 'createdAt-desc',
+  },
+  {
+    field: 'createdAt' as const,
+    direction: 'asc' as const,
+    label: 'Oldest First',
+    icon: RiCalendarLine,
+    value: 'createdAt-asc',
+  },
+  {
+    field: 'language' as const,
+    direction: 'asc' as const,
+    label: 'Language A-Z',
+    icon: RiCodeBoxLine,
+    value: 'language-asc',
+  },
+  {
+    field: 'language' as const,
+    direction: 'desc' as const,
+    label: 'Language Z-A',
+    icon: RiCodeBoxLine,
+    value: 'language-desc',
+  },
+  {
+    field: 'status' as const,
+    direction: 'asc' as const,
+    label: 'Status A-Z',
+    icon: RiCheckboxCircleLine,
+    value: 'status-asc',
+  },
+  {
+    field: 'status' as const,
+    direction: 'desc' as const,
+    label: 'Status Z-A',
+    icon: RiCheckboxCircleLine,
+    value: 'status-desc',
+  },
+];
+
 export function RoomFilters({
   filters,
   onFiltersChange,
@@ -61,10 +136,26 @@ export function RoomFilters({
   totalRooms,
   filteredRooms,
 }: RoomFiltersProps) {
-  const [showFilters, setShowFilters] = useState(false);
-
   const hasActiveFilters = useMemo(() => {
-    return filters.search || filters.language || filters.dateRange !== 'all';
+    return (
+      filters.search ||
+      filters.language !== '*' ||
+      filters.dateRange !== 'all' ||
+      filters.status !== '*' ||
+      filters.sortField !== 'createdAt' ||
+      filters.sortDirection !== 'desc'
+    );
+  }, [filters]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.search) count++;
+    if (filters.language !== '*') count++;
+    if (filters.dateRange !== 'all') count++;
+    if (filters.status !== '*') count++;
+    if (filters.sortField !== 'createdAt' || filters.sortDirection !== 'desc')
+      count++;
+    return count;
   }, [filters]);
 
   const handleFilterChange = (key: keyof RoomFilters, value: string) => {
@@ -74,114 +165,323 @@ export function RoomFilters({
     });
   };
 
+  const handleSortChange = (sortValue: string) => {
+    const [field, direction] = sortValue.split('-') as [
+      RoomFilters['sortField'],
+      RoomFilters['sortDirection'],
+    ];
+    onFiltersChange({
+      ...filters,
+      sortField: field,
+      sortDirection: direction,
+    });
+  };
+
   const handleClearFilters = () => {
-    onClearFilters();
+    onFiltersChange({
+      ...filters,
+      search: '',
+      language: '*',
+      dateRange: 'all',
+      status: '*',
+      sortField: 'createdAt',
+      sortDirection: 'desc',
+    });
+  };
+
+  const getLanguageLabel = (value: string) => {
+    return (
+      LANGUAGE_OPTIONS.find((option) => option.value === value)?.label ||
+      'All Languages'
+    );
+  };
+
+  const getDateRangeLabel = (value: string) => {
+    return (
+      DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label ||
+      'All Time'
+    );
+  };
+
+  const getStatusLabel = (value: string) => {
+    return (
+      STATUS_OPTIONS.find((option) => option.value === value)?.label ||
+      'All Status'
+    );
+  };
+
+  const getSortLabel = () => {
+    const currentSort = SORT_OPTIONS.find(
+      (option) =>
+        option.field === filters.sortField &&
+        option.direction === filters.sortDirection
+    );
+    return currentSort?.label || 'Newest First';
+  };
+
+  const getSortIcon = () => {
+    const currentSort = SORT_OPTIONS.find(
+      (option) =>
+        option.field === filters.sortField &&
+        option.direction === filters.sortDirection
+    );
+    return currentSort?.icon || RiCalendarLine;
   };
 
   return (
-    <div className='space-y-4 mt-4'>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <Button
-            variant='secondary'
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <RiFilter3Line className='mr-1 size-4' />
-            Filter
-          </Button>
-          <Button variant='secondary'>
-            <RiArrowUpDownLine className='mr-1 size-4' />
-            <span>Sort</span>
-          </Button>
-          <div className='text-sm text-primary'>{filteredRooms} results</div>
+    <div className='space-y-4'>
+      <div className='flex items-center gap-2'>
+        {/* Search Input - Primary */}
+        <div>
+          <Input
+            placeholder='Search rooms by ID...'
+            type='search'
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+          />
         </div>
 
-        <div className='flex items-center'>
-          <Button icon={RiAddLine} className='rounded-r-none'>
-            Start Interview
-          </Button>
-
+        <div className='flex items-center gap-2'>
+          {/* Advanced Filters Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className='rounded-l-none border-l border-l-white/30 p-2'>
-                <RiArrowDownSLine className='size-4' />
+              <Button variant='secondary' className='flex items-center gap-2'>
+                <RiFilter3Line className='size-4' />
+                Filters
+                <Badge
+                  variant='neutral'
+                  className={cx(
+                    'flex justify-center items-center transition-all duration-200',
+                    activeFilterCount > 0
+                      ? 'w-5 h-5 opacity-100 px-2 py-0.5'
+                      : 'w-0 h-5 opacity-0 overflow-hidden p-0'
+                  )}
+                >
+                  {activeFilterCount}
+                </Badge>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
-                <RiCalendarLine className='mr-1 size-4' />
-                Schedule Interview
+              <DropdownMenuSubMenu>
+                <DropdownMenuSubMenuTrigger>
+                  <RiCheckboxCircleLine className='mr-2 size-4' />
+                  Status
+                </DropdownMenuSubMenuTrigger>
+                <DropdownMenuSubMenuContent>
+                  <DropdownMenuRadioGroup
+                    value={filters.status}
+                    onValueChange={(value) =>
+                      handleFilterChange('status', value)
+                    }
+                  >
+                    {STATUS_OPTIONS.map((option) => (
+                      <DropdownMenuRadioItem
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubMenuContent>
+              </DropdownMenuSubMenu>
+
+              {/* Language Filter Submenu */}
+              <DropdownMenuSubMenu>
+                <DropdownMenuSubMenuTrigger>
+                  <RiCodeSSlashFill className='mr-2 size-4' />
+                  Language
+                </DropdownMenuSubMenuTrigger>
+                <DropdownMenuSubMenuContent>
+                  <DropdownMenuRadioGroup
+                    value={filters.language}
+                    onValueChange={(value) =>
+                      handleFilterChange('language', value)
+                    }
+                  >
+                    {LANGUAGE_OPTIONS.map((option) => (
+                      <DropdownMenuRadioItem
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubMenuContent>
+              </DropdownMenuSubMenu>
+
+              {/* Date Range Filter Submenu */}
+              <DropdownMenuSubMenu>
+                <DropdownMenuSubMenuTrigger>
+                  <RiTimeLine className='mr-2 size-4' />
+                  Created
+                </DropdownMenuSubMenuTrigger>
+                <DropdownMenuSubMenuContent>
+                  <DropdownMenuRadioGroup
+                    value={filters.dateRange}
+                    onValueChange={(value) =>
+                      handleFilterChange('dateRange', value)
+                    }
+                  >
+                    {DATE_RANGE_OPTIONS.map((option) => (
+                      <DropdownMenuRadioItem
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubMenuContent>
+              </DropdownMenuSubMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Sort Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='secondary'>
+                <RiArrowUpDownLine className='size-4' />
+                <span className='text-sm font-medium'>Sort</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className='w-48'>
+              <DropdownMenuItem className='flex items-center justify-between px-3 py-2'>
+                <div className='flex items-center gap-2'>
+                  <RiCalendarLine className='size-4 text-blue-500' />
+                  <span className='text-sm'>Created At</span>
+                </div>
+                {filters.sortField === 'createdAt' && (
+                  <div className='flex items-center gap-1'>
+                    {filters.sortDirection === 'asc' ? (
+                      <RiArrowUpLine className='size-3 text-muted-foreground' />
+                    ) : (
+                      <RiArrowDownLine className='size-3 text-muted-foreground' />
+                    )}
+                  </div>
+                )}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem className='flex items-center justify-between px-3 py-2'>
+                <div className='flex items-center gap-2'>
+                  <RiCodeBoxLine className='size-4 text-green-500' />
+                  <span className='text-sm'>Language</span>
+                </div>
+                {filters.sortField === 'language' && (
+                  <div className='flex items-center gap-1'>
+                    {filters.sortDirection === 'asc' ? (
+                      <RiArrowUpLine className='size-3 text-muted-foreground' />
+                    ) : (
+                      <RiArrowDownLine className='size-3 text-muted-foreground' />
+                    )}
+                  </div>
+                )}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem className='flex items-center justify-between px-3 py-2'>
+                <div className='flex items-center gap-2'>
+                  <RiCheckboxCircleLine className='size-4 text-purple-500' />
+                  <span className='text-sm'>Status</span>
+                </div>
+                {filters.sortField === 'status' && (
+                  <div className='flex items-center gap-1'>
+                    {filters.sortDirection === 'asc' ? (
+                      <RiArrowUpLine className='size-3 text-muted-foreground' />
+                    ) : (
+                      <RiArrowDownLine className='size-3 text-muted-foreground' />
+                    )}
+                  </div>
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
 
-      {showFilters && (
-        <div className='grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <div className='sm:col-span-2'>
-            <Input
-              type='search'
-              placeholder='Search by room ID...'
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              className='w-full'
-              autoFocus
-            />
-          </div>
-
-          <div className='w-full'>
-            <Select
-              value={filters.language}
-              onValueChange={(value) => handleFilterChange('language', value)}
-            >
-              <SelectTrigger>
-                <RiCodeBoxLine className='mr-2 size-4 text-gray-400' />
-                <SelectValue placeholder='Language' />
-              </SelectTrigger>
-              <SelectContent>
-                {LANGUAGE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className='w-full'>
-            <Select
-              value={filters.dateRange}
-              onValueChange={(value) => handleFilterChange('dateRange', value)}
-            >
-              <SelectTrigger>
-                <RiCalendarLine className='mr-2 size-4 text-gray-400' />
-                <SelectValue placeholder='Date range' />
-              </SelectTrigger>
-              <SelectContent>
-                {DATE_RANGE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {hasActiveFilters && (
-            <div className='sm:col-span-2 lg:col-span-4'>
+        {/* Active Filter Pills */}
+        {hasActiveFilters && (
+          <div className='flex flex-wrap gap-2'>
+            {filters.search && (
               <Button
                 variant='secondary'
-                onClick={handleClearFilters}
-                className='w-full'
+                icon={RiSearchLine}
+                iconClassName='text-primary'
+                className='text-primary'
+                onClick={() => handleFilterChange('search', '')}
               >
-                <RiCloseLine className='-ml-0.5 mr-1.5 size-4' />
-                Clear Filters
+                "{filters.search}"
+                <RiCloseLine className='size-3' />
               </Button>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+            {filters.status !== '*' && (
+              <Button
+                variant='secondary'
+                icon={RiCheckboxCircleLine}
+                iconClassName='text-primary'
+                className='text-primary'
+                onClick={() => handleFilterChange('status', '*')}
+              >
+                {getStatusLabel(filters.status)}
+                <RiCloseLine className='size-3' />
+              </Button>
+            )}
+            {filters.language !== '*' && (
+              <Button
+                variant='secondary'
+                icon={RiCodeSSlashFill}
+                iconClassName='text-primary'
+                className='text-primary'
+                onClick={() => handleFilterChange('language', '*')}
+              >
+                {getLanguageLabel(filters.language)}
+                <RiCloseLine className='size-3' />
+              </Button>
+            )}
+            {filters.dateRange !== 'all' && (
+              <Button
+                variant='secondary'
+                icon={RiCalendarLine}
+                iconClassName='text-primary'
+                className='text-primary'
+                onClick={() => handleFilterChange('dateRange', 'all')}
+              >
+                {getDateRangeLabel(filters.dateRange)}
+                <RiCloseLine className='size-3' />
+              </Button>
+            )}
+            {(filters.sortField !== 'createdAt' ||
+              filters.sortDirection !== 'desc') && (
+              <Button
+                variant='secondary'
+                icon={getSortIcon()}
+                iconClassName='text-primary'
+                className='text-primary'
+                onClick={() => {
+                  onFiltersChange({
+                    ...filters,
+                    sortField: 'createdAt',
+                    sortDirection: 'desc',
+                  });
+                }}
+              >
+                {getSortLabel()}
+                <RiCloseLine className='size-3' />
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Clear Filters Button (Alternative) */}
+        {hasActiveFilters ? (
+          <Button
+            variant='ghost'
+            onClick={handleClearFilters}
+            icon={RiCloseLine}
+          >
+            Clear
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -191,7 +491,7 @@ export function filterRooms(
   rooms: RoomSchema[],
   filters: RoomFilters
 ): RoomSchema[] {
-  return rooms.filter((room) => {
+  const filteredRooms = rooms.filter((room) => {
     // Search filter
     if (
       filters.search &&
@@ -201,7 +501,20 @@ export function filterRooms(
     }
 
     // Language filter
-    if (filters.language && room.language !== filters.language) {
+    if (
+      filters.language &&
+      filters.language !== '*' &&
+      room.language !== filters.language
+    ) {
+      return false;
+    }
+
+    // Status filter
+    if (
+      filters.status &&
+      filters.status !== '*' &&
+      room.status !== filters.status
+    ) {
       return false;
     }
 
@@ -227,5 +540,34 @@ export function filterRooms(
     }
 
     return true;
+  });
+
+  // Sort the filtered rooms
+  return filteredRooms.sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (filters.sortField) {
+      case 'createdAt':
+        aValue = new Date(a.createdAt).getTime();
+        bValue = new Date(b.createdAt).getTime();
+        break;
+      case 'language':
+        aValue = a.language.toLowerCase();
+        bValue = b.language.toLowerCase();
+        break;
+      case 'status':
+        aValue = a.status.toLowerCase();
+        bValue = b.status.toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+
+    if (filters.sortDirection === 'asc') {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    }
   });
 }

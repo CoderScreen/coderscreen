@@ -116,6 +116,7 @@ interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   icon?: RemixiconComponentType;
+  iconClassName?: string;
   iconPosition?: 'left' | 'right';
   isLoading?: boolean;
   loadingText?: string;
@@ -126,6 +127,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     {
       asChild,
       icon,
+      iconClassName,
       iconPosition = 'left',
       isLoading = false,
       loadingText,
@@ -158,7 +160,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               aria-hidden='true'
             />
           ) : icon ? (
-            React.createElement(icon, { className: 'size-4 shrink-0' })
+            React.createElement(icon, {
+              className: cx('size-4 shrink-0', iconClassName),
+            })
           ) : null}
           {loadingText ? loadingText : children}
         </span>

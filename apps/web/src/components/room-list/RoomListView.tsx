@@ -3,6 +3,7 @@ import { RoomListHeader } from '@/components/room-list/RoomListHeader';
 import { useRooms } from '@/query/room.query';
 import { RoomFilters } from '@/components/room-list/RoomFilters';
 import { useState } from 'react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function RoomListView() {
   const { rooms, isLoading } = useRooms();
@@ -15,7 +16,7 @@ export function RoomListView() {
 
   return (
     <div className='w-full'>
-      <RoomListHeader />
+      {/* <RoomListHeader /> */}
 
       <RoomFilters
         filters={filters}
