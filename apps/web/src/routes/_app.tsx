@@ -1,7 +1,8 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import Sidebar from '@/components/dashboard/Sidebar';
+import Sidebar from '@/components/common/Sidebar';
 import { Outlet } from '@tanstack/react-router';
 import { PendingView } from '@/components/common/PendingView';
+import { SidebarProvider } from '@/contexts/SidebarContext';
 
 export const Route = createFileRoute('/_app')({
   pendingComponent: () => <PendingView />,
@@ -19,8 +20,12 @@ export const Route = createFileRoute('/_app')({
 function RouteComponent() {
   return (
     <div className='flex h-screen w-full'>
-      <Sidebar />
-      <Outlet />
+      <SidebarProvider>
+        <Sidebar />
+        <div className='flex-1 overflow-y-auto'>
+          <Outlet />
+        </div>
+      </SidebarProvider>
     </div>
   );
 }

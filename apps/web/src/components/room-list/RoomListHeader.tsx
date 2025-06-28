@@ -17,12 +17,12 @@ export function RoomListHeader() {
   };
 
   return (
-    <div className='h-16 flex items-center justify-between'>
+    <div className='flex items-center justify-between'>
       <div className='flex items-center gap-2'>
         <SmallHeader>Rooms</SmallHeader>
       </div>
 
-      <div className='flex items-center gap-2'>
+      {/* <div className='flex items-center gap-2'>
         <Button
           icon={RiAddLine}
           isLoading={isLoading}
@@ -30,7 +30,7 @@ export function RoomListHeader() {
         >
           Create Room
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useLocation, Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { cx, focusRing } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,16 +10,16 @@ import { MutedText } from '@/components/ui/typography';
 import {
   RiSettings3Line,
   RiCodeBoxLine,
-  RiBuildingLine,
   RiFeedbackLine,
   RiQuestionAnswerLine,
   RiMenuLine,
   RiCloseLine,
-  RiHome3Line,
-  RiMenuFoldLine,
+  RiTerminalWindowFill,
+  RiFileCodeLine,
 } from '@remixicon/react';
 import { siteConfig } from '@/lib/siteConfig';
 import { useSession } from '@/query/auth.query';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 // Navigation configuration
 const MAIN_NAVIGATION: {
@@ -28,14 +28,14 @@ const MAIN_NAVIGATION: {
   icon: ReactNode;
 }[] = [
   {
-    titleKey: 'Dashboard',
+    titleKey: 'Interviews',
     href: siteConfig.routes.dashboard,
-    icon: <RiHome3Line className='h-5 w-5 shrink-0' />,
+    icon: <RiTerminalWindowFill className='h-5 w-5 shrink-0' />,
   },
   {
-    titleKey: 'Rooms',
+    titleKey: 'Templates',
     href: siteConfig.routes.rooms,
-    icon: <RiBuildingLine className='h-5 w-5 shrink-0' />,
+    icon: <RiFileCodeLine className='h-5 w-5 shrink-0' />,
   },
 ];
 
@@ -66,16 +66,21 @@ const SectionHeaderClassNames =
   'px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2';
 
 export default function Sidebar() {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { isCollapsed, isMobileSidebarOpen, closeMobileSidebar } = useSidebar();
 
   return (
     <>
-      <nav className='hidden lg:block w-64 border-r border-gray-200 bg-white'>
+      <nav
+        className={cx(
+          'hidden lg:block border-r border-gray-200 bg-white transition-all duration-300 ease-in-out',
+          isCollapsed ? 'w-16' : 'w-64'
+        )}
+      >
         <SidebarBody />
       </nav>
       <MobileSidebar
         isOpen={isMobileSidebarOpen}
-        onClose={() => setIsMobileSidebarOpen(false)}
+        onClose={closeMobileSidebar}
       />
     </>
   );
@@ -84,6 +89,7 @@ export default function Sidebar() {
 const SidebarBody = () => {
   const location = useLocation();
   const { user, isLoading } = useSession();
+  const { isCollapsed } = useSidebar();
 
   const isActive = (itemHref: string) => {
     if (itemHref === '/') {
@@ -108,8 +114,10 @@ const SidebarBody = () => {
             active
               ? SidebarItemClassNames.active
               : SidebarItemClassNames.inactive,
-            focusRing
+            focusRing,
+            isCollapsed && 'justify-center px-2'
           )}
+          title={isCollapsed ? item.titleKey : undefined}
         >
           <div
             className={cx(
@@ -122,7 +130,7 @@ const SidebarBody = () => {
           >
             {item.icon}
           </div>
-          <span className='truncate'>{item.titleKey}</span>
+          {!isCollapsed && <span className='truncate'>{item.titleKey}</span>}
         </Link>
       </li>
     );
@@ -132,17 +140,12 @@ const SidebarBody = () => {
     <div className='flex flex-col h-full bg-muted'>
       {/* Header */}
       <div className='flex items-center justify-between p-4'>
-        <Link to='/' className='flex items-center flex-shrink-0'>
-          <div className='w-6 h-6 bg-primary rounded flex items-center justify-center mr-1'>
-            <RiCodeBoxLine className='text-white size-4' />
-          </div>
+        <Link to='/' className='flex items-center flex-shrink-0 gap-x-2'>
+          <img src='/logo.png' className='w-8 h-8 rounded-lg' />
+          {!isCollapsed && (
+            <span className='text-xl font-medium'>CoderScreen</span>
+          )}
         </Link>
-
-        <div>
-          <Button variant='icon'>
-            <RiMenuFoldLine className='size-4 text-muted-foreground' />
-          </Button>
-        </div>
       </div>
 
       {/* Navigation */}
@@ -154,23 +157,25 @@ const SidebarBody = () => {
         </div>
 
         <div>
-          <h2 className={SectionHeaderClassNames}>Account</h2>
+          {!isCollapsed && <h2 className={SectionHeaderClassNames}>Account</h2>}
           <ul className='mt-2 space-y-1'>
             {ACCOUNT_NAVIGATION.map(renderNavItem)}
           </ul>
         </div>
 
         <div className='mt-auto'>
-          <h2 className={SectionHeaderClassNames}>Support</h2>
+          {!isCollapsed && <h2 className={SectionHeaderClassNames}>Support</h2>}
           <div className='mt-2 space-y-1'>
             <Button
               className={cx(
                 SidebarItemClassNames.base,
                 SidebarItemClassNames.inactive,
                 'w-full justify-start',
-                focusRing
+                focusRing,
+                isCollapsed && 'justify-center px-2'
               )}
               variant='ghost'
+              title={isCollapsed ? 'Feedback' : undefined}
             >
               <RiFeedbackLine
                 className={cx(
@@ -179,7 +184,7 @@ const SidebarBody = () => {
                 )}
                 aria-hidden='true'
               />
-              <span className='truncate'>Feedback</span>
+              {!isCollapsed && <span className='truncate'>Feedback</span>}
             </Button>
 
             <Button
@@ -187,9 +192,11 @@ const SidebarBody = () => {
                 SidebarItemClassNames.base,
                 SidebarItemClassNames.inactive,
                 'w-full justify-start',
-                focusRing
+                focusRing,
+                isCollapsed && 'justify-center px-2'
               )}
               variant='ghost'
+              title={isCollapsed ? 'Support' : undefined}
             >
               <RiQuestionAnswerLine
                 className={cx(
@@ -198,7 +205,7 @@ const SidebarBody = () => {
                 )}
                 aria-hidden='true'
               />
-              <span className='truncate'>Support</span>
+              {!isCollapsed && <span className='truncate'>Support</span>}
             </Button>
           </div>
         </div>
@@ -210,10 +217,12 @@ const SidebarBody = () => {
           {isLoading ? (
             <div className='flex items-center gap-3'>
               <Skeleton className='w-8 h-8 rounded-full' />
-              <div className='flex-1 space-y-1'>
-                <Skeleton className='h-4 w-24' />
-                <Skeleton className='h-3 w-16' />
-              </div>
+              {!isCollapsed && (
+                <div className='flex-1 space-y-1'>
+                  <Skeleton className='h-4 w-24' />
+                  <Skeleton className='h-3 w-16' />
+                </div>
+              )}
             </div>
           ) : user ? (
             <div className='flex items-center gap-2'>
@@ -222,23 +231,27 @@ const SidebarBody = () => {
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <p className='text-sm font-medium text-gray-900 cursor-pointer truncate'>
-                  {user.name}
-                </p>
-              </div>
+              {!isCollapsed && (
+                <div className='flex-1 min-w-0'>
+                  <p className='text-sm font-medium text-gray-900 cursor-pointer truncate'>
+                    {user.name}
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className='flex items-center gap-3'>
               <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border'>
                 <span className='text-gray-500 text-sm font-medium'>?</span>
               </div>
-              <div className='flex-1 min-w-0'>
-                <p className='text-sm font-medium text-gray-500 truncate'>
-                  Not signed in
-                </p>
-                <MutedText className='text-xs'>Sign in to continue</MutedText>
-              </div>
+              {!isCollapsed && (
+                <div className='flex-1 min-w-0'>
+                  <p className='text-sm font-medium text-gray-500 truncate'>
+                    Not signed in
+                  </p>
+                  <MutedText className='text-xs'>Sign in to continue</MutedText>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -509,23 +522,15 @@ export const PageWithMobileSidebar = ({
   subtitle,
   children,
 }: PageWithMobileSidebarProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const openSidebar = () => {
-    setIsOpen(true);
-  };
-  const closeSidebar = () => {
-    setIsOpen(false);
-  };
+  const { openMobileSidebar } = useSidebar();
 
   return (
     <>
       <MobileSidebarTitle
         title={title}
         subtitle={subtitle}
-        onOpenSidebar={openSidebar}
+        onOpenSidebar={openMobileSidebar}
       />
-      <MobileSidebar isOpen={isOpen} onClose={closeSidebar} />
       {children}
     </>
   );

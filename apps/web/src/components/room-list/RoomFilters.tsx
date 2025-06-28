@@ -15,8 +15,16 @@ import {
   RiCodeBoxLine,
   RiCalendarLine,
   RiArrowUpDownLine,
+  RiAddLine,
+  RiArrowDownSLine,
 } from '@remixicon/react';
 import { RoomSchema } from '@coderscreen/api/schema/room';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown';
 
 export interface RoomFilters {
   search: string;
@@ -71,20 +79,42 @@ export function RoomFilters({
   };
 
   return (
-    <div className='space-y-4'>
-      <div className='flex items-center gap-2'>
-        <Button
-          variant='secondary'
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <RiFilter3Line className='mr-1 size-4' />
-          Filter
-        </Button>
-        <Button variant='secondary'>
-          <RiArrowUpDownLine className='mr-1 size-4' />
-          <span>Sort</span>
-        </Button>
-        <div className='text-sm text-primary'>{filteredRooms} results</div>
+    <div className='space-y-4 mt-4'>
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='secondary'
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <RiFilter3Line className='mr-1 size-4' />
+            Filter
+          </Button>
+          <Button variant='secondary'>
+            <RiArrowUpDownLine className='mr-1 size-4' />
+            <span>Sort</span>
+          </Button>
+          <div className='text-sm text-primary'>{filteredRooms} results</div>
+        </div>
+
+        <div className='flex items-center'>
+          <Button icon={RiAddLine} className='rounded-r-none'>
+            Start Interview
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className='rounded-l-none border-l border-l-white/30 p-2'>
+                <RiArrowDownSLine className='size-4' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <RiCalendarLine className='mr-1 size-4' />
+                Schedule Interview
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {showFilters && (

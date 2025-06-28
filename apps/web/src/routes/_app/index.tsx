@@ -8,6 +8,7 @@ import {
   type RoomFilters as RoomFiltersType,
 } from '@/components/room-list/RoomFilters';
 import { useRooms } from '@/query/room.query';
+import { DashboardView } from '@/components/dashboard/DashboardView';
 
 export const Route = createFileRoute('/_app/')({
   component: RouteComponent,
@@ -41,21 +42,5 @@ function RouteComponent() {
     });
   };
 
-  return (
-    <div className='w-full'>
-      <DashboardHeader />
-      <main className='flex-1 overflow-auto px-4'>
-        <div className='space-y-6'>
-          <RoomFilters
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onClearFilters={handleClearFilters}
-            totalRooms={5}
-            filteredRooms={filteredRooms.length}
-          />
-          <RoomTable rooms={filteredRooms} />
-        </div>
-      </main>
-    </div>
-  );
+  return <DashboardView />;
 }
