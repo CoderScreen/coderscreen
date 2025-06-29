@@ -13,9 +13,7 @@ import {
 } from '@/components/ui/dropdown';
 import {
   RiUserLine,
-  RiSettingsLine,
   RiLogoutBoxLine,
-  RiBankCardLine,
   RiExpandUpDownLine,
 } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
@@ -103,7 +101,7 @@ export const SidebarProfile = () => {
                 </Link>
               </DropdownMenuItem>
 
-              <DropdownMenuItem className='flex items-center'>
+              {/* <DropdownMenuItem className='flex items-center'>
                 <DropdownMenuIconWrapper>
                   <RiBankCardLine className='size-4' />
                 </DropdownMenuIconWrapper>
@@ -117,16 +115,20 @@ export const SidebarProfile = () => {
                   <RiSettingsLine className='size-4' />
                 </DropdownMenuIconWrapper>
                 Settings
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
 
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator /> */}
 
               <DropdownMenuItem
                 onClick={handleSignOut}
                 disabled={isSigningOut}
                 className='flex items-center p-0'
               >
-                <Button variant='ghost' icon={RiLogoutBoxLine}>
+                <Button
+                  variant='ghost'
+                  icon={RiLogoutBoxLine}
+                  iconClassName='text-muted-foreground'
+                >
                   Sign out
                 </Button>
               </DropdownMenuItem>
