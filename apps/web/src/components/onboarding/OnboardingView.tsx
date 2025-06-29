@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,7 +10,6 @@ import {
 import {
   RiBuilding2Line,
   RiArrowRightLine,
-  RiCheckLine,
 } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useCreateOrganization } from '@/query/org.query';

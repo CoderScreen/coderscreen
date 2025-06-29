@@ -20,6 +20,8 @@ import {
 import { siteConfig } from '@/lib/siteConfig';
 import { useSession } from '@/query/auth.query';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { SidebarProfile } from '@/components/common/SidebarProfile';
+import { OrgSwitcher } from '@/components/common/OrgSwitcher';
 
 // Navigation configuration
 const MAIN_NAVIGATION: {
@@ -88,7 +90,7 @@ export default function Sidebar() {
 
 const SidebarBody = () => {
   const location = useLocation();
-  const { user, isLoading } = useSession();
+
   const { isCollapsed } = useSidebar();
 
   const isActive = (itemHref: string) => {
@@ -138,34 +140,22 @@ const SidebarBody = () => {
 
   return (
     <div className='flex flex-col h-full bg-muted'>
-      {/* Header */}
-      <div className='flex items-center justify-between p-4'>
-        <Link to='/' className='flex items-center flex-shrink-0 gap-x-2'>
-          <img src='/logo.png' className='w-8 h-8 rounded-lg' />
-          {!isCollapsed && (
-            <span className='text-xl font-medium'>CoderScreen</span>
-          )}
-        </Link>
-      </div>
+      <OrgSwitcher />
 
       {/* Navigation */}
-      <nav className='flex-1 px-4 space-y-8 overflow-y-auto'>
+      <nav className='flex-1 px-4 space-y-6 overflow-y-auto'>
         <div>
-          <ul className='mt-2 space-y-1'>
-            {MAIN_NAVIGATION.map(renderNavItem)}
-          </ul>
+          <ul className='space-y-1'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
         </div>
 
         <div>
           {!isCollapsed && <h2 className={SectionHeaderClassNames}>Account</h2>}
-          <ul className='mt-2 space-y-1'>
-            {ACCOUNT_NAVIGATION.map(renderNavItem)}
-          </ul>
+          <ul className='space-y-1'>{ACCOUNT_NAVIGATION.map(renderNavItem)}</ul>
         </div>
 
         <div className='mt-auto'>
           {!isCollapsed && <h2 className={SectionHeaderClassNames}>Support</h2>}
-          <div className='mt-2 space-y-1'>
+          <div className='space-y-1'>
             <Button
               className={cx(
                 SidebarItemClassNames.base,
@@ -212,50 +202,9 @@ const SidebarBody = () => {
       </nav>
 
       {/* User Info */}
-      <Link to='/profile' className='p-4'>
-        <div className='space-y-3'>
-          {isLoading ? (
-            <div className='flex items-center gap-3'>
-              <Skeleton className='w-8 h-8 rounded-full' />
-              {!isCollapsed && (
-                <div className='flex-1 space-y-1'>
-                  <Skeleton className='h-4 w-24' />
-                  <Skeleton className='h-3 w-16' />
-                </div>
-              )}
-            </div>
-          ) : user ? (
-            <div className='flex items-center gap-2'>
-              <div className='flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center border'>
-                <span className='text-white text-sm font-medium'>
-                  {user.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              {!isCollapsed && (
-                <div className='flex-1 min-w-0'>
-                  <p className='text-sm font-medium text-gray-900 cursor-pointer truncate'>
-                    {user.name}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className='flex items-center gap-3'>
-              <div className='flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border'>
-                <span className='text-gray-500 text-sm font-medium'>?</span>
-              </div>
-              {!isCollapsed && (
-                <div className='flex-1 min-w-0'>
-                  <p className='text-sm font-medium text-gray-500 truncate'>
-                    Not signed in
-                  </p>
-                  <MutedText className='text-xs'>Sign in to continue</MutedText>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </Link>
+      <div className='p-2'>
+        <SidebarProfile />
+      </div>
     </div>
   );
 };
@@ -375,7 +324,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
       >
         <div className='flex flex-col h-full'>
           {/* Header */}
-          <div className='flex items-center justify-between p-4'>
+          <div className='flex items-center justify-between p-4 border-b border-gray-200'>
             <Link to='/' className='flex items-center flex-shrink-0'>
               <div className='w-8 h-8 bg-primary rounded flex items-center justify-center mr-2'>
                 <RiCodeBoxLine className='text-white size-5' />
@@ -394,24 +343,27 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
             </Button>
           </div>
 
+          {/* Organization Switcher */}
+          <OrgSwitcher />
+
           {/* Navigation */}
-          <nav className='flex-1 px-4 space-y-8 overflow-y-auto'>
+          <nav className='flex-1 px-4 space-y-6 overflow-y-auto'>
             <div>
-              <ul className='mt-2 space-y-1'>
+              <ul className='space-y-1'>
                 {MAIN_NAVIGATION.map(renderNavItem)}
               </ul>
             </div>
 
             <div>
               <h2 className={SectionHeaderClassNames}>Account</h2>
-              <ul className='mt-2 space-y-1'>
+              <ul className='space-y-1'>
                 {ACCOUNT_NAVIGATION.map(renderNavItem)}
               </ul>
             </div>
 
             <div className='mt-auto'>
               <h2 className={SectionHeaderClassNames}>Support</h2>
-              <div className='mt-2 space-y-1'>
+              <div className='space-y-1'>
                 <Button
                   className={cx(
                     SidebarItemClassNames.base,
@@ -453,8 +405,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
             </div>
           </nav>
 
-          {/* User Info */}
-          <div className='px-4 py-4'>
+          <div className='p-4'>
             <div className='space-y-3'>
               {isLoading ? (
                 <div className='flex items-center gap-3'>

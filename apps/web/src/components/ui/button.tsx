@@ -10,7 +10,7 @@ import { cx, focusRing } from '@/lib/utils';
 const buttonVariants = tv({
   base: [
     // base
-    'relative inline-flex items-center justify-center rounded-md border px-3 py-1.5 text-center text-sm font-normal shadow-sm transition-all duration-100 ease-in-out cursor-pointer',
+    'relative inline-flex items-center justify-center rounded-md border px-2 py-1.5 text-center text-sm font-normal shadow-sm transition-all duration-100 ease-in-out cursor-pointer',
     // disabled
     'disabled:pointer-events-none disabled:shadow-none',
     // focus
@@ -118,6 +118,7 @@ interface ButtonProps
   icon?: RemixiconComponentType;
   iconClassName?: string;
   iconPosition?: 'left' | 'right';
+  noIcon?: boolean;
   isLoading?: boolean;
   loadingText?: string;
 }
@@ -135,6 +136,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       variant,
       children,
+      noIcon = false,
       ...props
     }: ButtonProps,
     forwardedRef
@@ -148,24 +150,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        <span
-          className={cx(
-            'pointer-events-none flex  shrink-0 items-center justify-center gap-1.5',
-            iconPosition === 'left' ? 'flex-row' : 'flex-row-reverse'
-          )}
-        >
-          {isLoading ? (
-            <RiLoader2Fill
-              className='size-4 shrink-0 animate-spin'
-              aria-hidden='true'
-            />
-          ) : icon ? (
-            React.createElement(icon, {
-              className: cx('size-4 shrink-0', iconClassName),
-            })
-          ) : null}
-          {loadingText ? loadingText : children}
-        </span>
+        {!noIcon ? (
+          <span
+            className={cx(
+              'pointer-events-none flex  shrink-0 items-center justify-center gap-1.5',
+              iconPosition === 'left' ? 'flex-row' : 'flex-row-reverse'
+            )}
+          >
+            {isLoading ? (
+              <RiLoader2Fill
+                className='size-4 shrink-0 animate-spin'
+                aria-hidden='true'
+              />
+            ) : icon ? (
+              React.createElement(icon, {
+                className: cx('size-4 shrink-0', iconClassName),
+              })
+            ) : null}
+            {loadingText ? loadingText : children}
+          </span>
+        ) : (
+          children
+        )}
       </Component>
     );
   }

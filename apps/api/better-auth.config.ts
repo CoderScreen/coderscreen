@@ -44,7 +44,6 @@ export const betterAuthConfig = {
 		organization({
 			organizationCreation: {
 				afterCreate: async ({ user: orgUser, member }, req) => {
-					console.log('updating user', orgUser.id);
 					// update user to set isOnboarded to true
 					await db.update(schema.user).set({ isOnboarded: true }).where(eq(schema.user.id, orgUser.id));
 				},

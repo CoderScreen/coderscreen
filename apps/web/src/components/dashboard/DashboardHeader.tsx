@@ -12,9 +12,9 @@ export function DashboardHeader() {
       <div className='flex items-center gap-2'>
         <Button icon={RiAddLine}>
           <span>Start Interview</span>
-          {/* <div className='flex items-center justify-center bg-white/20 text-white/70 px-1 rounded ml-2'>
+          <div className='flex items-center justify-center bg-white/20 text-white/70 px-1.5 rounded ml-1'>
             S
-          </div> */}
+          </div>
         </Button>
       </div>
     </div>
