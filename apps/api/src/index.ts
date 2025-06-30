@@ -12,6 +12,7 @@ import { authMiddleware } from '@/middleware/auth.middleware';
 import { except } from 'hono/combine';
 import { UnifiedRoomDo } from './durable-objects/room.do';
 import { Sandbox } from '@cloudflare/sandbox';
+import { assetRouter } from './routes/asset.routes';
 
 export interface AppContext {
 	Variables: {
@@ -22,15 +23,7 @@ export interface AppContext {
 		user: typeof auth.$Infer.Session.user | null;
 		session: typeof auth.$Infer.Session.session | null;
 	};
-	Bindings: {
-		ROOM_DO: DurableObjectNamespace<UnifiedRoomDo>;
-		SANDBOX: DurableObjectNamespace<Sandbox>;
-
-		FE_APP_URL: string;
-		DATABASE_URL: string;
-		BETTER_AUTH_SECRET: string;
-		BETTER_AUTH_URL: string;
-	};
+	Bindings: Env;
 }
 
 const app = new Hono<AppContext>()
@@ -51,6 +44,7 @@ const app = new Hono<AppContext>()
 		return useAuth(ctx).handler(ctx.req.raw);
 	})
 	.use('*', except('/rooms/:roomId/public', authMiddleware))
+	.route('/assets', assetRouter)
 	.route('/rooms', roomRouter)
 	.route('/rooms/:roomId/public', publicRoomRouter);
 

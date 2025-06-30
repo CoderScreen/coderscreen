@@ -109,15 +109,16 @@ export const ProfileView = () => {
             </form.Field>
           </div> */}
 
-          <Button
-            type='submit'
-            className='w-full mt-4'
-            icon={RiSaveLine}
-            iconPosition='right'
-            isLoading={isUpdatingUser}
-          >
-            Save Changes
-          </Button>
+          <div className='flex justify-end mt-4'>
+            <Button
+              type='submit'
+              icon={RiSaveLine}
+              iconPosition='right'
+              isLoading={isUpdatingUser}
+            >
+              Save Changes
+            </Button>
+          </div>
         </form>
       </div>
     </div>

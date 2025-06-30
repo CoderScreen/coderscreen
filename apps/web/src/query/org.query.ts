@@ -1,4 +1,4 @@
-import { authClient } from '@/query/client';
+import { apiClient, authClient } from '@/query/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
@@ -79,6 +79,57 @@ export const useCreateOrganization = () => {
 
   return {
     createOrganization: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+export const useUpdateOrganization = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (params: { name: string; logo?: string }) => {
+      // check if we need to upload the logo
+      const logo = await (async () => {
+        if (!params.logo) {
+          return undefined;
+        }
+
+        const response = await apiClient.assets.logo.$put({
+          json: {
+            data: params.logo,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload logo');
+        }
+
+        const data = await response.json();
+        return data.url;
+      })();
+
+      const data = await authClient.organization.update({
+        data: {
+          ...params,
+          logo,
+        },
+      });
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch active organization
+      queryClient.invalidateQueries({ queryKey: ['activeOrganization'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Organization updated successfully',
+      ERROR_MESSAGE: 'Failed to update organization',
+    },
+  });
+
+  return {
+    updateOrganization: mutation.mutateAsync,
     isLoading: mutation.isPending,
     ...mutation,
   };

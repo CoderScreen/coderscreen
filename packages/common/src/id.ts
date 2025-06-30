@@ -2,8 +2,7 @@ import { z } from 'zod';
 
 export const Entities = {
   room: 'r',
-  user: 'u',
-  organization: 'org_',
+  asset: 'asset',
 } as const;
 
 type Entities = typeof Entities;

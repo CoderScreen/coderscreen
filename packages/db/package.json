@@ -24,6 +24,7 @@
     "@types/node": "^24.0.3"
   },
   "exports": {
+    "./asset.db": "./src/asset.db.ts",
     "./room.db": "./src/room.db.ts",
     "./user.db": "./src/user.db.ts"
   }
