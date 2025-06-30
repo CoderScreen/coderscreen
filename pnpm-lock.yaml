@@ -266,6 +266,9 @@ importers:
       yjs:
         specifier: ^13.6.27
         version: 13.6.27
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
     devDependencies:
       '@coderscreen/api':
         specifier: workspace:*

@@ -16,7 +16,7 @@ import {
   RiLogoutBoxLine,
   RiExpandUpDownLine,
 } from '@remixicon/react';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 export const SidebarProfile = () => {
@@ -24,6 +24,7 @@ export const SidebarProfile = () => {
   const { isCollapsed } = useSidebar();
   const { org, isLoading: orgLoading } = useActiveOrg();
   const { signOut, isLoading: isSigningOut } = useSignOut();
+  const router = useRouter();
 
   const isLoading = useMemo(() => {
     return isSessionLoading || orgLoading;
@@ -35,6 +36,10 @@ export const SidebarProfile = () => {
     } catch (error) {
       console.error('Failed to sign out:', error);
     }
+  };
+
+  const handlePageChange = (page: string) => {
+    router.navigate({ to: page });
   };
 
   return (
@@ -92,13 +97,14 @@ export const SidebarProfile = () => {
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem>
-                <Link to='/profile' className='flex items-center'>
-                  <DropdownMenuIconWrapper>
-                    <RiUserLine className='size-4' />
-                  </DropdownMenuIconWrapper>
-                  Profile
-                </Link>
+              <DropdownMenuItem
+                className='flex items-center'
+                onClick={() => handlePageChange('/profile')}
+              >
+                <DropdownMenuIconWrapper>
+                  <RiUserLine className='size-4' />
+                </DropdownMenuIconWrapper>
+                Profile
               </DropdownMenuItem>
 
               {/* <DropdownMenuItem className='flex items-center'>

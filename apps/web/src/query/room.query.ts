@@ -53,7 +53,7 @@ export const useCreateRoom = () => {
 
   const mutation = useMutation({
     mutationFn: async (
-      data: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt'>
+      data: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt' | 'status'>
     ) => {
       const response = await apiClient.rooms.$post({
         json: data,

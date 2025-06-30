@@ -18,14 +18,18 @@ export class RoomService {
 
 	async createRoom(values: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt'>) {
 		const { user, orgId } = getSession(this.ctx);
-		return this.db.insert(roomTable).values({
-			id: generateId('room'),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			organizationId: orgId,
-			userId: user.id,
-			...values,
-		});
+		return this.db
+			.insert(roomTable)
+			.values({
+				id: generateId('room'),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				organizationId: orgId,
+				userId: user.id,
+				...values,
+			})
+			.returning()
+			.then((data) => data[0]);
 	}
 
 	async getRoom(id: Id<'room'>) {
@@ -34,7 +38,8 @@ export class RoomService {
 		return this.db
 			.select()
 			.from(roomTable)
-			.where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)));
+			.where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
+			.then((data) => (data.length > 0 ? data[0] : null));
 	}
 
 	async listRooms() {

@@ -47,11 +47,16 @@ export const roomRouter = new Hono<AppContext>()
 				},
 			},
 		}),
-		zValidator('json', RoomSchema.omit({ id: true, createdAt: true, updatedAt: true })),
+		zValidator('json', RoomSchema.omit({ id: true, createdAt: true, updatedAt: true, status: true })),
 		async (ctx) => {
 			const roomService = new RoomService(ctx);
 			const body = ctx.req.valid('json');
-			const result = await roomService.createRoom(body);
+
+			const result = await roomService.createRoom({
+				...body,
+				status: 'active',
+			});
+
 			return ctx.json(result, 201);
 		},
 	)
@@ -83,13 +88,13 @@ export const roomRouter = new Hono<AppContext>()
 		async (ctx) => {
 			const roomService = new RoomService(ctx);
 			const { id } = ctx.req.valid('param');
-			const rooms = await roomService.getRoom(id);
+			const room = await roomService.getRoom(id);
 
-			if (!rooms || rooms.length === 0) {
+			if (!room) {
 				return ctx.json({ error: 'Room not found' }, 404);
 			}
 
-			return ctx.json(rooms[0]);
+			return ctx.json(room);
 		},
 	)
 	// PATCH /rooms/:id - Update a room

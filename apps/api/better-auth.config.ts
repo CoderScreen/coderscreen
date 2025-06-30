@@ -38,12 +38,17 @@ export const betterAuthConfig = {
 					input: (value) => value === 'true',
 				},
 			},
+			persona: {
+				type: 'string',
+				required: false,
+				input: true,
+			},
 		},
 	},
 	plugins: [
 		organization({
 			organizationCreation: {
-				afterCreate: async ({ user: orgUser, member }, req) => {
+				afterCreate: async ({ user: orgUser }) => {
 					// update user to set isOnboarded to true
 					await db.update(schema.user).set({ isOnboarded: true }).where(eq(schema.user.id, orgUser.id));
 				},

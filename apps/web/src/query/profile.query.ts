@@ -1,12 +1,10 @@
 import { authClient } from '@/query/client';
 import { useMutation } from '@tanstack/react-query';
 
-export const useUpdateUser = () => {
+export const useUpdateUser = (options?: { hideSuccessMessage?: boolean }) => {
   const mutation = useMutation({
-    mutationFn: async (params: { name: string }) => {
-      const result = await authClient.updateUser({
-        name: params.name,
-      });
+    mutationFn: async (params: { name: string; persona?: string }) => {
+      const result = await authClient.updateUser(params);
 
       if (result.error) {
         throw new Error(result.error.message || 'Failed to update user');
@@ -15,7 +13,9 @@ export const useUpdateUser = () => {
       return result;
     },
     meta: {
-      SUCCESS_MESSAGE: 'Profile updated successfully',
+      SUCCESS_MESSAGE: options?.hideSuccessMessage
+        ? undefined
+        : 'Profile updated successfully',
       ERROR_MESSAGE: 'Failed to update profile',
     },
   });

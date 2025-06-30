@@ -10,7 +10,10 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createAuthClient } from 'better-auth/react';
-import { organizationClient } from 'better-auth/client/plugins';
+import {
+  organizationClient,
+  inferAdditionalFields,
+} from 'better-auth/client/plugins';
 
 const API_URL = 'http://localhost:8000';
 export const apiClient = hc<AppRouter>(API_URL, {
@@ -70,5 +73,21 @@ export const TanstackQueryClient = new QueryClient({
 
 export const authClient = createAuthClient({
   baseURL: `${API_URL}/auth`,
-  plugins: [organizationClient()],
+  plugins: [
+    organizationClient(),
+    inferAdditionalFields({
+      user: {
+        isOnboarded: {
+          type: 'boolean',
+          required: true,
+          input: false,
+        },
+        persona: {
+          type: 'string',
+          required: false,
+          input: true,
+        },
+      },
+    }),
+  ],
 });

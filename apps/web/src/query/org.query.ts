@@ -56,8 +56,17 @@ export const useCreateOrganization = () => {
   const router = useRouter();
 
   const mutation = useMutation({
-    mutationFn: async (params: { name: string; slug: string }) => {
-      const data = await authClient.organization.create(params);
+    mutationFn: async (params: {
+      name: string;
+      slug: string;
+      goal?: string;
+    }) => {
+      const data = await authClient.organization.create({
+        ...params,
+        metadata: {
+          goal: params.goal,
+        },
+      });
 
       return data;
     },

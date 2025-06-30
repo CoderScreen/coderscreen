@@ -29,7 +29,7 @@ const SmallHeader = React.forwardRef<HTMLHeadingElement, HeadingProps>(
 const LargeHeader = React.forwardRef<HTMLHeadingElement, HeadingProps>(
   ({ className, ...props }, forwardedRef) => (
     <h2
-      className={cx('text-2xl font-medium', className)}
+      className={cx('text-2xl font-bold', className)}
       ref={forwardedRef}
       {...props}
     />

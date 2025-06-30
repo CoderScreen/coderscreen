@@ -21,7 +21,6 @@ import {
 import {
   RiArrowDownSLine,
   RiAddLine,
-  RiSettings3Line,
   RiCheckLine,
   RiErrorWarningLine,
   RiLoader2Line,
@@ -53,12 +52,6 @@ export const OrgSwitcher = () => {
     } finally {
       setSwitchingToOrg(null);
     }
-  };
-
-  const handleRetry = () => {
-    setError(null);
-    // Trigger a refetch of organizations
-    window.location.reload();
   };
 
   return (
@@ -152,23 +145,13 @@ export const OrgSwitcher = () => {
                   </div>
                 </div>
               ) : error ? (
-                <div className='p-2'>
-                  <div className='mb-2 border border-red-200 bg-red-100 text-red-800 rounded-md p-3'>
-                    <div className='flex items-center gap-2'>
-                      <RiErrorWarningLine className='h-4 w-4' />
-                      <div className='text-sm'>
-                        There was a problem loading your organizations.
-                      </div>
+                <div className='mb-2 border border-red-200 bg-red-100 text-red-800 rounded-md p-3'>
+                  <div className='flex items-center gap-2'>
+                    <RiErrorWarningLine className='h-4 w-4' />
+                    <div className='text-sm'>
+                      There was a problem loading your organizations.
                     </div>
                   </div>
-                  <Button
-                    variant='secondary'
-                    className='w-full mt-2'
-                    onClick={handleRetry}
-                  >
-                    <RiSettings3Line className='mr-2 h-3.5 w-3.5' />
-                    Retry
-                  </Button>
                 </div>
               ) : (
                 <CommandGroup heading='Organizations'>
@@ -220,6 +203,7 @@ export const OrgSwitcher = () => {
               <CommandSeparator />
               <CommandGroup>
                 <CommandItem
+                  disabled
                   className={cn('cursor-pointer')}
                   onSelect={() => {
                     setOpen(false);
@@ -228,7 +212,13 @@ export const OrgSwitcher = () => {
                   }}
                 >
                   <RiAddLine className='mr-2 h-4 w-4' />
-                  Create Organization
+
+                  <div className='flex flex-col'>
+                    <span>Create Organization</span>
+                    <span className='text-xs text-muted-foreground'>
+                      Coming soon...
+                    </span>
+                  </div>
                 </CommandItem>
               </CommandGroup>
             </CommandList>
