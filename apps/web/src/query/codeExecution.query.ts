@@ -49,7 +49,7 @@ function isExecutionData(
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 const getCodeExecutionWebsocketUrl = (roomId: string) => {
-  return `${API_URL.replace('https', 'wss').replace('http', 'ws')}/rooms/${roomId}/public`;
+  return `${API_URL.replace('https', 'wss').replace('http', 'ws')}/rooms/${roomId}/public/ws`;
 };
 
 export function useCodeExecutionWebSocket(

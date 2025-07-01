@@ -15,49 +15,14 @@ import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
 import { useInstructionEditorCollaboration } from '@/query/realtime.query';
 
 export const RoomView = () => {
-  // You can get this from URL params or props
-  const roomId = 'test';
-
-  const handleEndInterview = () => {
-    // Handle ending the interview
-    console.log('Ending interview...');
-  };
-
-  const handleResetRoom = () => {
-    // Handle resetting the room
-    console.log('Resetting room...');
-  };
-
-  const handleUpdateRoomTitle = (title: string) => {
-    // Handle updating room title
-    console.log('Updating room title to:', title);
-  };
-
   return (
     <RoomProvider>
-      <RoomContent
-        roomId={roomId}
-        onEndInterview={handleEndInterview}
-        onResetRoom={handleResetRoom}
-        onUpdateRoomTitle={handleUpdateRoomTitle}
-      />
+      <RoomContent />
     </RoomProvider>
   );
 };
 
-interface RoomContentProps {
-  roomId: string;
-  onEndInterview: () => void;
-  onResetRoom: () => void;
-  onUpdateRoomTitle: (title: string) => void;
-}
-
-const RoomContent = ({
-  roomId,
-  onEndInterview,
-  onResetRoom,
-  onUpdateRoomTitle,
-}: RoomContentProps) => {
+const RoomContent = () => {
   const { setCollaborationStatus, setExecutionStatus } = useRoomContext();
 
   // Initialize realtime connections at the top level
@@ -72,13 +37,7 @@ const RoomContent = ({
 
   return (
     <div className='h-screen w-screen flex flex-col'>
-      <HostRoomHeader
-        roomId={roomId}
-        roomTitle='Frontend Interview - React'
-        onEndInterview={onEndInterview}
-        onResetRoom={onResetRoom}
-        onUpdateRoomTitle={onUpdateRoomTitle}
-      />
+      <HostRoomHeader />
       <div className='flex-1'>
         <PanelGroup direction='horizontal'>
           <Panel>

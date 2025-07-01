@@ -8,6 +8,8 @@ import StarterKit from '@tiptap/starter-kit';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { useCurrentRoomId } from '@/lib/params';
+import { useSession } from '@/query/auth.query';
+import Placeholder from '@tiptap/extension-placeholder';
 
 // Configuration types
 export interface RealtimeConfig {
@@ -64,7 +66,7 @@ export function useRealtimeConnection(
       ydocRef.current = ydoc;
 
       // this is because no way to pass roomId in the middle of the url, so we use a dummy roomId
-      const provider = new WebsocketProvider(websocketUrl, 'public', ydoc);
+      const provider = new WebsocketProvider(websocketUrl, 'public/ws', ydoc);
       providerRef.current = provider;
 
       provider.on('status', ({ status }: { status: string }) => {
@@ -228,11 +230,39 @@ export function useCodeEditorCollaboration(
   };
 }
 
+const getRandomColor = () => {
+  // Generate colors that work well with white text
+  // Using darker, more saturated colors
+  const colors = [
+    '#1f2937', // gray-800
+    '#374151', // gray-700
+    '#4b5563', // gray-600
+    '#dc2626', // red-600
+    '#ea580c', // orange-600
+    '#d97706', // amber-600
+    '#ca8a04', // yellow-600
+    '#65a30d', // lime-600
+    '#16a34a', // green-600
+    '#0d9488', // teal-600
+    '#0891b2', // cyan-600
+    '#0284c7', // sky-600
+    '#2563eb', // blue-600
+    '#7c3aed', // violet-600
+    '#9333ea', // purple-600
+    '#c026d3', // fuchsia-600
+    '#e11d48', // rose-600
+  ];
+
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 // Hook for instruction editor collaboration
 export function useInstructionEditorCollaboration(
   config: RealtimeConfig,
   setCollaborationStatus?: (status: ConnectionStatus) => void
 ) {
+  const { user } = useSession();
+
   const { ydoc, provider, connectionStatus } = useRealtimeConnection(
     config,
     setCollaborationStatus
@@ -253,6 +283,9 @@ export function useInstructionEditorCollaboration(
         StarterKit.configure({
           history: false, // Disable history as it's handled by Yjs
         }),
+        Placeholder.configure({
+          placeholder: 'Write your instructions here...',
+        }),
         ...(isReady && ydoc && provider
           ? [
               Collaboration.configure({
@@ -261,15 +294,15 @@ export function useInstructionEditorCollaboration(
               CollaborationCursor.configure({
                 provider: provider,
                 user: {
-                  id: Math.random().toString(36).substr(2, 9),
-                  name: `User ${Math.floor(Math.random() * 1000)}`,
-                  color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                  id: Math.random().toString(36).substring(2, 9),
+                  name:
+                    user?.name ?? `User ${Math.floor(Math.random() * 1000)}`,
+                  color: getRandomColor(),
                 },
               }),
             ]
           : []),
       ],
-      content: '',
     },
     [isReady, ydoc, provider]
   );
@@ -282,93 +315,3 @@ export function useInstructionEditorCollaboration(
     provider,
   };
 }
-
-// Utility functions for room management
-export const roomUtils = {
-  // Get room info
-  async getRoomInfo(roomId: string, baseUrl?: string): Promise<any> {
-    const url =
-      baseUrl ||
-      (typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8000');
-    const response = await fetch(`${url}/rooms/${roomId}/public/info`);
-    if (!response.ok) throw new Error('Failed to get room info');
-    return response.json();
-  },
-
-  // Get room status
-  async getRoomStatus(roomId: string, baseUrl?: string): Promise<any> {
-    const url =
-      baseUrl ||
-      (typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8000');
-    const response = await fetch(`${url}/rooms/${roomId}/public/status`);
-    if (!response.ok) throw new Error('Failed to get room status');
-    return response.json();
-  },
-
-  // Reset code document
-  async resetCodeDocument(roomId: string, baseUrl?: string): Promise<void> {
-    const url =
-      baseUrl ||
-      (typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8000');
-    const response = await fetch(`${url}/rooms/${roomId}/public/code/reset`, {
-      method: 'POST',
-    });
-    if (!response.ok) throw new Error('Failed to reset code document');
-  },
-
-  // Reset instructions document
-  async resetInstructionsDocument(
-    roomId: string,
-    baseUrl?: string
-  ): Promise<void> {
-    const url =
-      baseUrl ||
-      (typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8000');
-    const response = await fetch(
-      `${url}/rooms/${roomId}/public/instructions/reset`,
-      {
-        method: 'POST',
-      }
-    );
-    if (!response.ok) throw new Error('Failed to reset instructions document');
-  },
-
-  // Reset both documents
-  async resetAllDocuments(roomId: string, baseUrl?: string): Promise<void> {
-    const url =
-      baseUrl ||
-      (typeof window !== 'undefined'
-        ? window.location.origin
-        : 'http://localhost:8000');
-    const response = await fetch(`${url}/rooms/${roomId}/public/reset`, {
-      method: 'POST',
-    });
-    if (!response.ok) throw new Error('Failed to reset documents');
-  },
-};
-
-// Default configurations
-export const defaultConfigs = {
-  code: {
-    documentType: 'code' as const,
-    baseUrl:
-      typeof window !== 'undefined'
-        ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
-        : 'ws://localhost:8000',
-  },
-  instructions: {
-    documentType: 'instructions' as const,
-    baseUrl:
-      typeof window !== 'undefined'
-        ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
-        : 'ws://localhost:8000',
-  },
-};

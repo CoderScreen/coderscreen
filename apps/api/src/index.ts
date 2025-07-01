@@ -11,8 +11,8 @@ import { auth } from '../better-auth.config';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { except } from 'hono/combine';
 import { UnifiedRoomDo } from './durable-objects/room.do';
-import { Sandbox } from '@cloudflare/sandbox';
 import { assetRouter } from './routes/asset.routes';
+import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
 
 export interface AppContext {
 	Variables: {
@@ -43,7 +43,7 @@ const app = new Hono<AppContext>()
 	.all('/auth/*', (ctx) => {
 		return useAuth(ctx).handler(ctx.req.raw);
 	})
-	.use('*', except('/rooms/:roomId/public', authMiddleware))
+	.use('*', except(['/rooms/:roomId/public', '/rooms/:roomId/run'], authMiddleware))
 	.route('/assets', assetRouter)
 	.route('/rooms', roomRouter)
 	.route('/rooms/:roomId/public', publicRoomRouter);

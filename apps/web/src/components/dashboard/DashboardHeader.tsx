@@ -3,6 +3,7 @@ import { SmallHeader } from '@/components/ui/heading';
 import { useCreateRoom } from '@/query/room.query';
 import { RiAddLine, RiCommandLine } from '@remixicon/react';
 import { useRouter } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
 export function DashboardHeader() {
   const { createRoom, isLoading } = useCreateRoom();
@@ -19,6 +20,18 @@ export function DashboardHeader() {
 
     router.navigate({ to: `/room/${room.id}` });
   };
+
+  // add keyboard shortcut for CMD + I for new interview
+  useEffect(() => {
+    const handleKeyboardShortcut = async (event: KeyboardEvent) => {
+      if (event.metaKey && event.key.toLowerCase() === 'i') {
+        await handleCreateRoom();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboardShortcut);
+    return () => window.removeEventListener('keydown', handleKeyboardShortcut);
+  }, []);
 
   return (
     <div className='flex items-center justify-between py-4'>

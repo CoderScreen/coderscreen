@@ -30,7 +30,7 @@ export const useRooms = () => {
 export const useRoom = () => {
   const id = useCurrentRoomId();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['rooms', id],
     queryFn: async () => {
       const response = await apiClient.rooms[':id'].$get({
@@ -45,6 +45,11 @@ export const useRoom = () => {
       ERROR_MESSAGE: 'Failed to fetch room',
     },
   });
+
+  return {
+    room: query.data,
+    ...query,
+  };
 };
 
 // Create a new room
@@ -68,7 +73,7 @@ export const useCreateRoom = () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] });
     },
     meta: {
-      SUCCESS_MESSAGE: 'Room created successfully',
+      // SUCCESS_MESSAGE: 'Room created successfully',
       ERROR_MESSAGE: 'Failed to create room',
     },
   });

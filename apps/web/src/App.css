@@ -348,7 +348,7 @@
   /* Render the username above the caret */
   .collaboration-cursor__label {
     border-radius: 3px 3px 3px 0;
-    color: #0d0d0d;
+    color: white;
     font-size: 12px;
     font-style: normal;
     font-weight: 600;
@@ -359,5 +359,14 @@
     top: -1.4em;
     user-select: none;
     white-space: nowrap;
+  }
+
+  /* Placeholder (at the top) */
+  p.is-editor-empty:first-child::before {
+    color: #666;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
   }
 }

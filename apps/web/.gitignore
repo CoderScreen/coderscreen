@@ -6,3 +6,4 @@ dist-ssr
 count.txt
 .env
 .tanstack
+.wrangler

@@ -1,12 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
 import {
   Dialog,
   DialogContent,
@@ -15,48 +9,40 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import {
   RiEditLine,
   RiCloseLine,
-  RiRefreshLine,
-  RiFeedbackLine,
-  RiSendPlaneLine,
   RiCheckLine,
-  RiMore2Line,
+  RiFileTextLine,
 } from '@remixicon/react';
 import { toast } from 'sonner';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { useEndRoom } from '@/query/room.query';
+import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cx } from '@/lib/utils';
 
-interface HostRoomHeaderProps {
-  roomId: string;
-  roomTitle?: string;
-  onEndInterview?: () => void;
-  onResetRoom?: () => void;
-  onUpdateRoomTitle?: (title: string) => void;
+const APP_URL = import.meta.env.VITE_APP_URL as string;
+if (!APP_URL) {
+  throw new Error('VITE_APP_URL is not set');
 }
 
-export const HostRoomHeader = ({
-  roomId,
-  roomTitle = 'Untitled Interview',
-}: HostRoomHeaderProps) => {
+export const HostRoomHeader = () => {
+  const { room, isLoading } = useRoom();
+  const { updateRoom } = useUpdateRoom();
   const { connectionStatus } = useRoomContext();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [title, setTitle] = useState(roomTitle);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [title, setTitle] = useState(room?.title);
+
   const [isEndInterviewOpen, setIsEndInterviewOpen] = useState(false);
-  const [isResetOpen, setIsResetOpen] = useState(false);
+
   const [copied, setCopied] = useState(false);
 
   const { endRoom, isLoading: isEndingRoom } = useEndRoom();
 
-  const shareLink = `${window.location.origin}/room/${roomId}`;
-
   const handleCopyLink = async () => {
     try {
+      const shareLink = `${APP_URL}/room/${room?.id}`;
       await navigator.clipboard.writeText(shareLink);
       setCopied(true);
       toast.success('Link copied to clipboard!');
@@ -66,21 +52,37 @@ export const HostRoomHeader = ({
     }
   };
 
-  const handleSaveTitle = () => {
-    setIsEditingTitle(false);
-  };
+  const handleSaveTitle = async () => {
+    if (!title || title.trim().length < 3) {
+      toast.error('Room title must be at least 3 characters long');
+      setTitle(room?.title); // Reset to original title
+      setIsEditingTitle(false);
+      return;
+    }
 
-  const handleSendFeedback = () => {
-    //
+    setIsEditingTitle(false);
+
+    if (!room) {
+      return;
+    }
+
+    await updateRoom({
+      id: room.id,
+      data: {
+        title: title.trim(),
+      },
+    });
   };
 
   const handleEndInterview = async () => {
     await endRoom();
   };
 
-  const handleResetRoom = () => {
-    //
-  };
+  useEffect(() => {
+    if (room && !isEditingTitle) {
+      setTitle(room.title);
+    }
+  }, [room]);
 
   return (
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -92,10 +94,12 @@ export const HostRoomHeader = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleSaveTitle}
-              className='w-full p-0'
-              inputClassName='p-0 text-lg sm:text-lg w-full border-none shadow-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 outline-none'
+              className='p-0'
+              inputClassName='p-0 text-lg sm:text-lg border-none shadow-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 outline-none'
               autoFocus
             />
+          ) : isLoading ? (
+            <Skeleton className='w-42 h-6' />
           ) : (
             <span
               className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'
@@ -108,25 +112,28 @@ export const HostRoomHeader = ({
 
         <div className='flex items-center gap-2 text-sm'>
           <div
-            className={`w-2 h-2 rounded-full ${
+            className={cx(
+              'w-2 h-2 rounded-full',
               connectionStatus.isConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}
+            )}
           />
           <span
-            className={
+            className={cx(
               connectionStatus.isConnected ? 'text-green-600' : 'text-red-600'
-            }
+            )}
           >
             {connectionStatus.isConnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
       </div>
 
-      {/* Actions Menu */}
       <div className='flex items-center gap-2'>
-        {/* Share Link Button */}
+        <Button variant='secondary' icon={RiFileTextLine}>
+          Load Template
+        </Button>
+
         <Button
-          variant='light'
+          variant='secondary'
           onClick={handleCopyLink}
           className='flex items-center gap-2'
         >
@@ -147,8 +154,7 @@ export const HostRoomHeader = ({
           End Interview
         </Button>
 
-        {/* More Actions Dropdown */}
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='secondary' className='p-2'>
               <RiMore2Line className='h-4 w-4' />
@@ -164,10 +170,39 @@ export const HostRoomHeader = ({
               Reset Room
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </div>
 
-      {/* Feedback Dialog */}
+      <Dialog open={isEndInterviewOpen} onOpenChange={setIsEndInterviewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>End Interview</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to end this interview? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant='secondary'
+              onClick={() => setIsEndInterviewOpen(false)}
+              icon={RiCloseLine}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant='destructive'
+              onClick={handleEndInterview}
+              icon={RiCheckLine}
+              isLoading={isEndingRoom}
+            >
+              End Interview
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/*  
       <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
         <DialogContent>
           <DialogHeader>
@@ -201,37 +236,6 @@ export const HostRoomHeader = ({
         </DialogContent>
       </Dialog>
 
-      {/* End Interview Dialog */}
-      <Dialog open={isEndInterviewOpen} onOpenChange={setIsEndInterviewOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>End Interview</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to end this interview? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant='secondary'
-              onClick={() => setIsEndInterviewOpen(false)}
-              icon={RiCloseLine}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant='destructive'
-              onClick={handleEndInterview}
-              icon={RiCheckLine}
-              isLoading={isEndingRoom}
-            >
-              End Interview
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reset Room Dialog */}
       <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
         <DialogContent>
           <DialogHeader>
@@ -258,7 +262,7 @@ export const HostRoomHeader = ({
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 };

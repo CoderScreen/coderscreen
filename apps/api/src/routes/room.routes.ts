@@ -186,9 +186,13 @@ export const roomRouter = new Hono<AppContext>()
 
 			const { codeRunService } = useAppFactory(ctx);
 
+			console.log('running code');
+			let start = Date.now();
 			const result = await codeRunService.runCode({ roomId: id, code, language });
+			let end = Date.now();
+			console.log('codeRunService.runCode', end - start);
 
-			const codeOutput = result.result;
+			const codeOutput = result.output;
 			return ctx.json({ codeOutput });
 		},
 	)

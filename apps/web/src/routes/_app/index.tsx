@@ -15,32 +15,5 @@ export const Route = createFileRoute('/_app/')({
 });
 
 function RouteComponent() {
-  const { rooms } = useRooms();
-
-  // Initialize filters state
-  const [filters, setFilters] = useState<RoomFiltersType>({
-    search: '',
-    language: '',
-    dateRange: 'all',
-  });
-
-  // Filter rooms based on current filters
-  const filteredRooms = useMemo(() => {
-    if (!rooms) return [];
-    return filterRooms(rooms, filters);
-  }, [rooms, filters]);
-
-  const handleFiltersChange = (newFilters: RoomFiltersType) => {
-    setFilters(newFilters);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      search: '',
-      language: '',
-      dateRange: 'all',
-    });
-  };
-
   return <DashboardView />;
 }

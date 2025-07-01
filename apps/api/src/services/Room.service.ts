@@ -2,7 +2,7 @@ import { roomTable } from '@coderscreen/db/room.db';
 import { useDb } from '@/db/client';
 import { Context } from 'hono';
 import { AppContext } from '@/index';
-import { RoomSchema } from '@/schema/room.zod';
+import { PublicRoomSchema, RoomSchema } from '@/schema/room.zod';
 import { generateId, Id } from '@coderscreen/common/id';
 
 import { eq, desc, and } from 'drizzle-orm';
@@ -40,6 +40,27 @@ export class RoomService {
 			.from(roomTable)
 			.where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
 			.then((data) => (data.length > 0 ? data[0] : null));
+	}
+
+	async getPublicRoom(id: Id<'room'>): Promise<PublicRoomSchema | null> {
+		const room = await this.db
+			.select()
+			.from(roomTable)
+			.where(eq(roomTable.id, id))
+			.then((data) => (data.length > 0 ? data[0] : null));
+
+		if (!room) {
+			return null;
+		}
+
+		return {
+			id: room.id,
+			createdAt: room.createdAt,
+			updatedAt: room.updatedAt,
+			title: room.title,
+			language: room.language,
+			status: room.status,
+		};
 	}
 
 	async listRooms() {

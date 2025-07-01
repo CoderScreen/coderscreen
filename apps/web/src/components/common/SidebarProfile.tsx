@@ -16,7 +16,7 @@ import {
   RiLogoutBoxLine,
   RiExpandUpDownLine,
 } from '@remixicon/react';
-import { Link, useRouter } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 export const SidebarProfile = () => {

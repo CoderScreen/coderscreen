@@ -3,12 +3,14 @@ import { CodeExecutionManager } from './code-execution-manager';
 import { RoomInfo, RoomStatus } from './types';
 import { DurableObject } from 'cloudflare:workers';
 import { AppContext } from '@/index';
+import { SandboxManagerService } from '@/durable-objects/internal/SandboxManager.service';
 
 export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	private state: DurableObjectState;
 	private codeManager: CollaborationManager;
 	private instructionManager: CollaborationManager;
 	private codeExecutionManager: CodeExecutionManager;
+	private sandboxManager: SandboxManagerService;
 
 	constructor(state: DurableObjectState, env: AppContext['Bindings']) {
 		super(state, env);
@@ -18,6 +20,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		this.codeManager = new CollaborationManager('code');
 		this.instructionManager = new CollaborationManager('instructions');
 		this.codeExecutionManager = new CodeExecutionManager();
+		this.sandboxManager = new SandboxManagerService(this.env);
 	}
 
 	async initialize(): Promise<void> {
@@ -40,21 +43,9 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 			return this.handleWebSocketUpgrade(request);
 		}
 
-		// Handle HTTP requests
-		switch (url.pathname) {
-			case '/':
-				return this.handleInfo();
-			case '/status':
-				return this.handleStatus();
-			case '/code/reset':
-				return this.handleCodeReset();
-			case '/instructions/reset':
-				return this.handleInstructionReset();
-			case '/reset':
-				return this.handleFullReset();
-			default:
-				return new Response('Not Found', { status: 404 });
-		}
+		console.log('room.do fetch that isnt websocket', url.pathname, request.method);
+
+		return new Response('Not Found', { status: 404 });
 	}
 
 	private handleWebSocketUpgrade(request: Request): Response {
@@ -73,7 +64,42 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		});
 	}
 
-	handleCodeExecution(
+	async handleRunCode(params: { language: string; code: string }): Promise<{ output: string; exitCode: number; error: string | null }> {
+		const { language, code } = params;
+
+		try {
+			// Broadcast execution start
+			this.handleCodeExecutioMessage({ type: 'start' });
+
+			// Execute the code in the sandbox
+			let start = Date.now();
+			const result = await this.sandboxManager.runCode(this.state.id.toString(), language, code);
+			let end = Date.now();
+			console.log('sandbox-result', result, 'time', end - start);
+
+			// Extract output from the result - handle both void and result object cases
+			let output = 'No output from execution';
+			let exitCode = 0;
+			let error = null;
+
+			if (result && typeof result === 'object' && 'stdout' in result) {
+				output = result.stdout || result.stderr || 'No output from execution';
+				exitCode = result.exitCode || 0;
+				error = result.stderr || null;
+			}
+
+			// Broadcast execution complete
+			this.handleCodeExecutioMessage({ type: 'complete', output });
+
+			return { output, exitCode, error };
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+			this.handleCodeExecutioMessage({ type: 'error', error: errorMessage });
+			throw error;
+		}
+	}
+
+	public handleCodeExecutioMessage(
 		params:
 			| {
 					type: 'start';
@@ -109,6 +135,19 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		this.codeExecutionManager.addConnection(ws, clientId);
 
 		console.log(`WebSocket connection established with client ${clientId}`);
+
+		// if this is the first connection, start the sandbox
+		this.state.waitUntil(
+			new Promise(async (resolve) => {
+				console.log('num-existing-connections', this.codeExecutionManager.getConnections().size);
+
+				if (this.codeExecutionManager.getConnections().size === 1) {
+					console.log('starting sandbox bc first connection');
+					await this.sandboxManager.startSandbox(this.state.id.toString());
+				}
+				resolve(true);
+			}),
+		);
 	}
 
 	// Cloudflare Durable Object WebSocket message handler
@@ -187,89 +226,6 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 
 	private generateClientId(): string {
 		return `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-	}
-
-	private handleInfo(): Response {
-		const info = this.getRoomInfo();
-		return new Response(JSON.stringify(info, null, 2), {
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-
-	private handleStatus(): Response {
-		const status = this.getRoomStatus();
-		return new Response(JSON.stringify(status, null, 2), {
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-
-	private async handleCodeReset(): Promise<Response> {
-		await this.resetCodeDocument();
-		return new Response(JSON.stringify({ message: 'Code document reset successfully' }), {
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-
-	private async handleInstructionReset(): Promise<Response> {
-		await this.resetInstructionDocument();
-		return new Response(JSON.stringify({ message: 'Instructions document reset successfully' }), {
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-
-	private async handleFullReset(): Promise<Response> {
-		await this.resetAllDocuments();
-		return new Response(JSON.stringify({ message: 'All documents reset successfully' }), {
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-
-	private getRoomInfo(): RoomInfo {
-		const codeConnections = this.codeManager.getConnections();
-		const instructionConnections = this.instructionManager.getConnections();
-		const executionConnections = this.codeExecutionManager.getConnections();
-		const codeDoc = this.codeManager.getDocument();
-		const instructionDoc = this.instructionManager.getDocument();
-
-		return {
-			roomId: this.state.id.toString(),
-			connections: codeConnections.size + instructionConnections.size + executionConnections.size,
-			documentSize: codeDoc.store.clients.size + instructionDoc.store.clients.size,
-			lastModified: new Date().toISOString(),
-			roomType: 'unified',
-		};
-	}
-
-	private getRoomStatus(): RoomStatus {
-		const codeConnections = this.codeManager.getConnections();
-		const instructionConnections = this.instructionManager.getConnections();
-		const executionConnections = this.codeExecutionManager.getConnections();
-		const codeDoc = this.codeManager.getDocument();
-		const instructionDoc = this.instructionManager.getDocument();
-
-		return {
-			connected: codeConnections.size > 0 || instructionConnections.size > 0 || executionConnections.size > 0,
-			connectionCount: codeConnections.size + instructionConnections.size + executionConnections.size,
-			documentExists: codeDoc.store.clients.size > 0 || instructionDoc.store.clients.size > 0,
-			roomType: 'unified',
-		};
-	}
-
-	private async resetCodeDocument(): Promise<void> {
-		this.codeManager.reset();
-		await this.state.storage.delete('ydoc-code');
-		this.codeManager.setupPersistence(this.state.storage);
-	}
-
-	private async resetInstructionDocument(): Promise<void> {
-		this.instructionManager.reset();
-		await this.state.storage.delete('ydoc-instructions');
-		this.instructionManager.setupPersistence(this.state.storage);
-	}
-
-	private async resetAllDocuments(): Promise<void> {
-		await this.resetCodeDocument();
-		await this.resetInstructionDocument();
 	}
 
 	destroy(): void {
