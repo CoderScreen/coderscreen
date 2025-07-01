@@ -19,7 +19,7 @@
 		"wrangler": "^4.22.0"
 	},
 	"dependencies": {
-		"@cloudflare/containers": "^0.0.16",
+		"@cloudflare/containers": "^0.0.13",
 		"@cloudflare/sandbox": "^0.0.7",
 		"@coderscreen/common": "workspace:^",
 		"@coderscreen/db": "workspace:^",

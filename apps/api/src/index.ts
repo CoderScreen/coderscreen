@@ -46,7 +46,7 @@ const app = new Hono<AppContext>()
 	.all('/auth/*', (ctx) => {
 		return useAuth(ctx).handler(ctx.req.raw);
 	})
-	.use('*', except(['/rooms/:roomId/public', '/rooms/:roomId/run'], authMiddleware))
+	.use('*', except(['/rooms/:roomId/public/*'], authMiddleware))
 	.route('/assets', assetRouter)
 	.route('/templates', templateRouter)
 	.route('/rooms', roomRouter)

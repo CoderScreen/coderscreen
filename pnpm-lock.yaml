@@ -11,8 +11,8 @@ importers:
   apps/api:
     dependencies:
       '@cloudflare/containers':
-        specifier: ^0.0.16
-        version: 0.0.16
+        specifier: ^0.0.13
+        version: 0.0.13
       '@cloudflare/sandbox':
         specifier: ^0.0.7
         version: 0.0.7
@@ -2068,10 +2068,6 @@ packages:
 
   /@cloudflare/containers@0.0.13:
     resolution: {integrity: sha512-qFO2ApEJGRfLlsOqK3ZkvpU3bl7Pj1SquXHs/uEgmK1FTBf2R908T8v7TUlxZpzaJbMM7rLRoCqT0vfUthRqWA==}
-    dev: false
-
-  /@cloudflare/containers@0.0.16:
-    resolution: {integrity: sha512-b76TWmVTBXPNDRNCUKW2FZR9A4GZON2tEvGIX/3t++SLXtgNjPleNT8Mf1wECRaMNj9C9x3K+6JLuLRis/reYw==}
     dev: false
 
   /@cloudflare/kv-asset-handler@0.4.0:

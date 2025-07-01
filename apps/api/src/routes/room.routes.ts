@@ -159,45 +159,6 @@ export const roomRouter = new Hono<AppContext>()
 			return ctx.json(null, 200);
 		},
 	)
-	// POST /rooms/:id/run - Run the code in the room
-	.post(
-		'/:id/run',
-		describeRoute({
-			description: 'Run the code in the room',
-			responses: {
-				200: {
-					description: 'Room code run successfully',
-					content: {
-						'application/json': {
-							schema: resolver(z.object({ result: z.string() })),
-						},
-					},
-				},
-			},
-		}),
-		zValidator(
-			'param',
-			z.object({
-				id: idString('room'),
-			}),
-		),
-		zValidator('json', z.object({ code: z.string(), language: z.string() })),
-		async (ctx) => {
-			const { id } = ctx.req.valid('param');
-			const { code, language } = ctx.req.valid('json');
-
-			const { codeRunService } = useAppFactory(ctx);
-
-			console.log('running code');
-			let start = Date.now();
-			const result = await codeRunService.runCode({ roomId: id, code, language });
-			let end = Date.now();
-			console.log('codeRunService.runCode', end - start);
-
-			const codeOutput = result.output;
-			return ctx.json({ codeOutput });
-		},
-	)
 	// POST /rooms/:id/end - End the room
 	.post(
 		'/:id/end',

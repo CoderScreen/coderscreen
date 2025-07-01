@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
-import { useRunRoomCode } from '@/query/room.query';
+import { useRunRoomCode } from '@/query/publicRoom.query';
 import {
   Select,
   SelectContent,
@@ -44,7 +44,7 @@ export function CodeEditor() {
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;
     const code = editorRef.getModel()?.getValue() ?? '';
-    runRoomCode({ code, language });
+    await runRoomCode({ code, language });
   }, [editorRef, runRoomCode, language]);
 
   const handleLanguageChange = useCallback(

@@ -1,5 +1,7 @@
+import { Shortcut } from '@/components/common/Shortcut';
 import { Button } from '@/components/ui/button';
 import { SmallHeader } from '@/components/ui/heading';
+import { MutedText } from '@/components/ui/typography';
 import { useCreateRoom } from '@/query/room.query';
 import { RiAddLine, RiCommandLine } from '@remixicon/react';
 import { useRouter } from '@tanstack/react-router';
@@ -37,6 +39,7 @@ export function DashboardHeader() {
     <div className='flex items-center justify-between py-4'>
       <div className='flex flex-col'>
         <SmallHeader>Interviews</SmallHeader>
+        <MutedText>Manage your interviews</MutedText>
       </div>
 
       <div className='flex items-center gap-2'>
@@ -46,10 +49,7 @@ export function DashboardHeader() {
           isLoading={isLoading}
         >
           <span>New Interview</span>
-          <div className='flex items-center justify-center bg-white/20 text-white/70 px-1.5 rounded ml-1 gap-1'>
-            <RiCommandLine className='size-3' />
-            <span>I</span>
-          </div>
+          <Shortcut cmd _key='I' />
         </Button>
       </div>
     </div>

@@ -8,10 +8,13 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    tanstackRouter({ autoCodeSplitting: true }),
+    tanstackRouter({
+      autoCodeSplitting: true,
+      target: 'react',
+    }),
+    cloudflare(),
     viteReact(),
     tailwindcss(),
-    cloudflare(),
   ],
   // test: {
   //   globals: true,

@@ -19,7 +19,7 @@ const BodyText = React.forwardRef<HTMLDivElement, TextProps>(
 const MutedText = React.forwardRef<HTMLDivElement, TextProps>(
   ({ className, ...props }, forwardedRef) => (
     <div
-      className={cx('text-sm text-gray-500', className)}
+      className={cx('text-sm text-muted-foreground', className)}
       ref={forwardedRef}
       {...props}
     />

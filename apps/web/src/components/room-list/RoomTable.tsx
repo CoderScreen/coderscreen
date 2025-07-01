@@ -130,7 +130,7 @@ export function RoomTable({ rooms, isLoading }: RoomTableProps) {
             rooms.map((room) => (
               <TableRow key={room.id} className='odd:bg-muted/50 group'>
                 <TableCell className='flex items-center gap-2'>
-                  <Checkbox />
+                  {/* <Checkbox /> */}
                   {room.title}
                 </TableCell>
                 <TableCell>

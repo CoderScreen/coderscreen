@@ -20,6 +20,8 @@ import { useRoomContext } from '@/contexts/RoomContext';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
+import { Shortcut } from '@/components/common/Shortcut';
+import { Tooltip } from '@/components/ui/tooltip';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
 if (!APP_URL) {
@@ -62,7 +64,7 @@ export const HostRoomHeader = () => {
 
     setIsEditingTitle(false);
 
-    if (!room) {
+    if (!room || title.trim() === room.title) {
       return;
     }
 
@@ -101,12 +103,14 @@ export const HostRoomHeader = () => {
           ) : isLoading ? (
             <Skeleton className='w-42 h-6' />
           ) : (
-            <span
-              className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'
-              onClick={() => setIsEditingTitle(true)}
-            >
-              {title}
-            </span>
+            <Tooltip content='Click to edit title'>
+              <span
+                className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'
+                onClick={() => setIsEditingTitle(true)}
+              >
+                {title}
+              </span>
+            </Tooltip>
           )}
         </div>
 
@@ -130,6 +134,7 @@ export const HostRoomHeader = () => {
       <div className='flex items-center gap-2'>
         <Button variant='secondary' icon={RiFileTextLine}>
           Load Template
+          <Shortcut cmd _key='T' variant='dark' />
         </Button>
 
         <Button
@@ -143,6 +148,7 @@ export const HostRoomHeader = () => {
             <RiEditLine className='h-4 w-4' />
           )}
           {copied ? 'Copied!' : 'Share Link'}
+          <Shortcut cmd _key='S' variant='dark' />
         </Button>
 
         <Button
@@ -152,6 +158,7 @@ export const HostRoomHeader = () => {
           disabled={isEndingRoom}
         >
           End Interview
+          <Shortcut cmd _key='E' />
         </Button>
 
         {/* <DropdownMenu>

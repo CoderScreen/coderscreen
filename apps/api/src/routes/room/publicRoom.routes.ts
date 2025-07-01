@@ -8,9 +8,70 @@ import { idString } from '@coderscreen/common/id';
 import { RoomService } from '@/services/Room.service';
 import { HTTPException } from 'hono/http-exception';
 import { publicRoomMiddleware } from '@/middleware/room.middleware';
+import { CodeRunService } from '@/services/CodeRun.service';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
+
+	.get(
+		'/',
+		describeRoute({
+			description: 'Get public room	 info',
+		}),
+		zValidator(
+			'param',
+			z.object({
+				roomId: idString('room'),
+			}),
+		),
+		async (ctx) => {
+			const { roomId } = ctx.req.valid('param');
+
+			const roomService = new RoomService(ctx);
+			const publicRoom = await roomService.getPublicRoom(roomId);
+
+			return ctx.json(publicRoom);
+		},
+	)
+	// POST /rooms/:id/run - Run the code in the room
+	.post(
+		'/run',
+		describeRoute({
+			description: 'Run the code in the room',
+			responses: {
+				200: {
+					description: 'Room code run successfully',
+					content: {
+						'application/json': {
+							schema: resolver(z.object({ result: z.string() })),
+						},
+					},
+				},
+			},
+		}),
+		zValidator(
+			'param',
+			z.object({
+				roomId: idString('room'),
+			}),
+		),
+		zValidator('json', z.object({ code: z.string(), language: z.string() })),
+		async (ctx) => {
+			const { roomId } = ctx.req.valid('param');
+			const { code, language } = ctx.req.valid('json');
+
+			const codeRunService = new CodeRunService(ctx);
+
+			console.log('running code');
+			let start = Date.now();
+			const result = await codeRunService.runCode({ roomId, code, language });
+			let end = Date.now();
+			console.log('codeRunService.runCode', end - start);
+
+			const codeOutput = 'Hello World';
+			return ctx.json({ codeOutput });
+		},
+	)
 	.get(
 		'/',
 		describeRoute({
