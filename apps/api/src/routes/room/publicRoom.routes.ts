@@ -1,14 +1,16 @@
+import { z } from 'zod';
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
-import z from 'zod';
 import { AppContext } from '../..';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { idString } from '@coderscreen/common/id';
 import { RoomService } from '@/services/Room.service';
 import { HTTPException } from 'hono/http-exception';
+import { publicRoomMiddleware } from '@/middleware/room.middleware';
 
 export const publicRoomRouter = new Hono<AppContext>()
+	.use(publicRoomMiddleware)
 	.get(
 		'/',
 		describeRoute({

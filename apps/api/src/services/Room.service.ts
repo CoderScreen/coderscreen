@@ -1,13 +1,14 @@
-import { roomTable } from '@coderscreen/db/room.db';
+import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { useDb } from '@/db/client';
 import { Context } from 'hono';
 import { AppContext } from '@/index';
-import { PublicRoomSchema, RoomSchema } from '@/schema/room.zod';
+import { PublicRoomSchema } from '@/schema/room.zod';
 import { generateId, Id } from '@coderscreen/common/id';
 
 import { eq, desc, and } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { getSession } from '@/lib/session';
+import { TemplateEntity } from '@coderscreen/db/template.db';
 
 export class RoomService {
 	private readonly db: PostgresJsDatabase;
@@ -16,7 +17,7 @@ export class RoomService {
 		this.db = useDb(ctx);
 	}
 
-	async createRoom(values: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt'>) {
+	async createRoom(values: Omit<RoomEntity, 'id' | 'createdAt' | 'updatedAt' | 'organizationId' | 'userId'>) {
 		const { user, orgId } = getSession(this.ctx);
 		return this.db
 			.insert(roomTable)
@@ -43,6 +44,11 @@ export class RoomService {
 	}
 
 	async getPublicRoom(id: Id<'room'>): Promise<PublicRoomSchema | null> {
+		const local = this.ctx.get('publicRoom');
+		if (local) {
+			return local;
+		}
+
 		const room = await this.db
 			.select()
 			.from(roomTable)
@@ -69,7 +75,7 @@ export class RoomService {
 		return this.db.select().from(roomTable).where(eq(roomTable.organizationId, orgId)).orderBy(desc(roomTable.createdAt));
 	}
 
-	async updateRoom(id: Id<'room'>, values: Partial<RoomSchema>) {
+	async updateRoom(id: Id<'room'>, values: Partial<RoomEntity>) {
 		const { orgId } = getSession(this.ctx);
 
 		return this.db
@@ -105,5 +111,15 @@ export class RoomService {
 			.where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
 			.returning()
 			.then((data) => data[0]);
+	}
+
+	async loadTemplate(params: { room: RoomEntity; template: TemplateEntity }) {
+		const { room, template } = params;
+
+		// Get the durable object to load new information
+		const id = this.ctx.env.ROOM_DO.idFromName(room.id);
+		const roomDo = this.ctx.env.ROOM_DO.get(id);
+
+		roomDo.handleLoadTemplate(template);
 	}
 }

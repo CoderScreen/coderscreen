@@ -1,12 +1,14 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
-import z from 'zod';
+import { z } from 'zod';
 import { AppContext } from '..';
 import { RoomService } from '@/services/Room.service';
 import { RoomSchema } from '@/schema/room.zod';
 import { idString } from '@coderscreen/common/id';
 import { useAppFactory } from '@/services/AppFactory';
+import { TemplateService } from '@/services/Template.service';
+import { HTTPException } from 'hono/http-exception';
 
 export const roomRouter = new Hono<AppContext>()
 	// GET /rooms - List all rooms
@@ -218,5 +220,51 @@ export const roomRouter = new Hono<AppContext>()
 			const { roomService } = useAppFactory(ctx);
 			await roomService.endRoom(id);
 			return ctx.json(null, 200);
+		},
+	)
+	// POST /rooms/:id/load-template - Load specified template
+	.post(
+		'/:id/load-template',
+		describeRoute({
+			description: 'Load specific room template',
+			responses: {
+				200: {
+					description: 'Template loaded successfully',
+				},
+			},
+		}),
+		zValidator(
+			'param',
+			z.object({
+				id: idString('room'),
+			}),
+		),
+		zValidator(
+			'json',
+			z.object({
+				templateId: idString('template'),
+			}),
+		),
+		async (ctx) => {
+			const { id } = ctx.req.valid('param');
+			const { templateId } = ctx.req.valid('json');
+
+			const templateService = new TemplateService(ctx);
+			const roomService = new RoomService(ctx);
+
+			const [room, template] = await Promise.all([roomService.getRoom(id), templateService.getTemplate(templateId)]);
+
+			if (!room || !template) {
+				throw new HTTPException(404, {
+					message: 'Room or Template was not found',
+				});
+			}
+
+			await roomService.loadTemplate({
+				room,
+				template,
+			});
+
+			// return room;
 		},
 	);

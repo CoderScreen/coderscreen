@@ -13,6 +13,8 @@ import { except } from 'hono/combine';
 import { UnifiedRoomDo } from './durable-objects/room.do';
 import { assetRouter } from './routes/asset.routes';
 import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
+import { templateRouter } from '@/routes/template.routes';
+import { PublicRoomSchema } from '@/schema/room.zod';
 
 export interface AppContext {
 	Variables: {
@@ -22,6 +24,9 @@ export interface AppContext {
 		// auth stuff
 		user: typeof auth.$Infer.Session.user | null;
 		session: typeof auth.$Infer.Session.session | null;
+
+		// public stuff
+		publicRoom: PublicRoomSchema | null;
 	};
 	Bindings: Env;
 }
@@ -29,9 +34,7 @@ export interface AppContext {
 const app = new Hono<AppContext>()
 	.use(logger())
 	.get('/health', (ctx) => {
-		return ctx.json({
-			status: 'ok',
-		});
+		return ctx.text('ok', 200);
 	})
 	.use(
 		cors({
@@ -45,6 +48,7 @@ const app = new Hono<AppContext>()
 	})
 	.use('*', except(['/rooms/:roomId/public', '/rooms/:roomId/run'], authMiddleware))
 	.route('/assets', assetRouter)
+	.route('/templates', templateRouter)
 	.route('/rooms', roomRouter)
 	.route('/rooms/:roomId/public', publicRoomRouter);
 
@@ -57,16 +61,7 @@ app.get(
 				version: '1.0.0',
 				description: 'API for coder screen',
 			},
-			servers: [
-				{
-					url: 'https://api.coderscreen.com',
-					description: 'Production server',
-				},
-				{
-					url: 'http://localhost:8000',
-					description: 'Local server',
-				},
-			],
+			servers: [],
 		},
 	}),
 );

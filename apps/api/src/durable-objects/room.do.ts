@@ -1,9 +1,10 @@
-import { CollaborationManager } from './collaboration-manager';
-import { CodeExecutionManager } from './code-execution-manager';
-import { RoomInfo, RoomStatus } from './types';
+import { CollaborationManager } from './internal/collaboration-manager';
+import { CodeExecutionManager } from './internal/code-execution-manager';
+import { RoomInfo, RoomStatus } from './internal/types';
 import { DurableObject } from 'cloudflare:workers';
 import { AppContext } from '@/index';
 import { SandboxManagerService } from '@/durable-objects/internal/SandboxManager.service';
+import { TemplateEntity } from '@coderscreen/db/template.db';
 
 export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	private state: DurableObjectState;
@@ -64,39 +65,43 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		});
 	}
 
-	async handleRunCode(params: { language: string; code: string }): Promise<{ output: string; exitCode: number; error: string | null }> {
-		const { language, code } = params;
+	// async handleRunCode(params: { language: string; code: string }): Promise<{ output: string; exitCode: number; error: string | null }> {
+	// 	const { language, code } = params;
 
-		try {
-			// Broadcast execution start
-			this.handleCodeExecutioMessage({ type: 'start' });
+	// 	try {
+	// 		// Broadcast execution start
+	// 		this.handleCodeExecutioMessage({ type: 'start' });
 
-			// Execute the code in the sandbox
-			let start = Date.now();
-			const result = await this.sandboxManager.runCode(this.state.id.toString(), language, code);
-			let end = Date.now();
-			console.log('sandbox-result', result, 'time', end - start);
+	// 		// Execute the code in the sandbox
+	// 		let start = Date.now();
+	// 		const result = await this.sandboxManager.runCode(this.state.id.toString(), language, code);
+	// 		let end = Date.now();
+	// 		console.log('sandbox-result', result, 'time', end - start);
 
-			// Extract output from the result - handle both void and result object cases
-			let output = 'No output from execution';
-			let exitCode = 0;
-			let error = null;
+	// 		// Extract output from the result - handle both void and result object cases
+	// 		let output = 'No output from execution';
+	// 		let exitCode = 0;
+	// 		let error = null;
 
-			if (result && typeof result === 'object' && 'stdout' in result) {
-				output = result.stdout || result.stderr || 'No output from execution';
-				exitCode = result.exitCode || 0;
-				error = result.stderr || null;
-			}
+	// 		if (result && typeof result === 'object' && 'stdout' in result) {
+	// 			output = result.stdout || result.stderr || 'No output from execution';
+	// 			exitCode = result.exitCode || 0;
+	// 			error = result.stderr || null;
+	// 		}
 
-			// Broadcast execution complete
-			this.handleCodeExecutioMessage({ type: 'complete', output });
+	// 		// Broadcast execution complete
+	// 		this.handleCodeExecutioMessage({ type: 'complete', output });
 
-			return { output, exitCode, error };
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-			this.handleCodeExecutioMessage({ type: 'error', error: errorMessage });
-			throw error;
-		}
+	// 		return { output, exitCode, error };
+	// 	} catch (error) {
+	// 		const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+	// 		this.handleCodeExecutioMessage({ type: 'error', error: errorMessage });
+	// 		throw error;
+	// 	}
+	// }
+
+	public async handleLoadTemplate(template: TemplateEntity) {
+		// TODO
 	}
 
 	public handleCodeExecutioMessage(

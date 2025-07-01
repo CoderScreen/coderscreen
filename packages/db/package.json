@@ -26,6 +26,7 @@
   "exports": {
     "./asset.db": "./src/asset.db.ts",
     "./room.db": "./src/room.db.ts",
-    "./user.db": "./src/user.db.ts"
+    "./user.db": "./src/user.db.ts",
+    "./template.db": "./src/template.db.ts"
   }
 }

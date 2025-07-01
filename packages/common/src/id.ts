@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const Entities = {
   room: 'r',
-  asset: 'asset',
+  asset: 'a',
+  template: 't',
 } as const;
 
 type Entities = typeof Entities;
