@@ -1,4 +1,3 @@
-import * as Y from 'yjs';
 import { StarterKit } from '@tiptap/starter-kit';
 import { useEditor } from '@tiptap/react';
 import Collaboration from '@tiptap/extension-collaboration';

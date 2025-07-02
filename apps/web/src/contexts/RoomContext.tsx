@@ -14,7 +14,6 @@ import useYProvider from 'y-partykit/react';
 import YPartyKitProvider from 'y-partykit/provider';
 
 interface RoomContextType {
-  connectionStatus: ConnectionStatus;
   connectedUsers: ConnectedUser[];
   provider: YPartyKitProvider;
   setConnectedUsers: (users: ConnectedUser[]) => void;
@@ -28,10 +27,6 @@ interface RoomProviderProps {
 
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
-    isConnected: false,
-    status: 'disconnected',
-  });
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
 
   const provider = useYProvider({
@@ -39,30 +34,13 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
     host: 'http://localhost:8080',
   });
 
-  provider.on('open', () => {
-    setConnectionStatus({
-      isConnected: true,
-      status: 'connected',
-    });
-  });
+  console.log('provider', provider);
 
-  provider.on('close', () => {
-    setConnectionStatus({
-      isConnected: false,
-      status: 'disconnected',
-    });
-  });
-
-  provider.on('error', (error: Error) => {
-    setConnectionStatus({
-      isConnected: false,
-      status: 'disconnected',
-      error: error instanceof Error ? error.message : 'Connection error',
-    });
-  });
+  provider.on('*', () => console.log('open'));
 
   // Handle custom messages for user presence
   provider.on('message', (event: MessageEvent) => {
+    console.log('message', event);
     try {
       const message = JSON.parse(event.data);
       if (message.type === 'user-joined' && message.user) {
@@ -93,7 +71,6 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   return (
     <RoomContext.Provider
       value={{
-        connectionStatus,
         connectedUsers,
         provider,
         setConnectedUsers,

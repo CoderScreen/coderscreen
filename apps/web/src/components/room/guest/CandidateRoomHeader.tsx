@@ -20,7 +20,7 @@ interface CandidateRoomHeaderProps {
 
 export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
   const { publicRoom, isLoading } = usePublicRoom();
-  const { connectionStatus, connectedUsers } = useRoomContext();
+  const { connectedUsers, provider } = useRoomContext();
   const currentRoomId = useCurrentRoomId();
 
   const handleLogout = () => {
@@ -41,6 +41,8 @@ export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
     [] as ConnectedUser[]
   );
 
+  console.log('candidateRoom.provider', provider);
+
   return (
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
       <div className='flex items-center gap-2'>
@@ -58,15 +60,15 @@ export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
           <div
             className={cx(
               'w-2 h-2 rounded-full',
-              connectionStatus.isConnected ? 'bg-green-500' : 'bg-red-500'
+              provider.wsconnected ? 'bg-green-500' : 'bg-red-500'
             )}
           />
           <span
             className={cx(
-              connectionStatus.isConnected ? 'text-green-600' : 'text-red-600'
+              provider.wsconnected ? 'text-green-600' : 'text-red-600'
             )}
           >
-            {connectionStatus.isConnected ? 'Connected' : 'Disconnected'}
+            {provider.wsconnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
 

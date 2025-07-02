@@ -9,7 +9,7 @@ import {
   RiListOrdered,
   RiListUnordered,
 } from '@remixicon/react';
-import { useInstructionEditor } from '@/query/realtime/editor.query';
+import { useInstructionEditor } from '@/query/realtime/instruction.query';
 
 export const InstructionEditor = () => {
   const editor = useInstructionEditor();

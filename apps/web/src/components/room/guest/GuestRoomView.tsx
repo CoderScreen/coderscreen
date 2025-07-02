@@ -13,7 +13,7 @@ import { CodeOutput } from '@/components/room/CodeOutput';
 import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
 import { RoomProvider } from '@/contexts/RoomContext';
 import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
-import { useInstructionEditor } from '@/query/realtime/editor.query';
+import { useInstructionEditor } from '@/query/realtime/instruction.query';
 import { GuestStartView } from './GuestStartView';
 import { useCurrentRoomId } from '@/lib/params';
 
@@ -89,7 +89,9 @@ const GuestRoomContent = () => {
       <CandidateRoomHeader />
       <div className='flex-1'>
         <PanelGroup direction='horizontal'>
-          <Panel>{/* <CodeEditor /> */}</Panel>
+          <Panel>
+            <CodeEditor />
+          </Panel>
           <PanelResizeHandle />
           <Panel>
             <Tabs defaultValue='instructions' className='p-4 h-full w-full'>

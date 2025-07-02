@@ -33,7 +33,7 @@ if (!APP_URL) {
 export const HostRoomHeader = () => {
   const { room, isLoading } = useRoom();
   const { updateRoom } = useUpdateRoom();
-  const { connectionStatus, connectedUsers } = useRoomContext();
+  const { connectedUsers, provider } = useRoomContext();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(room?.title);
@@ -131,15 +131,15 @@ export const HostRoomHeader = () => {
           <div
             className={cx(
               'w-2 h-2 rounded-full',
-              connectionStatus.isConnected ? 'bg-green-500' : 'bg-red-500'
+              provider.wsconnected ? 'bg-green-500' : 'bg-red-500'
             )}
           />
           <span
             className={cx(
-              connectionStatus.isConnected ? 'text-green-600' : 'text-red-600'
+              provider.wsconnected ? 'text-green-600' : 'text-red-600'
             )}
           >
-            {connectionStatus.isConnected ? 'Connected' : 'Disconnected'}
+            {provider.wsconnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
 

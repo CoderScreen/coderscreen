@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { RiPlayFill } from '@remixicon/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
 import { useRunRoomCode } from '@/query/publicRoom.query';
+import { useCodeEditor } from '@/query/realtime/code.query';
 import {
   Select,
   SelectContent,
@@ -36,10 +37,26 @@ export function CodeEditor() {
   const [language, setLanguage] = useState('javascript');
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
   const { runRoomCode, isLoading } = useRunRoomCode();
+  const { setupCollaboration, cleanupCollaboration, isReady } = useCodeEditor();
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     setEditorRef(e);
   }, []);
+
+  // Setup collaboration when editor is ready
+  useEffect(() => {
+    if (editorRef && isReady) {
+      const cleanup = setupCollaboration(editorRef);
+      return cleanup;
+    }
+  }, [editorRef, isReady, setupCollaboration]);
+
+  // Cleanup collaboration when component unmounts
+  useEffect(() => {
+    return () => {
+      cleanupCollaboration();
+    };
+  }, [cleanupCollaboration]);
 
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;

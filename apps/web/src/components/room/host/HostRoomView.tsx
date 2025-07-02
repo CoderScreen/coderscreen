@@ -11,7 +11,7 @@ import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
-import { useInstructionEditor } from '@/query/realtime/editor.query';
+import { useInstructionEditor } from '@/query/realtime/instruction.query';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 
 export const HostRoomView = () => {

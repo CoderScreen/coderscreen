@@ -1,6 +1,6 @@
 import { RealtimeConfig } from './realtime.query';
 import { useRealtimeConnection } from './collaboration.utils';
-import { useInstructionEditor } from '@/query/realtime/editor.query';
+import { useInstructionEditor } from '@/query/realtime/instruction.query';
 
 // Hook for guest instruction editor collaboration
 export function useGuestInstructionEditorCollaboration(config: RealtimeConfig) {
