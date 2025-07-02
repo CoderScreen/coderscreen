@@ -15,6 +15,7 @@ import { assetRouter } from './routes/asset.routes';
 import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
 import { templateRouter } from '@/routes/template.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
+import { Server as PartyServer } from 'partyserver';
 
 export interface AppContext {
 	Variables: {
@@ -47,6 +48,7 @@ const app = new Hono<AppContext>()
 		return useAuth(ctx).handler(ctx.req.raw);
 	})
 	.use('*', except(['/rooms/:roomId/public/*'], authMiddleware))
+	// .use('partykit/*', partyKitMiddleware)
 	.route('/assets', assetRouter)
 	.route('/templates', templateRouter)
 	.route('/rooms', roomRouter)
@@ -69,4 +71,4 @@ app.get(
 export default app;
 
 export type AppRouter = typeof app;
-export { UnifiedRoomDo, Sandbox };
+export { UnifiedRoomDo, Sandbox, PartyServer };

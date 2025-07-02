@@ -25,13 +25,16 @@ interface RoomProviderProps {
   children: ReactNode;
 }
 
+const API_URL = 'http://localhost:8000';
+
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
   const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
 
   const provider = useYProvider({
+    party: 'room',
     room: currentRoomId,
-    host: 'http://localhost:8080',
+    host: `${API_URL}/rooms/${currentRoomId}/public/partykit`,
   });
 
   console.log('provider', provider);
