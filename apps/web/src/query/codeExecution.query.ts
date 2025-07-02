@@ -98,7 +98,7 @@ export function useCodeExecutionWebSocket(
       ws.onopen = () => {
         console.log('Code execution WebSocket connected');
 
-        // Update connection status
+        // Update connection status if callback provided
         setExecutionStatus?.({
           isConnected: true,
           status: 'connected',
@@ -210,7 +210,7 @@ export function useCodeExecutionWebSocket(
       ws.onclose = () => {
         console.log('Code execution WebSocket disconnected');
 
-        // Update connection status
+        // Update connection status if callback provided
         setExecutionStatus?.({
           isConnected: false,
           status: 'disconnected',
@@ -234,7 +234,7 @@ export function useCodeExecutionWebSocket(
       ws.onerror = (error) => {
         console.error('Code execution WebSocket error:', error);
 
-        // Update connection status
+        // Update connection status if callback provided
         setExecutionStatus?.({
           isConnected: false,
           status: 'disconnected',
@@ -244,11 +244,11 @@ export function useCodeExecutionWebSocket(
     } catch (error) {
       console.error('Error creating code execution WebSocket:', error);
 
-      // Update connection status
+      // Update connection status if callback provided
       setExecutionStatus?.({
         isConnected: false,
         status: 'disconnected',
-        error: 'Failed to create connection',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }, [currentRoomId, setExecutionStatus]);
@@ -259,17 +259,17 @@ export function useCodeExecutionWebSocket(
       reconnectTimeoutRef.current = null;
     }
 
-    if (ydocRef.current) {
-      ydocRef.current.destroy();
-      ydocRef.current = null;
-    }
-
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
 
-    // Update connection status
+    if (ydocRef.current) {
+      ydocRef.current.destroy();
+      ydocRef.current = null;
+    }
+
+    // Update connection status if callback provided
     setExecutionStatus?.({
       isConnected: false,
       status: 'disconnected',

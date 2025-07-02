@@ -1,6 +1,7 @@
 import { CollaborationManager } from './internal/collaboration-manager';
 import { CodeExecutionManager } from './internal/code-execution-manager';
-import { RoomInfo, RoomStatus } from './internal/types';
+import { UserManager } from './internal/user-manager';
+import { RoomInfo, RoomStatus, UserPresenceMessage } from './internal/types';
 import { DurableObject } from 'cloudflare:workers';
 import { AppContext } from '@/index';
 import { SandboxManagerService } from '@/durable-objects/internal/SandboxManager.service';
@@ -11,6 +12,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	private codeManager: CollaborationManager;
 	private instructionManager: CollaborationManager;
 	private codeExecutionManager: CodeExecutionManager;
+	private userManager: UserManager;
 	private sandboxManager: SandboxManagerService;
 
 	constructor(state: DurableObjectState, env: AppContext['Bindings']) {
@@ -21,6 +23,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		this.codeManager = new CollaborationManager('code');
 		this.instructionManager = new CollaborationManager('instructions');
 		this.codeExecutionManager = new CodeExecutionManager();
+		this.userManager = new UserManager();
 		this.sandboxManager = new SandboxManagerService(this.env);
 	}
 
@@ -130,6 +133,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 				break;
 		}
 	}
+
 	private setupWebSocketConnection(ws: WebSocket): void {
 		// Generate unique client ID
 		const clientId = this.generateClientId();
@@ -177,6 +181,13 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean): void {
 		console.log(`WebSocket closed: code=${code}, reason=${reason}, wasClean=${wasClean}`);
 
+		// Remove user from user manager first
+		const removedUser = this.userManager.removeUser(ws);
+		if (removedUser) {
+			// Broadcast user left to other clients
+			this.userManager.broadcastUserLeft(removedUser, ws);
+		}
+
 		this.codeManager.removeConnection(ws);
 		this.instructionManager.removeConnection(ws);
 		this.codeExecutionManager.removeConnection(ws);
@@ -186,6 +197,13 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	webSocketError(ws: WebSocket, error: unknown): void {
 		console.error('WebSocket error:', error);
 
+		// Remove user from user manager first
+		const removedUser = this.userManager.removeUser(ws);
+		if (removedUser) {
+			// Broadcast user left to other clients
+			this.userManager.broadcastUserLeft(removedUser, ws);
+		}
+
 		this.codeManager.removeConnection(ws);
 		this.instructionManager.removeConnection(ws);
 		this.codeExecutionManager.removeConnection(ws);
@@ -193,6 +211,17 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 
 	private handleMessage(ws: WebSocket, message: any): void {
 		console.log('Message received:', message);
+
+		// Handle user presence messages
+		if (message.type === 'user-join') {
+			this.handleUserJoin(ws, message);
+			return;
+		}
+
+		if (message.type === 'user-list-request') {
+			this.userManager.broadcastUserList(ws);
+			return;
+		}
 
 		// Route message to appropriate manager based on message type or document type
 		if (message.type === 'execution') {
@@ -212,6 +241,59 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 			// Default to code if no document type specified
 			this.codeManager.handleMessage(ws, message, this.getClientId(ws));
 		}
+	}
+
+	private handleUserJoin(ws: WebSocket, message: any): void {
+		const { email, name, color } = message;
+		const clientId = this.getClientId(ws);
+
+		if (!email || !name) {
+			console.error('Invalid user join message: missing email or name');
+			return;
+		}
+
+		const user = {
+			email,
+			name,
+			color: color || this.generateRandomColor(),
+			clientId,
+			connectedAt: Date.now(),
+			lastSeen: Date.now(),
+		};
+
+		// Add user to user manager
+		this.userManager.addUser(ws, user);
+
+		// Send current user list to the joining user
+		this.userManager.broadcastUserList(ws);
+
+		// Broadcast user joined to other clients
+		this.userManager.broadcastUserJoined(user, ws);
+
+		console.log(`User ${email} joined the room`);
+	}
+
+	private generateRandomColor(): string {
+		const colors = [
+			'#1f2937',
+			'#374151',
+			'#4b5563',
+			'#dc2626',
+			'#ea580c',
+			'#d97706',
+			'#ca8a04',
+			'#65a30d',
+			'#16a34a',
+			'#0d9488',
+			'#0891b2',
+			'#0284c7',
+			'#2563eb',
+			'#7c3aed',
+			'#9333ea',
+			'#c026d3',
+			'#e11d48',
+		];
+		return colors[Math.floor(Math.random() * colors.length)];
 	}
 
 	private getClientId(ws: WebSocket): string {
@@ -237,6 +319,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		this.codeManager.destroy();
 		this.instructionManager.destroy();
 		this.codeExecutionManager.destroy();
+		this.userManager.destroy();
 	}
 
 	async alarm(): Promise<void> {

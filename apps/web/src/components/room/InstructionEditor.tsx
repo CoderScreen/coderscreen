@@ -9,13 +9,11 @@ import {
   RiListOrdered,
   RiListUnordered,
 } from '@remixicon/react';
-import { Editor } from '@tiptap/react';
+import { useInstructionEditor } from '@/query/realtime/editor.query';
 
-interface InstructionEditorProps {
-  editor: Editor | null;
-}
+export const InstructionEditor = () => {
+  const editor = useInstructionEditor();
 
-export const InstructionEditor = ({ editor }: InstructionEditorProps) => {
   const toggleBold = () => {
     editor?.chain().focus().toggleBold().run();
   };

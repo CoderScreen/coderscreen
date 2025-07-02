@@ -11,7 +11,7 @@ import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
-import { useInstructionEditorCollaboration } from '@/query/realtime.query';
+import { useInstructionEditor } from '@/query/realtime/editor.query';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 
 export const HostRoomView = () => {
@@ -23,17 +23,11 @@ export const HostRoomView = () => {
 };
 
 const HostRoomContent = () => {
-  const { setCollaborationStatus, setExecutionStatus } = useRoomContext();
+  // Use the shared instruction editor from RoomContext
+  const instructionEditor = useInstructionEditor();
 
-  // Initialize realtime connections at the top level
-  const { editor: instructionEditor } = useInstructionEditorCollaboration(
-    {
-      documentType: 'instructions',
-    },
-    setCollaborationStatus
-  );
-
-  const { data: executionData } = useCodeExecutionWebSocket(setExecutionStatus);
+  // Use code execution WebSocket (this will need to be updated to use PartyKit too)
+  const { data: executionData } = useCodeExecutionWebSocket();
 
   return (
     <div className='h-screen w-screen flex flex-col'>
@@ -82,7 +76,7 @@ const HostRoomContent = () => {
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
-                <InstructionEditor editor={instructionEditor} />
+                <InstructionEditor />
               </TabsContent>
             </Tabs>
           </Panel>

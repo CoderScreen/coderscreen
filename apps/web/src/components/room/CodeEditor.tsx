@@ -64,7 +64,7 @@ export function CodeEditor() {
       <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
           <Select value={language} onValueChange={handleLanguageChange}>
-            <SelectTrigger>
+            <SelectTrigger className='min-w-40'>
               <SelectValue placeholder='Select a language' />
             </SelectTrigger>
             <SelectContent>

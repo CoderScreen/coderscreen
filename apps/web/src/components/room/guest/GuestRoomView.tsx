@@ -11,9 +11,9 @@ import {
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
-import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
+import { RoomProvider } from '@/contexts/RoomContext';
 import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
-import { useInstructionEditorCollaboration } from '@/query/realtime.query';
+import { useInstructionEditor } from '@/query/realtime/editor.query';
 import { GuestStartView } from './GuestStartView';
 import { useCurrentRoomId } from '@/lib/params';
 
@@ -27,6 +27,8 @@ export const GuestRoomView = ({ onLogout }: GuestRoomViewProps) => {
     name: string;
     email: string;
   } | null>(null);
+
+  console.log('rendering GuestRoomView');
 
   // Load guest info from localStorage on mount
   useEffect(() => {
@@ -46,20 +48,12 @@ export const GuestRoomView = ({ onLogout }: GuestRoomViewProps) => {
     }
   }, [guestInfo, currentRoomId]);
 
-  // Save guest info to localStorage when it changes
-  useEffect(() => {
-    if (guestInfo) {
-      localStorage.setItem(
-        `guest-info-${currentRoomId}`,
-        JSON.stringify(guestInfo)
-      );
-    } else {
-      localStorage.removeItem(`guest-info-${currentRoomId}`);
-    }
-  }, [guestInfo, currentRoomId]);
-
   const handleJoinAsGuest = (name: string, email: string) => {
     setGuestInfo({ name, email });
+    localStorage.setItem(
+      `guest-info-${currentRoomId}`,
+      JSON.stringify({ name, email })
+    );
   };
 
   const handleLogout = () => {
@@ -77,46 +71,25 @@ export const GuestRoomView = ({ onLogout }: GuestRoomViewProps) => {
   // If guest info exists, show the room content
   return (
     <RoomProvider>
-      <GuestRoomContent
-        guestName={guestInfo.name}
-        guestEmail={guestInfo.email}
-        onLogout={handleLogout}
-      />
+      <GuestRoomContent />
     </RoomProvider>
   );
 };
 
-interface GuestRoomContentProps {
-  guestName: string;
-  guestEmail: string;
-  onLogout?: () => void;
-}
+const GuestRoomContent = () => {
+  console.log('rendering GuestRoomContent');
 
-const GuestRoomContent = ({
-  guestName,
-  guestEmail,
-  onLogout,
-}: GuestRoomContentProps) => {
-  const { setCollaborationStatus, setExecutionStatus } = useRoomContext();
+  // Use the shared instruction editor from RoomContext
 
-  // Initialize realtime connections at the top level
-  const { editor: instructionEditor } = useInstructionEditorCollaboration(
-    {
-      documentType: 'instructions',
-    },
-    setCollaborationStatus
-  );
-
-  const { data: executionData } = useCodeExecutionWebSocket(setExecutionStatus);
+  // Use code execution WebSocket (this will need to be updated to use PartyKit too)
+  // const { data: executionData } = useCodeExecutionWebSocket();
 
   return (
     <div className='h-screen w-screen flex flex-col'>
-      <CandidateRoomHeader onLogout={onLogout} />
+      <CandidateRoomHeader />
       <div className='flex-1'>
         <PanelGroup direction='horizontal'>
-          <Panel>
-            <CodeEditor />
-          </Panel>
+          <Panel>{/* <CodeEditor /> */}</Panel>
           <PanelResizeHandle />
           <Panel>
             <Tabs defaultValue='instructions' className='p-4 h-full w-full'>
@@ -152,11 +125,11 @@ const GuestRoomContent = ({
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                <CodeOutput data={executionData} />
+                {/* <CodeOutput data={executionData} /> */}
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
-                <InstructionEditor editor={instructionEditor} />
+                <InstructionEditor />
               </TabsContent>
             </Tabs>
           </Panel>

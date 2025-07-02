@@ -23,6 +23,28 @@ export interface CollaborationMessage {
 	documentType?: 'code' | 'instructions';
 }
 
+// User presence message types
+export interface UserPresenceMessage {
+	type: 'user-joined' | 'user-left' | 'user-list' | 'user-update';
+	user?: {
+		email: string;
+		name: string;
+		color: string;
+		clientId: string;
+		connectedAt: number;
+		lastSeen: number;
+	};
+	users?: {
+		email: string;
+		name: string;
+		color: string;
+		clientId: string;
+		connectedAt: number;
+		lastSeen: number;
+	}[];
+	clientId?: string;
+}
+
 export interface CodeExecutionState {
 	isRunning: boolean;
 	output?: string;

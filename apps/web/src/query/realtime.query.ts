@@ -33,24 +33,43 @@ export interface UnifiedConnectionStatus {
   error?: string;
 }
 
+// User presence types
+export interface ConnectedUser {
+  email: string;
+  name: string;
+  color: string;
+  clientId: string;
+  connectedAt: number;
+  lastSeen: number;
+}
+
+export interface UserPresenceMessage {
+  type: 'user-joined' | 'user-left' | 'user-list' | 'user-update';
+  user?: ConnectedUser;
+  users?: ConnectedUser[];
+  clientId?: string;
+}
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 const getWebsocketUrl = (id: string) => {
   return `${API_URL.replace('https', 'wss').replace('http', 'ws')}/rooms/${id}`;
 };
 
-// Hook for managing realtime connections
+// Hook for managing realtime connections (legacy - use collaboration.utils.ts instead)
 export function useRealtimeConnection(
   config?: RealtimeConfig,
   setCollaborationStatus?: (status: ConnectionStatus) => void
 ) {
   const currentRoomId = useCurrentRoomId();
+  const { user } = useSession();
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     isConnected: false,
     status: 'disconnected',
   });
 
+  const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
   const ydocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
 
@@ -78,7 +97,17 @@ export function useRealtimeConnection(
 
         setConnectionStatus(newStatus);
         setCollaborationStatus?.(newStatus);
-        config?.onStatusChange?.(isConnected ? 'connected' : 'disconnected');
+
+        // Send user join message when connected
+        if (isConnected && user) {
+          const userJoinMessage = {
+            type: 'user-join',
+            email: user.email,
+            name: user.name || user.email,
+            color: getRandomColor(user.id),
+          };
+          provider.ws?.send(JSON.stringify(userJoinMessage));
+        }
       });
 
       provider.on('connection-error', (event: Event) => {
@@ -91,8 +120,37 @@ export function useRealtimeConnection(
         };
         setConnectionStatus(errorStatus);
         setCollaborationStatus?.(errorStatus);
-        config?.onError?.(new Error(errorMessage));
       });
+
+      // Handle custom messages for user presence through the WebSocket directly
+      if (provider.ws) {
+        const originalOnMessage = provider.ws.onmessage;
+        provider.ws.onmessage = (event) => {
+          // Call original handler first
+          if (originalOnMessage) {
+            try {
+              originalOnMessage.call(provider.ws!, event);
+            } catch (error) {
+              console.error('Error calling original onmessage:', error);
+            }
+          }
+
+          // Handle our custom messages
+          try {
+            const parsedMessage = JSON.parse(event.data);
+            if (
+              parsedMessage.type &&
+              ['user-joined', 'user-left', 'user-list'].includes(
+                parsedMessage.type
+              )
+            ) {
+              handleUserPresenceMessage(parsedMessage);
+            }
+          } catch (error) {
+            // Ignore parsing errors for non-JSON messages
+          }
+        };
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -103,17 +161,47 @@ export function useRealtimeConnection(
       };
       setConnectionStatus(errorStatus);
       setCollaborationStatus?.(errorStatus);
-      config?.onError?.(
-        error instanceof Error ? error : new Error(errorMessage)
-      );
     }
-  }, [
-    currentRoomId,
-    websocketUrl,
-    config?.onStatusChange,
-    config?.onError,
-    setCollaborationStatus,
-  ]);
+  }, [currentRoomId, websocketUrl, setCollaborationStatus, user]);
+
+  const handleUserPresenceMessage = useCallback(
+    (message: UserPresenceMessage) => {
+      switch (message.type) {
+        case 'user-joined':
+          if (message.user) {
+            setConnectedUsers((prev) => {
+              // Check if user already exists (by email)
+              const existingIndex = prev.findIndex(
+                (u) => u.email === message.user!.email
+              );
+              if (existingIndex >= 0) {
+                // Update existing user
+                const updated = [...prev];
+                updated[existingIndex] = message.user!;
+                return updated;
+              } else {
+                // Add new user
+                return [...prev, message.user!];
+              }
+            });
+          }
+          break;
+        case 'user-left':
+          if (message.user) {
+            setConnectedUsers((prev) =>
+              prev.filter((u) => u.email !== message.user!.email)
+            );
+          }
+          break;
+        case 'user-list':
+          if (message.users) {
+            setConnectedUsers(message.users);
+          }
+          break;
+      }
+    },
+    []
+  );
 
   const disconnect = useCallback(() => {
     if (providerRef.current) {
@@ -130,6 +218,7 @@ export function useRealtimeConnection(
     };
     setConnectionStatus(disconnectedStatus);
     setCollaborationStatus?.(disconnectedStatus);
+    setConnectedUsers([]);
   }, [setCollaborationStatus]);
 
   useEffect(() => {
@@ -141,6 +230,7 @@ export function useRealtimeConnection(
 
   return {
     connectionStatus,
+    connectedUsers,
     ydoc: ydocRef.current,
     provider: providerRef.current,
     connect,
@@ -198,10 +288,8 @@ export function useCodeEditorCollaboration(
   editorRef: editor.IStandaloneCodeEditor | undefined,
   setCollaborationStatus?: (status: ConnectionStatus) => void
 ) {
-  const { ydoc, provider, connectionStatus } = useRealtimeConnection(
-    config,
-    setCollaborationStatus
-  );
+  const { ydoc, provider, connectionStatus, connectedUsers } =
+    useRealtimeConnection(config, setCollaborationStatus);
   const bindingRef = useRef<MonacoBinding | null>(null);
 
   useEffect(() => {
@@ -225,12 +313,13 @@ export function useCodeEditorCollaboration(
 
   return {
     connectionStatus,
+    connectedUsers,
     ydoc,
     provider,
   };
 }
 
-const getRandomColor = () => {
+const getRandomColor = (seed?: string) => {
   // Generate colors that work well with white text
   // Using darker, more saturated colors
   const colors = [
@@ -253,20 +342,29 @@ const getRandomColor = () => {
     '#e11d48', // rose-600
   ];
 
-  return colors[Math.floor(Math.random() * colors.length)];
+  // Use seed to generate a number for consistent color generation
+  const seedHash = seed
+    ? Math.abs(
+        seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      )
+    : Math.random()
+        .toString(36)
+        .substring(2, 9)
+        .split('')
+        .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  return colors[seedHash % colors.length];
 };
 
-// Hook for instruction editor collaboration
+// Hook for instruction editor collaboration (legacy - use host-collaboration.query.ts instead)
 export function useInstructionEditorCollaboration(
   config: RealtimeConfig,
   setCollaborationStatus?: (status: ConnectionStatus) => void
 ) {
   const { user } = useSession();
 
-  const { ydoc, provider, connectionStatus } = useRealtimeConnection(
-    config,
-    setCollaborationStatus
-  );
+  const { ydoc, provider, connectionStatus, connectedUsers } =
+    useRealtimeConnection(config, setCollaborationStatus);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -297,7 +395,7 @@ export function useInstructionEditorCollaboration(
                   id: Math.random().toString(36).substring(2, 9),
                   name:
                     user?.name ?? `User ${Math.floor(Math.random() * 1000)}`,
-                  color: getRandomColor(),
+                  color: getRandomColor(user?.id),
                 },
               }),
             ]
@@ -310,6 +408,7 @@ export function useInstructionEditorCollaboration(
   return {
     editor,
     connectionStatus,
+    connectedUsers,
     isReady,
     ydoc,
     provider,

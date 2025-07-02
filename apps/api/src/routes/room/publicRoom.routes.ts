@@ -12,7 +12,6 @@ import { CodeRunService } from '@/services/CodeRun.service';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
-
 	.get(
 		'/',
 		describeRoute({
@@ -70,43 +69,6 @@ export const publicRoomRouter = new Hono<AppContext>()
 
 			const codeOutput = 'Hello World';
 			return ctx.json({ codeOutput });
-		},
-	)
-	.get(
-		'/',
-		describeRoute({
-			description: 'Get public room info',
-			validateResponse: true,
-			responses: {
-				200: {
-					description: 'Public room info',
-					content: {
-						'application/json': {
-							schema: resolver(PublicRoomSchema),
-						},
-					},
-				},
-			},
-		}),
-		zValidator(
-			'param',
-			z.object({
-				roomId: idString('room'),
-			}),
-		),
-		async (ctx) => {
-			const { roomId } = ctx.req.valid('param');
-
-			const roomService = new RoomService(ctx);
-			const publicRoom = await roomService.getPublicRoom(roomId);
-
-			if (!publicRoom) {
-				throw new HTTPException(404, {
-					message: 'Room not found',
-				});
-			}
-
-			return ctx.json(publicRoom);
 		},
 	)
 	.all(
