@@ -6,8 +6,8 @@ import { useCallback, useState, useEffect } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
-import { useRunRoomCode } from '@/query/publicRoom.query';
 import { useCodeEditor } from '@/query/realtime/code.query';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import {
   Select,
   SelectContent,
@@ -36,8 +36,8 @@ const SUPPORTED_LANGUAGES = [
 export function CodeEditor() {
   const [language, setLanguage] = useState('javascript');
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
-  const { runRoomCode, isLoading } = useRunRoomCode();
   const { setupCollaboration, cleanupCollaboration, isReady } = useCodeEditor();
+  const { executeCode, isLoading } = useCodeExecutionHistory();
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     setEditorRef(e);
@@ -61,8 +61,8 @@ export function CodeEditor() {
   const handleRunCode = useCallback(async () => {
     if (!editorRef) return;
     const code = editorRef.getModel()?.getValue() ?? '';
-    await runRoomCode({ code, language });
-  }, [editorRef, runRoomCode, language]);
+    await executeCode(code, language);
+  }, [editorRef, executeCode, language]);
 
   const handleLanguageChange = useCallback(
     (value: string) => {

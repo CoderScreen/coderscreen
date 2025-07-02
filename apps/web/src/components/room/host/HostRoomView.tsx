@@ -9,9 +9,9 @@ import {
 } from '@remixicon/react';
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
-import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
-import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
+import { RoomProvider } from '@/contexts/RoomContext';
 import { useInstructionEditor } from '@/query/realtime/instruction.query';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 
 export const HostRoomView = () => {
@@ -26,8 +26,8 @@ const HostRoomContent = () => {
   // Use the shared instruction editor from RoomContext
   const instructionEditor = useInstructionEditor();
 
-  // Use code execution WebSocket (this will need to be updated to use PartyKit too)
-  const { data: executionData } = useCodeExecutionWebSocket();
+  // Use the execution history from Y.js
+  const { history } = useCodeExecutionHistory();
 
   return (
     <div className='h-screen w-screen flex flex-col'>
@@ -72,7 +72,7 @@ const HostRoomContent = () => {
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                <CodeOutput data={executionData} />
+                <CodeOutput history={history} />
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>

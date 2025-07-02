@@ -12,8 +12,8 @@ import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
 import { RoomProvider } from '@/contexts/RoomContext';
-import { useCodeExecutionWebSocket } from '@/query/codeExecution.query';
 import { useInstructionEditor } from '@/query/realtime/instruction.query';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import { GuestStartView } from './GuestStartView';
 import { useCurrentRoomId } from '@/lib/params';
 
@@ -80,9 +80,10 @@ const GuestRoomContent = () => {
   console.log('rendering GuestRoomContent');
 
   // Use the shared instruction editor from RoomContext
+  const instructionEditor = useInstructionEditor();
 
-  // Use code execution WebSocket (this will need to be updated to use PartyKit too)
-  // const { data: executionData } = useCodeExecutionWebSocket();
+  // Use the execution history from Y.js
+  const { history } = useCodeExecutionHistory();
 
   return (
     <div className='h-screen w-screen flex flex-col'>
@@ -127,7 +128,7 @@ const GuestRoomContent = () => {
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                {/* <CodeOutput data={executionData} /> */}
+                <CodeOutput history={history} />
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
