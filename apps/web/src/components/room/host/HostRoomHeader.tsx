@@ -23,7 +23,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
 import { Shortcut } from '@/components/common/Shortcut';
 import { Tooltip } from '@/components/ui/tooltip';
-import { ConnectedUser } from '@/query/realtime.query';
+import {
+  useActiveUsers,
+  ConnectedUser,
+} from '@/query/realtime/activeUsers.query';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
 if (!APP_URL) {
@@ -33,7 +36,8 @@ if (!APP_URL) {
 export const HostRoomHeader = () => {
   const { room, isLoading } = useRoom();
   const { updateRoom } = useUpdateRoom();
-  const { connectedUsers, provider } = useRoomContext();
+  const { provider } = useRoomContext();
+  const { uniqueUsers } = useActiveUsers();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(room?.title);
@@ -87,17 +91,6 @@ export const HostRoomHeader = () => {
       setTitle(room.title);
     }
   }, [room]);
-
-  // Get unique users by email (in case of multiple connections)
-  const uniqueUsers = connectedUsers.reduce(
-    (acc: ConnectedUser[], user: ConnectedUser) => {
-      if (!acc.find((u: ConnectedUser) => u.email === user.email)) {
-        acc.push(user);
-      }
-      return acc;
-    },
-    [] as ConnectedUser[]
-  );
 
   return (
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -154,7 +147,7 @@ export const HostRoomHeader = () => {
               {uniqueUsers
                 .slice(0, 3)
                 .map((user: ConnectedUser, index: number) => (
-                  <Tooltip key={user.clientId} content={user.email}>
+                  <Tooltip key={user.clientId} content={user.name}>
                     <div
                       className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white'
                       style={{ backgroundColor: user.color }}

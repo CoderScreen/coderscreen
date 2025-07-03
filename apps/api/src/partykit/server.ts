@@ -43,28 +43,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		this.room = data.room;
 
 		if (data.roomContent) {
-			const yDoc = new Y.Doc();
-
-			const codeValue = data.roomContent.code;
-			const instructionsValue = data.roomContent.instructions;
-			const executionHistoryValue = data.roomContent.executionHistory;
-
-			// // An example of a `yDoc` modification
-			// const codeText = yDoc.getText('code');
-			// codeText.insert(0, codeValue);
-
-			// const instructionsText = yDoc.getText('instructions');
-			// instructionsText.insert(0, instructionsValue);
-
-			// const executionHistoryArray = yDoc.getArray('executionHistory');
-			// executionHistoryArray.insert(0, executionHistoryValue)
-
-			// // Encode the document state as an update
-			// const yUpdate = Y.encodeStateAsUpdate(yDoc);
-
-			// const content = new Y.Doc();
-
-			// Y.applyUpdate(this.document, content);
+			Y.applyUpdate(this.document, new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64')));
 		}
 	}
 
@@ -79,15 +58,16 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		const codeValue = rawCodeValue.toJSON();
 
 		const rawInstructionsValue = this.document.getXmlFragment('instructions');
-		const instructionsValue = rawInstructionsValue.toJSON();
+		const instructionsValue = rawInstructionsValue.toArray();
 
 		const rawExecutionHistoryValue = this.document.getArray('executionHistory');
-		const executionHistoryValue = rawExecutionHistoryValue.toJSON();
+		const executionHistoryValue = rawExecutionHistoryValue.toArray();
 
 		const languageValue = this.document.getText('language');
 		const language = languageValue.toJSON();
-
 		console.log('language', language);
+
+		const totalContent = Y.encodeStateAsUpdate(this.document);
 
 		const roomContent: RoomContentEntity = {
 			roomId: room.id,
@@ -96,8 +76,10 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 			userId: room.userId,
 			organizationId: room.organizationId,
 			code: codeValue,
+			language,
 			instructions: instructionsValue,
 			executionHistory: executionHistoryValue,
+			rawContent: Buffer.from(totalContent).toString('base64'),
 		};
 
 		await Promise.all([
@@ -107,10 +89,12 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 				.onConflictDoUpdate({
 					target: [roomContentTable.roomId],
 					set: {
-						updatedAt: new Date().toISOString(),
-						code: codeValue,
-						instructions: instructionsValue,
-						executionHistory: executionHistoryValue,
+						...roomContent,
+						roomId: undefined,
+						createdAt: undefined,
+						updatedAt: undefined,
+						userId: undefined,
+						organizationId: undefined,
 					},
 				}),
 			db

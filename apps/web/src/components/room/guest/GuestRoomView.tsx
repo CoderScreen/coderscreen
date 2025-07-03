@@ -12,8 +12,6 @@ import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
 import { RoomProvider } from '@/contexts/RoomContext';
-import { useInstructionEditor } from '@/query/realtime/instruction.query';
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import { GuestStartView } from './GuestStartView';
 import { useCurrentRoomId } from '@/lib/params';
 

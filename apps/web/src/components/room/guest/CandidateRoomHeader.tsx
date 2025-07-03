@@ -1,47 +1,23 @@
-import { useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
 import { usePublicRoom } from '@/query/publicRoom.query';
-import { Button } from '@/components/ui/button';
-import { RiLogoutBoxLine, RiUserLine } from '@remixicon/react';
-import { useCurrentRoomId } from '@/lib/params';
+import { RiUserLine } from '@remixicon/react';
 import { Tooltip } from '@/components/ui/tooltip';
-import { ConnectedUser } from '@/query/realtime.query';
+import {
+  useActiveUsers,
+  ConnectedUser,
+} from '@/query/realtime/activeUsers.query';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
 if (!APP_URL) {
   throw new Error('VITE_APP_URL is not set');
 }
 
-interface CandidateRoomHeaderProps {
-  onLogout?: () => void;
-}
-
-export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
+export const CandidateRoomHeader = () => {
   const { publicRoom, isLoading } = usePublicRoom();
-  const { connectedUsers, provider } = useRoomContext();
-  const currentRoomId = useCurrentRoomId();
-
-  const handleLogout = () => {
-    // Clear guest info from localStorage
-    localStorage.removeItem(`guest-info-${currentRoomId}`);
-    // Call the logout callback if provided
-    onLogout?.();
-  };
-
-  // Get unique users by email (in case of multiple connections)
-  const uniqueUsers = connectedUsers.reduce(
-    (acc: ConnectedUser[], user: ConnectedUser) => {
-      if (!acc.find((u: ConnectedUser) => u.email === user.email)) {
-        acc.push(user);
-      }
-      return acc;
-    },
-    [] as ConnectedUser[]
-  );
-
-  console.log('candidateRoom.provider', provider);
+  const { isConnected } = useRoomContext();
+  const { uniqueUsers } = useActiveUsers();
 
   return (
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -60,15 +36,11 @@ export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
           <div
             className={cx(
               'w-2 h-2 rounded-full',
-              provider.wsconnected ? 'bg-green-500' : 'bg-red-500'
+              isConnected ? 'bg-green-500' : 'bg-red-500'
             )}
           />
-          <span
-            className={cx(
-              provider.wsconnected ? 'text-green-600' : 'text-red-600'
-            )}
-          >
-            {provider.wsconnected ? 'Connected' : 'Disconnected'}
+          <span className={cx(isConnected ? 'text-green-600' : 'text-red-600')}>
+            {isConnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
 
@@ -80,18 +52,16 @@ export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
           </span>
           {uniqueUsers.length > 0 && (
             <div className='flex items-center gap-1'>
-              {uniqueUsers
-                .slice(0, 3)
-                .map((user: ConnectedUser, index: number) => (
-                  <Tooltip key={user.clientId} content={user.email}>
-                    <div
-                      className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white'
-                      style={{ backgroundColor: user.color }}
-                    >
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  </Tooltip>
-                ))}
+              {uniqueUsers.slice(0, 3).map((user: ConnectedUser) => (
+                <Tooltip key={user.clientId} content={user.name}>
+                  <div
+                    className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white'
+                    style={{ backgroundColor: user.color }}
+                  >
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                </Tooltip>
+              ))}
               {uniqueUsers.length > 3 && (
                 <span className='text-xs text-muted-foreground'>
                   +{uniqueUsers.length - 3}
@@ -101,16 +71,6 @@ export const CandidateRoomHeader = ({ onLogout }: CandidateRoomHeaderProps) => {
           )}
         </div>
       </div>
-
-      {onLogout && (
-        <Button
-          variant='secondary'
-          onClick={handleLogout}
-          icon={RiLogoutBoxLine}
-        >
-          Leave Room
-        </Button>
-      )}
     </div>
   );
 };

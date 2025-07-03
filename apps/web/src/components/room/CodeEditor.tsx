@@ -39,21 +39,17 @@ export function CodeEditor() {
   const {
     setupCollaboration,
     cleanupCollaboration,
-    getSharedLanguage,
-    setSharedLanguage,
+    language,
+    setLanguage,
     subscribeToLanguageChanges,
     isReady,
   } = useCodeEditor();
   const { executeCode, isLoading } = useCodeExecutionHistory();
 
-  const [language, setLanguage] = useState(getSharedLanguage());
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
-    console.log('onMount');
-    if (e) {
-      setEditorRef(e);
-    }
+    setEditorRef(e);
   }, []);
 
   // Subscribe to shared language changes
@@ -61,7 +57,6 @@ export function CodeEditor() {
     if (!isReady) return;
 
     const unsubscribe = subscribeToLanguageChanges((newLanguage) => {
-      setLanguage(newLanguage);
       // Update Monaco editor language if editor is ready
       if (editorRef) {
         monaco.editor.setModelLanguage(editorRef.getModel()!, newLanguage);
@@ -95,13 +90,12 @@ export function CodeEditor() {
   const handleLanguageChange = useCallback(
     (value: RoomSchema['language']) => {
       setLanguage(value);
-      setSharedLanguage(value);
 
       if (editorRef) {
         monaco.editor.setModelLanguage(editorRef.getModel()!, value);
       }
     },
-    [editorRef, setSharedLanguage]
+    [editorRef, setLanguage]
   );
 
   return (

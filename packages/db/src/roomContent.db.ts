@@ -22,8 +22,10 @@ export const roomContentTable = pgTable('room_contents', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   code: jsonb('code').notNull(),
+  language: text('language').notNull(),
   instructions: jsonb('instructions').notNull(),
   executionHistory: jsonb('execution_history').notNull(),
+  rawContent: text('raw_content').notNull(),
 });
 
 export type RoomContentEntity = typeof roomContentTable.$inferSelect;

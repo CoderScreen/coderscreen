@@ -5,18 +5,15 @@ import React, {
   useState,
   useEffect,
   useRef,
+  useCallback,
 } from 'react';
-import { PartySocket } from 'partysocket';
-import * as Y from 'yjs';
 import { useCurrentRoomId } from '@/lib/params';
-import { ConnectedUser, ConnectionStatus } from '@/query/realtime.query';
 import useYProvider from 'y-partykit/react';
 import YPartyKitProvider from 'y-partykit/provider';
 
 interface RoomContextType {
-  connectedUsers: ConnectedUser[];
+  isConnected: boolean;
   provider: YPartyKitProvider;
-  setConnectedUsers: (users: ConnectedUser[]) => void;
 }
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -29,7 +26,7 @@ const API_URL = 'http://localhost:8000';
 
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
-  const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   const provider = useYProvider({
     party: 'room',
@@ -37,46 +34,31 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
     host: `${API_URL}/rooms/${currentRoomId}/public/partykit`,
   });
 
-  console.log('provider', provider);
+  // Listen to provider status events to update connection state
+  const handleStatus = useCallback(
+    ({ status }: { status: string }) => {
+      setIsConnected(status === 'connected');
+    },
+    [setIsConnected]
+  );
 
-  provider.on('*', () => console.log('open'));
+  useEffect(() => {
+    // Set initial state
+    setIsConnected(provider.wsconnected);
 
-  // Handle custom messages for user presence
-  provider.on('message', (event: MessageEvent) => {
-    console.log('message', event);
-    try {
-      const message = JSON.parse(event.data);
-      if (message.type === 'user-joined' && message.user) {
-        setConnectedUsers((prev) => {
-          const existingIndex = prev.findIndex(
-            (u) => u.email === message.user.email
-          );
-          if (existingIndex >= 0) {
-            const updated = [...prev];
-            updated[existingIndex] = message.user;
-            return updated;
-          } else {
-            return [...prev, message.user];
-          }
-        });
-      } else if (message.type === 'user-left' && message.user) {
-        setConnectedUsers((prev) =>
-          prev.filter((u) => u.email !== message.user.email)
-        );
-      } else if (message.type === 'user-list' && message.users) {
-        setConnectedUsers(message.users);
-      }
-    } catch (error) {
-      // Ignore parsing errors for non-JSON messages
-    }
-  });
+    // Listen for status changes
+    provider.on('status', handleStatus);
+
+    return () => {
+      provider.off('status', handleStatus);
+    };
+  }, [provider]);
 
   return (
     <RoomContext.Provider
       value={{
-        connectedUsers,
+        isConnected,
         provider,
-        setConnectedUsers,
       }}
     >
       {children}

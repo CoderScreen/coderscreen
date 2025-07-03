@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { editor } from 'monaco-editor';
 import { MonacoBinding } from 'y-monaco';
 import { useRoomContext } from '@/contexts/RoomContext';
@@ -8,6 +8,8 @@ import { RoomSchema } from '@coderscreen/api/schema/room';
 export function useCodeEditor() {
   const { provider } = useRoomContext();
   const bindingRef = useRef<MonacoBinding | null>(null);
+  const [language, setLanguage] =
+    useState<RoomSchema['language']>('javascript');
 
   const setupCollaboration = useCallback(
     (editorRef: editor.IStandaloneCodeEditor) => {
@@ -40,21 +42,13 @@ export function useCodeEditor() {
     }
   }, []);
 
-  // Get the shared language from Yjs document
-  const getSharedLanguage = useCallback((): RoomSchema['language'] => {
-    if (!provider) return 'javascript';
-    const language = provider.doc.get('language');
-    return typeof language === 'string'
-      ? (language as RoomSchema['language'])
-      : 'javascript';
-  }, [provider]);
-
   // Set the shared language in Yjs document
   const setSharedLanguage = useCallback(
     (language: RoomSchema['language']) => {
       if (!provider) return;
 
       const ytext = provider.doc.getText('language');
+      ytext.delete(0, ytext.length);
       ytext.insert(0, language);
     },
     [provider]
@@ -65,14 +59,10 @@ export function useCodeEditor() {
     (callback: (language: RoomSchema['language']) => void) => {
       if (!provider) return () => {};
 
-      const ymap = provider.doc.getMap('metadata');
+      const ymap = provider.doc.getText('language');
       const observer = () => {
-        const language = ymap.get('language');
-        callback(
-          typeof language === 'string'
-            ? (language as RoomSchema['language'])
-            : 'javascript'
-        );
+        const language = ymap.toJSON();
+        callback(language as RoomSchema['language']);
       };
 
       ymap.observe(observer);
@@ -80,6 +70,17 @@ export function useCodeEditor() {
     },
     [provider]
   );
+
+  // Subscribe to language changes and update local state
+  useEffect(() => {
+    if (!provider) return;
+
+    const unsubscribe = subscribeToLanguageChanges((newLanguage) => {
+      setLanguage(newLanguage);
+    });
+
+    return unsubscribe;
+  }, [provider, subscribeToLanguageChanges]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -91,8 +92,8 @@ export function useCodeEditor() {
   return {
     setupCollaboration,
     cleanupCollaboration,
-    getSharedLanguage,
-    setSharedLanguage,
+    language,
+    setLanguage: setSharedLanguage,
     subscribeToLanguageChanges,
     isReady: !!provider,
   };

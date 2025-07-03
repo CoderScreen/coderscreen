@@ -72,7 +72,7 @@ export const InstructionEditor = () => {
 
       <div
         className='flex-1 min-h-0 overflow-auto'
-        onClick={() => editor?.chain().focus().run()}
+        onClick={() => editor?.chain()?.focus()?.run()}
       >
         <EditorContent
           editor={editor}
