@@ -25,7 +25,6 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
 	async onLoad() {
 		this.sandboxService = new SandboxService(this.env);
-
 		// when first started, fetch the details of the room associated with this room
 		const roomId = this.name as Id<'room'>;
 		const db = this.getDb();

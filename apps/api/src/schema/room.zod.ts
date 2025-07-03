@@ -1,12 +1,14 @@
 import { z } from 'zod';
 import { idString } from '@coderscreen/common/id';
 
+export const RoomLanguageSchema = z.enum(['typescript', 'javascript', 'python', 'bash', 'rust', 'c++', 'c', 'java', 'go', 'php', 'ruby']);
+
 export const RoomSchema = z.object({
 	id: idString('room'),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
 	title: z.string(),
-	language: z.enum(['typescript', 'javascript', 'python', 'rust', 'c++']),
+	language: RoomLanguageSchema,
 	status: z.enum(['active', 'scheduled', 'completed', 'archived']),
 	notes: z.string(),
 });

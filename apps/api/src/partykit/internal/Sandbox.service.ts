@@ -1,20 +1,22 @@
 import { AppContext } from '@/index';
+import { getSandboxId } from '@/lib/sandbox';
 import { Id } from '@coderscreen/common/id';
 
 export class SandboxService {
 	constructor(private readonly env: AppContext['Bindings']) {}
 
 	async startSandbox(params: { roomId: Id<'room'>; language: string }) {
-		const sandboxId = this.getSandboxId(params.roomId, params.language);
-		const sandbox = this.env.SANDBOX.get(sandboxId.durableObjectId);
-
-		console.log('starting sandbox', sandboxId);
-
+		const sandbox = this.getSandbox(params.roomId, params.language);
 		sandbox.start();
 	}
 
-	private getSandboxId(roomId: Id<'room'>, language: string) {
-		const rawSandboxId = `s_${roomId}`;
+	private getSandbox(roomId: Id<'room'>, language: string) {
+		const sandboxId = this.getId(roomId, language);
+		return this.env.SANDBOX.get(sandboxId.durableObjectId);
+	}
+
+	private getId(roomId: Id<'room'>, language: string) {
+		const rawSandboxId = getSandboxId(roomId, language);
 		const sandboxId = this.env.SANDBOX.idFromName(rawSandboxId);
 
 		return {

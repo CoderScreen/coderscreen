@@ -8,14 +8,14 @@ import {
   RiPencilLine,
   RiChatAiLine,
 } from '@remixicon/react';
-import { InstructionEditor } from '@/components/room/InstructionEditor';
-import { CodeOutput } from '@/components/room/CodeOutput';
 import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
 import { RoomProvider } from '@/contexts/RoomContext';
 import { GuestStartView } from './GuestStartView';
 import { Guest, getGuest, setGuest } from '@/lib/guest';
 import { getRandomColor } from '@/query/realtime/utils';
-
+import { RoomFooter } from '@/components/room/RoomFooter';
+import { InstructionEditor } from '@/components/room/InstructionEditor';
+import { CodeOutput } from '@/components/room/CodeOutput';
 export const GuestRoomView = () => {
   const [guestInfo, setGuestInfo] = useState<Guest | null>(null);
 
@@ -52,14 +52,17 @@ const GuestRoomContent = () => {
   return (
     <div className='h-screen w-screen flex flex-col'>
       <CandidateRoomHeader />
-      <div className='flex-1 overflow-y-auto'>
-        <PanelGroup direction='horizontal'>
-          <Panel defaultSize={50}>
+      <div className='flex-1 min-h-0'>
+        <PanelGroup direction='horizontal' className='h-full'>
+          <Panel>
             <CodeEditor />
           </Panel>
           <PanelResizeHandle />
-          <Panel defaultSize={50}>
-            <Tabs defaultValue='instructions' className='p-4 h-full w-full'>
+          <Panel>
+            <Tabs
+              defaultValue='instructions'
+              className='h-full flex flex-col p-2 pt-4'
+            >
               <TabsList>
                 <TabsTrigger
                   value='instructions'
@@ -91,17 +94,24 @@ const GuestRoomContent = () => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value='program-output' className='h-full w-full'>
+              <TabsContent
+                value='program-output'
+                className='flex-1 overflow-y-auto'
+              >
                 <CodeOutput />
               </TabsContent>
 
-              <TabsContent value='instructions' className='h-full w-full'>
+              <TabsContent
+                value='instructions'
+                className='flex-1 overflow-y-auto'
+              >
                 <InstructionEditor isGuest />
               </TabsContent>
             </Tabs>
           </Panel>
         </PanelGroup>
       </div>
+      <RoomFooter />
     </div>
   );
 };

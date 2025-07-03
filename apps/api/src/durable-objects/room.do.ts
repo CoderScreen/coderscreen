@@ -4,7 +4,7 @@ import { UserManager } from './internal/user-manager';
 import { RoomInfo, RoomStatus, UserPresenceMessage } from './internal/types';
 import { DurableObject } from 'cloudflare:workers';
 import { AppContext } from '@/index';
-import { SandboxManagerService } from '@/durable-objects/internal/SandboxManager.service';
+// import { SandboxManagerService } from '@/durable-objects/internal/SandboxManager.service';
 import { TemplateEntity } from '@coderscreen/db/template.db';
 
 export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
@@ -13,7 +13,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 	private instructionManager: CollaborationManager;
 	private codeExecutionManager: CodeExecutionManager;
 	private userManager: UserManager;
-	private sandboxManager: SandboxManagerService;
+	// private sandboxManager: SandboxManagerService;
 
 	constructor(state: DurableObjectState, env: AppContext['Bindings']) {
 		super(state, env);
@@ -24,7 +24,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 		this.instructionManager = new CollaborationManager('instructions');
 		this.codeExecutionManager = new CodeExecutionManager();
 		this.userManager = new UserManager();
-		this.sandboxManager = new SandboxManagerService(this.env);
+		// this.sandboxManager = new SandboxManagerService(this.env);
 	}
 
 	async initialize(): Promise<void> {
@@ -152,7 +152,7 @@ export class UnifiedRoomDo extends DurableObject<AppContext['Bindings']> {
 
 				if (this.codeExecutionManager.getConnections().size === 1) {
 					console.log('starting sandbox bc first connection');
-					await this.sandboxManager.startSandbox(this.state.id.toString());
+					// await this.sandboxManager.startSandbox(this.state.id.toString());
 				}
 				resolve(true);
 			}),

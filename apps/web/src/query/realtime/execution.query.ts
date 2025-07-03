@@ -1,27 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useRunRoomCode } from '@/query/publicRoom.query';
-import * as Y from 'yjs';
+import { ExecOutputSchema } from '@coderscreen/api/schema/sandbox';
+import { z } from 'zod';
 
-export interface CodeExecutionResult {
-  code: string;
-  output: string;
-  error: string;
-  language: string;
-  timestamp: number;
-}
+type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
 export function useCodeExecutionHistory() {
   const { provider } = useRoomContext();
   const { runRoomCode, isLoading } = useRunRoomCode();
-  const [history, setHistory] = useState<CodeExecutionResult[]>([]);
+  const [history, setHistory] = useState<ExecOutput[]>([]);
 
   // Observe changes to the execution history in the main doc
   useEffect(() => {
     if (!provider) return;
 
     const executionHistory =
-      provider.doc.getArray<CodeExecutionResult>('executionHistory');
+      provider.doc.getArray<ExecOutput>('executionHistory');
 
     const updateHistory = () => {
       const historyArray = executionHistory.toArray();
@@ -46,34 +41,25 @@ export function useCodeExecutionHistory() {
 
       try {
         const result = await runRoomCode({ code, language });
-
-        const executionResult: CodeExecutionResult = {
-          code,
-          output: result.codeOutput ?? '',
-          error: '', // API doesn't return errors separately, they're in codeOutput
-          language,
-          timestamp: Date.now(),
-        };
-
         // Add to main doc
         const executionHistory =
-          provider.doc.getArray<CodeExecutionResult>('executionHistory');
-        executionHistory.unshift([executionResult]);
+          provider.doc.getArray<ExecOutput>('executionHistory');
+        executionHistory.unshift([result]);
 
         return result;
       } catch (error) {
-        const errorResult: CodeExecutionResult = {
-          code,
-          output: '',
-          error:
+        const errorResult: ExecOutput = {
+          success: false,
+          timestamp: new Date().toISOString(),
+          stdout: '',
+          stderr:
             error instanceof Error ? error.message : 'Unknown error occurred',
-          language,
-          timestamp: Date.now(),
+          exitCode: 1,
         };
 
         // Add error to main doc
         const executionHistory =
-          provider.doc.getArray<CodeExecutionResult>('executionHistory');
+          provider.doc.getArray<ExecOutput>('executionHistory');
         executionHistory.unshift([errorResult]);
 
         throw error;
@@ -87,7 +73,7 @@ export function useCodeExecutionHistory() {
     if (!provider) return;
 
     const executionHistory =
-      provider.doc.getArray<CodeExecutionResult>('executionHistory');
+      provider.doc.getArray<ExecOutput>('executionHistory');
     executionHistory.delete(0, executionHistory.length);
   }, [provider]);
 

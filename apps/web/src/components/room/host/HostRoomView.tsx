@@ -11,6 +11,7 @@ import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider } from '@/contexts/RoomContext';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
+import { RoomFooter } from '@/components/room/RoomFooter';
 
 export const HostRoomView = () => {
   return (
@@ -24,14 +25,17 @@ const HostRoomContent = () => {
   return (
     <div className='h-screen w-screen flex flex-col'>
       <HostRoomHeader />
-      <div className='flex-1'>
-        <PanelGroup direction='horizontal'>
+      <div className='flex-1 min-h-0'>
+        <PanelGroup direction='horizontal' className='h-full'>
           <Panel>
             <CodeEditor />
           </Panel>
           <PanelResizeHandle />
           <Panel>
-            <Tabs defaultValue='instructions' className='p-4 h-full w-full'>
+            <Tabs
+              defaultValue='instructions'
+              className='h-full flex flex-col p-2 pt-4'
+            >
               <TabsList>
                 <TabsTrigger
                   value='instructions'
@@ -63,17 +67,24 @@ const HostRoomContent = () => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value='program-output' className='h-full w-full'>
+              <TabsContent
+                value='program-output'
+                className='flex-1 overflow-y-auto'
+              >
                 <CodeOutput />
               </TabsContent>
 
-              <TabsContent value='instructions' className='h-full w-full'>
+              <TabsContent
+                value='instructions'
+                className='flex-1 overflow-y-auto'
+              >
                 <InstructionEditor />
               </TabsContent>
             </Tabs>
           </Panel>
         </PanelGroup>
       </div>
+      <RoomFooter />
     </div>
   );
 };

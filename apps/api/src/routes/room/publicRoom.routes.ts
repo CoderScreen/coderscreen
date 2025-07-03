@@ -7,8 +7,9 @@ import { idString } from '@coderscreen/common/id';
 import { RoomService } from '@/services/Room.service';
 import { publicRoomMiddleware } from '@/middleware/room.middleware';
 import { CodeRunService } from '@/services/CodeRun.service';
-import { PublicRoomSchema } from '@/schema/room.zod';
+import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
+import { ExecOutputSchema } from '@/schema/sandbox.zod';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
@@ -53,7 +54,7 @@ export const publicRoomRouter = new Hono<AppContext>()
 					description: 'Room code run successfully',
 					content: {
 						'application/json': {
-							schema: resolver(z.object({ result: z.string() })),
+							schema: resolver(ExecOutputSchema),
 						},
 					},
 				},
@@ -65,16 +66,15 @@ export const publicRoomRouter = new Hono<AppContext>()
 				roomId: idString('room'),
 			}),
 		),
-		zValidator('json', z.object({ code: z.string(), language: z.string() })),
+		zValidator('json', z.object({ code: z.string(), language: RoomLanguageSchema })),
 		async (ctx) => {
 			const { roomId } = ctx.req.valid('param');
 			const { code, language } = ctx.req.valid('json');
 
 			const codeRunService = new CodeRunService(ctx);
 
-			console.log('running code', code);
 			const result = await codeRunService.runCode({ roomId, code, language });
 
-			return ctx.json({ result });
+			return ctx.json(result);
 		},
 	);

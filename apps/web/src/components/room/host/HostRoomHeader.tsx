@@ -14,7 +14,6 @@ import {
   RiCloseLine,
   RiCheckLine,
   RiFileTextLine,
-  RiUserLine,
 } from '@remixicon/react';
 import { toast } from 'sonner';
 import { useRoomContext } from '@/contexts/RoomContext';
@@ -22,11 +21,6 @@ import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
 import { Shortcut } from '@/components/common/Shortcut';
-import { Tooltip } from '@/components/ui/tooltip';
-import {
-  useActiveUsers,
-  ConnectedUser,
-} from '@/query/realtime/activeUsers.query';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
 if (!APP_URL) {
@@ -36,8 +30,6 @@ if (!APP_URL) {
 export const HostRoomHeader = () => {
   const { room, isLoading } = useRoom();
   const { updateRoom } = useUpdateRoom();
-  const { provider } = useRoomContext();
-  const { uniqueUsers } = useActiveUsers();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(room?.title);
@@ -109,59 +101,12 @@ export const HostRoomHeader = () => {
           ) : isLoading ? (
             <Skeleton className='w-42 h-6' />
           ) : (
-            <Tooltip content='Click to edit title'>
-              <span
-                className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'
-                onClick={() => setIsEditingTitle(true)}
-              >
-                {title}
-              </span>
-            </Tooltip>
-          )}
-        </div>
-
-        <div className='flex items-center gap-2 text-sm'>
-          <div
-            className={cx(
-              'w-2 h-2 rounded-full',
-              provider.wsconnected ? 'bg-green-500' : 'bg-red-500'
-            )}
-          />
-          <span
-            className={cx(
-              provider.wsconnected ? 'text-green-600' : 'text-red-600'
-            )}
-          >
-            {provider.wsconnected ? 'Connected' : 'Disconnected'}
-          </span>
-        </div>
-
-        {/* Connected Users */}
-        <div className='flex items-center gap-2 ml-4'>
-          <RiUserLine className='h-4 w-4 text-muted-foreground' />
-          <span className='text-sm text-muted-foreground'>
-            {uniqueUsers.length} connected
-          </span>
-          {uniqueUsers.length > 0 && (
-            <div className='flex items-center gap-1'>
-              {uniqueUsers
-                .slice(0, 3)
-                .map((user: ConnectedUser, index: number) => (
-                  <Tooltip key={user.clientId} content={user.name}>
-                    <div
-                      className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white'
-                      style={{ backgroundColor: user.color }}
-                    >
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  </Tooltip>
-                ))}
-              {uniqueUsers.length > 3 && (
-                <span className='text-xs text-muted-foreground'>
-                  +{uniqueUsers.length - 3}
-                </span>
-              )}
-            </div>
+            <span
+              className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'
+              onClick={() => setIsEditingTitle(true)}
+            >
+              {title}
+            </span>
           )}
         </div>
       </div>
