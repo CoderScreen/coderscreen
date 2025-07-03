@@ -8,7 +8,6 @@ import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
 import { useCodeEditor } from '@/query/realtime/code.query';
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
-import { useRoom } from '@/query/room.query';
 import {
   Select,
   SelectContent,
@@ -99,7 +98,7 @@ export function CodeEditor() {
   );
 
   return (
-    <div className='h-full w-full border bg-white text-gray-900 overflow-hidden'>
+    <div className='h-full w-full border bg-white text-gray-900 relative flex flex-col'>
       {/* Menu Bar */}
       <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
@@ -131,29 +130,31 @@ export function CodeEditor() {
         </div>
       </div>
 
-      {/* Monaco Editor */}
-      <Editor
-        onMount={handleOnMount}
-        language={language}
-        theme='vs'
-        className='pr-2'
-        height={editorRef?.getDomNode()?.clientHeight}
-        options={{
-          minimap: { enabled: false },
-          fontSize: 14,
-          fontFamily: 'JetBrains Mono, Consolas, monospace',
-          lineNumbers: 'on',
-          roundedSelection: false,
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-          wordWrap: 'on',
-          folding: true,
-          lineDecorationsWidth: 10,
-          lineNumbersMinChars: 3,
-          glyphMargin: false,
-          padding: { top: 10, bottom: 10 },
-        }}
-      />
+      <div className='relative grow-1'>
+        <Editor
+          onMount={handleOnMount}
+          language={language}
+          theme='vs'
+          className='pr-2 pt-2'
+          height='100%'
+          width='100%'
+          options={{
+            minimap: { enabled: false },
+            fontSize: 14,
+            fontFamily: 'JetBrains Mono, Consolas, monospace',
+            lineNumbers: 'on',
+            roundedSelection: false,
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            wordWrap: 'on',
+            folding: true,
+            lineDecorationsWidth: 10,
+            lineNumbersMinChars: 3,
+            glyphMargin: false,
+            padding: { top: 10, bottom: 10 },
+          }}
+        />
+      </div>
     </div>
   );
 }

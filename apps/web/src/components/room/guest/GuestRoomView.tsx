@@ -13,52 +13,26 @@ import { CodeOutput } from '@/components/room/CodeOutput';
 import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
 import { RoomProvider } from '@/contexts/RoomContext';
 import { GuestStartView } from './GuestStartView';
-import { useCurrentRoomId } from '@/lib/params';
+import { Guest, getGuest, setGuest } from '@/lib/guest';
+import { getRandomColor } from '@/query/realtime/utils';
 
-interface GuestRoomViewProps {
-  onLogout?: () => void;
-}
-
-export const GuestRoomView = ({ onLogout }: GuestRoomViewProps) => {
-  const currentRoomId = useCurrentRoomId();
-  const [guestInfo, setGuestInfo] = useState<{
-    name: string;
-    email: string;
-  } | null>(null);
-
-  console.log('rendering GuestRoomView');
+export const GuestRoomView = () => {
+  const [guestInfo, setGuestInfo] = useState<Guest | null>(null);
 
   // Load guest info from localStorage on mount
   useEffect(() => {
     if (!guestInfo) {
-      const storedGuestInfo = localStorage.getItem(
-        `guest-info-${currentRoomId}`
-      );
-      if (storedGuestInfo) {
-        try {
-          const parsed = JSON.parse(storedGuestInfo);
-          setGuestInfo(parsed);
-        } catch (error) {
-          // If parsing fails, remove the invalid data
-          localStorage.removeItem(`guest-info-${currentRoomId}`);
-        }
+      const guest = getGuest();
+      if (guest) {
+        setGuestInfo(guest);
       }
     }
-  }, [guestInfo, currentRoomId]);
+  }, [guestInfo]);
 
-  const handleJoinAsGuest = (name: string, email: string) => {
-    setGuestInfo({ name, email });
-    localStorage.setItem(
-      `guest-info-${currentRoomId}`,
-      JSON.stringify({ name, email })
-    );
-  };
-
-  const handleLogout = () => {
-    setGuestInfo(null);
-    if (onLogout) {
-      onLogout();
-    }
+  const handleJoinAsGuest = (name: string) => {
+    const newGuest = { id: name, name, color: getRandomColor(name) };
+    setGuest(newGuest);
+    setGuestInfo(newGuest);
   };
 
   // If no guest info, show the start view
@@ -122,7 +96,7 @@ const GuestRoomContent = () => {
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
-                <InstructionEditor />
+                <InstructionEditor isGuest />
               </TabsContent>
             </Tabs>
           </Panel>

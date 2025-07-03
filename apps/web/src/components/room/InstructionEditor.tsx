@@ -9,10 +9,15 @@ import {
   RiListOrdered,
   RiListUnordered,
 } from '@remixicon/react';
-import { useInstructionEditor } from '@/query/realtime/instruction.query';
+import {
+  useGuestInstructionEditor,
+  useInstructionEditor,
+} from '@/query/realtime/instruction.query';
 
-export const InstructionEditor = () => {
-  const editor = useInstructionEditor();
+export const InstructionEditor = (props: { isGuest?: boolean }) => {
+  const editor = props.isGuest
+    ? useGuestInstructionEditor()
+    : useInstructionEditor();
 
   const toggleBold = () => {
     editor?.chain().focus().toggleBold().run();

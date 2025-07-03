@@ -23,7 +23,7 @@ export function useCodeEditor() {
         ytext,
         editorRef.getModel() as editor.ITextModel,
         new Set([editorRef]),
-        provider.awareness
+        null
       );
       bindingRef.current = binding;
 

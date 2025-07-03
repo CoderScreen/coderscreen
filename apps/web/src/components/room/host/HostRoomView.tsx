@@ -10,8 +10,6 @@ import {
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider } from '@/contexts/RoomContext';
-import { useInstructionEditor } from '@/query/realtime/instruction.query';
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 
 export const HostRoomView = () => {
@@ -23,12 +21,6 @@ export const HostRoomView = () => {
 };
 
 const HostRoomContent = () => {
-  // Use the shared instruction editor from RoomContext
-  const instructionEditor = useInstructionEditor();
-
-  // Use the execution history from Y.js
-  const { history } = useCodeExecutionHistory();
-
   return (
     <div className='h-screen w-screen flex flex-col'>
       <HostRoomHeader />
@@ -72,7 +64,7 @@ const HostRoomContent = () => {
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                <CodeOutput history={history} />
+                <CodeOutput />
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
