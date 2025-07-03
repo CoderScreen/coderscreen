@@ -8,6 +8,7 @@ import { editor } from 'monaco-editor';
 import * as monaco from 'monaco-editor';
 import { useCodeEditor } from '@/query/realtime/code.query';
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
+import { useRoom } from '@/query/room.query';
 import {
   Select,
   SelectContent,
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { RoomSchema } from '@coderscreen/api/schema/room';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -34,10 +36,18 @@ const SUPPORTED_LANGUAGES = [
 ];
 
 export function CodeEditor() {
-  const [language, setLanguage] = useState('javascript');
-  const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
-  const { setupCollaboration, cleanupCollaboration, isReady } = useCodeEditor();
+  const {
+    setupCollaboration,
+    cleanupCollaboration,
+    getSharedLanguage,
+    setSharedLanguage,
+    subscribeToLanguageChanges,
+    isReady,
+  } = useCodeEditor();
   const { executeCode, isLoading } = useCodeExecutionHistory();
+
+  const [language, setLanguage] = useState(getSharedLanguage());
+  const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     console.log('onMount');
@@ -45,6 +55,21 @@ export function CodeEditor() {
       setEditorRef(e);
     }
   }, []);
+
+  // Subscribe to shared language changes
+  useEffect(() => {
+    if (!isReady) return;
+
+    const unsubscribe = subscribeToLanguageChanges((newLanguage) => {
+      setLanguage(newLanguage);
+      // Update Monaco editor language if editor is ready
+      if (editorRef) {
+        monaco.editor.setModelLanguage(editorRef.getModel()!, newLanguage);
+      }
+    });
+
+    return unsubscribe;
+  }, [isReady, subscribeToLanguageChanges, editorRef]);
 
   // Setup collaboration when editor is ready
   useEffect(() => {
@@ -68,14 +93,15 @@ export function CodeEditor() {
   }, [editorRef, executeCode, language]);
 
   const handleLanguageChange = useCallback(
-    (value: string) => {
+    (value: RoomSchema['language']) => {
       setLanguage(value);
+      setSharedLanguage(value);
 
       if (editorRef) {
-        monaco.editor.setModelLanguage(editorRef.getModel()!, language);
+        monaco.editor.setModelLanguage(editorRef.getModel()!, value);
       }
     },
-    [editorRef, language]
+    [editorRef, setSharedLanguage]
   );
 
   return (

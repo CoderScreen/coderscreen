@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { editor } from 'monaco-editor';
 import { MonacoBinding } from 'y-monaco';
 import { useRoomContext } from '@/contexts/RoomContext';
-import * as Y from 'yjs';
+import { RoomSchema } from '@coderscreen/api/schema/room';
 
 // Shared hook for creating collaborative code editor
 export function useCodeEditor() {
@@ -40,6 +40,47 @@ export function useCodeEditor() {
     }
   }, []);
 
+  // Get the shared language from Yjs document
+  const getSharedLanguage = useCallback((): RoomSchema['language'] => {
+    if (!provider) return 'javascript';
+    const language = provider.doc.get('language');
+    return typeof language === 'string'
+      ? (language as RoomSchema['language'])
+      : 'javascript';
+  }, [provider]);
+
+  // Set the shared language in Yjs document
+  const setSharedLanguage = useCallback(
+    (language: RoomSchema['language']) => {
+      if (!provider) return;
+
+      const ytext = provider.doc.getText('language');
+      ytext.insert(0, language);
+    },
+    [provider]
+  );
+
+  // Subscribe to language changes
+  const subscribeToLanguageChanges = useCallback(
+    (callback: (language: RoomSchema['language']) => void) => {
+      if (!provider) return () => {};
+
+      const ymap = provider.doc.getMap('metadata');
+      const observer = () => {
+        const language = ymap.get('language');
+        callback(
+          typeof language === 'string'
+            ? (language as RoomSchema['language'])
+            : 'javascript'
+        );
+      };
+
+      ymap.observe(observer);
+      return () => ymap.unobserve(observer);
+    },
+    [provider]
+  );
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -50,6 +91,9 @@ export function useCodeEditor() {
   return {
     setupCollaboration,
     cleanupCollaboration,
+    getSharedLanguage,
+    setSharedLanguage,
+    subscribeToLanguageChanges,
     isReady: !!provider,
   };
 }

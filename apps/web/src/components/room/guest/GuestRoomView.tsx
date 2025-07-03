@@ -77,14 +77,6 @@ export const GuestRoomView = ({ onLogout }: GuestRoomViewProps) => {
 };
 
 const GuestRoomContent = () => {
-  console.log('rendering GuestRoomContent');
-
-  // Use the shared instruction editor from RoomContext
-  const instructionEditor = useInstructionEditor();
-
-  // Use the execution history from Y.js
-  const { history } = useCodeExecutionHistory();
-
   return (
     <div className='h-screen w-screen flex flex-col'>
       <CandidateRoomHeader />
@@ -128,7 +120,7 @@ const GuestRoomContent = () => {
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                {/* <CodeOutput history={history} /> */}
+                <CodeOutput />
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>

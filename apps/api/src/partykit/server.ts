@@ -84,6 +84,11 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		const rawExecutionHistoryValue = this.document.getArray('executionHistory');
 		const executionHistoryValue = rawExecutionHistoryValue.toJSON();
 
+		const languageValue = this.document.getText('language');
+		const language = languageValue.toJSON();
+
+		console.log('language', language);
+
 		const roomContent: RoomContentEntity = {
 			roomId: room.id,
 			createdAt: new Date().toISOString(),
@@ -95,18 +100,26 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 			executionHistory: executionHistoryValue,
 		};
 
-		await db
-			.insert(roomContentTable)
-			.values(roomContent)
-			.onConflictDoUpdate({
-				target: [roomContentTable.roomId],
-				set: {
-					updatedAt: new Date().toISOString(),
-					code: codeValue,
-					instructions: instructionsValue,
-					executionHistory: executionHistoryValue,
-				},
-			});
+		await Promise.all([
+			db
+				.insert(roomContentTable)
+				.values(roomContent)
+				.onConflictDoUpdate({
+					target: [roomContentTable.roomId],
+					set: {
+						updatedAt: new Date().toISOString(),
+						code: codeValue,
+						instructions: instructionsValue,
+						executionHistory: executionHistoryValue,
+					},
+				}),
+			db
+				.update(roomTable)
+				.set({
+					language: language as RoomEntity['language'],
+				})
+				.where(eq(roomTable.id, room.id)),
+		]);
 	}
 
 	private async getDb() {

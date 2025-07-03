@@ -1,10 +1,8 @@
-import { CodeExecutionResult } from '@/query/realtime/execution.query';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 
-interface CodeOutputProps {
-  history: CodeExecutionResult[];
-}
+export const CodeOutput = () => {
+  const { history } = useCodeExecutionHistory();
 
-export const CodeOutput = ({ history }: CodeOutputProps) => {
   if (!history.length) {
     return (
       <div className='h-full w-full bg-white'>
