@@ -71,7 +71,6 @@ export class RoomService {
 
 	async listRooms() {
 		const { orgId } = getSession(this.ctx);
-
 		return this.db.select().from(roomTable).where(eq(roomTable.organizationId, orgId)).orderBy(desc(roomTable.createdAt));
 	}
 

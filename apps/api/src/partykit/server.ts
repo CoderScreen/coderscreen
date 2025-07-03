@@ -7,9 +7,11 @@ import { eq } from 'drizzle-orm';
 import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
 import * as Y from 'yjs';
+import { SandboxService } from './internal/Sandbox.service';
 
 export class RoomServer extends YServer<AppContext['Bindings']> {
 	private db: PostgresJsDatabase | null = null;
+	private sandboxService: SandboxService | null = null;
 	private room: RoomEntity | null = null;
 
 	/* control how often the onSave handler
@@ -20,12 +22,13 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		debounceMaxWait: /* number, default = */ 1000,
 		timeout: /* number, default = */ 1000,
 	};
-	private awareness = new Map<string, any>();
 
 	async onLoad() {
+		this.sandboxService = new SandboxService(this.env);
+
 		// when first started, fetch the details of the room associated with this room
 		const roomId = this.name as Id<'room'>;
-		const db = await this.getDb();
+		const db = this.getDb();
 		const data = await db
 			.select({
 				room: roomTable,
@@ -45,14 +48,24 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		if (data.roomContent) {
 			Y.applyUpdate(this.document, new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64')));
 		}
+
+		// warm up the sandbox
+		this.createNewSandbox(this.room.language);
+
+		// observe the language and start new sandbox if it changes
+		const languageText = this.document.getText('language');
+		languageText.observe(() => {
+			const language = languageText.toJSON() as RoomEntity['language'];
+			// this.createNewSandbox(language);
+		});
 	}
 
 	async onSave() {
 		// called every few seconds after edits, and when the room empties
 		// you can use this to write to a database or some external storage
 
-		const db = await this.getDb();
-		const room = await this.getRoom();
+		const db = this.getDb();
+		const room = this.getRoom();
 
 		const rawCodeValue = this.document.getText('code');
 		const codeValue = rawCodeValue.toJSON();
@@ -65,7 +78,6 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
 		const languageValue = this.document.getText('language');
 		const language = languageValue.toJSON();
-		console.log('language', language);
 
 		const totalContent = Y.encodeStateAsUpdate(this.document);
 
@@ -106,7 +118,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		]);
 	}
 
-	private async getDb() {
+	private getDb() {
 		if (!this.db) {
 			const sql = postgres(this.env.DATABASE_URL);
 			this.db = drizzle(sql);
@@ -115,11 +127,26 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		return this.db;
 	}
 
-	private async getRoom() {
+	private getRoom() {
 		if (!this.room) {
 			throw new Error('Room not found');
 		}
 
 		return this.room;
+	}
+
+	private getSandbox() {
+		if (!this.sandboxService) {
+			throw new Error('Sandbox service not found');
+		}
+
+		return this.sandboxService;
+	}
+
+	private createNewSandbox(language: RoomEntity['language']) {
+		const room = this.getRoom();
+		const roomId = room.id;
+
+		this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId, language }));
 	}
 }

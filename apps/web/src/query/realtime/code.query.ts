@@ -48,8 +48,11 @@ export function useCodeEditor() {
       if (!provider) return;
 
       const ytext = provider.doc.getText('language');
-      ytext.delete(0, ytext.length);
-      ytext.insert(0, language);
+
+      provider.doc.transact(() => {
+        ytext.delete(0, ytext.length);
+        ytext.insert(0, language);
+      });
     },
     [provider]
   );

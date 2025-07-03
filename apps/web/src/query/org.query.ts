@@ -38,7 +38,7 @@ export const useSwitchOrganization = () => {
       // Navigate to home page after switching
       await router.navigate({ to: '/' });
 
-      queryClient.clear();
+      queryClient.invalidateQueries();
     },
     meta: {
       ERROR_MESSAGE: 'Failed to switch organization',

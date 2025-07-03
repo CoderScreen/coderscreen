@@ -2,5 +2,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "sandbox:build": "docker build -t sandbox-image -f ./apps/api/src/containers/images/Dockerfile ."
+  }
 }

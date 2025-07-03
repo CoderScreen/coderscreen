@@ -9,7 +9,9 @@
 		"test": "vitest",
 		"cf-deploy": "wrangler deploy",
 		"cf-typegen": "wrangler types",
-		"auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./better-auth.config.ts --output ../../packages/db/src/user.db.ts"
+		"auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./better-auth.config.ts --output ../../packages/db/src/user.db.ts",
+		"sandbox:build": "cd ../.. && pnpm sandbox:build",
+		"sandbox:push": "wrangler containers push sandbox-image"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.36",

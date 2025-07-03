@@ -3,7 +3,18 @@ import { sql } from 'drizzle-orm';
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { organization, user } from './user.db';
 
-type RoomLanguage = 'typescript' | 'javascript' | 'python' | 'rust' | 'c++';
+type RoomLanguage =
+  | 'typescript'
+  | 'javascript'
+  | 'python'
+  | 'bash'
+  | 'rust'
+  | 'c++'
+  | 'c'
+  | 'java'
+  | 'go'
+  | 'php'
+  | 'ruby';
 type RoomStatus = 'active' | 'scheduled' | 'completed' | 'archived';
 
 export const roomTable = pgTable('rooms', {
