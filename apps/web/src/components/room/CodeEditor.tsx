@@ -40,7 +40,10 @@ export function CodeEditor() {
   const { executeCode, isLoading } = useCodeExecutionHistory();
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
-    setEditorRef(e);
+    console.log('onMount');
+    if (e) {
+      setEditorRef(e);
+    }
   }, []);
 
   // Setup collaboration when editor is ready
@@ -111,10 +114,10 @@ export function CodeEditor() {
       {/* Monaco Editor */}
       <Editor
         onMount={handleOnMount}
-        height='100%'
-        defaultLanguage={language}
+        language={language}
         theme='vs'
         className='pr-2'
+        height={editorRef?.getDomNode()?.clientHeight}
         options={{
           minimap: { enabled: false },
           fontSize: 14,

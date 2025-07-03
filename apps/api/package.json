@@ -35,6 +35,7 @@
 		"partysocket": "1.1.4",
 		"postgres": "^3.4.7",
 		"y-partykit": "^0.0.33",
+		"y-partyserver": "^0.0.45",
 		"y-protocols": "^1.0.6",
 		"yjs": "^13.6.27",
 		"zod": "^3.25.67",

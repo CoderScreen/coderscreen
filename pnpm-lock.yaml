@@ -55,6 +55,9 @@ importers:
       y-partykit:
         specifier: ^0.0.33
         version: 0.0.33(react@19.1.0)(y-protocols@1.0.6)(yjs@13.6.27)
+      y-partyserver:
+        specifier: ^0.0.45
+        version: 0.0.45(@cloudflare/workers-types@4.20250702.0)(partyserver@0.0.72)(yjs@13.6.27)
       y-protocols:
         specifier: ^1.0.6
         version: 1.0.6(yjs@13.6.27)
@@ -10622,6 +10625,22 @@ packages:
       lib0: 0.2.109
       lodash.debounce: 4.0.8
       react: 19.1.0
+      y-protocols: 1.0.6(yjs@13.6.27)
+      yjs: 13.6.27
+    dev: false
+
+  /y-partyserver@0.0.45(@cloudflare/workers-types@4.20250702.0)(partyserver@0.0.72)(yjs@13.6.27):
+    resolution: {integrity: sha512-yBiTz/523PgDLQChyOGzyOv6y7EmZfadmuk90rzYKozLKFVx6/+2dyBtTVR7Ux9aU4WVp7VvT6A7+W2UXj2ppg==}
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20240729.0
+      partyserver: ^0.0.72
+      yjs: ^13.6.14
+    dependencies:
+      '@cloudflare/workers-types': 4.20250702.0
+      lib0: 0.2.109
+      lodash.debounce: 4.0.8
+      nanoid: 5.1.5
+      partyserver: 0.0.72(@cloudflare/workers-types@4.20250702.0)
       y-protocols: 1.0.6(yjs@13.6.27)
       yjs: 13.6.27
     dev: false

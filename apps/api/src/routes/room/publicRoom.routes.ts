@@ -8,7 +8,6 @@ import { RoomService } from '@/services/Room.service';
 import { publicRoomMiddleware } from '@/middleware/room.middleware';
 import { CodeRunService } from '@/services/CodeRun.service';
 import { PublicRoomSchema } from '@/schema/room.zod';
-import { partyserverMiddleware } from 'hono-party';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
 
 export const publicRoomRouter = new Hono<AppContext>()
@@ -83,28 +82,3 @@ export const publicRoomRouter = new Hono<AppContext>()
 			return ctx.json({ codeOutput });
 		},
 	);
-// .all(
-// 	'/ws',
-// 	describeRoute({
-// 		description: 'Unified room endpoint - handles both code and instruction documents',
-// 		responses: {
-// 			200: {
-// 				description: 'Room response',
-// 			},
-// 			101: {
-// 				description: 'WebSocket upgrade',
-// 			},
-// 		},
-// 	}),
-// 	zValidator(
-// 		'param',
-// 		z.object({
-// 			roomId: idString('room'),
-// 		}),
-// 	),
-// 	async (ctx) => {
-// 		const { roomId } = ctx.req.valid('param');
-
-// 		// return routePartykitRequest<Server<AppContext['Bindings']>>(ctx.req.raw, ctx.env) || new Response('Not Found', { status: 404 });
-// 	},
-// );

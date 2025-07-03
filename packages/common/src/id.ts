@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const Entities = {
   room: 'r',
+  room_content: 'rc',
   asset: 'a',
   template: 't',
 } as const;

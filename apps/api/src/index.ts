@@ -15,7 +15,7 @@ import { assetRouter } from './routes/asset.routes';
 import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
 import { templateRouter } from '@/routes/template.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
-import { Server as PartyServer } from 'partyserver';
+import { RoomServer as PartyServer } from '@/partykit/server';
 
 export interface AppContext {
 	Variables: {

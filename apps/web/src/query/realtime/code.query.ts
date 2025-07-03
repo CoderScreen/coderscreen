@@ -8,24 +8,13 @@ import * as Y from 'yjs';
 export function useCodeEditor() {
   const { provider } = useRoomContext();
   const bindingRef = useRef<MonacoBinding | null>(null);
-  const subdocRef = useRef<Y.Doc | null>(null);
 
   const setupCollaboration = useCallback(
     (editorRef: editor.IStandaloneCodeEditor) => {
       if (!editorRef || !provider) return;
 
-      // Create or get the subdoc for code
-      const subdoc = provider.doc.getMap('subdocs').get('code') as Y.Doc;
-      if (!subdoc) {
-        const newSubdoc = new Y.Doc();
-        provider.doc.getMap('subdocs').set('code', newSubdoc);
-        subdocRef.current = newSubdoc;
-      } else {
-        subdocRef.current = subdoc;
-      }
-
-      // Get or create the Yjs text for code in the subdoc
-      const ytext = subdocRef.current.getText('code');
+      // Get or create the Yjs text for code directly in the main doc
+      const ytext = provider.doc.getText('code');
 
       // Attach Yjs to Monaco
       const binding = new MonacoBinding(

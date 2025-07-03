@@ -88,13 +88,13 @@ const GuestRoomContent = () => {
   return (
     <div className='h-screen w-screen flex flex-col'>
       <CandidateRoomHeader />
-      <div className='flex-1'>
+      <div className='flex-1 overflow-y-auto'>
         <PanelGroup direction='horizontal'>
-          <Panel>
+          <Panel defaultSize={50}>
             <CodeEditor />
           </Panel>
           <PanelResizeHandle />
-          <Panel>
+          <Panel defaultSize={50}>
             <Tabs defaultValue='instructions' className='p-4 h-full w-full'>
               <TabsList>
                 <TabsTrigger
@@ -128,7 +128,7 @@ const GuestRoomContent = () => {
               </TabsList>
 
               <TabsContent value='program-output' className='h-full w-full'>
-                <CodeOutput history={history} />
+                {/* <CodeOutput history={history} /> */}
               </TabsContent>
 
               <TabsContent value='instructions' className='h-full w-full'>
