@@ -22,10 +22,7 @@ export class CodeRunService {
 
 		const sandbox = await this.getSandbox(roomId, language);
 		const raw = await sandbox.runCode({ language, code });
-		console.log('raw', raw);
-
 		const result = formatExecOutput(raw);
-		console.log('sandbox.result', result);
 
 		// // Broadcast execution complete
 		// this.ctx.executionCtx.waitUntil(

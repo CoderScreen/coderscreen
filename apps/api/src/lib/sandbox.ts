@@ -1,11 +1,11 @@
 import { Id } from '@coderscreen/common/id';
-import { z } from 'zod';
 
 export const getSandboxId = (roomId: Id<'room'>, language?: string) => {
 	return `s_${roomId}`;
 };
 
-interface ExecuteResponse {
+export interface ExecuteResponse {
+	id: string;
 	success: boolean;
 	stdout: string;
 	stderr: string;
@@ -13,6 +13,7 @@ interface ExecuteResponse {
 	command: string;
 	args: string[];
 	timestamp: string;
+	elapsedTime: number;
 }
 
 export interface FormattedOutput {
@@ -21,6 +22,7 @@ export interface FormattedOutput {
 	stdout: string;
 	stderr: string;
 	exitCode: number;
+	elapsedTime: number;
 }
 
 export const formatExecOutput = (output: void | ExecuteResponse): FormattedOutput => {
@@ -31,6 +33,7 @@ export const formatExecOutput = (output: void | ExecuteResponse): FormattedOutpu
 			stdout: '',
 			stderr: 'No output from execution',
 			exitCode: 0,
+			elapsedTime: 0,
 		};
 	}
 
@@ -40,5 +43,6 @@ export const formatExecOutput = (output: void | ExecuteResponse): FormattedOutpu
 		stdout: output.stdout,
 		stderr: output.stderr,
 		exitCode: output.exitCode,
+		elapsedTime: output.elapsedTime,
 	};
 };

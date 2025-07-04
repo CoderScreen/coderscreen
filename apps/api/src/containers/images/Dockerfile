@@ -44,6 +44,7 @@ RUN apk add --no-cache openjdk11
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:$PATH"
+RUN rustup default stable
 
 # Install uv for Python packages
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -65,7 +66,8 @@ RUN uv pip install --system --break-system-packages --no-cache \
 # Install Node.js global packages
 RUN npm install -g \
     typescript \
-    ts-node && \
+    ts-node \
+    @types/node && \
     npm cache clean --force
 
 # Install Ruby gems
@@ -80,13 +82,20 @@ FROM oven/bun:alpine AS runtime
 
 # Install minimal runtime dependencies
 RUN apk add --no-cache \
+    # Build tools (needed for Go compilation)
+    build-base \
+    gcc \
+    g++ \
+    musl-dev \
+    linux-headers \
+    git \
     # Languages
     python3 \
     py3-pip \
     nodejs \
     npm \
     # go \
-    openjdk11-jre \
+    openjdk11 \
     ruby \
     # Runtime libraries
     libffi \
@@ -116,7 +125,10 @@ RUN rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 WORKDIR /app
 
 # Copy the container source from the sandbox package
-COPY ./node_modules/.pnpm/@cloudflare+sandbox@0.0.7/node_modules/@cloudflare/sandbox/container_src/ .
+COPY ./packages/sandbox-sdk/packages/sandbox/container_src/ .
+
+# Copy all config files from the src/containers/images/config directory
+COPY ./apps/api/src/containers/config/ .
 
 EXPOSE 3000
 

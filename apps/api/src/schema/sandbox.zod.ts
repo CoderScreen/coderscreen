@@ -6,4 +6,5 @@ export const ExecOutputSchema = z.object({
 	stdout: z.string(),
 	stderr: z.string(),
 	exitCode: z.number(),
+	elapsedTime: z.number(),
 });

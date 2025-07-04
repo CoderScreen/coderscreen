@@ -33,7 +33,7 @@ export const CodeOutput = () => {
             <div className='space-y-2 mb-6' key={data.timestamp + idx}>
               <div className='text-xs text-gray-400 mb-1'>
                 Ran at {new Date(data.timestamp).toLocaleTimeString()} (
-                {language})
+                {data.elapsedTime}ms)
               </div>
               {hasError && (
                 <pre className='text-sm text-red-600 font-mono whitespace-pre-wrap break-words leading-relaxed bg-red-50 p-3 rounded border border-red-200'>

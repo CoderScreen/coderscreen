@@ -1,21 +1,16 @@
 # Cloudflare Sandbox Integration
 
-This project uses Cloudflare Sandboxes to securely execute untrusted, LLM-written code in a containerized environment.
+This document describes how to use the Cloudflare Sandbox for secure code execution in the CodeInterview application.
 
 ## Overview
 
-Cloudflare Sandboxes provide a secure way to run code in isolated containers, making them perfect for:
-
-- Code interview platforms
-- Online code editors
-- AI-powered code generation tools
-- Educational coding environments
+The Cloudflare Sandbox provides a secure, isolated environment for running user-submitted code. It supports multiple programming languages and provides process isolation, resource limits, and timeout protection.
 
 ## Configuration
 
 ### 1. Wrangler Configuration
 
-The sandbox is configured in `wrangler.jsonc`:
+Add the sandbox to your `wrangler.jsonc`:
 
 ```json
 {
@@ -122,26 +117,6 @@ const pythonResult = await codeRunService.runCode({
 const examples = await codeRunService.runExampleCode('room-123');
 ```
 
-## Sandbox Methods
-
-### File Operations
-
-- `writeFile(path: string, content: string, options?: { encoding?: string; stream?: boolean })`
-- `readFile(path: string, options?: { encoding?: string; stream?: boolean })`
-- `deleteFile(path: string, options?: { stream?: boolean })`
-- `renameFile(oldPath: string, newPath: string, options?: { stream?: boolean })`
-- `moveFile(sourcePath: string, destinationPath: string, options?: { stream?: boolean })`
-- `mkdir(path: string, options?: { recursive?: boolean; stream?: boolean })`
-
-### Execution
-
-- `exec(command: string, args: string[], options?: { stream?: boolean })`
-- `ping()` - Test sandbox connectivity
-
-### Git Operations
-
-- `gitCheckout(repoUrl: string, options: { branch?: string; targetDir?: string; stream?: boolean })`
-
 ## Security Features
 
 1. **Isolation**: Each sandbox runs in its own container
@@ -149,6 +124,49 @@ const examples = await codeRunService.runExampleCode('room-123');
 3. **Network Isolation**: Controlled network access
 4. **File System Isolation**: Temporary file system per execution
 5. **Process Isolation**: Each execution runs in a separate process
+6. **Timeout Protection**: Automatic termination of long-running code (5 seconds)
+
+## Timeout Protection
+
+The sandbox includes built-in timeout protection to prevent infinite loops and long-running code from consuming resources indefinitely.
+
+### How It Works
+
+- **Default Timeout**: 5 seconds for all code execution
+- **Automatic Detection**: Uses `Promise.race()` to detect timeouts
+- **Graceful Handling**: Returns a timeout response instead of hanging
+- **Process Cleanup**: Attempts to terminate timed-out processes
+
+### Timeout Response
+
+When a timeout occurs, the sandbox returns:
+
+```typescript
+{
+	success: false,
+	stdout: '',
+	stderr: 'Execution timed out after 5000ms. This may be due to an infinite loop or long-running code.',
+	exitCode: -1, // Special exit code for timeout
+	command: 'python',
+	args: ['script.py'],
+	timestamp: '2024-01-01T00:00:00.000Z'
+}
+```
+
+### Example: Handling Timeouts
+
+```typescript
+const result = await sandbox.runCode({
+	language: 'python',
+	code: 'while True: print("infinite loop")',
+});
+
+if (result.exitCode === -1 && result.stderr.includes('timed out')) {
+	console.log('Code execution timed out - possible infinite loop detected');
+} else {
+	console.log('Code executed successfully:', result.stdout);
+}
+```
 
 ## Best Practices
 
@@ -157,6 +175,7 @@ const examples = await codeRunService.runExampleCode('room-123');
 3. **Resource Management**: Monitor and limit resource usage
 4. **Input Validation**: Validate code before execution
 5. **Timeout Handling**: Set appropriate timeouts for long-running code
+6. **Timeout Detection**: Check for timeout responses in your application logic
 
 ## Example: Complete Code Execution Flow
 
@@ -171,7 +190,7 @@ async function executeCode(code: string, language: string, roomId: string) {
 		// 2. Write code to sandbox
 		await sandbox.writeFile(fileName, code, { encoding: 'utf8' });
 
-		// 3. Execute the code
+		// 3. Execute the code (with automatic timeout protection)
 		const command = getExecutionCommand(language);
 		const result = await sandbox.exec(command, [fileName]);
 
@@ -180,6 +199,16 @@ async function executeCode(code: string, language: string, roomId: string) {
 
 		// 5. Process results
 		if (result && typeof result === 'object' && 'stdout' in result) {
+			// Check for timeout
+			if (result.exitCode === -1 && result.stderr.includes('timed out')) {
+				return {
+					success: false,
+					output: '',
+					error: 'Code execution timed out - possible infinite loop detected',
+					exitCode: -1,
+				};
+			}
+
 			return {
 				success: true,
 				output: result.stdout,
@@ -206,6 +235,7 @@ async function executeCode(code: string, language: string, roomId: string) {
 2. **Command not found**: Verify the programming language runtime is available in the sandbox
 3. **Permission denied**: Check file permissions and sandbox configuration
 4. **Timeout errors**: Increase timeout limits or optimize code execution
+5. **Infinite loops**: The timeout protection should catch these automatically
 
 ### Debugging
 
@@ -213,6 +243,7 @@ async function executeCode(code: string, language: string, roomId: string) {
 - Check sandbox logs in the Cloudflare dashboard
 - Monitor resource usage and limits
 - Verify file operations with `sandbox.readFile()`
+- Check for timeout responses in execution results
 
 ## Resources
 

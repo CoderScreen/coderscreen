@@ -23,7 +23,7 @@
 	},
 	"dependencies": {
 		"@cloudflare/containers": "^0.0.13",
-		"@cloudflare/sandbox": "^0.0.7",
+		"@cloudflare/sandbox": "workspace:^",
 		"@coderscreen/common": "workspace:^",
 		"@coderscreen/db": "workspace:^",
 		"@daytonaio/sdk": "0.21.1",

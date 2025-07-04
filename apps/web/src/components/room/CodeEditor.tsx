@@ -18,21 +18,25 @@ import {
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { RoomSchema } from '@coderscreen/api/schema/room';
 
-const SUPPORTED_LANGUAGES = [
+const SUPPORTED_LANGUAGES: {
+  value: RoomSchema['language'];
+  label: string;
+}[] = [
   { value: 'javascript', label: 'JavaScript' },
   { value: 'typescript', label: 'TypeScript' },
   { value: 'python', label: 'Python' },
   { value: 'java', label: 'Java' },
-  { value: 'cpp', label: 'C++' },
-  { value: 'csharp', label: 'C#' },
-  { value: 'go', label: 'Go' },
+  { value: 'c', label: 'C' },
+  { value: 'c++', label: 'C++' },
+  { value: 'bash', label: 'Bash' },
   { value: 'rust', label: 'Rust' },
+  { value: 'go', label: 'Go' },
   { value: 'php', label: 'PHP' },
   { value: 'ruby', label: 'Ruby' },
-  { value: 'swift', label: 'Swift' },
-  { value: 'kotlin', label: 'Kotlin' },
-  { value: 'scala', label: 'Scala' },
-];
+] satisfies {
+  value: RoomSchema['language'];
+  label: string;
+}[];
 
 export function CodeEditor() {
   const {
