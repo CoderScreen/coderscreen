@@ -3,8 +3,8 @@ import { CodeRunner } from '@/containers/runners/base';
 import { ExecuteResponse } from '@/lib/sandbox';
 
 export class JavaRunner extends CodeRunner {
-	private sourceFilePath = 'Main.java';
-	private classFilePath = 'Main.class';
+	private sourceFilePath = 'Solution.java';
+	private classFilePath = 'Solution.class';
 
 	constructor(sandbox: CustomSandbox, code: string) {
 		super(sandbox, code);
@@ -18,32 +18,17 @@ export class JavaRunner extends CodeRunner {
 
 	async executeInternal(): Promise<ExecuteResponse> {
 		// First compile the Java code
-		let start = Date.now();
 		const compileResult = await this.sandbox.exec('javac', [this.sourceFilePath]);
-		let end = Date.now();
-		let elapsedTime = end - start;
 
 		// If compilation failed, return the compilation error
-		if (compileResult && !compileResult.success) {
-			return {
-				id: crypto.randomUUID(),
-				...compileResult,
-				elapsedTime,
-			};
+		if (!compileResult.success) {
+			return compileResult;
 		}
 
 		// If compilation succeeded, run the Java class
-		const runResult = await this.sandbox.exec('java', ['Main']);
-		end = Date.now();
-		elapsedTime = end - start;
+		const runResult = await this.sandbox.exec('java', ['Solution']);
 
-		return runResult
-			? {
-					id: crypto.randomUUID(),
-					...runResult,
-					elapsedTime,
-				}
-			: this.emptyResponse;
+		return runResult;
 	}
 
 	async cleanup() {

@@ -5,7 +5,6 @@ import { betterAuth, BetterAuthOptions, User } from 'better-auth';
 import { organization } from 'better-auth/plugins';
 import * as schema from '@coderscreen/db/user.db';
 import { eq } from 'drizzle-orm';
-import { AppContext } from '@/index';
 
 // @ts-ignore
 const { DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET } = process.env;
@@ -27,6 +26,30 @@ export const betterAuthConfig = {
 	// 	autoSignInAfterVerification: true,
 	// 	expiresIn: 3600, // 1 hour
 	// },
+	databaseHooks: {
+		session: {
+			create: {
+				before: async (session, context) => {
+					// get first organization id
+					const member = await db
+						.select()
+						.from(schema.member)
+						.where(eq(schema.member.userId, session.userId))
+						.limit(1)
+						.then((res) => res[0]);
+
+					const activeOrganizationId = member?.organizationId;
+
+					return {
+						data: {
+							...session,
+							activeOrganizationId,
+						},
+					};
+				},
+			},
+		},
+	},
 	user: {
 		additionalFields: {
 			isOnboarded: {

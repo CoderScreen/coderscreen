@@ -18,7 +18,6 @@ export class CppRunner extends CodeRunner {
 
 	async executeInternal(): Promise<ExecuteResponse> {
 		// First compile the C++ code
-		let start = Date.now();
 		const compileResult = await this.sandbox.exec('g++', [
 			'-o',
 			this.executablePath,
@@ -29,28 +28,14 @@ export class CppRunner extends CodeRunner {
 		]);
 
 		// If compilation failed, return the compilation error
-		if (compileResult && !compileResult.success) {
-			let end = Date.now();
-			const elapsedTime = end - start;
-			return {
-				id: crypto.randomUUID(),
-				...compileResult,
-				elapsedTime,
-			};
+		if (!compileResult.success) {
+			return compileResult;
 		}
 
 		// If compilation succeeded, run the executable
 		const runResult = await this.sandbox.exec(`./${this.executablePath}`, []);
-		let end = Date.now();
-		const elapsedTime = end - start;
 
-		return runResult
-			? {
-					id: crypto.randomUUID(),
-					...runResult,
-					elapsedTime,
-				}
-			: this.emptyResponse;
+		return runResult;
 	}
 
 	async cleanup() {

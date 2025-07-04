@@ -112,6 +112,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 				.update(roomTable)
 				.set({
 					language: language as RoomEntity['language'],
+					updatedAt: new Date().toISOString(),
 				})
 				.where(eq(roomTable.id, room.id)),
 		]);

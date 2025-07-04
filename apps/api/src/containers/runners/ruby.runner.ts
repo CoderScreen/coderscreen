@@ -17,18 +17,9 @@ export class RubyRunner extends CodeRunner {
 
 	async executeInternal(): Promise<ExecuteResponse> {
 		// Run the Ruby code using the ruby interpreter
-		let start = Date.now();
 		const result = await this.sandbox.exec('ruby', [this.sourceFilePath]);
-		let end = Date.now();
-		const elapsedTime = end - start;
 
-		return result
-			? {
-					id: crypto.randomUUID(),
-					elapsedTime,
-					...result,
-				}
-			: this.emptyResponse;
+		return result;
 	}
 
 	async cleanup() {

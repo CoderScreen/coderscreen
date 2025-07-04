@@ -2563,7 +2563,7 @@ function executeCommand(
       } else {
         // code was null, likely a timeout error
         resolve({
-          exitCode: 1,
+          exitCode: 2, // 2 marks code === null, which is likely a timeout error
           stderr: stderr + '\nProcess timed out or was killed',
           stdout,
           success: false,

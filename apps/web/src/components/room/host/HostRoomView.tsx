@@ -12,6 +12,7 @@ import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider } from '@/contexts/RoomContext';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
+import { WhiteboardView } from '@/components/room/WhiteboardView';
 
 export const HostRoomView = () => {
   return (
@@ -79,6 +80,13 @@ const HostRoomContent = () => {
                 className='flex-1 overflow-y-auto'
               >
                 <InstructionEditor />
+              </TabsContent>
+
+              <TabsContent
+                value='whiteboard'
+                className='flex-1 overflow-y-auto'
+              >
+                <WhiteboardView />
               </TabsContent>
             </Tabs>
           </Panel>

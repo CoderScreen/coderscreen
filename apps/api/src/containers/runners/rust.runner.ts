@@ -17,33 +17,18 @@ export class RustRunner extends CodeRunner {
 	}
 
 	async executeInternal(): Promise<ExecuteResponse> {
-		let start = Date.now();
 		// First compile the Rust code
 		const compileResult = await this.sandbox.exec('rustc', ['-o', this.executablePath, this.sourceFilePath]);
-		let end = Date.now();
-		let elapsedTime = end - start;
 
 		// If compilation failed, return the compilation error
-		if (compileResult && !compileResult.success) {
-			return {
-				id: crypto.randomUUID(),
-				...compileResult,
-				elapsedTime,
-			};
+		if (!compileResult.success) {
+			return compileResult;
 		}
 
 		// If compilation succeeded, run the executable
 		const runResult = await this.sandbox.exec(`./${this.executablePath}`, []);
-		end = Date.now();
-		elapsedTime = end - start;
 
-		return runResult
-			? {
-					id: crypto.randomUUID(),
-					...runResult,
-					elapsedTime,
-				}
-			: this.emptyResponse;
+		return runResult;
 	}
 
 	async cleanup() {

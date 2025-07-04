@@ -16,18 +16,9 @@ export class JavaScriptRunner extends CodeRunner {
 	}
 
 	async executeInternal(): Promise<ExecuteResponse> {
-		let start = Date.now();
 		const result = await this.sandbox.exec('node', [this.tmpFilePath]);
-		let end = Date.now();
-		const elapsedTime = end - start;
 
-		return result
-			? {
-					id: crypto.randomUUID(),
-					...result,
-					elapsedTime,
-				}
-			: this.emptyResponse;
+		return result;
 	}
 
 	async cleanup() {

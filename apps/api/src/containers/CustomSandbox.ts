@@ -14,20 +14,38 @@ import { PhpRunner } from '@/containers/runners/php.runner';
 import { RubyRunner } from '@/containers/runners/ruby.runner';
 import { JavaRunner } from '@/containers/runners/java.runner';
 import { SpawnOptions } from 'child_process';
+import { ExecuteResponse } from '@/lib/sandbox';
 
 export class CustomSandbox extends Sandbox<AppContext['Bindings']> {
-	FALLBACK_TIMEOUT_MS = 5000; // 15 seconds
+	FALLBACK_TIMEOUT_MS = 15000; // 15 seconds
 	defaultPort = 3000; // Port the container is listening on
 	sleepAfter = '10m'; // Stop the instance if requests not sent for 1h
 
-	async exec(command: string, args: string[], options?: { stream?: boolean; childOptions?: SpawnOptions }) {
-		return super.exec(command, args, {
+	async exec(command: string, args: string[], options?: { stream?: boolean; childOptions?: SpawnOptions }): Promise<ExecuteResponse> {
+		let start = Date.now();
+		const result = await super.exec(command, args, {
 			...options,
 			childOptions: {
 				...options?.childOptions,
 				timeout: options?.childOptions?.timeout || this.FALLBACK_TIMEOUT_MS,
 			},
 		});
+		let end = Date.now();
+		const elapsedTime = end - start;
+
+		if (!result) {
+			return CodeRunner.emptyResponse;
+		}
+
+		if (result.exitCode === 2) {
+			return CodeRunner.timeoutResponse;
+		}
+
+		return {
+			id: crypto.randomUUID(),
+			elapsedTime,
+			...result,
+		};
 	}
 
 	async runCode(params: { language: RoomEntity['language']; code: string }) {

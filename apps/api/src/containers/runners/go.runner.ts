@@ -16,18 +16,9 @@ export class GoRunner extends CodeRunner {
 	}
 
 	async executeInternal(): Promise<ExecuteResponse> {
-		let start = Date.now();
 		const result = await this.sandbox.exec('go', ['run', this.sourceFilePath]);
-		let end = Date.now();
-		const elapsedTime = end - start;
 
-		return result
-			? {
-					id: crypto.randomUUID(),
-					...result,
-					elapsedTime,
-				}
-			: this.emptyResponse;
+		return result;
 	}
 
 	async cleanup() {

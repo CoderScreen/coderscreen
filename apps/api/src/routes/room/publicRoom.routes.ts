@@ -10,10 +10,12 @@ import { CodeRunService } from '@/services/CodeRun.service';
 import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
+import { whiteboardRouter } from '@/routes/room/whiteboard.router';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
 	.use('/partykit/*', partyKitMiddleware)
+	.route('/whiteboard', whiteboardRouter)
 	.get(
 		'/',
 		describeRoute({
@@ -33,7 +35,7 @@ export const publicRoomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				roomId: idString('room'),
-			}),
+			})
 		),
 		async (ctx) => {
 			const { roomId } = ctx.req.valid('param');
@@ -42,7 +44,7 @@ export const publicRoomRouter = new Hono<AppContext>()
 			const publicRoom = await roomService.getPublicRoom(roomId);
 
 			return ctx.json(publicRoom);
-		},
+		}
 	)
 	// POST /rooms/:id/run - Run the code in the room
 	.post(
@@ -64,7 +66,7 @@ export const publicRoomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				roomId: idString('room'),
-			}),
+			})
 		),
 		zValidator('json', z.object({ code: z.string(), language: RoomLanguageSchema })),
 		async (ctx) => {
@@ -76,5 +78,5 @@ export const publicRoomRouter = new Hono<AppContext>()
 			const result = await codeRunService.runCode({ roomId, code, language });
 
 			return ctx.json(result);
-		},
+		}
 	);

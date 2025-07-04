@@ -1,7 +1,0 @@
-{
-	"$schema": "https://www.partykit.io/schema.json",
-	"name": "coderscreen-partykit",
-	"main": "src/partykit/server.ts",
-	"compatibilityDate": "2025-07-02",
-	"port": 8080
-}

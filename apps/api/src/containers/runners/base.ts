@@ -2,10 +2,7 @@ import { CustomSandbox } from '@/containers/CustomSandbox';
 import { ExecuteResponse } from '@/lib/sandbox';
 
 export class CodeRunner {
-	// Default timeout configuration (5 seconds)
-	protected readonly DEFAULT_TIMEOUT_MS = 5000;
-
-	emptyResponse: ExecuteResponse = {
+	static emptyResponse: ExecuteResponse = {
 		id: 'empty',
 		success: false,
 		timestamp: new Date().toISOString(),
@@ -17,7 +14,7 @@ export class CodeRunner {
 		args: [],
 	};
 
-	timeoutResponse: ExecuteResponse = {
+	static timeoutResponse: ExecuteResponse = {
 		id: 'timed-out',
 		success: false,
 		timestamp: new Date().toISOString(),
@@ -40,7 +37,7 @@ export class CodeRunner {
 	 * This should contain the actual execution logic
 	 */
 	protected async executeInternal(): Promise<ExecuteResponse> {
-		return this.emptyResponse;
+		return CodeRunner.emptyResponse;
 	}
 
 	/**
@@ -116,7 +113,7 @@ export class CodeRunner {
 	 */
 	protected createTimeoutResponse(command: string, args: string[], duration: number): ExecuteResponse {
 		return {
-			...this.timeoutResponse,
+			...CodeRunner.timeoutResponse,
 			stderr: `Execution timed out after ${duration}ms. This may be due to an infinite loop or long-running code.`,
 			command,
 			args,

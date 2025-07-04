@@ -16,6 +16,7 @@ import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
 import { templateRouter } from '@/routes/template.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { RoomServer as PartyServer } from '@/partykit/server';
+import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 
 export interface AppContext {
 	Variables: {
@@ -41,7 +42,7 @@ const app = new Hono<AppContext>()
 		cors({
 			origin: ['https://coderscreen.com', 'http://localhost:3000'],
 			credentials: true,
-		}),
+		})
 	)
 	.use(appFactoryMiddleware)
 	.all('/auth/*', (ctx) => {
@@ -65,10 +66,10 @@ app.get(
 			},
 			servers: [],
 		},
-	}),
+	})
 );
 
 export default app;
 
 export type AppRouter = typeof app;
-export { UnifiedRoomDo, Sandbox, PartyServer };
+export { UnifiedRoomDo, Sandbox, PartyServer, WhiteboardDurableObject };

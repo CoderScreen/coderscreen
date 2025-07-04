@@ -17,18 +17,9 @@ export class PhpRunner extends CodeRunner {
 
 	async executeInternal(): Promise<ExecuteResponse> {
 		// Run the PHP code using the php interpreter
-		let start = Date.now();
 		const result = await this.sandbox.exec('php', [this.sourceFilePath]);
-		let end = Date.now();
-		const elapsedTime = end - start;
 
-		return result
-			? {
-					id: crypto.randomUUID(),
-					...result,
-					elapsedTime,
-				}
-			: this.emptyResponse;
+		return result;
 	}
 
 	async cleanup() {

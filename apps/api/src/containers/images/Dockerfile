@@ -27,6 +27,8 @@ RUN apk add --no-cache \
     # Ruby
     ruby \
     ruby-dev \
+    # PHP
+    php \
     # Image processing libraries
     jpeg-dev \
     zlib-dev \
@@ -97,6 +99,7 @@ RUN apk add --no-cache \
     # go \
     openjdk11 \
     ruby \
+    php \
     # Runtime libraries
     libffi \
     openssl \
@@ -112,12 +115,18 @@ COPY --from=builder /usr/lib/ruby/gems /usr/lib/ruby/gems
 COPY --from=builder /usr/local/bin/bundle* /usr/local/bin/
 COPY --from=builder /root/go /root/go
 COPY --from=builder /root/.cargo /root/.cargo
+COPY --from=builder /root/.rustup /root/.rustup
 COPY --from=builder /usr/local/go /usr/local/go
 
 # Set environment variables
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV GOPATH=/root/go
 ENV PATH=$PATH:$GOPATH/bin:/root/.cargo/bin:/usr/local/go/bin
+ENV RUSTUP_HOME=/root/.rustup
+ENV CARGO_HOME=/root/.cargo
+
+# Initialize Rust toolchain in runtime stage
+RUN /root/.cargo/bin/rustup default stable
 
 # Final cleanup
 RUN rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
