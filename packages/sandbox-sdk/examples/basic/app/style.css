@@ -1,0 +1,583 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code&display=swap");
+
+/* Reset and Body Styles */
+body {
+  background-color: #0d1117;
+  color: #c9d1d9;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Main Container */
+.repl-container {
+  max-width: 1280px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #58a6ff;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.connection-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.connection-status.connected {
+  background-color: rgba(35, 134, 54, 0.2);
+  color: #3fb950;
+}
+
+.connection-status.connected::before {
+  background-color: #3fb950;
+}
+
+.connection-status.disconnected {
+  background-color: rgba(248, 81, 73, 0.2);
+  color: #f85149;
+}
+
+.connection-status.disconnected::before {
+  background-color: #f85149;
+}
+
+.connection-status.connecting {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.connection-status.connecting::before {
+  background-color: #ffc107;
+  animation: pulse 1s infinite;
+}
+
+/* Command Input Bar */
+.command-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #0d1117;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.command-bar:focus-within {
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+}
+
+.command-prompt {
+  color: #3fb950;
+  font-family: "Fira Code", monospace;
+  font-weight: 700;
+}
+
+.command-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #c9d1d9;
+  font-size: 1rem;
+  font-family: "Fira Code", monospace;
+}
+
+.command-input::placeholder {
+  color: #6e7681;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background-color: #21262d;
+  color: #c9d1d9;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #30363d;
+  border-color: #8b949e;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-execute {
+  background-color: #238636;
+  border-color: #2ea043;
+  color: white;
+}
+
+.btn-execute:hover:not(:disabled) {
+  background-color: #2ea043;
+}
+
+.btn-stream {
+  background-color: #1f6feb;
+  border-color: #388bfd;
+  color: white;
+}
+
+.btn-stream:hover:not(:disabled) {
+  background-color: #388bfd;
+}
+
+/* Results Area */
+.results-container {
+  background-color: #0d1117;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  min-height: 200px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 1rem;
+  font-family: "Fira Code", monospace;
+}
+
+.command-result {
+  padding: 1rem;
+  border-bottom: 1px solid #30363d;
+  animation: fadeIn 0.4s ease;
+}
+
+.command-result:last-child {
+  border-bottom: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.status-icon {
+  font-size: 1rem;
+}
+
+.command-line {
+  color: #8b949e;
+  font-weight: bold;
+}
+
+.command-line > span {
+  color: #c9d1d9;
+}
+
+.exit-code {
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+.timestamp {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.stdout-output pre {
+  background-color: rgba(88, 166, 255, 0.1);
+  color: #c9d1d9;
+}
+
+.stderr-output pre {
+  background-color: rgba(248, 81, 73, 0.1);
+  color: #ff9da4;
+}
+
+/* Help Section */
+.help-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-top: 1px solid #30363d;
+}
+
+.help-section h3 {
+  color: #58a6ff;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.help-item {
+  color: #8b949e;
+  font-size: 0.9rem;
+}
+
+.help-command {
+  color: #58a6ff;
+  font-family: "Fira Code", monospace;
+  font-weight: 600;
+  background-color: rgba(88, 166, 255, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+.help-note {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: rgba(88, 166, 255, 0.1);
+  border: 1px solid rgba(88, 166, 255, 0.2);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #8b949e;
+}
+
+.help-note strong {
+  color: #58a6ff;
+}
+
+.help-note code {
+  background-color: rgba(88, 166, 255, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: "Fira Code", monospace;
+  font-size: 0.85rem;
+}
+
+/* Scrollbar */
+.results-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.results-container::-webkit-scrollbar-track {
+  background: #161b22;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 5px;
+}
+
+.results-container::-webkit-scrollbar-thumb:hover {
+  background: #6e7681;
+}
+
+/* Animation for status pulse */
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Terminal cursor animation for input */
+.command-input {
+  position: relative;
+}
+
+.command-input:focus::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  background: #10b981;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Command result animations */
+.command-result {
+  animation: slideIn 0.3s ease-out;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.command-result:hover {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Status indicators with better styling */
+.status-running {
+  animation: pulse 2s infinite;
+}
+
+/* Output styling */
+.stdout-output {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-left: 3px solid #10b981;
+}
+
+.stderr-output {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-left: 3px solid #ef4444;
+}
+
+/* Button hover effects */
+.btn-execute {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.btn-execute:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-execute:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-clear {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transition: all 0.2s ease;
+}
+
+.btn-clear:hover {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  transform: translateY(-1px);
+}
+
+/* Typing indicator for running commands */
+.typing-indicator {
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  position: relative;
+}
+
+.typing-indicator::before,
+.typing-indicator::after,
+.typing-indicator span {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator::before {
+  left: 0;
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span {
+  left: 8px;
+  animation-delay: -0.16s;
+}
+
+.typing-indicator::after {
+  left: 16px;
+}
+
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Help section styling */
+.help-section {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border: 1px solid #374151;
+  border-radius: 8px;
+}
+
+.help-command {
+  font-family: "Courier New", monospace;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .command-input-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .command-input-container input {
+    width: 100%;
+  }
+
+  .command-input-container button {
+    width: 100%;
+  }
+}
+
+/* Focus states for accessibility */
+.command-input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Loading state for buttons */
+.btn-loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Error state styling */
+.error-state {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.error-state .command-header {
+  color: #ef4444;
+}
+
+/* Success state styling */
+.success-state {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* Timestamp styling */
+.timestamp {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-family: "Courier New", monospace;
+}
+
+/* Exit code styling */
+.exit-code {
+  font-family: "Courier New", monospace;
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}

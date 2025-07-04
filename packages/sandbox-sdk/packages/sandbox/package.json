@@ -1,0 +1,40 @@
+{
+  "name": "@cloudflare/sandbox",
+  "version": "0.0.7",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudflare/sandbox-sdk"
+  },
+  "description": "A sandboxed environment for running commands",
+  "dependencies": {
+    "@cloudflare/containers": "^0.0.13"
+  },
+  "tags": [
+    "sandbox",
+    "codegen",
+    "containers",
+    "cloudflare",
+    "durable objects"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsup src/*.ts --outDir dist --dts --sourcemap --format esm",
+    "docker:build": "docker build -t ghostwriternr/cloudflare-sandbox:$npm_package_version .",
+    "docker:publish": "docker push docker.io/ghostwriternr/cloudflare-sandbox:$npm_package_version"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.js"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}
