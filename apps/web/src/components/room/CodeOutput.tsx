@@ -1,13 +1,42 @@
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import { useCodeEditor } from '@/query/realtime/code.query';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { useState, useEffect, useRef } from 'react';
+import { RiArrowRightSLine } from '@remixicon/react';
 
 export const CodeOutput = () => {
   const { history } = useCodeExecutionHistory();
-  const { language } = useCodeEditor();
+  const [openItems, setOpenItems] = useState<Map<number, boolean>>(new Map());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const previousHistoryLength = useRef(history.length);
+
+  // Auto-scroll to bottom when new items are added
+  useEffect(() => {
+    if (
+      history.length > previousHistoryLength.current &&
+      scrollContainerRef.current
+    ) {
+      scrollContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+    previousHistoryLength.current = history.length;
+  }, [history.length]);
+
+  const toggleItem = (index: number) => {
+    setOpenItems((prev) => {
+      const newOpen = new Map(prev);
+      const val = newOpen.get(index);
+      newOpen.set(index, val === undefined ? false : !val);
+      return newOpen;
+    });
+  };
 
   if (!history.length) {
     return (
-      <div className='h-full w-full bg-white'>
+      <div className='h-full w-full bg-white text-gray-800 font-mono'>
         <div className='p-4 h-full overflow-auto'>
           <div className='flex items-center justify-center h-full'>
             <div className='text-center'>
@@ -24,30 +53,61 @@ export const CodeOutput = () => {
   }
 
   return (
-    <div className='h-full w-full bg-white'>
-      <div className='p-4 h-full overflow-auto'>
-        {history.map((data, idx) => {
+    <div className='h-full w-full bg-white text-gray-800 font-mono'>
+      <div className='h-full overflow-auto'>
+        {history.reverse().map((data, idx) => {
           const hasOutput = data.stdout && data.stdout.trim() !== '';
           const hasError = data.stderr && data.stderr.trim() !== '';
+          // if never opened or has been opened
+          const isOpen = !openItems.has(idx) || openItems.get(idx) === true;
+          const executionNumber = idx + 1; // Latest is at the bottom
+
           return (
-            <div className='space-y-2 mb-6' key={data.timestamp + idx}>
-              <div className='text-xs text-gray-400 mb-1'>
-                Ran at {new Date(data.timestamp).toLocaleTimeString()} (
-                {data.elapsedTime}ms)
-              </div>
-              {hasError && (
-                <pre className='text-sm text-red-600 font-mono whitespace-pre-wrap break-words leading-relaxed bg-red-50 p-3 rounded border border-red-200'>
-                  <code>Error: {data.stderr}</code>
-                </pre>
-              )}
-              {hasOutput && (
-                <pre className='text-sm text-gray-800 font-mono whitespace-pre-wrap break-words leading-relaxed bg-gray-50 p-3 rounded border border-gray-200'>
-                  <code>{data.stdout}</code>
-                </pre>
-              )}
-            </div>
+            <Collapsible
+              key={data.timestamp + idx}
+              open={isOpen}
+              onOpenChange={() => toggleItem(idx)}
+            >
+              <CollapsibleTrigger className='w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between group text-gray-500 text-xs'>
+                <div className='flex items-center gap-3'>
+                  <span
+                    className={`transform transition-transform duration-200 ${
+                      isOpen ? 'rotate-90' : 'rotate-0'
+                    }`}
+                  >
+                    <RiArrowRightSLine />
+                  </span>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-gray-600'>
+                      Execution #{executionNumber}
+                    </span>
+                    <span className='text-gray-400'>
+                      {new Date(data.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <span className='text-gray-400'>{data.elapsedTime}ms</span>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className='px-4 pb-2 space-y-1'>
+                  {hasOutput && (
+                    <pre className='text-sm text-gray-800 font-mono whitespace-pre-wrap break-words leading-relaxed'>
+                      {data.stdout}
+                    </pre>
+                  )}
+                  {hasError && (
+                    <pre className='text-sm text-red-600 font-mono whitespace-pre-wrap break-words leading-relaxed'>
+                      Error: {data.stderr}
+                    </pre>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           );
         })}
+        <div ref={scrollContainerRef} />
       </div>
     </div>
   );

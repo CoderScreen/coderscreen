@@ -44,7 +44,7 @@ export function useCodeExecutionHistory() {
         // Add to main doc
         const executionHistory =
           provider.doc.getArray<ExecOutput>('executionHistory');
-        executionHistory.unshift([result]);
+        executionHistory.push([result]);
 
         return result;
       } catch (error) {
@@ -55,12 +55,13 @@ export function useCodeExecutionHistory() {
           stderr:
             error instanceof Error ? error.message : 'Unknown error occurred',
           exitCode: 1,
+          elapsedTime: 0,
         };
 
         // Add error to main doc
         const executionHistory =
           provider.doc.getArray<ExecOutput>('executionHistory');
-        executionHistory.unshift([errorResult]);
+        executionHistory.push([errorResult]);
 
         throw error;
       }
