@@ -57,6 +57,8 @@
     "@tiptap/pm": "^2.14.0",
     "@tiptap/react": "^2.14.0",
     "@tiptap/starter-kit": "^2.14.0",
+    "tldraw": "^3.14.0",
+    "@tldraw/sync": "^3.14.0",
     "better-auth": "^1.2.10",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

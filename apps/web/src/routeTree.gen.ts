@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppTestRouteImport } from './routes/_app/test'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
@@ -34,11 +33,6 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTestRoute = AppTestRouteImport.update({
-  id: '/test',
-  path: '/test',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -90,7 +84,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
-  '/test': typeof AppTestRoute
   '/': typeof AppIndexRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
   '/room/$roomId': typeof RoomRoomIdIndexRoute
@@ -103,7 +96,6 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
-  '/test': typeof AppTestRoute
   '/': typeof AppIndexRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
   '/room/$roomId': typeof RoomRoomIdIndexRoute
@@ -118,7 +110,6 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/_app/settings': typeof AppSettingsRoute
-  '/_app/test': typeof AppTestRoute
   '/_app/': typeof AppIndexRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
   '/room/$roomId/': typeof RoomRoomIdIndexRoute
@@ -133,7 +124,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rooms'
     | '/settings'
-    | '/test'
     | '/'
     | '/room/$roomId/summary'
     | '/room/$roomId'
@@ -146,7 +136,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rooms'
     | '/settings'
-    | '/test'
     | '/'
     | '/room/$roomId/summary'
     | '/room/$roomId'
@@ -160,7 +149,6 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/rooms'
     | '/_app/settings'
-    | '/_app/test'
     | '/_app/'
     | '/room/$roomId/summary'
     | '/room/$roomId/'
@@ -197,13 +185,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/test': {
-      id: '/_app/test'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof AppTestRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings': {
@@ -269,7 +250,6 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppRoomsRoute: typeof AppRoomsRoute
   AppSettingsRoute: typeof AppSettingsRoute
-  AppTestRoute: typeof AppTestRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -277,7 +257,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppRoomsRoute: AppRoomsRoute,
   AppSettingsRoute: AppSettingsRoute,
-  AppTestRoute: AppTestRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

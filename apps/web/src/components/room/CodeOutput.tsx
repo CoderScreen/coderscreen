@@ -12,17 +12,13 @@ export const CodeOutput = () => {
   const { history } = useCodeExecutionHistory();
   const [openItems, setOpenItems] = useState<Map<number, boolean>>(new Map());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const previousHistoryLength = useRef(history.length);
 
   // Auto-scroll to bottom when new items are added
   useEffect(() => {
-    if (
-      history.length > previousHistoryLength.current &&
-      scrollContainerRef.current
-    ) {
-      scrollContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight;
     }
-    previousHistoryLength.current = history.length;
   }, [history.length]);
 
   const toggleItem = (index: number) => {
@@ -54,7 +50,7 @@ export const CodeOutput = () => {
 
   return (
     <div className='h-full w-full bg-white text-gray-800 font-mono'>
-      <div className='h-full overflow-auto'>
+      <div ref={scrollContainerRef} className='h-full overflow-auto'>
         {history.reverse().map((data, idx) => {
           const hasOutput = data.stdout && data.stdout.trim() !== '';
           const hasError = data.stderr && data.stderr.trim() !== '';
@@ -107,7 +103,6 @@ export const CodeOutput = () => {
             </Collapsible>
           );
         })}
-        <div ref={scrollContainerRef} />
       </div>
     </div>
   );

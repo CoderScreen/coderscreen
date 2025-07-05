@@ -16,7 +16,7 @@ import { getRandomColor } from '@/query/realtime/utils';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
-import { WhiteboardView } from '@/components/room/WhiteboardView';
+import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 export const GuestRoomView = () => {
   const [guestInfo, setGuestInfo] = useState<Guest | null>(null);
 
@@ -108,11 +108,14 @@ const GuestRoomContent = () => {
               >
                 <InstructionEditor isGuest />
               </TabsContent>
-            </Tabs>
 
-            <TabsContent value='whiteboard' className='flex-1 overflow-y-auto'>
-              <WhiteboardView />
-            </TabsContent>
+              <TabsContent
+                value='whiteboard'
+                className='flex-1 overflow-y-auto'
+              >
+                <WhiteboardView />
+              </TabsContent>
+            </Tabs>
           </Panel>
         </PanelGroup>
       </div>

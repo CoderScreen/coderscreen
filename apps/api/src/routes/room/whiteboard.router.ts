@@ -20,9 +20,9 @@ const UnfurlResponseSchema = z.object({
 });
 
 export const whiteboardRouter = new Hono<AppContext>()
-	// GET /whiteboard/connect/:roomId - Connect to the whiteboard websocket
+	// GET /whiteboard/connect - Connect to the whiteboard websocket
 	.get(
-		'/connect/:roomId',
+		'/connect',
 		describeRoute({
 			description: 'Connect to the whiteboard websocket for realtime syncing',
 			responses: {

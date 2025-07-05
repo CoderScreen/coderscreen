@@ -12,7 +12,7 @@ import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider } from '@/contexts/RoomContext';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
-import { WhiteboardView } from '@/components/room/WhiteboardView';
+import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 
 export const HostRoomView = () => {
   return (

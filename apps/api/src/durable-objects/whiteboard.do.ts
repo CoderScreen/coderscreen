@@ -25,7 +25,7 @@ export class WhiteboardDurableObject {
 
 		this.app = new Hono<{ Bindings: Env }>();
 
-		this.app.get('/connect/:roomId', async (c) => {
+		this.app.get('/rooms/:roomId/public/whiteboard/connect', async (c) => {
 			if (!this.roomId) {
 				await this.ctx.blockConcurrencyWhile(async () => {
 					await this.ctx.storage.put('roomId', c.req.param('roomId'));

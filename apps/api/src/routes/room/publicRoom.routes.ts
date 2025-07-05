@@ -14,8 +14,8 @@ import { whiteboardRouter } from '@/routes/room/whiteboard.router';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
-	.use('/partykit/*', partyKitMiddleware)
 	.route('/whiteboard', whiteboardRouter)
+	.use('/partykit/*', partyKitMiddleware)
 	.get(
 		'/',
 		describeRoute({
