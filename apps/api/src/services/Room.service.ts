@@ -61,6 +61,7 @@ export class RoomService {
 
 		return {
 			id: room.id,
+			organizationId: room.organizationId,
 			createdAt: room.createdAt,
 			updatedAt: room.updatedAt,
 			title: room.title,

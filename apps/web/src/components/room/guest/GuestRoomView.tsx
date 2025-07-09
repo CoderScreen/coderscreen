@@ -17,6 +17,7 @@ import { RoomFooter } from '@/components/room/RoomFooter';
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
+
 export const GuestRoomView = () => {
   const [guestInfo, setGuestInfo] = useState<Guest | null>(null);
 

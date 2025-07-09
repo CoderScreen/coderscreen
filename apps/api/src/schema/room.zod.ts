@@ -5,6 +5,7 @@ export const RoomLanguageSchema = z.enum(['typescript', 'javascript', 'python', 
 
 export const RoomSchema = z.object({
 	id: idString('room'),
+	organizationId: z.string(),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
 	title: z.string(),
