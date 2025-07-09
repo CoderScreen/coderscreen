@@ -51,25 +51,53 @@ export const InstructionEditor = (props: { isGuest?: boolean }) => {
     <div className='w-full h-full flex flex-col bg-white'>
       <div className='border-b border-gray-200 p-2 flex justify-between items-center flex-wrap gap-1 z-10'>
         <div className='flex flex-wrap gap-1'>
-          <Button variant='icon' onClick={toggleBold}>
+          <Button
+            variant='icon'
+            onClick={toggleBold}
+            disabled={!editor?.isEditable}
+          >
             <RiBold className='size-4' />
           </Button>
-          <Button variant='icon' onClick={toggleItalic}>
+          <Button
+            variant='icon'
+            onClick={toggleItalic}
+            disabled={!editor?.isEditable}
+          >
             <RiItalic className='size-4' />
           </Button>
-          <Button variant='icon' onClick={toggleStrike}>
+          <Button
+            variant='icon'
+            onClick={toggleStrike}
+            disabled={!editor?.isEditable}
+          >
             <RiStrikethrough className='size-4' />
           </Button>
-          <Button variant='icon' onClick={toggleCode}>
+          <Button
+            variant='icon'
+            onClick={toggleCode}
+            disabled={!editor?.isEditable}
+          >
             <RiCodeLine className='size-4' />
           </Button>
-          <Button variant='icon' onClick={toggleBlockquote}>
+          <Button
+            variant='icon'
+            onClick={toggleBlockquote}
+            disabled={!editor?.isEditable}
+          >
             <RiDoubleQuotesL className='size-4' />
           </Button>
-          <Button variant='icon' onClick={toggleOrderedList}>
+          <Button
+            variant='icon'
+            onClick={toggleOrderedList}
+            disabled={!editor?.isEditable}
+          >
             <RiListOrdered className='size-4' />
           </Button>
-          <Button variant='icon' onClick={toggleBulletList}>
+          <Button
+            variant='icon'
+            onClick={toggleBulletList}
+            disabled={!editor?.isEditable}
+          >
             <RiListUnordered className='size-4' />
           </Button>
         </div>

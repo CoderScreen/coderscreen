@@ -1,5 +1,5 @@
 import { StarterKit } from '@tiptap/starter-kit';
-import { useEditor } from '@tiptap/react';
+import { useEditor, UseEditorOptions } from '@tiptap/react';
 import Collaboration from '@tiptap/extension-collaboration';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useMemo } from 'react';
@@ -11,11 +11,12 @@ import { getGuest } from '@/lib/guest';
 
 // Shared hook for creating instruction editor
 export function useInstructionEditor() {
-  const { provider } = useRoomContext();
+  const { provider, isReadOnly } = useRoomContext();
   const { user } = useSession();
 
-  const editorConfig = useMemo(
+  const editorConfig: UseEditorOptions = useMemo(
     () => ({
+      editable: !isReadOnly,
       extensions: [
         StarterKit.configure({
           history: false,
@@ -36,14 +37,14 @@ export function useInstructionEditor() {
         }),
       ],
     }),
-    [provider, user]
+    [provider, user, isReadOnly]
   );
 
   return useEditor(editorConfig);
 }
 
 export function useGuestInstructionEditor() {
-  const { provider } = useRoomContext();
+  const { provider, isReadOnly } = useRoomContext();
   // load user data from local storage
   const user = useMemo(() => getGuest(), []);
 
@@ -51,6 +52,7 @@ export function useGuestInstructionEditor() {
 
   const editorConfig = useMemo(
     () => ({
+      editable: !isReadOnly,
       extensions: [
         StarterKit.configure({
           history: false,
@@ -68,7 +70,7 @@ export function useGuestInstructionEditor() {
         }),
       ],
     }),
-    [provider, user]
+    [provider, user, isReadOnly]
   );
 
   return useEditor(editorConfig);

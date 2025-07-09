@@ -11,6 +11,7 @@ import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
 import { whiteboardRouter } from '@/routes/room/whiteboard.router';
+import { HTTPException } from 'hono/http-exception';
 
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
@@ -42,6 +43,12 @@ export const publicRoomRouter = new Hono<AppContext>()
 
 			const roomService = new RoomService(ctx);
 			const publicRoom = await roomService.getPublicRoom(roomId);
+
+			if (!publicRoom) {
+				throw new HTTPException(404, {
+					message: 'Room not found',
+				});
+			}
 
 			return ctx.json(publicRoom);
 		}

@@ -1,5 +1,4 @@
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
-import { useCodeEditor } from '@/query/realtime/code.query';
 import {
   Collapsible,
   CollapsibleContent,

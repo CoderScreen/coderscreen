@@ -16,10 +16,8 @@ import {
   RiFileTextLine,
 } from '@remixicon/react';
 import { toast } from 'sonner';
-import { useRoomContext } from '@/contexts/RoomContext';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cx } from '@/lib/utils';
 import { Shortcut } from '@/components/common/Shortcut';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
@@ -140,24 +138,6 @@ export const HostRoomHeader = () => {
           End Interview
           <Shortcut cmd _key='E' />
         </Button>
-
-        {/* <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='secondary' className='p-2'>
-              <RiMore2Line className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end' className='w-56'>
-            <DropdownMenuItem onClick={() => setIsFeedbackOpen(true)}>
-              <RiFeedbackLine className='h-4 w-4 mr-1' />
-              Send Feedback
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsResetOpen(true)}>
-              <RiRefreshLine className='h-4 w-4 mr-1' />
-              Reset Room
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu> */}
       </div>
 
       <Dialog open={isEndInterviewOpen} onOpenChange={setIsEndInterviewOpen}>

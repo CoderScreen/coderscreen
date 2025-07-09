@@ -7,13 +7,13 @@ import { z } from 'zod';
 type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
 export function useCodeExecutionHistory() {
-  const { provider } = useRoomContext();
+  const { provider, isReadOnly } = useRoomContext();
   const { runRoomCode, isLoading } = useRunRoomCode();
   const [history, setHistory] = useState<ExecOutput[]>([]);
 
   // Observe changes to the execution history in the main doc
   useEffect(() => {
-    if (!provider) return;
+    if (!provider || isReadOnly) return;
 
     const executionHistory =
       provider.doc.getArray<ExecOutput>('executionHistory');
@@ -37,7 +37,7 @@ export function useCodeExecutionHistory() {
   // Run code and store result in history
   const executeCode = useCallback(
     async (code: string, language: string) => {
-      if (!provider) return;
+      if (!provider || isReadOnly) return;
 
       try {
         const result = await runRoomCode({ code, language });
@@ -71,7 +71,7 @@ export function useCodeExecutionHistory() {
 
   // Clear history from main doc
   const clearHistory = useCallback(() => {
-    if (!provider) return;
+    if (!provider || isReadOnly) return;
 
     const executionHistory =
       provider.doc.getArray<ExecOutput>('executionHistory');

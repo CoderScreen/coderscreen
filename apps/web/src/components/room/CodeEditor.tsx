@@ -46,6 +46,7 @@ export function CodeEditor() {
     setLanguage,
     subscribeToLanguageChanges,
     isReady,
+    isReadOnly,
   } = useCodeEditor();
   const { executeCode, isLoading } = useCodeExecutionHistory();
 
@@ -106,7 +107,11 @@ export function CodeEditor() {
       {/* Menu Bar */}
       <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
-          <Select value={language} onValueChange={handleLanguageChange}>
+          <Select
+            value={language}
+            onValueChange={handleLanguageChange}
+            disabled={isReadOnly}
+          >
             <SelectTrigger className='min-w-40'>
               <SelectValue placeholder='Select a language' />
             </SelectTrigger>
@@ -128,6 +133,7 @@ export function CodeEditor() {
             onClick={handleRunCode}
             isLoading={isLoading}
             icon={RiPlayFill}
+            disabled={isReadOnly}
           >
             Run code
           </Button>
@@ -156,6 +162,7 @@ export function CodeEditor() {
             lineNumbersMinChars: 3,
             glyphMargin: false,
             padding: { top: 10, bottom: 10 },
+            readOnly: isReadOnly,
           }}
         />
       </div>

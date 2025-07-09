@@ -6,7 +6,7 @@ import { RoomSchema } from '@coderscreen/api/schema/room';
 
 // Shared hook for creating collaborative code editor
 export function useCodeEditor() {
-  const { provider } = useRoomContext();
+  const { provider, isReadOnly } = useRoomContext();
   const bindingRef = useRef<MonacoBinding | null>(null);
   const [language, setLanguage] =
     useState<RoomSchema['language']>('javascript');
@@ -99,5 +99,6 @@ export function useCodeEditor() {
     setLanguage: setSharedLanguage,
     subscribeToLanguageChanges,
     isReady: !!provider,
+    isReadOnly,
   };
 }

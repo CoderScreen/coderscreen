@@ -4,14 +4,17 @@ import React, {
   ReactNode,
   useState,
   useEffect,
-  useRef,
   useCallback,
 } from 'react';
 import { useCurrentRoomId } from '@/lib/params';
 import useYProvider from 'y-partykit/react';
 import YPartyKitProvider from 'y-partykit/provider';
+import { usePublicRoom } from '@/query/publicRoom.query';
+import { PublicRoomSchema } from '@coderscreen/api/schema/room';
 
 interface RoomContextType {
+  room: PublicRoomSchema | undefined;
+  isReadOnly: boolean;
   isConnected: boolean;
   provider: YPartyKitProvider;
 }
@@ -27,6 +30,8 @@ const API_URL = 'http://localhost:8000';
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
   const [isConnected, setIsConnected] = useState(false);
+
+  const { publicRoom } = usePublicRoom();
 
   const provider = useYProvider({
     party: 'room',
@@ -57,6 +62,8 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   return (
     <RoomContext.Provider
       value={{
+        room: publicRoom,
+        isReadOnly: publicRoom?.status !== 'active',
         isConnected,
         provider,
       }}

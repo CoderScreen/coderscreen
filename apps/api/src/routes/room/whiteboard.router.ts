@@ -42,7 +42,7 @@ export const whiteboardRouter = new Hono<AppContext>()
 
 			// Route to the Whiteboard Durable Object for realtime websocket syncing
 			// Note: WHITEBOARD_DO needs to be added to the environment bindings
-			const whiteboardDo = (ctx.env as any).WHITEBOARD_DO;
+			const whiteboardDo = ctx.env.WHITEBOARD_DO;
 			if (!whiteboardDo) {
 				return ctx.json({ error: 'Whiteboard service not available' }, 503);
 			}
@@ -50,7 +50,13 @@ export const whiteboardRouter = new Hono<AppContext>()
 			const id = whiteboardDo.idFromName(roomId);
 			const room = whiteboardDo.get(id);
 
-			return room.fetch(ctx.req.raw, {
+			const isReadOnly = ctx.get('publicRoom')?.status !== 'active';
+
+			// attach new query params to the request
+			const newReqUrl = new URL(ctx.req.raw.url);
+			newReqUrl.searchParams.set('isReadOnly', isReadOnly ? 'true' : 'false');
+
+			return room.fetch(newReqUrl, {
 				headers: ctx.req.raw.headers,
 				body: ctx.req.raw.body,
 			});

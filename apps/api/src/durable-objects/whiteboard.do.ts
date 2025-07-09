@@ -1,7 +1,7 @@
 import { Id } from '@coderscreen/common/id';
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core';
 import { TLRecord, createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema';
-import { Hono } from 'hono';
+import { Context, Hono } from 'hono';
 import throttle from 'lodash.throttle';
 
 const schema = createTLSchema({
@@ -40,19 +40,17 @@ export class WhiteboardDurableObject {
 		return this.app.fetch(request);
 	}
 
-	async handleConnect(c: {
-		req: { query: (key: string) => string | undefined; param: (key: string) => string };
-		json: (data: any, status: number) => Response;
-	}): Promise<Response> {
-		const sessionId = c.req.query('sessionId');
-		if (!sessionId) return c.json({ error: 'Missing sessionId' }, 400);
+	async handleConnect(ctx: Context): Promise<Response> {
+		const sessionId = ctx.req.query('sessionId');
+		const isReadonly = ctx.req.query('isReadOnly') === 'true';
+		if (!sessionId) return ctx.json({ error: 'Missing sessionId' }, 400);
 
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair();
 		serverWebSocket.accept();
 
 		const room = await this.getRoom();
 
-		room.handleSocketConnect({ sessionId, socket: serverWebSocket });
+		room.handleSocketConnect({ sessionId, socket: serverWebSocket, isReadonly });
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket });
 	}

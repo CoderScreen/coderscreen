@@ -31,7 +31,7 @@ export const roomRouter = new Hono<AppContext>()
 			const roomService = new RoomService(ctx);
 			const rooms = await roomService.listRooms();
 			return ctx.json(rooms);
-		},
+		}
 	)
 	// POST /rooms - Create a new room
 	.post(
@@ -60,7 +60,7 @@ export const roomRouter = new Hono<AppContext>()
 			});
 
 			return ctx.json(result, 201);
-		},
+		}
 	)
 	// GET /rooms/:id - Get a specific room
 	.get(
@@ -85,7 +85,7 @@ export const roomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				id: idString('room'),
-			}),
+			})
 		),
 		async (ctx) => {
 			const roomService = new RoomService(ctx);
@@ -97,7 +97,7 @@ export const roomRouter = new Hono<AppContext>()
 			}
 
 			return ctx.json(room);
-		},
+		}
 	)
 	// PATCH /rooms/:id - Update a room
 	.patch(
@@ -122,7 +122,7 @@ export const roomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				id: idString('room'),
-			}),
+			})
 		),
 		zValidator('json', RoomSchema.partial()),
 		async (ctx) => {
@@ -132,7 +132,7 @@ export const roomRouter = new Hono<AppContext>()
 
 			const result = await roomService.updateRoom(id, body);
 			return ctx.json(result);
-		},
+		}
 	)
 	// DELETE /rooms/:id - Delete a room
 	.delete(
@@ -149,7 +149,7 @@ export const roomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				id: idString('room'),
-			}),
+			})
 		),
 		async (ctx) => {
 			const roomService = new RoomService(ctx);
@@ -157,7 +157,7 @@ export const roomRouter = new Hono<AppContext>()
 
 			await roomService.deleteRoom(id);
 			return ctx.json(null, 200);
-		},
+		}
 	)
 	// POST /rooms/:id/end - End the room
 	.post(
@@ -174,14 +174,14 @@ export const roomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				id: idString('room'),
-			}),
+			})
 		),
 		async (ctx) => {
 			const { id } = ctx.req.valid('param');
 			const { roomService } = useAppFactory(ctx);
 			await roomService.endRoom(id);
 			return ctx.json(null, 200);
-		},
+		}
 	)
 	// POST /rooms/:id/load-template - Load specified template
 	.post(
@@ -198,13 +198,13 @@ export const roomRouter = new Hono<AppContext>()
 			'param',
 			z.object({
 				id: idString('room'),
-			}),
+			})
 		),
 		zValidator(
 			'json',
 			z.object({
 				templateId: idString('template'),
-			}),
+			})
 		),
 		async (ctx) => {
 			const { id } = ctx.req.valid('param');
@@ -227,5 +227,5 @@ export const roomRouter = new Hono<AppContext>()
 			});
 
 			// return room;
-		},
+		}
 	);
