@@ -16,7 +16,7 @@ import { HTTPException } from 'hono/http-exception';
 export const publicRoomRouter = new Hono<AppContext>()
 	.use(publicRoomMiddleware)
 	.route('/whiteboard', whiteboardRouter)
-	.use('/partykit/*', partyKitMiddleware)
+	.use('/connect/*', partyKitMiddleware)
 	.get(
 		'/',
 		describeRoute({

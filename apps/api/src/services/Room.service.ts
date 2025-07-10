@@ -105,21 +105,31 @@ export class RoomService {
 	async endRoom(id: Id<'room'>) {
 		const { orgId } = getSession(this.ctx);
 
-		return this.db
+		const updatedRoom = await this.db
 			.update(roomTable)
 			.set({ status: 'completed' })
 			.where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
 			.returning()
 			.then((data) => data[0]);
+
+		await this.handleStatusUpdate(id, 'completed');
+
+		return updatedRoom;
+	}
+
+	async handleStatusUpdate(id: Id<'room'>, status: RoomEntity['status']) {
+		const roomName = this.ctx.env.Room.idFromName(id);
+		const roomStub = this.ctx.env.Room.get(roomName);
+		await roomStub.handleStatusUpdate(status);
 	}
 
 	async loadTemplate(params: { room: RoomEntity; template: TemplateEntity }) {
 		const { room, template } = params;
 
-		// Get the durable object to load new information
-		const id = this.ctx.env.ROOM_DO.idFromName(room.id);
-		const roomDo = this.ctx.env.ROOM_DO.get(id);
+		// // Get the durable object to load new information
+		// const id = this.ctx.env.ROOM_DO.idFromName(room.id);
+		// const roomDo = this.ctx.env.ROOM_DO.get(id);
 
-		roomDo.handleLoadTemplate(template);
+		// roomDo.handleLoadTemplate(template);
 	}
 }

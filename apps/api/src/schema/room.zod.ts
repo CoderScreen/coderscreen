@@ -5,7 +5,6 @@ export const RoomLanguageSchema = z.enum(['typescript', 'javascript', 'python', 
 
 export const RoomSchema = z.object({
 	id: idString('room'),
-	organizationId: z.string(),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
 	title: z.string(),
@@ -17,7 +16,11 @@ export const RoomSchema = z.object({
 // Public room schema is strict and only includes the fields that are safe to expose
 export const PublicRoomSchema = RoomSchema.omit({
 	notes: true,
-}).strict();
+})
+	.extend({
+		organizationId: z.string(),
+	})
+	.strict();
 
 export type RoomSchema = z.infer<typeof RoomSchema>;
 export type PublicRoomSchema = z.infer<typeof PublicRoomSchema>;

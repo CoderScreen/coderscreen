@@ -15,7 +15,7 @@ export const partyKitMiddleware = createMiddleware<AppContext>(async (ctx, next)
 	// Call the partyserverMiddleware with the validated room
 	const partyMiddleware = partyserverMiddleware<AppContext>({
 		options: {
-			prefix: `rooms/${publicRoom.id}/public/partykit/parties`,
+			prefix: `rooms/${publicRoom.id}/public/connect/parties`,
 		},
 	});
 

@@ -11,14 +11,19 @@ import JavaPlain from 'devicons-react/icons/JavaPlain';
 import PhpPlain from 'devicons-react/icons/PhpPlain';
 import RubyPlain from 'devicons-react/icons/RubyPlain';
 import BashPlain from 'devicons-react/icons/BashPlain';
+import { useMemo } from 'react';
 
-const iconStyle = 'h-4 w-4';
+const BASE_ICON_STYLE = 'h-4 w-4';
 
 export const LanguageIcon = ({
   language,
+  className,
 }: {
   language: RoomSchema['language'];
+  className?: string;
 }) => {
+  const iconStyle = useMemo(() => cn(BASE_ICON_STYLE, className), [className]);
+
   // anything that is not plain or line needs to be manually set to gray through opacity
   const icon = (() => {
     switch (language) {

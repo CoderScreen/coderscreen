@@ -1,6 +1,4 @@
-import { useRoomContext } from '@/contexts/RoomContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cx } from '@/lib/utils';
 import { usePublicRoom } from '@/query/publicRoom.query';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;

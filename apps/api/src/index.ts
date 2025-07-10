@@ -10,7 +10,6 @@ import { useAuth } from '@/lib/auth';
 import { auth } from '../better-auth.config';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { except } from 'hono/combine';
-import { UnifiedRoomDo } from './durable-objects/room.do';
 import { assetRouter } from './routes/asset.routes';
 import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
 import { templateRouter } from '@/routes/template.routes';
@@ -72,4 +71,4 @@ app.get(
 export default app;
 
 export type AppRouter = typeof app;
-export { UnifiedRoomDo, Sandbox, PartyServer, WhiteboardDurableObject };
+export { Sandbox, PartyServer, WhiteboardDurableObject };

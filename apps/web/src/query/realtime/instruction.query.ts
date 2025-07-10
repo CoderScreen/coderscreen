@@ -48,8 +48,6 @@ export function useGuestInstructionEditor() {
   // load user data from local storage
   const user = useMemo(() => getGuest(), []);
 
-  console.log('guest-user', user);
-
   const editorConfig = useMemo(
     () => ({
       editable: !isReadOnly,

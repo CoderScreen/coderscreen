@@ -48,15 +48,24 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 			Y.applyUpdate(this.document, new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64')));
 		}
 
+		// load status and language from room into the y.js doc
+		await this.document.transact(async () => {
+			const statusText = this.document.getText('status');
+			statusText.delete(0, statusText.length);
+			statusText.insert(0, data.room.status);
+
+			const languageText = this.document.getText('language');
+			languageText.delete(0, languageText.length);
+			languageText.insert(0, data.room.language);
+		});
+
+		console.log('loaded status and language into the y.js doc', {
+			status: data.room.status,
+			language: data.room.language,
+		});
+
 		// warm up the sandbox
 		this.createNewSandbox(this.room.language);
-
-		// observe the language and start new sandbox if it changes
-		const languageText = this.document.getText('language');
-		languageText.observe(() => {
-			const language = languageText.toJSON() as RoomEntity['language'];
-			// this.createNewSandbox(language);
-		});
 	}
 
 	async onSave() {
@@ -78,6 +87,9 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		const languageValue = this.document.getText('language');
 		const language = languageValue.toJSON();
 
+		const statusValue = this.document.getText('status');
+		const status = statusValue.toJSON() as RoomEntity['status'];
+
 		const totalContent = Y.encodeStateAsUpdate(this.document);
 
 		const roomContent: RoomContentEntity = {
@@ -91,6 +103,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 			instructions: instructionsValue,
 			executionHistory: executionHistoryValue,
 			rawContent: Buffer.from(totalContent).toString('base64'),
+			status,
 		};
 
 		await Promise.all([
@@ -116,6 +129,20 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 				})
 				.where(eq(roomTable.id, room.id)),
 		]);
+	}
+
+	async handleStatusUpdate(status: RoomEntity['status']) {
+		this.document.transact(() => {
+			const statusText = this.document.getText('status');
+			statusText.delete(0, statusText.length);
+			statusText.insert(0, status);
+		});
+
+		// we can just update local state, the db remains source of truth
+		if (this.room) {
+			this.room.status = status;
+			this.room.updatedAt = new Date().toISOString();
+		}
 	}
 
 	private getDb() {

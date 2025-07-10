@@ -2,7 +2,7 @@ import { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
 import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { organization, user } from './user.db';
-import { roomTable } from './room.db';
+import { RoomEntity, roomTable } from './room.db';
 
 export const roomContentTable = pgTable('room_contents', {
   roomId: text('room_id')
@@ -21,6 +21,10 @@ export const roomContentTable = pgTable('room_contents', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
+  status: text('status')
+    .$type<RoomEntity['status']>()
+    .notNull()
+    .default('active'),
   code: jsonb('code').notNull(),
   language: text('language').notNull(),
   instructions: jsonb('instructions').notNull(),

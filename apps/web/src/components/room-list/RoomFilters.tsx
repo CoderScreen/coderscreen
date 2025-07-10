@@ -27,10 +27,11 @@ import {
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown';
 import { cx } from '@/lib/utils';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
 
 export interface RoomFilters {
   search: string;
-  language: string;
+  language: RoomSchema['language'] | '*';
   dateRange: '*' | 'today' | 'week' | 'month';
   status: '*' | 'active' | 'completed';
   sortField: 'createdAt' | 'language' | 'status';
@@ -42,19 +43,22 @@ interface RoomFiltersProps {
   onFiltersChange: (filters: RoomFilters) => void;
 }
 
-const LANGUAGE_OPTIONS = [
+const LANGUAGE_OPTIONS: {
+  value: RoomSchema['language'];
+  label: string;
+}[] = [
   // { value: '*', label: 'All Languages' },
   { value: 'javascript', label: 'JavaScript' },
   { value: 'python', label: 'Python' },
   { value: 'typescript', label: 'TypeScript' },
   { value: 'java', label: 'Java' },
-  { value: 'csharp', label: 'C#' },
-  { value: 'cpp', label: 'C++' },
+  { value: 'c', label: 'C' },
+  { value: 'c++', label: 'C++' },
   { value: 'go', label: 'Go' },
   { value: 'rust', label: 'Rust' },
   { value: 'php', label: 'PHP' },
   { value: 'ruby', label: 'Ruby' },
-  { value: 'swift', label: 'Swift' },
+  { value: 'bash', label: 'Bash' },
 ];
 
 const DATE_RANGE_OPTIONS = [
@@ -363,11 +367,11 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
             {filters.language !== '*' && (
               <Button
                 variant='secondary'
-                icon={RiCodeSSlashFill}
                 iconClassName='text-primary'
                 className='text-primary'
                 onClick={() => handleFilterChange('language', '*')}
               >
+                <LanguageIcon language={filters.language} />
                 {getLanguageLabel(filters.language)}
                 <RiCloseLine className='size-3' />
               </Button>
