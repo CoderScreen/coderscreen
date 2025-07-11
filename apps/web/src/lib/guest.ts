@@ -1,18 +1,22 @@
 export interface Guest {
-  id: string;
-  name: string;
-  color: string;
+	id: string;
+	name: string;
+	color: string;
 }
 
-export function getGuest(): Guest {
-  const user = localStorage.getItem('guest-data');
-  return user ? JSON.parse(user) : null;
+export function getGuest(): Guest | null {
+	const user = localStorage.getItem('guest-data');
+	if (!user) {
+		return null;
+	}
+
+	return JSON.parse(user) as Guest;
 }
 
 export function setGuest(guest: Guest) {
-  localStorage.setItem('guest-data', JSON.stringify(guest));
+	localStorage.setItem('guest-data', JSON.stringify(guest));
 }
 
 export function clearGuest() {
-  localStorage.removeItem('guest-data');
+	localStorage.removeItem('guest-data');
 }

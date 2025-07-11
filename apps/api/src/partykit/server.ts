@@ -189,12 +189,12 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 	}
 
 	// AI Chat Methods
-	async handleAiChat(content: string, userId?: string, userName?: string): Promise<string> {
-		const messageId = this.aiService.addUserMessage(content, userId, userName);
-
+	async handleAiChat(params: {
+		messageId: string;
+		content: string;
+		user: { id: string; name: string; color: string };
+	}) {
 		// Start streaming AI response
-		this.ctx.waitUntil(this.aiService.startStreamingResponse(messageId, userId));
-
-		return messageId;
+		this.ctx.waitUntil(this.aiService.startStreamingResponse(params));
 	}
 }
