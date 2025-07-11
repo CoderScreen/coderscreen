@@ -11,65 +11,68 @@ import { getGuest } from '@/lib/guest';
 
 // Shared hook for creating instruction editor
 export function useInstructionEditor() {
-  const { provider, isReadOnly } = useRoomContext();
-  const { user } = useSession();
+	const { provider, isReadOnly } = useRoomContext();
+	const { user } = useSession();
 
-  const editorConfig: UseEditorOptions = useMemo(
-    () => ({
-      editable: !isReadOnly,
-      extensions: [
-        StarterKit.configure({
-          history: false,
-        }),
-        Placeholder.configure({
-          placeholder: 'Write your instructions here...',
-        }),
-        Collaboration.configure({
-          document: provider.doc,
-          field: 'instructions',
-        }),
-        CollaborationCursor.configure({
-          provider,
-          user: {
-            name: user?.name ?? 'Anonymous',
-            color: getRandomColor(user?.id),
-          },
-        }),
-      ],
-    }),
-    [provider, user, isReadOnly]
-  );
+	const editorConfig: UseEditorOptions = useMemo(
+		() => ({
+			editable: !isReadOnly,
+			extensions: [
+				StarterKit.configure({
+					history: false,
+				}),
+				Placeholder.configure({
+					placeholder: 'Write your instructions here...',
+				}),
+				Collaboration.configure({
+					document: provider.doc,
+					field: 'instructions',
+				}),
+				CollaborationCursor.configure({
+					provider,
+					user: {
+						name: user?.name ?? 'Anonymous',
+						color: getRandomColor(user?.id),
+					},
+				}),
+			],
+		}),
+		[provider, user, isReadOnly]
+	);
 
-  return useEditor(editorConfig);
+	return useEditor(editorConfig);
 }
 
 export function useGuestInstructionEditor() {
-  const { provider, isReadOnly } = useRoomContext();
-  // load user data from local storage
-  const user = useMemo(() => getGuest(), []);
+	const { provider, isReadOnly } = useRoomContext();
+	// load user data from local storage
+	const user = useMemo(() => getGuest(), []);
 
-  const editorConfig = useMemo(
-    () => ({
-      editable: !isReadOnly,
-      extensions: [
-        StarterKit.configure({
-          history: false,
-        }),
-        Placeholder.configure({
-          placeholder: 'Write your instructions here...',
-        }),
-        Collaboration.configure({
-          document: provider.doc,
-          field: 'instructions',
-        }),
-        CollaborationCursor.configure({
-          provider,
-          user,
-        }),
-      ],
-    }),
-    [provider, user, isReadOnly]
-  );
+	const editorConfig = useMemo(
+		() => ({
+			editable: !isReadOnly,
+			extensions: [
+				StarterKit.configure({
+					history: false,
+				}),
+				Placeholder.configure({
+					placeholder: 'Write your instructions here...',
+				}),
+				Collaboration.configure({
+					document: provider.doc,
+					field: 'instructions',
+				}),
+				CollaborationCursor.configure({
+					provider,
+					user: user ?? {
+						name: 'Guest',
+						color: getRandomColor(),
+					},
+				}),
+			],
+		}),
+		[provider, user, isReadOnly]
+	);
 
-  return useEditor(editorConfig);
+	return useEditor(editorConfig);
 }

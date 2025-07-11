@@ -5,6 +5,7 @@ export const Entities = {
   room_content: 'rc',
   asset: 'a',
   template: 't',
+  llmMessage: 'lm',
 } as const;
 
 type Entities = typeof Entities;
@@ -28,8 +29,7 @@ export const idString = <T extends keyof Entities>(
 };
 
 export const generateId = <T extends keyof Entities>(entity: T): Id<T> => {
-  const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const randomValues = crypto.getRandomValues(new Uint8Array(10));
   const randomString = Array.from(randomValues)
     .map((value) => characters.charAt(value % characters.length))

@@ -1,11 +1,8 @@
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState, useEffect, useRef } from 'react';
 import { RiArrowRightSLine, RiTerminalLine } from '@remixicon/react';
+import { cn } from '@/lib/utils';
 
 export const CodeOutput = () => {
   const { history } = useCodeExecutionHistory();
@@ -15,8 +12,7 @@ export const CodeOutput = () => {
   // Auto-scroll to bottom when new items are added
   useEffect(() => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop =
-        scrollContainerRef.current.scrollHeight;
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
   }, [history.length]);
 
@@ -38,9 +34,7 @@ export const CodeOutput = () => {
               <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4'>
                 <RiTerminalLine className='text-gray-400 size-6' />
               </div>
-              <h3 className='text-sm font-medium text-gray-900 mb-2'>
-                No output yet
-              </h3>
+              <h3 className='text-sm font-medium text-gray-900 mb-2'>No output yet</h3>
               <p className='text-sm text-gray-500 leading-relaxed'>
                 Run your code to see the execution results and output here
               </p>
@@ -70,16 +64,15 @@ export const CodeOutput = () => {
               <CollapsibleTrigger className='w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between group text-gray-500 text-xs'>
                 <div className='flex items-center gap-3'>
                   <span
-                    className={`transform transition-transform duration-200 ${
+                    className={cn(
+                      'transform transition-transform duration-200',
                       isOpen ? 'rotate-90' : 'rotate-0'
-                    }`}
+                    )}
                   >
                     <RiArrowRightSLine />
                   </span>
                   <div className='flex items-center gap-2'>
-                    <span className='text-gray-600'>
-                      Execution #{executionNumber}
-                    </span>
+                    <span className='text-gray-600'>Execution #{executionNumber}</span>
                     <span className='text-gray-400'>
                       {new Date(data.timestamp).toLocaleTimeString()}
                     </span>

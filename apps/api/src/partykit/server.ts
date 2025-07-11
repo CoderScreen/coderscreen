@@ -8,193 +8,196 @@ import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
 import * as Y from 'yjs';
 import { SandboxService } from './internal/Sandbox.service';
-import { AIService } from './internal/AI.service';
+import { AIService, ChatMessage, User } from './internal/AI.service';
 
 export class RoomServer extends YServer<AppContext['Bindings']> {
-	private db: PostgresJsDatabase | null = null;
-	private sandboxService: SandboxService;
-	private aiService: AIService;
-	private room: RoomEntity | null = null;
+  private db: PostgresJsDatabase | null = null;
+  private sandboxService: SandboxService;
+  private aiService: AIService | null = null;
+  private room: RoomEntity | null = null;
 
-	/* control how often the onSave handler
-	 * is called with these options */
-	static callbackOptions = {
-		// all of these are optional
-		debounceWait: /* number, default = */ 1000,
-		debounceMaxWait: /* number, default = */ 1000,
-		timeout: /* number, default = */ 1000,
-	};
+  /* control how often the onSave handler
+   * is called with these options */
+  static callbackOptions = {
+    // all of these are optional
+    debounceWait: /* number, default = */ 1000,
+    debounceMaxWait: /* number, default = */ 1000,
+    timeout: /* number, default = */ 1000,
+  };
 
-	constructor(ctx: DurableObjectState, env: Env) {
-		super(ctx, env);
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
 
-		this.sandboxService = new SandboxService(env);
-		this.aiService = new AIService(env, this.document);
-	}
+    this.sandboxService = new SandboxService(env);
+  }
 
-	async onLoad() {
-		this.sandboxService = new SandboxService(this.env);
-		this.aiService = new AIService(this.env, this.document);
+  async onLoad() {
+    this.sandboxService = new SandboxService(this.env);
 
-		// when first started, fetch the details of the room associated with this room
-		const roomId = this.name as Id<'room'>;
-		const db = this.getDb();
-		const data = await db
-			.select({
-				room: roomTable,
-				roomContent: roomContentTable,
-			})
-			.from(roomTable)
-			.where(eq(roomTable.id, roomId))
-			.leftJoin(roomContentTable, eq(roomContentTable.roomId, roomTable.id))
-			.then((res) => (res.length > 0 ? res[0] : null));
+    // when first started, fetch the details of the room associated with this room
+    const roomId = this.name as Id<'room'>;
+    const db = this.getDb();
+    const data = await db
+      .select({
+        room: roomTable,
+        roomContent: roomContentTable,
+      })
+      .from(roomTable)
+      .where(eq(roomTable.id, roomId))
+      .leftJoin(roomContentTable, eq(roomContentTable.roomId, roomTable.id))
+      .then((res) => (res.length > 0 ? res[0] : null));
 
-		if (!data) {
-			throw new Error('Room not found');
-		}
+    if (!data) {
+      throw new Error('Room not found');
+    }
 
-		this.room = data.room;
+    this.room = data.room;
 
-		if (data.roomContent) {
-			Y.applyUpdate(
-				this.document,
-				new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
-			);
-		}
+    if (data.roomContent) {
+      Y.applyUpdate(
+        this.document,
+        new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
+      );
+    }
 
-		// Initialize AI chat structures
-		this.aiService.initializeChat();
+    // Initialize AI chat structures
+    this.aiService = new AIService(this.env, this.document, this.room);
 
-		// warm up the sandbox
-		this.createNewSandbox(this.room.language);
-	}
+    // warm up the sandbox
+    this.createNewSandbox(this.room.language);
+  }
 
-	async onSave() {
-		// called every few seconds after edits, and when the room empties
-		// you can use this to write to a database or some external storage
+  async onSave() {
+    // called every few seconds after edits, and when the room empties
+    // you can use this to write to a database or some external storage
 
-		const db = this.getDb();
-		const room = this.getRoom();
+    const db = this.getDb();
+    const room = this.getRoom();
 
-		const rawCodeValue = this.document.getText('code');
-		const codeValue = rawCodeValue.toJSON();
+    const rawCodeValue = this.document.getText('code');
+    const codeValue = rawCodeValue.toJSON();
 
-		const rawInstructionsValue = this.document.getXmlFragment('instructions');
-		const instructionsValue = rawInstructionsValue.toArray();
+    const rawInstructionsValue = this.document.getXmlFragment('instructions');
+    const instructionsValue = rawInstructionsValue.toArray();
 
-		const rawExecutionHistoryValue = this.document.getArray('executionHistory');
-		const executionHistoryValue = rawExecutionHistoryValue.toArray();
+    const rawExecutionHistoryValue = this.document.getArray('executionHistory');
+    const executionHistoryValue = rawExecutionHistoryValue.toArray();
 
-		const languageValue = this.document.getText('language');
-		const language = languageValue.toJSON();
+    const languageValue = this.document.getText('language');
+    const language = languageValue.toJSON();
 
-		const statusValue = this.document.getText('status');
-		const status = statusValue.toJSON() as RoomEntity['status'];
+    const statusValue = this.document.getText('status');
+    const status = statusValue.toJSON() as RoomEntity['status'];
 
-		// Get AI chat data
-		const chatMessages = this.document.getArray('chatMessages');
-		const chatMessagesValue = chatMessages.toArray();
+    // Get AI chat data
+    const chatMessages = this.document.getArray('chatMessages');
+    const chatMessagesValue = chatMessages.toArray();
 
-		const aiConfig = this.document.getMap('aiConfig');
-		const aiConfigValue = aiConfig.toJSON();
+    const aiConfig = this.document.getMap('aiConfig');
+    const aiConfigValue = aiConfig.toJSON();
 
-		const streamingState = this.document.getMap('streamingState');
-		const streamingStateValue = streamingState.toJSON();
+    const streamingState = this.document.getMap('streamingState');
+    const streamingStateValue = streamingState.toJSON();
 
-		const totalContent = Y.encodeStateAsUpdate(this.document);
+    const totalContent = Y.encodeStateAsUpdate(this.document);
 
-		const roomContent: RoomContentEntity = {
-			roomId: room.id,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			userId: room.userId,
-			organizationId: room.organizationId,
-			code: codeValue,
-			language,
-			instructions: instructionsValue,
-			executionHistory: executionHistoryValue,
-			rawContent: Buffer.from(totalContent).toString('base64'),
-			status,
-		};
+    const roomContent: RoomContentEntity = {
+      roomId: room.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userId: room.userId,
+      organizationId: room.organizationId,
+      code: codeValue,
+      language,
+      instructions: instructionsValue,
+      executionHistory: executionHistoryValue,
+      rawContent: Buffer.from(totalContent).toString('base64'),
+      status,
+    };
 
-		await Promise.all([
-			db
-				.insert(roomContentTable)
-				.values(roomContent)
-				.onConflictDoUpdate({
-					target: [roomContentTable.roomId],
-					set: {
-						...roomContent,
-						roomId: undefined,
-						createdAt: undefined,
-						updatedAt: undefined,
-						userId: undefined,
-						organizationId: undefined,
-					},
-				}),
-			db
-				.update(roomTable)
-				.set({
-					language: language as RoomEntity['language'],
-					updatedAt: new Date().toISOString(),
-				})
-				.where(eq(roomTable.id, room.id)),
-		]);
-	}
+    await Promise.all([
+      db
+        .insert(roomContentTable)
+        .values(roomContent)
+        .onConflictDoUpdate({
+          target: [roomContentTable.roomId],
+          set: {
+            ...roomContent,
+            roomId: undefined,
+            createdAt: undefined,
+            updatedAt: undefined,
+            userId: undefined,
+            organizationId: undefined,
+          },
+        }),
+      db
+        .update(roomTable)
+        .set({
+          language: language as RoomEntity['language'],
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(roomTable.id, room.id)),
+    ]);
+  }
 
-	async handleStatusUpdate(status: RoomEntity['status']) {
-		this.document.transact(() => {
-			const statusText = this.document.getText('status');
-			statusText.delete(0, statusText.length);
-			statusText.insert(0, status);
-		});
+  async handleStatusUpdate(status: RoomEntity['status']) {
+    this.document.transact(() => {
+      const statusText = this.document.getText('status');
+      statusText.delete(0, statusText.length);
+      statusText.insert(0, status);
+    });
 
-		// we can just update local state, the db remains source of truth
-		if (this.room) {
-			this.room.status = status;
-			this.room.updatedAt = new Date().toISOString();
-		}
-	}
+    // we can just update local state, the db remains source of truth
+    if (this.room) {
+      this.room.status = status;
+      this.room.updatedAt = new Date().toISOString();
+    }
+  }
 
-	private getDb() {
-		if (!this.db) {
-			const sql = postgres(this.env.DATABASE_URL);
-			this.db = drizzle(sql);
-		}
+  private getDb() {
+    if (!this.db) {
+      const sql = postgres(this.env.DATABASE_URL);
+      this.db = drizzle(sql);
+    }
 
-		return this.db;
-	}
+    return this.db;
+  }
 
-	private getRoom() {
-		if (!this.room) {
-			throw new Error('Room not found');
-		}
+  private getRoom() {
+    if (!this.room) {
+      throw new Error('Room not found');
+    }
 
-		return this.room;
-	}
+    return this.room;
+  }
 
-	private getSandbox() {
-		if (!this.sandboxService) {
-			throw new Error('Sandbox service not found');
-		}
+  private getSandbox() {
+    if (!this.sandboxService) {
+      throw new Error('Sandbox service not found');
+    }
 
-		return this.sandboxService;
-	}
+    return this.sandboxService;
+  }
 
-	private createNewSandbox(language: RoomEntity['language']) {
-		const room = this.getRoom();
-		const roomId = room.id;
+  private createNewSandbox(language: RoomEntity['language']) {
+    const room = this.getRoom();
+    const roomId = room.id;
 
-		this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId, language }));
-	}
+    this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId, language }));
+  }
 
-	// AI Chat Methods
-	async handleAiChat(params: {
-		messageId: string;
-		content: string;
-		user: { id: string; name: string; color: string };
-	}) {
-		// Start streaming AI response
-		this.ctx.waitUntil(this.aiService.startStreamingResponse(params));
-	}
+  // AI Chat Methods
+  async handleAiChat(params: {
+    userMessage: ChatMessage & { user: User };
+    assistantMessage: ChatMessage;
+  }) {
+    if (!this.aiService) {
+      throw new Error('AI service not found');
+    }
+
+    // Start streaming AI response
+    const messages = await this.aiService.streamResponse(params);
+
+    this.ctx.waitUntil(this.aiService.onComplete(messages));
+  }
 }

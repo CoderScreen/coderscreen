@@ -28,6 +28,7 @@
     "./room.db": "./src/room.db.ts",
     "./roomContent.db": "./src/roomContent.db.ts",
     "./user.db": "./src/user.db.ts",
-    "./template.db": "./src/template.db.ts"
+    "./template.db": "./src/template.db.ts",
+    "./llmMessage.db": "./src/llmMessage.db.ts"
   }
 }
