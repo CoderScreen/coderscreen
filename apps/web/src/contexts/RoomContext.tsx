@@ -10,7 +10,7 @@ import { useCurrentRoomId } from '@/lib/params';
 import useYProvider from 'y-partykit/react';
 import YPartyKitProvider from 'y-partykit/provider';
 import { usePublicRoom } from '@/query/publicRoom.query';
-import { PublicRoomSchema } from '@coderscreen/api/schema/room';
+import { PublicRoomSchema, RoomSchema } from '@coderscreen/api/schema/room';
 
 interface RoomContextType {
   room: PublicRoomSchema | undefined;
@@ -18,7 +18,7 @@ interface RoomContextType {
   isConnected: boolean;
   provider: YPartyKitProvider;
   subscribeToStatus: (callback?: (status: string) => void) => () => void;
-  currentStatus: string | undefined;
+  currentStatus: RoomSchema['status'] | undefined;
 }
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -33,9 +33,9 @@ const API_URL = 'http://localhost:8000';
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
   const [isConnected, setIsConnected] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<string | undefined>(
-    undefined
-  );
+  const [currentStatus, setCurrentStatus] = useState<
+    RoomSchema['status'] | undefined
+  >(undefined);
 
   const { publicRoom } = usePublicRoom();
 
@@ -69,13 +69,13 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
       }
 
       // Set initial status
-      const initialStatus = statusField.toString();
+      const initialStatus = statusField.toString() as RoomSchema['status'];
       setCurrentStatus(initialStatus);
       callback?.(initialStatus);
 
       // Subscribe to changes
       const handleStatusChange = (event: any) => {
-        const newStatus = event.target.toString();
+        const newStatus = event.target.toString() as RoomSchema['status'];
         setCurrentStatus(newStatus);
         callback?.(newStatus);
       };

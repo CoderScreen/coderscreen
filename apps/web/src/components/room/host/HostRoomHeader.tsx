@@ -14,11 +14,16 @@ import {
   RiCloseLine,
   RiCheckLine,
   RiFileTextLine,
+  RiLockLine,
+  RiArrowLeftSLine,
+  RiCornerDownLeftLine,
 } from '@remixicon/react';
 import { toast } from 'sonner';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Shortcut } from '@/components/common/Shortcut';
+import { Badge } from '@/components/ui/badge';
+import { Link } from '@tanstack/react-router';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
 if (!APP_URL) {
@@ -37,6 +42,9 @@ export const HostRoomHeader = () => {
   const [copied, setCopied] = useState(false);
 
   const { endRoom, isLoading: isEndingRoom } = useEndRoom();
+
+  // Check if room is in read-only mode (completed)
+  const isReadOnly = room?.status === 'completed';
 
   const handleCopyLink = async () => {
     try {
@@ -87,7 +95,7 @@ export const HostRoomHeader = () => {
       {/* Room Title Section */}
       <div className='flex items-center gap-2'>
         <div className='max-w-80'>
-          {isEditingTitle ? (
+          {isEditingTitle && !isReadOnly ? (
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -100,8 +108,12 @@ export const HostRoomHeader = () => {
             <Skeleton className='w-42 h-6' />
           ) : (
             <span
-              className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'
-              onClick={() => setIsEditingTitle(true)}
+              className={`w-full text-lg transition-colors overflow-hidden text-ellipsis whitespace-nowrap ${
+                isReadOnly
+                  ? 'text-muted-foreground cursor-default'
+                  : 'cursor-pointer hover:text-muted-foreground'
+              }`}
+              onClick={() => !isReadOnly && setIsEditingTitle(true)}
             >
               {title}
             </span>
@@ -110,7 +122,7 @@ export const HostRoomHeader = () => {
       </div>
 
       <div className='flex items-center gap-2'>
-        <Button variant='secondary' icon={RiFileTextLine}>
+        <Button variant='secondary' icon={RiFileTextLine} disabled={isReadOnly}>
           Load Template
           <Shortcut cmd _key='T' variant='dark' />
         </Button>
@@ -129,15 +141,23 @@ export const HostRoomHeader = () => {
           <Shortcut cmd _key='S' variant='dark' />
         </Button>
 
-        <Button
-          variant='destructive'
-          onClick={() => setIsEndInterviewOpen(true)}
-          icon={RiCloseLine}
-          disabled={isEndingRoom}
-        >
-          End Interview
-          <Shortcut cmd _key='E' />
-        </Button>
+        {!isReadOnly ? (
+          <Button
+            variant='destructive'
+            onClick={() => setIsEndInterviewOpen(true)}
+            icon={RiCloseLine}
+            disabled={isEndingRoom}
+          >
+            End Interview
+            <Shortcut cmd _key='E' />
+          </Button>
+        ) : (
+          <Link to='/' className='flex items-center gap-2'>
+            <Button variant='secondary' icon={RiCornerDownLeftLine}>
+              Back to Home
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Dialog open={isEndInterviewOpen} onOpenChange={setIsEndInterviewOpen}>

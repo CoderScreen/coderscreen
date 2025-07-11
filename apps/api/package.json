@@ -37,6 +37,7 @@
 		"hono-openapi": "^0.4.8",
 		"hono-party": "^0.0.13",
 		"lodash.throttle": "^4.1.1",
+		"openai": "^5.9.0",
 		"partyserver": "^0.0.72",
 		"partysocket": "1.1.4",
 		"postgres": "^3.4.7",

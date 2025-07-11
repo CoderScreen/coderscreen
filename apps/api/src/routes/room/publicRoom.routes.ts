@@ -86,4 +86,28 @@ export const publicRoomRouter = new Hono<AppContext>()
 
 			return ctx.json(result);
 		}
+	)
+	.post(
+		'/chat',
+		describeRoute({
+			description: 'Chat with the AI',
+		}),
+		zValidator('param', z.object({ roomId: idString('room') })),
+		zValidator(
+			'json',
+			z.object({
+				message: z.string(),
+				user: z.object({ id: z.string(), name: z.string(), color: z.string() }),
+			})
+		),
+		async (ctx) => {
+			const { roomId } = ctx.req.valid('param');
+			const { message, user } = ctx.req.valid('json');
+
+			const roomService = new RoomService(ctx);
+
+			await roomService.aiChat({ roomId, message, user });
+
+			return ctx.json({ message: 'Chat with the AI' });
+		}
 	);

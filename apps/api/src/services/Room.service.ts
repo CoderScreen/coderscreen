@@ -17,7 +17,9 @@ export class RoomService {
 		this.db = useDb(ctx);
 	}
 
-	async createRoom(values: Omit<RoomEntity, 'id' | 'createdAt' | 'updatedAt' | 'organizationId' | 'userId'>) {
+	async createRoom(
+		values: Omit<RoomEntity, 'id' | 'createdAt' | 'updatedAt' | 'organizationId' | 'userId'>
+	) {
 		const { user, orgId } = getSession(this.ctx);
 		return this.db
 			.insert(roomTable)
@@ -72,7 +74,11 @@ export class RoomService {
 
 	async listRooms() {
 		const { orgId } = getSession(this.ctx);
-		return this.db.select().from(roomTable).where(eq(roomTable.organizationId, orgId)).orderBy(desc(roomTable.createdAt));
+		return this.db
+			.select()
+			.from(roomTable)
+			.where(eq(roomTable.organizationId, orgId))
+			.orderBy(desc(roomTable.createdAt));
 	}
 
 	async updateRoom(id: Id<'room'>, values: Partial<RoomEntity>) {
@@ -131,5 +137,15 @@ export class RoomService {
 		// const roomDo = this.ctx.env.ROOM_DO.get(id);
 
 		// roomDo.handleLoadTemplate(template);
+	}
+
+	async aiChat(params: {
+		roomId: Id<'room'>;
+		message: string;
+		user: { id: string; name: string; color: string };
+	}) {
+		const roomName = this.ctx.env.Room.idFromName(params.roomId);
+		const roomStub = this.ctx.env.Room.get(roomName);
+		await roomStub.handleAiChat(params.message, params.user.id, params.user.name);
 	}
 }

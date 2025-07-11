@@ -8,10 +8,12 @@ import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
 import * as Y from 'yjs';
 import { SandboxService } from './internal/Sandbox.service';
+import { AIService } from './internal/AI.service';
 
 export class RoomServer extends YServer<AppContext['Bindings']> {
 	private db: PostgresJsDatabase | null = null;
-	private sandboxService: SandboxService | null = null;
+	private sandboxService: SandboxService;
+	private aiService: AIService;
 	private room: RoomEntity | null = null;
 
 	/* control how often the onSave handler
@@ -23,8 +25,17 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		timeout: /* number, default = */ 1000,
 	};
 
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env);
+
+		this.sandboxService = new SandboxService(env);
+		this.aiService = new AIService(env, this.document);
+	}
+
 	async onLoad() {
 		this.sandboxService = new SandboxService(this.env);
+		this.aiService = new AIService(this.env, this.document);
+
 		// when first started, fetch the details of the room associated with this room
 		const roomId = this.name as Id<'room'>;
 		const db = this.getDb();
@@ -45,24 +56,14 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		this.room = data.room;
 
 		if (data.roomContent) {
-			Y.applyUpdate(this.document, new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64')));
+			Y.applyUpdate(
+				this.document,
+				new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
+			);
 		}
 
-		// load status and language from room into the y.js doc
-		await this.document.transact(async () => {
-			const statusText = this.document.getText('status');
-			statusText.delete(0, statusText.length);
-			statusText.insert(0, data.room.status);
-
-			const languageText = this.document.getText('language');
-			languageText.delete(0, languageText.length);
-			languageText.insert(0, data.room.language);
-		});
-
-		console.log('loaded status and language into the y.js doc', {
-			status: data.room.status,
-			language: data.room.language,
-		});
+		// Initialize AI chat structures
+		this.aiService.initializeChat();
 
 		// warm up the sandbox
 		this.createNewSandbox(this.room.language);
@@ -89,6 +90,16 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
 		const statusValue = this.document.getText('status');
 		const status = statusValue.toJSON() as RoomEntity['status'];
+
+		// Get AI chat data
+		const chatMessages = this.document.getArray('chatMessages');
+		const chatMessagesValue = chatMessages.toArray();
+
+		const aiConfig = this.document.getMap('aiConfig');
+		const aiConfigValue = aiConfig.toJSON();
+
+		const streamingState = this.document.getMap('streamingState');
+		const streamingStateValue = streamingState.toJSON();
 
 		const totalContent = Y.encodeStateAsUpdate(this.document);
 
@@ -175,5 +186,15 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 		const roomId = room.id;
 
 		this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId, language }));
+	}
+
+	// AI Chat Methods
+	async handleAiChat(content: string, userId?: string, userName?: string): Promise<string> {
+		const messageId = this.aiService.addUserMessage(content, userId, userName);
+
+		// Start streaming AI response
+		this.ctx.waitUntil(this.aiService.startStreamingResponse(messageId, userId));
+
+		return messageId;
 	}
 }

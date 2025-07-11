@@ -5,7 +5,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { useState, useEffect, useRef } from 'react';
-import { RiArrowRightSLine } from '@remixicon/react';
+import { RiArrowRightSLine, RiTerminalLine } from '@remixicon/react';
 
 export const CodeOutput = () => {
   const { history } = useCodeExecutionHistory();
@@ -32,13 +32,17 @@ export const CodeOutput = () => {
   if (!history.length) {
     return (
       <div className='h-full w-full bg-white text-gray-800 font-mono'>
-        <div className='p-4 h-full overflow-auto'>
+        <div className='p-6 h-full overflow-auto'>
           <div className='flex items-center justify-center h-full'>
-            <div className='text-center'>
-              <div className='text-gray-300 text-4xl mb-3'>📝</div>
-              <p className='text-gray-500 text-sm'>No output yet</p>
-              <p className='text-gray-400 text-xs mt-1'>
-                Run your code to see the results here
+            <div className='text-center max-w-sm'>
+              <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4'>
+                <RiTerminalLine className='text-gray-400 size-6' />
+              </div>
+              <h3 className='text-sm font-medium text-gray-900 mb-2'>
+                No output yet
+              </h3>
+              <p className='text-sm text-gray-500 leading-relaxed'>
+                Run your code to see the execution results and output here
               </p>
             </div>
           </div>
