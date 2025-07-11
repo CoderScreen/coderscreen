@@ -2,8 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useCurrentRoomId } from '@/lib/params';
 import { apiClient } from '@/query/client';
-import { useMutation } from '@tanstack/react-query';
-import { Guest } from '@/lib/guest';
 
 // Types matching AI service
 export interface User {
@@ -19,6 +17,8 @@ export interface ChatMessage {
   content: string;
   isStreaming: boolean;
   user: User | null; // null for system messages
+  success: boolean;
+  conversationId: string;
 }
 
 export interface AIConfig {
@@ -27,6 +27,8 @@ export interface AIConfig {
 
 const KEYS = {
   messagesKey: 'ai_chat_messages',
+  pastConversationsKey: 'ai_chat_past_conversations',
+  conversationIdKey: 'ai_chat_conversation_id',
   configKey: 'ai_chat_config',
 };
 
@@ -38,11 +40,15 @@ export function useAIChat() {
   const [config, setConfig] = useState<AIConfig>({
     model: 'gpt-4',
   });
+  const [pastConversations, setPastConversations] = useState<ChatMessage[][]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string>('');
 
   // Observe changes to the chat messages in the main doc
   useEffect(() => {
     const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
     const aiConfig = provider.doc.getMap<string>(KEYS.configKey);
+    const pastConversationsArray = provider.doc.getArray<ChatMessage[]>(KEYS.pastConversationsKey);
+    const conversationIdValue = provider.doc.getText(KEYS.conversationIdKey);
 
     const updateConfig = () => {
       const configData = aiConfig.toJSON() as AIConfig;
@@ -54,17 +60,33 @@ export function useAIChat() {
       setMessages(messagesData);
     };
 
+    const updatePastConversations = () => {
+      const pastConversationsData = pastConversationsArray.toArray();
+      setPastConversations(pastConversationsData);
+    };
+
+    const updateConversationId = () => {
+      const conversationId = conversationIdValue.toString();
+      setCurrentConversationId(conversationId);
+    };
+
     // Set initial values
     updateConfig();
     updateMessages();
+    updatePastConversations();
+    updateConversationId();
 
     // Observe changes
     messagesArray.observe(updateMessages);
     aiConfig.observe(updateConfig);
+    pastConversationsArray.observe(updatePastConversations);
+    conversationIdValue.observe(updateConversationId);
 
     return () => {
       messagesArray.unobserve(updateMessages);
       aiConfig.unobserve(updateConfig);
+      pastConversationsArray.unobserve(updatePastConversations);
+      conversationIdValue.unobserve(updateConversationId);
     };
   }, [provider, isReadOnly]);
 
@@ -80,6 +102,8 @@ export function useAIChat() {
         timestamp: Date.now(),
         isStreaming: false,
         user: user,
+        success: true,
+        conversationId: currentConversationId,
       };
 
       const assistantMessage: ChatMessage & { user: null } = {
@@ -89,6 +113,8 @@ export function useAIChat() {
         timestamp: Date.now(),
         isStreaming: true,
         user: null,
+        success: true,
+        conversationId: currentConversationId,
       };
 
       messagesArray.push([userMessage, assistantMessage]);
@@ -113,13 +139,32 @@ export function useAIChat() {
   );
 
   // Function to start a new chat conversation
-  const startNewChat = useCallback(() => {
+  const startNewChat = useCallback(async () => {
     const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
+    const pastConversationsArray = provider.doc.getArray<ChatMessage[]>(KEYS.pastConversationsKey);
+    const conversationIdValue = provider.doc.getText(KEYS.conversationIdKey);
+
+    console.log('pastConversationsArray', pastConversationsArray.toArray());
 
     provider.doc.transact(() => {
+      // Save current conversation to past conversations if there are messages
+      const currentMessages = messagesArray.toArray();
+      if (currentMessages.length > 0) {
+        pastConversationsArray.push([currentMessages]);
+      }
+
+      // Clear current messages
       messagesArray.delete(0, messagesArray.length);
+
+      // Generate new conversation ID
+      const newConversationId = crypto.randomUUID();
+      conversationIdValue.delete(0, conversationIdValue.length);
+      conversationIdValue.insert(0, newConversationId);
     });
-  }, [provider, isReadOnly]);
+
+    // Note: The backend will handle conversation ID generation through Y.js synchronization
+    // The API call is not needed since the Y.js document handles the state
+  }, [provider, isReadOnly, currentConversationId]);
 
   const sendChatMessage = useCallback(
     async (message: string, user: User) => {
@@ -143,6 +188,8 @@ export function useAIChat() {
     messages,
     config,
     isReadOnly,
+    pastConversations,
+    currentConversationId,
 
     // Actions
     sendChatMessage,

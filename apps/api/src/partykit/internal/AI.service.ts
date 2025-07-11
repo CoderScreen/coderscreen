@@ -20,6 +20,9 @@ export interface ChatMessage {
   content: string;
   isStreaming: boolean;
   user: User | null; // null for system messages
+  success: boolean;
+  conversationId: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AIConfig {
@@ -37,12 +40,22 @@ export class AIService {
   private db: PostgresJsDatabase | null = null;
   private room: RoomEntity;
 
-  static SYSTEM_PROMPT = `You are a helpful coding assistant. You are given a coding problem and a user's code. You need to help the user fix their code. You need to be very specific and to the point.`;
+  static SYSTEM_PROMPT = `You are an AI assistant conducting a technical interview. You are helping evaluate a candidate's coding skills and problem-solving abilities. 
+
+Your role is to:
+- Ask clarifying questions about the candidate's approach
+- Provide helpful hints when they're stuck
+- Evaluate their code quality and problem-solving methodology
+- Give constructive feedback on their solutions
+- Guide them through debugging when needed
+
+Be encouraging but thorough in your evaluation. Focus on understanding their thought process and helping them demonstrate their best work.`;
   static TEMPERATURE = 0.7;
   static MAX_TOKENS = 1000;
 
   static messagesKey = 'ai_chat_messages';
   static configKey = 'ai_chat_config';
+  static conversationIdKey = 'ai_chat_conversation_id';
 
   constructor(env: AppContext['Bindings'], document: Y.Doc, room: RoomEntity) {
     this.env = env;
@@ -60,15 +73,6 @@ export class AIService {
    */
   initializeChat() {
     // Initialize messages array if it doesn't exist
-    if (!this.document.getArray(AIService.messagesKey)) {
-      this.document.getArray(AIService.messagesKey);
-    }
-    if (!this.document.getMap('aiConfig')) {
-      this.document.getMap('aiConfig');
-    }
-    if (!this.document.getMap('streamingState')) {
-      this.document.getMap('streamingState');
-    }
   }
 
   /**
@@ -88,30 +92,42 @@ export class AIService {
     const { userMessage, assistantMessage } = params;
 
     const baseResponseMsg = assistantMessage;
-    const result: ChatMessage[] = [userMessage];
+    const rawCodeValue = this.document.getText('code');
+    const currentCode = rawCodeValue.toJSON();
+
+    // Create enhanced user message with code content
+    const enhancedUserMessage: ChatMessage = {
+      ...userMessage,
+      content: currentCode
+        ? `${userMessage.content}\n\nCurrent code:\n\`\`\`\n${currentCode}\n\`\`\``
+        : userMessage.content,
+    };
+
+    const result: ChatMessage[] = [enhancedUserMessage];
 
     try {
       const messagesArray = this.getMessagesArray();
-      const aiConfig = this.document.getMap('aiConfig');
+      const aiConfig = this.document.getMap<string>('aiConfig');
 
       // Get conversation history
-      const conversationHistory = messagesArray.toArray().map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      }));
+      const conversationHistory = messagesArray
+        .toArray()
+        .filter((msg) => msg.id !== enhancedUserMessage.id)
+        .map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        }));
 
       // Get AI configuration
-      const model = (aiConfig.get('model') as string) || 'gpt-4';
+      const model = this.getConfig().model;
 
       // Prepare the request to OpenAI
       const requestBody = {
         model,
         messages: [
           { role: 'system' as const, content: AIService.SYSTEM_PROMPT },
-          ...conversationHistory.map((msg) => ({
-            role: msg.role as 'user' | 'assistant' | 'system',
-            content: msg.content,
-          })),
+          ...conversationHistory,
+          enhancedUserMessage,
         ],
         temperature: AIService.TEMPERATURE,
         max_tokens: AIService.MAX_TOKENS,
@@ -130,9 +146,20 @@ export class AIService {
           this.updateStreamingMessage(baseResponseMsg.id, accumulatedContent);
         }
       }
+
+      result.push({
+        ...baseResponseMsg,
+        content: accumulatedContent,
+        isStreaming: false,
+        success: true,
+      });
     } catch (error) {
       console.error('Error streaming AI response:', error);
-      this.handleStreamingError(baseResponseMsg.id, error as Error);
+      const errorMessage = this.handleStreamingError(baseResponseMsg.id, error as Error);
+
+      if (errorMessage) {
+        result.push(errorMessage);
+      }
     }
 
     return result;
@@ -168,14 +195,13 @@ export class AIService {
     const db = this.getDb();
 
     const toInsert: LLMMessageEntity[] = messages.map((message) => ({
+      ...message,
       id: generateId('llmMessage'),
       createdAt: new Date().toISOString(),
       organizationId: this.room.organizationId,
-      role: message.role,
-      content: message.content,
       roomId: this.room.id,
-      conversationId: '',
       metadata: {
+        ...(message.metadata ?? {}),
         model: this.getConfig().model,
       },
     }));
@@ -186,7 +212,7 @@ export class AIService {
   /**
    * Handle streaming errors
    */
-  private handleStreamingError(streamingId: string, error: Error) {
+  private handleStreamingError(streamingId: string, error: Error): ChatMessage | null {
     const streamingState = this.document.getMap('streamingState');
     const messagesArray = this.getMessagesArray();
     const messages = messagesArray.toArray();
@@ -195,10 +221,11 @@ export class AIService {
     const streamingMessageIndex = messages.findIndex((msg) => msg.id === streamingId);
 
     if (streamingMessageIndex !== -1) {
+      const message = messages[streamingMessageIndex];
       this.document.transact(() => {
-        const message = messages[streamingMessageIndex];
-        message.content = `Error: ${error.message}`;
+        message.content = `Ran into an error. Please try again!`;
         message.isStreaming = false;
+        message.success = false;
 
         // Update the message in the array
         messagesArray.delete(streamingMessageIndex, 1);
@@ -207,7 +234,17 @@ export class AIService {
         // Clear streaming state
         streamingState.set('isStreaming', false);
       });
+
+      return {
+        ...message,
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
+          rawError: error,
+        },
+      };
     }
+
+    return null;
   }
 
   /**
@@ -264,9 +301,9 @@ export class AIService {
    * Get current AI configuration
    */
   getConfig(): AIConfig {
-    const aiConfig = this.document.getMap('aiConfig');
+    const aiConfig = this.document.getMap<string>('aiConfig');
     return {
-      model: (aiConfig.get('model') as string) || 'gpt-4',
+      model: aiConfig.get('model') ?? 'gpt-4o',
     };
   }
 

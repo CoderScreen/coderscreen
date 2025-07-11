@@ -150,4 +150,11 @@ export class RoomService {
 
     this.ctx.executionCtx.waitUntil(roomStub.handleAiChat(params));
   }
+
+  async startNewConversation(roomId: Id<'room'>) {
+    const roomName = this.ctx.env.Room.idFromName(roomId);
+    const roomStub = this.ctx.env.Room.get(roomName);
+
+    this.ctx.executionCtx.waitUntil(roomStub.startNewConversation());
+  }
 }

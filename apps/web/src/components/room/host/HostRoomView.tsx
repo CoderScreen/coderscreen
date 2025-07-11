@@ -36,8 +36,7 @@ const HostRoomContent = () => {
         <div className='bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-center gap-2 text-amber-800'>
           <RiLockLine className='size-4' />
           <span className='text-sm font-medium'>
-            Interview ended - This room is now in read-only mode except for your
-            notes.
+            Interview ended - This room is now in read-only mode except for your notes.
           </span>
         </div>
       )}
@@ -49,64 +48,40 @@ const HostRoomContent = () => {
           </Panel>
           <PanelResizeHandle />
           <Panel>
-            <Tabs
-              defaultValue='instructions'
-              className='h-full flex flex-col p-2 pt-4'
-            >
+            <Tabs defaultValue='instructions' className='h-full flex flex-col p-2 pt-4'>
               <TabsList>
-                <TabsTrigger
-                  value='instructions'
-                  className='flex items-center gap-1'
-                >
+                <TabsTrigger value='instructions' className='flex items-center gap-1'>
                   <RiFileTextLine className='size-4 shrink-0' />
                   Instructions
                 </TabsTrigger>
-                <TabsTrigger
-                  value='program-output'
-                  className='flex items-center gap-1'
-                >
+                <TabsTrigger value='program-output' className='flex items-center gap-1'>
                   <RiTerminalLine className='size-4 shrink-0' />
                   Program Output
                 </TabsTrigger>
-                <TabsTrigger
-                  value='whiteboard'
-                  className='flex items-center gap-1'
-                >
+                <TabsTrigger value='whiteboard' className='flex items-center gap-1'>
                   <RiPencilLine className='size-4 shrink-0' />
                   Whiteboard
                 </TabsTrigger>
-                <TabsTrigger
-                  value='ai-chat'
-                  className='flex items-center gap-1'
-                >
+                <TabsTrigger value='ai-chat' className='flex items-center gap-1'>
                   <RiChatAiLine className='size-4 shrink-0' />
                   AI Chat
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent
-                value='program-output'
-                className='flex-1 overflow-y-auto'
-              >
+              <TabsContent value='program-output' className='flex-1 overflow-y-auto'>
                 <CodeOutput />
               </TabsContent>
 
-              <TabsContent
-                value='instructions'
-                className='flex-1 overflow-y-auto'
-              >
+              <TabsContent value='instructions' className='flex-1 overflow-y-auto'>
                 <InstructionEditor />
               </TabsContent>
 
-              <TabsContent
-                value='whiteboard'
-                className='flex-1 overflow-y-auto'
-              >
+              <TabsContent value='whiteboard' className='flex-1 overflow-y-auto'>
                 <WhiteboardView />
               </TabsContent>
 
               <TabsContent value='ai-chat' className='flex-1 overflow-y-auto'>
-                <AiChatView />
+                <AiChatView role='host' />
               </TabsContent>
             </Tabs>
           </Panel>

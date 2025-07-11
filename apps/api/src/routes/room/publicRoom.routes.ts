@@ -103,6 +103,8 @@ export const publicRoomRouter = new Hono<AppContext>()
           content: z.string(),
           isStreaming: z.boolean(),
           user: z.object({ id: z.string(), name: z.string(), color: z.string() }),
+          success: z.literal(true),
+          conversationId: z.string(),
         }),
         assistantMessage: z.object({
           id: z.string(),
@@ -111,6 +113,8 @@ export const publicRoomRouter = new Hono<AppContext>()
           content: z.string(),
           isStreaming: z.boolean(),
           user: z.null(),
+          success: z.literal(true),
+          conversationId: z.string(),
         }),
       })
     ),
@@ -126,5 +130,21 @@ export const publicRoomRouter = new Hono<AppContext>()
       });
 
       return ctx.json({ message: 'Chat with the AI' });
+    }
+  )
+  .post(
+    '/chat/new',
+    describeRoute({
+      description: 'Start a new chat conversation',
+    }),
+    zValidator('param', z.object({ roomId: idString('room') })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+
+      const roomService = new RoomService(ctx);
+
+      await roomService.startNewConversation(roomId);
+
+      return ctx.json({ message: 'New conversation started' });
     }
   );

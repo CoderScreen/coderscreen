@@ -1,6 +1,6 @@
 import { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
-import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { organization } from './user.db';
 import { roomTable } from './room.db';
 
@@ -20,6 +20,7 @@ export const llmMessageTable = pgTable('llm_messages', {
   conversationId: text('conversation_id').notNull(),
   role: text('role').$type<LLMRole>().notNull(),
   content: text('content').notNull(),
+  success: boolean('success').notNull(),
   metadata: jsonb('metadata').notNull(),
 });
 

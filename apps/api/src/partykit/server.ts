@@ -200,4 +200,12 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     this.ctx.waitUntil(this.aiService.onComplete(messages));
   }
+
+  async startNewConversation() {
+    if (!this.aiService) {
+      throw new Error('AI service not found');
+    }
+
+    this.aiService.startNewConversation();
+  }
 }
