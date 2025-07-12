@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useCurrentRoomId } from '@/lib/params';
 import { apiClient } from '@/query/client';
+import { SupportedModels } from '@coderscreen/api/schema/ai';
 
 // Types matching AI service
 export interface User {
@@ -22,7 +23,7 @@ export interface ChatMessage {
 }
 
 export interface AIConfig {
-  model: string;
+  model: SupportedModels;
 }
 
 const KEYS = {
@@ -38,7 +39,7 @@ export function useAIChat() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [config, setConfig] = useState<AIConfig>({
-    model: 'gpt-4',
+    model: 'openai/gpt-4.1-mini',
   });
   const [pastConversations, setPastConversations] = useState<ChatMessage[][]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string>('');
@@ -127,8 +128,7 @@ export function useAIChat() {
   // Function to update AI config
   const updateConfig = useCallback(
     (newConfig: Partial<AIConfig>) => {
-      const aiConfig = provider.doc.getMap('aiConfig');
-
+      const aiConfig = provider.doc.getMap(KEYS.configKey);
       provider.doc.transact(() => {
         Object.entries(newConfig).forEach(([key, value]) => {
           aiConfig.set(key, value);
@@ -143,8 +143,6 @@ export function useAIChat() {
     const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
     const pastConversationsArray = provider.doc.getArray<ChatMessage[]>(KEYS.pastConversationsKey);
     const conversationIdValue = provider.doc.getText(KEYS.conversationIdKey);
-
-    console.log('pastConversationsArray', pastConversationsArray.toArray());
 
     provider.doc.transact(() => {
       // Save current conversation to past conversations if there are messages

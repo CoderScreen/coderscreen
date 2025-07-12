@@ -9,17 +9,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RiSendPlaneFill, RiRobotFill, RiAddLine } from '@remixicon/react';
+import {
+  RiSendPlaneFill,
+  RiRobotFill,
+  RiAddLine,
+  RiOpenaiLine,
+  RiOpenaiFill,
+  RiAnthropicFill,
+  RiGoogleFill,
+  RiAiGenerate2,
+  RemixiconComponentType,
+  RiGoogleLine,
+  RiClaudeLine,
+  RiClaudeFill,
+} from '@remixicon/react';
 import { getGuest } from '@/lib/guest';
 import { useSession } from '@/query/auth.query';
 import { getRandomColor } from '@/query/realtime/utils';
 import { cn } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Markdown } from '@/components/room/ai-chat/Markdown';
+import { SupportedModels } from '@coderscreen/api/schema/ai';
 
 interface AiChatViewProps {
   role: 'host' | 'guest';
 }
+
+const MODEL_OPTIONS: {
+  label: string;
+  value: SupportedModels;
+  icon: RemixiconComponentType;
+}[] = [
+  { label: 'Claude 3.7 Sonnet', value: 'anthropic/claude-3.7-sonnet', icon: RiClaudeLine },
+  { label: 'Claude Sonnet 4', value: 'anthropic/claude-sonnet-4', icon: RiClaudeLine },
+  { label: 'GPT-4.1 Mini', value: 'openai/gpt-4.1-mini', icon: RiOpenaiFill },
+  { label: 'GPT-4o', value: 'openai/gpt-4o', icon: RiOpenaiFill },
+  { label: 'Gemini 2.5 Flash', value: 'google/gemini-2.5-flash', icon: RiGoogleLine },
+  { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro', icon: RiGoogleLine },
+  { label: 'DeepSeek Chat V3', value: 'deepseek/deepseek-chat-v3-0324', icon: RiAiGenerate2 },
+];
 
 export const AiChatView = ({ role }: AiChatViewProps) => {
   const { user } = useSession();
@@ -87,7 +115,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
     }
   };
 
-  const handleModelChange = (value: string) => {
+  const handleModelChange = (value: SupportedModels) => {
     updateConfig({ model: value });
   };
 
@@ -149,17 +177,22 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
   return (
     <div className='h-full flex flex-col bg-white'>
       <div className='border-b py-2 flex items-center justify-between'>
-        <Select value={config.model} onValueChange={handleModelChange}>
-          <SelectTrigger className='w-32'>
+        <Select value={config.model} onValueChange={handleModelChange} disabled={isReadOnly}>
+          <SelectTrigger className='w-fit'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value='gpt-4'>GPT-4</SelectItem>
-            <SelectItem value='gpt-3.5-turbo'>GPT-3.5</SelectItem>
-            <SelectItem value='claude-3'>Claude 3</SelectItem>
+            {MODEL_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <span className='flex items-center gap-1 pr-4'>
+                  <option.icon className='w-4 h-4 shrink-0' />
+                  <span className='truncate'>{option.label}</span>
+                </span>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <Button variant='ghost' icon={RiAddLine} onClick={handleNewChat}>
+        <Button variant='ghost' icon={RiAddLine} onClick={handleNewChat} disabled={isReadOnly}>
           New Chat
         </Button>
       </div>

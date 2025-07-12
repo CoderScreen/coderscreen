@@ -6,6 +6,7 @@ import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { OpenAI } from 'openai';
 import postgres from 'postgres';
 import * as Y from 'yjs';
+import { SupportedModels } from '@/schema/ai.zod';
 
 export interface User {
   id: string;
@@ -69,10 +70,22 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
   }
 
   /**
-   * Initialize AI chat structures in the Y.js document
+   * Initialize default values
    */
-  initializeChat() {
-    // Initialize messages array if it doesn't exist
+  initialize() {
+    /**
+     * Need to initialize values where there is a selection
+     * - aiConfig
+     * - conversationId
+     */
+
+    const aiConfig = this.document.getMap(AIService.configKey);
+    const defaultModel: SupportedModels = 'openai/gpt-4.1-mini';
+    aiConfig.set('model', defaultModel);
+
+    const conversationId = this.document.getText(AIService.conversationIdKey);
+    conversationId.delete(0, conversationId.length);
+    conversationId.insert(0, crypto.randomUUID());
   }
 
   /**
@@ -107,7 +120,7 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
 
     try {
       const messagesArray = this.getMessagesArray();
-      const aiConfig = this.document.getMap<string>('aiConfig');
+      const model = this.getModel();
 
       // Get conversation history
       const conversationHistory = messagesArray
@@ -117,9 +130,6 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
           role: msg.role,
           content: msg.content,
         }));
-
-      // Get AI configuration
-      const model = this.getConfig().model;
 
       // Prepare the request to OpenAI
       const requestBody = {
@@ -152,6 +162,10 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
         content: accumulatedContent,
         isStreaming: false,
         success: true,
+        metadata: {
+          ...(baseResponseMsg.metadata ?? {}),
+          model,
+        },
       });
     } catch (error) {
       console.error('Error streaming AI response:', error);
@@ -200,10 +214,7 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
       createdAt: new Date().toISOString(),
       organizationId: this.room.organizationId,
       roomId: this.room.id,
-      metadata: {
-        ...(message.metadata ?? {}),
-        model: this.getConfig().model,
-      },
+      metadata: message.metadata ?? {},
     }));
 
     await db.insert(llmMessageTable).values(toInsert);
@@ -300,11 +311,16 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
   /**
    * Get current AI configuration
    */
-  getConfig(): AIConfig {
+  getModel(): SupportedModels {
     const aiConfig = this.document.getMap<string>('aiConfig');
-    return {
-      model: aiConfig.get('model') ?? 'gpt-4o',
-    };
+
+    const model = aiConfig.get('model') as SupportedModels | undefined;
+
+    if (!model) {
+      throw new Error('Model not found');
+    }
+
+    return model;
   }
 
   private getDb() {

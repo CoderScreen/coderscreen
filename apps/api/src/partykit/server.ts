@@ -20,9 +20,9 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
    * is called with these options */
   static callbackOptions = {
     // all of these are optional
-    debounceWait: /* number, default = */ 1000,
-    debounceMaxWait: /* number, default = */ 1000,
-    timeout: /* number, default = */ 1000,
+    debounceWait: /* number, default = */ 5000,
+    debounceMaxWait: /* number, default = */ 10000,
+    timeout: /* number, default = */ 10000,
   };
 
   constructor(ctx: DurableObjectState, env: Env) {
@@ -52,19 +52,45 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     }
 
     this.room = data.room;
+    this.aiService = new AIService(this.env, this.document, this.room);
 
     if (data.roomContent) {
       Y.applyUpdate(
         this.document,
         new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
       );
+    } else {
+      this.initializeDefaultValues();
     }
-
-    // Initialize AI chat structures
-    this.aiService = new AIService(this.env, this.document, this.room);
 
     // warm up the sandbox
     this.createNewSandbox(this.room.language);
+  }
+
+  private async initializeDefaultValues() {
+    const isInitialized = await this.ctx.storage.get<boolean>('initialized');
+    if (isInitialized) {
+      return;
+    }
+
+    /**
+     * need to set default values for:
+     * - language
+     * - status
+     * rest will be created by user
+     */
+    const room = this.getRoom();
+    const langValue = this.document.getText('language');
+    const statusValue = this.document.getText('status');
+    langValue.delete(0, langValue.length);
+    statusValue.delete(0, statusValue.length);
+    langValue.insert(0, room.language);
+    statusValue.insert(0, room.status);
+
+    // services init themselves
+    this.aiService?.initialize();
+
+    this.ctx.storage.put('initialized', true);
   }
 
   async onSave() {
@@ -88,16 +114,6 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     const statusValue = this.document.getText('status');
     const status = statusValue.toJSON() as RoomEntity['status'];
-
-    // Get AI chat data
-    const chatMessages = this.document.getArray('chatMessages');
-    const chatMessagesValue = chatMessages.toArray();
-
-    const aiConfig = this.document.getMap('aiConfig');
-    const aiConfigValue = aiConfig.toJSON();
-
-    const streamingState = this.document.getMap('streamingState');
-    const streamingStateValue = streamingState.toJSON();
 
     const totalContent = Y.encodeStateAsUpdate(this.document);
 
@@ -199,13 +215,5 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     const messages = await this.aiService.streamResponse(params);
 
     this.ctx.waitUntil(this.aiService.onComplete(messages));
-  }
-
-  async startNewConversation() {
-    if (!this.aiService) {
-      throw new Error('AI service not found');
-    }
-
-    this.aiService.startNewConversation();
   }
 }
