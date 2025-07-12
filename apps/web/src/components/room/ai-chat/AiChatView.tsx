@@ -13,15 +13,11 @@ import {
   RiSendPlaneFill,
   RiRobotFill,
   RiAddLine,
-  RiOpenaiLine,
   RiOpenaiFill,
-  RiAnthropicFill,
-  RiGoogleFill,
   RiAiGenerate2,
   RemixiconComponentType,
   RiGoogleLine,
   RiClaudeLine,
-  RiClaudeFill,
 } from '@remixicon/react';
 import { getGuest } from '@/lib/guest';
 import { useSession } from '@/query/auth.query';
@@ -83,18 +79,15 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
     sendChatMessage,
     updateConfig,
     startNewChat,
-    currentConversationId,
   } = useAIChat();
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom on component load
   useEffect(() => {
-    if (!hasScrolledRef.current && messages.length > 0) {
+    if (!hasScrolledRef.current && (pastConversations.length > 0 || messages.length > 0)) {
       messagesEndRef.current?.scrollIntoView();
       hasScrolledRef.current = true;
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, pastConversations]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isReadOnly) return;
@@ -103,6 +96,8 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
       const value = inputValue.trim();
       setInputValue('');
       await sendChatMessage(value, userInfo);
+
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -159,10 +154,8 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
 
         <div
           className={cn(
-            'rounded-lg px-4 py-2',
-            message.role === 'user'
-              ? 'bg-blue-50 border border-blue-200 text-blue-900'
-              : 'bg-slate-50 border',
+            'rounded-lg px-4 py-2 w-full',
+            message.role === 'user' ? 'bg-blue-50 border border-blue-200' : 'bg-slate-50 border',
             message.success ? '' : 'border-red-200 text-red-900 bg-red-50'
           )}
         >
@@ -199,7 +192,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
       <div className='flex-1 flex flex-col overflow-y-auto'>
         <div className='flex-1 p-4'>
           <div className='space-y-4'>
-            {role === 'host' && pastConversations.length > 0 ? (
+            {pastConversations.length > 0 ? (
               <>
                 {/* Past Conversations */}
                 {pastConversations.map((conversation, conversationIndex) => (

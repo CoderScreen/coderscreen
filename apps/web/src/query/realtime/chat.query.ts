@@ -31,6 +31,9 @@ const KEYS = {
   pastConversationsKey: 'ai_chat_past_conversations',
   conversationIdKey: 'ai_chat_conversation_id',
   configKey: 'ai_chat_config',
+  config: {
+    model: 'model',
+  },
 };
 
 export function useAIChat() {
@@ -92,54 +95,48 @@ export function useAIChat() {
   }, [provider, isReadOnly]);
 
   // Function to add the user message and the placeholder AI message to the Y.js document
-  const addMessages = useCallback(
-    (message: string, user: User) => {
-      const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
+  const addMessages = (message: string, user: User) => {
+    const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
 
-      const userMessage: ChatMessage & { user: User } = {
-        id: crypto.randomUUID(),
-        role: 'user',
-        content: message.trim(),
-        timestamp: Date.now(),
-        isStreaming: false,
-        user: user,
-        success: true,
-        conversationId: currentConversationId,
-      };
+    const userMessage: ChatMessage & { user: User } = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: message.trim(),
+      timestamp: Date.now(),
+      isStreaming: false,
+      user: user,
+      success: true,
+      conversationId: currentConversationId,
+    };
 
-      const assistantMessage: ChatMessage & { user: null } = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: 'Thinking...',
-        timestamp: Date.now(),
-        isStreaming: true,
-        user: null,
-        success: true,
-        conversationId: currentConversationId,
-      };
+    const assistantMessage: ChatMessage & { user: null } = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: 'Thinking...',
+      timestamp: Date.now(),
+      isStreaming: true,
+      user: null,
+      success: true,
+      conversationId: currentConversationId,
+    };
 
-      messagesArray.push([userMessage, assistantMessage]);
+    messagesArray.push([userMessage, assistantMessage]);
 
-      return { userMessage, assistantMessage };
-    },
-    [provider, isReadOnly]
-  );
+    return { userMessage, assistantMessage };
+  };
 
   // Function to update AI config
-  const updateConfig = useCallback(
-    (newConfig: Partial<AIConfig>) => {
-      const aiConfig = provider.doc.getMap(KEYS.configKey);
-      provider.doc.transact(() => {
-        Object.entries(newConfig).forEach(([key, value]) => {
-          aiConfig.set(key, value);
-        });
+  const updateConfig = (newConfig: Partial<AIConfig>) => {
+    const aiConfig = provider.doc.getMap(KEYS.configKey);
+    provider.doc.transact(() => {
+      Object.entries(newConfig).forEach(([key, value]) => {
+        aiConfig.set(key, value);
       });
-    },
-    [provider, isReadOnly]
-  );
+    });
+  };
 
   // Function to start a new chat conversation
-  const startNewChat = useCallback(async () => {
+  const startNewChat = async () => {
     const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
     const pastConversationsArray = provider.doc.getArray<ChatMessage[]>(KEYS.pastConversationsKey);
     const conversationIdValue = provider.doc.getText(KEYS.conversationIdKey);
@@ -159,10 +156,7 @@ export function useAIChat() {
       conversationIdValue.delete(0, conversationIdValue.length);
       conversationIdValue.insert(0, newConversationId);
     });
-
-    // Note: The backend will handle conversation ID generation through Y.js synchronization
-    // The API call is not needed since the Y.js document handles the state
-  }, [provider, isReadOnly, currentConversationId]);
+  };
 
   const sendChatMessage = useCallback(
     async (message: string, user: User) => {

@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import { useCurrentRoomId } from '@/lib/params';
 import useYProvider from 'y-partykit/react';
@@ -33,9 +34,7 @@ const API_URL = 'http://localhost:8000';
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
   const [isConnected, setIsConnected] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<
-    RoomSchema['status'] | undefined
-  >(undefined);
+  const [currentStatus, setCurrentStatus] = useState<RoomSchema['status'] | undefined>(undefined);
 
   const { publicRoom } = usePublicRoom();
 
@@ -53,7 +52,60 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
     [setIsConnected]
   );
 
-  // Subscribe to status field changes in the y.js document
+  useEffect(() => {
+    setIsConnected(provider.wsconnected);
+
+    // Listen for status changes
+    provider.on('status', handleStatus);
+
+    // Subscribe to status field changes in the y.js document
+    const subscribeToStatus = (callback?: (status: string) => void) => {
+      if (!provider.doc) {
+        console.warn('Provider document not available');
+        return () => {};
+      }
+
+      // Get or create the status field in the document
+      const statusField = provider.doc.getText('status');
+      if (!statusField) {
+        console.warn('Status field not found in document');
+        return () => {};
+      }
+
+      // Set initial status
+      const initialStatus = statusField.toString() as RoomSchema['status'];
+      setCurrentStatus(initialStatus);
+      callback?.(initialStatus);
+
+      // Subscribe to changes
+      const handleStatusChange = (event: any) => {
+        const newStatus = event.target.toString() as RoomSchema['status'];
+        setCurrentStatus(newStatus);
+        callback?.(newStatus);
+      };
+
+      statusField.observe(handleStatusChange);
+
+      // Return unsubscribe function
+      return () => {
+        statusField.unobserve(handleStatusChange);
+      };
+    };
+
+    // Subscribe to status field changes
+    const unsubscribe = subscribeToStatus();
+
+    return () => {
+      provider.off('status', handleStatus);
+      unsubscribe();
+    };
+  }, [provider, handleStatus]);
+
+  const isReadOnly = useMemo(() => {
+    return currentStatus !== 'active';
+  }, [currentStatus]);
+
+  // Create a wrapper function for subscribeToStatus that can be called from outside
   const subscribeToStatus = useCallback(
     (callback?: (status: string) => void) => {
       if (!provider.doc) {
@@ -90,23 +142,11 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
     [provider.doc]
   );
 
-  useEffect(() => {
-    // Set initial state
-    setIsConnected(provider.wsconnected);
-
-    // Listen for status changes
-    provider.on('status', handleStatus);
-
-    return () => {
-      provider.off('status', handleStatus);
-    };
-  }, [provider]);
-
   return (
     <RoomContext.Provider
       value={{
         room: publicRoom,
-        isReadOnly: publicRoom?.status !== 'active',
+        isReadOnly,
         isConnected,
         provider,
         subscribeToStatus,

@@ -56,6 +56,9 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
 
   static messagesKey = 'ai_chat_messages';
   static configKey = 'ai_chat_config';
+  static configKeys = {
+    model: 'model',
+  };
   static conversationIdKey = 'ai_chat_conversation_id';
 
   constructor(env: AppContext['Bindings'], document: Y.Doc, room: RoomEntity) {
@@ -81,7 +84,7 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
 
     const aiConfig = this.document.getMap(AIService.configKey);
     const defaultModel: SupportedModels = 'openai/gpt-4.1-mini';
-    aiConfig.set('model', defaultModel);
+    aiConfig.set(AIService.configKeys.model, defaultModel);
 
     const conversationId = this.document.getText(AIService.conversationIdKey);
     conversationId.delete(0, conversationId.length);
@@ -107,13 +110,27 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
     const baseResponseMsg = assistantMessage;
     const rawCodeValue = this.document.getText('code');
     const currentCode = rawCodeValue.toJSON();
+    const rawLanguageValue = this.document.getText('language');
+    const currentLanguage = rawLanguageValue.toJSON();
+    const rawInstructionsValue = this.document.getXmlFragment('instructions');
+    const instructionsValue = rawInstructionsValue.toArray();
 
-    // Create enhanced user message with code content
+    // Create enhanced user message with context
+    const contextInfo = `
+Current Interview Context:
+- Programming Language: ${currentLanguage}
+- Problem Instructions: ${JSON.stringify(instructionsValue)}
+- Candidate's Current Code:
+\`\`\`${currentLanguage}
+${currentCode}
+\`\`\`
+
+User's question: ${userMessage.content}
+`;
+
     const enhancedUserMessage: ChatMessage = {
       ...userMessage,
-      content: currentCode
-        ? `${userMessage.content}\n\nCurrent code:\n\`\`\`\n${currentCode}\n\`\`\``
-        : userMessage.content,
+      content: contextInfo,
     };
 
     const result: ChatMessage[] = [enhancedUserMessage];
@@ -131,8 +148,8 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
           content: msg.content,
         }));
 
-      // Prepare the request to OpenAI
-      const requestBody = {
+      // Make streaming request to OpenAI
+      const stream = await this.client.chat.completions.create({
         model,
         messages: [
           { role: 'system' as const, content: AIService.SYSTEM_PROMPT },
@@ -141,11 +158,8 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
         ],
         temperature: AIService.TEMPERATURE,
         max_tokens: AIService.MAX_TOKENS,
-        stream: true as const,
-      };
-
-      // Make streaming request to OpenAI
-      const stream = await this.client.chat.completions.create(requestBody);
+        stream: true,
+      });
 
       let accumulatedContent = '';
 
@@ -312,9 +326,9 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
    * Get current AI configuration
    */
   getModel(): SupportedModels {
-    const aiConfig = this.document.getMap<string>('aiConfig');
+    const aiConfig = this.document.getMap<string>(AIService.configKey);
 
-    const model = aiConfig.get('model') as SupportedModels | undefined;
+    const model = aiConfig.get(AIService.configKeys.model) as SupportedModels | undefined;
 
     if (!model) {
       throw new Error('Model not found');

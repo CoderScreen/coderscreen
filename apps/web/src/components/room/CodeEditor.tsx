@@ -49,7 +49,6 @@ export function CodeEditor() {
     isReadOnly,
   } = useCodeEditor();
   const { executeCode, isLoading } = useCodeExecutionHistory();
-
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
 
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
@@ -86,7 +85,10 @@ export function CodeEditor() {
   }, [cleanupCollaboration]);
 
   const handleRunCode = useCallback(async () => {
-    if (!editorRef) return;
+    if (!editorRef || !language) {
+      return;
+    }
+
     const code = editorRef.getModel()?.getValue() ?? '';
     await executeCode(code, language);
   }, [editorRef, executeCode, language]);
@@ -107,11 +109,7 @@ export function CodeEditor() {
       {/* Menu Bar */}
       <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
         <div className='flex items-center gap-2'>
-          <Select
-            value={language}
-            onValueChange={handleLanguageChange}
-            disabled={isReadOnly}
-          >
+          <Select value={language} onValueChange={handleLanguageChange} disabled={isReadOnly}>
             <SelectTrigger className='min-w-40'>
               <SelectValue placeholder='Select a language' />
             </SelectTrigger>
@@ -139,7 +137,6 @@ export function CodeEditor() {
           </Button>
         </div>
       </div>
-
       <div className='relative grow-1'>
         <Editor
           onMount={handleOnMount}

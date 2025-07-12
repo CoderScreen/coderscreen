@@ -18,13 +18,7 @@ export const useSignUp = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async ({
-      email,
-      password,
-    }: {
-      email: string;
-      password: string;
-    }) => {
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const result = await authClient.signUp.email({
         name: email,
         email,
@@ -63,13 +57,16 @@ export const useSignIn = () => {
     mutationFn: async ({
       email,
       password,
+      callbackURL,
     }: {
       email: string;
       password: string;
+      callbackURL: string | undefined;
     }) => {
       const result = await authClient.signIn.email({
         email,
         password,
+        callbackURL,
       });
 
       if (result.error) {
@@ -106,9 +103,7 @@ export const useGoogleSignIn = () => {
       });
 
       if (result.error) {
-        throw new Error(
-          result.error.message || 'Failed to sign in with Google'
-        );
+        throw new Error(result.error.message || 'Failed to sign in with Google');
       }
 
       return result;

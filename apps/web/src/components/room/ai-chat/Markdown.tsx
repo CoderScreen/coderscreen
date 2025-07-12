@@ -22,13 +22,13 @@ const CodeBlockWithCopy = ({ children, language, ...props }: any) => {
   };
 
   return (
-    <div className='relative group'>
+    <div className='relative group w-full'>
       <SyntaxHighlighter
         {...props}
         PreTag='div'
         children={codeString}
         language={language}
-        className='my-2 bg-neutral-100/50 border border-neutral-200 text-neutral-800 p-3 rounded-md overflow-x-auto'
+        className='my-2 bg-neutral-100/50 border border-neutral-200 text-neutral-800 p-3 rounded-md overflow-x-scroll'
       />
       <button
         onClick={handleCopy}

@@ -15,8 +15,7 @@ export function useCodeExecutionHistory() {
   useEffect(() => {
     if (!provider || isReadOnly) return;
 
-    const executionHistory =
-      provider.doc.getArray<ExecOutput>('executionHistory');
+    const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
 
     const updateHistory = () => {
       const historyArray = executionHistory.toArray();
@@ -32,18 +31,19 @@ export function useCodeExecutionHistory() {
     return () => {
       executionHistory.unobserve(updateHistory);
     };
-  }, [provider]);
+  }, [provider, isReadOnly]);
 
   // Run code and store result in history
   const executeCode = useCallback(
     async (code: string, language: string) => {
-      if (!provider || isReadOnly) return;
+      if (!provider || isReadOnly) {
+        return;
+      }
 
       try {
         const result = await runRoomCode({ code, language });
         // Add to main doc
-        const executionHistory =
-          provider.doc.getArray<ExecOutput>('executionHistory');
+        const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
         executionHistory.push([result]);
 
         return result;
@@ -52,29 +52,26 @@ export function useCodeExecutionHistory() {
           success: false,
           timestamp: new Date().toISOString(),
           stdout: '',
-          stderr:
-            error instanceof Error ? error.message : 'Unknown error occurred',
+          stderr: error instanceof Error ? error.message : 'Unknown error occurred',
           exitCode: 1,
           elapsedTime: 0,
         };
 
         // Add error to main doc
-        const executionHistory =
-          provider.doc.getArray<ExecOutput>('executionHistory');
+        const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
         executionHistory.push([errorResult]);
 
         throw error;
       }
     },
-    [runRoomCode, provider]
+    [runRoomCode, provider, isReadOnly]
   );
 
   // Clear history from main doc
   const clearHistory = useCallback(() => {
     if (!provider || isReadOnly) return;
 
-    const executionHistory =
-      provider.doc.getArray<ExecOutput>('executionHistory');
+    const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
     executionHistory.delete(0, executionHistory.length);
   }, [provider]);
 

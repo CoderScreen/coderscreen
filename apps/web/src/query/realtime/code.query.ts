@@ -8,8 +8,7 @@ import { RoomSchema } from '@coderscreen/api/schema/room';
 export function useCodeEditor() {
   const { provider, isReadOnly } = useRoomContext();
   const bindingRef = useRef<MonacoBinding | null>(null);
-  const [language, setLanguage] =
-    useState<RoomSchema['language']>('javascript');
+  const [language, setLanguage] = useState<RoomSchema['language'] | undefined>(undefined);
 
   const setupCollaboration = useCallback(
     (editorRef: editor.IStandaloneCodeEditor) => {
@@ -19,12 +18,11 @@ export function useCodeEditor() {
       const ytext = provider.doc.getText('code');
 
       // Attach Yjs to Monaco
-      const binding = new MonacoBinding(
-        ytext,
-        editorRef.getModel() as editor.ITextModel,
-        new Set([editorRef]),
-        null
-      );
+      const model = editorRef.getModel();
+      console.log('model', model);
+      if (!model) return;
+
+      const binding = new MonacoBinding(ytext, model, new Set([editorRef]), null);
       bindingRef.current = binding;
 
       return () => {
