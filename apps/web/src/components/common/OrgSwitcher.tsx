@@ -19,6 +19,7 @@ import {
 } from '@remixicon/react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { CreateOrgDialog } from '../org/CreateOrgDialog';
 
 export const OrgSwitcher = () => {
   const { org, isLoading: isActiveOrgLoading } = useActiveOrg();
@@ -28,6 +29,8 @@ export const OrgSwitcher = () => {
   const [switchingToOrg, setSwitchingToOrg] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [orgOpen, setOrgOpen] = useState(false);
 
   console.log({
     org,
@@ -183,26 +186,21 @@ export const OrgSwitcher = () => {
               <CommandSeparator />
               <CommandGroup>
                 <CommandItem
-                  disabled
                   className={cn('cursor-pointer')}
                   onSelect={() => {
-                    setOpen(false);
-                    // Navigate to create organization page
-                    window.location.href = '/onboarding';
+                    setOrgOpen(true);
                   }}
                 >
                   <RiAddLine className='mr-2 h-4 w-4' />
-
-                  <div className='flex flex-col'>
-                    <span>Create Organization</span>
-                    <span className='text-xs text-muted-foreground'>Coming soon...</span>
-                  </div>
+                  Create Organization
                 </CommandItem>
               </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
+
+      <CreateOrgDialog open={orgOpen} onOpenChange={setOrgOpen} />
     </div>
   );
 };
