@@ -18,12 +18,20 @@ export const useSignUp = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+    mutationFn: async ({
+      email,
+      password,
+      callbackURL,
+    }: {
+      email: string;
+      password: string;
+      callbackURL: string | undefined;
+    }) => {
       const result = await authClient.signUp.email({
         name: email,
         email,
         password,
-        callbackURL: window.location.origin,
+        callbackURL,
       });
 
       if (result.error) {
@@ -97,9 +105,10 @@ export const useGoogleSignIn = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (params: { callbackURL: string | undefined }) => {
       const result = await authClient.signIn.social({
         provider: 'google',
+        callbackURL: params.callbackURL,
       });
 
       if (result.error) {

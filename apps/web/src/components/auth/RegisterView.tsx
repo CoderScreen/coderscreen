@@ -3,32 +3,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LargeHeader } from '@/components/ui/heading';
-import {
-  RiUserLine,
-  RiArrowRightLine,
-  RiGoogleFill,
-  RiMailCheckLine,
-} from '@remixicon/react';
+import { RiUserLine, RiArrowRightLine, RiGoogleFill, RiMailCheckLine } from '@remixicon/react';
 import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
 import { useGoogleSignIn, useSignUp } from '@/query/auth.query';
-import { Link } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 
 export const RegisterView = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isVerificationSent, setIsVerificationSent] = useState(false);
-
+  const searchQuery = useSearch({ from: '/(auth)/register' });
   const { signInWithGoogle, isLoading: isLoadingGoogle } = useGoogleSignIn();
   const { signUp, isLoading: isLoadingEmail } = useSignUp();
 
   const handleSignUp = async () => {
-    await signUp({ email, password });
+    await signUp({ email, password, callbackURL: searchQuery.callbackUrl });
     setIsVerificationSent(true);
   };
 
   const handleSignInWithGoogle = async () => {
-    await signInWithGoogle();
+    await signInWithGoogle({ callbackURL: searchQuery.callbackUrl });
   };
 
   if (isVerificationSent) {
@@ -40,9 +35,7 @@ export const RegisterView = () => {
               <div className='w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-4'>
                 <RiMailCheckLine className='text-white size-6' />
               </div>
-              <LargeHeader className='text-gray-900 mb-2'>
-                Check your email
-              </LargeHeader>
+              <LargeHeader className='text-gray-900 mb-2'>Check your email</LargeHeader>
               <p className='text-gray-600'>
                 We've sent a verification link to <strong>{email}</strong>
               </p>
@@ -50,12 +43,10 @@ export const RegisterView = () => {
 
             <CardContent className='text-center'>
               <p className='text-sm text-gray-500 mb-4'>
-                Click the link in your email to verify your account and complete
-                the signup process.
+                Click the link in your email to verify your account and complete the signup process.
               </p>
               <p className='text-xs text-gray-400'>
-                Didn't receive the email? Check your spam folder or contact
-                support.
+                Didn't receive the email? Check your spam folder or contact support.
               </p>
             </CardContent>
           </Card>
@@ -72,12 +63,8 @@ export const RegisterView = () => {
             <div className='w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4'>
               <RiUserLine className='text-white size-6' />
             </div>
-            <LargeHeader className='text-gray-900 mb-2'>
-              Create account
-            </LargeHeader>
-            <p className='text-gray-600'>
-              Sign up to get started with your account
-            </p>
+            <LargeHeader className='text-gray-900 mb-2'>Create account</LargeHeader>
+            <p className='text-gray-600'>Sign up to get started with your account</p>
           </CardHeader>
 
           <CardContent>

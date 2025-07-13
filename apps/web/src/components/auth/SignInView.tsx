@@ -22,7 +22,7 @@ export const SignInView = () => {
   };
 
   const handleSignInWithGoogle = async () => {
-    await signInWithGoogle();
+    await signInWithGoogle({ callbackURL: searchQuery.callbackUrl });
   };
 
   return (
