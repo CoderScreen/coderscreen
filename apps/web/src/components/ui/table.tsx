@@ -5,43 +5,41 @@ import React from 'react';
 import { cx } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const TableRoot = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, forwardedRef) => (
-  <div
-    ref={forwardedRef}
-    // Activate if table is used in a float enironment
-    // className="flow-root"
-  >
+const TableRoot = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, forwardedRef) => (
     <div
-      // make table scrollable on mobile
-      className={cx('w-full overflow-auto whitespace-nowrap', className)}
-      {...props}
+      ref={forwardedRef}
+      // Activate if table is used in a float enironment
+      // className="flow-root"
     >
-      {children}
+      <div
+        // make table scrollable on mobile
+        className={cx('w-full overflow-auto whitespace-nowrap', className)}
+        {...props}
+      >
+        {children}
+      </div>
     </div>
-  </div>
-));
+  )
+);
 
 TableRoot.displayName = 'TableRoot';
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.TableHTMLAttributes<HTMLTableElement>
->(({ className, ...props }, forwardedRef) => (
-  <table
-    ref={forwardedRef}
-    className={cx(
-      // base
-      'w-full caption-bottom border-b',
-      // border color
-      'border-gray-200',
-      className
-    )}
-    {...props}
-  />
-));
+const Table = React.forwardRef<HTMLTableElement, React.TableHTMLAttributes<HTMLTableElement>>(
+  ({ className, ...props }, forwardedRef) => (
+    <table
+      ref={forwardedRef}
+      className={cx(
+        // base
+        'w-full caption-bottom border-b',
+        // border color
+        'border-gray-200',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 
 Table.displayName = 'Table';
 
@@ -49,11 +47,7 @@ const TableHead = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, forwardedRef) => (
-  <thead
-    ref={forwardedRef}
-    className={cx('rounded-full', className)}
-    {...props}
-  />
+  <thead ref={forwardedRef} className={cx('rounded-full', className)} {...props} />
 ));
 
 TableHead.displayName = 'TableHead';
@@ -98,20 +92,19 @@ const TableBody = React.forwardRef<
 
 TableBody.displayName = 'TableBody';
 
-const TableRow = React.forwardRef<
-  HTMLTableRowElement,
-  React.HTMLAttributes<HTMLTableRowElement>
->(({ className, ...props }, forwardedRef) => (
-  <tr
-    ref={forwardedRef}
-    className={cx(
-      '[&_td:last-child]:pr-4 [&_th:last-child]:pr-4',
-      '[&_td:first-child]:pl-4 [&_th:first-child]:pl-4',
-      className
-    )}
-    {...props}
-  />
-));
+const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
+  ({ className, ...props }, forwardedRef) => (
+    <tr
+      ref={forwardedRef}
+      className={cx(
+        '[&_td:last-child]:pr-4 [&_th:last-child]:pr-4',
+        '[&_td:first-child]:pl-4 [&_th:first-child]:pl-4',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 
 TableRow.displayName = 'TableRow';
 

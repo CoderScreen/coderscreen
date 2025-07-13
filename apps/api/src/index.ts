@@ -40,7 +40,7 @@ const app = new Hono<AppContext>()
   })
   .use(
     cors({
-      origin: ['https://coderscreen.com', 'http://localhost:3000'],
+      origin: ['https://coderscreen.com', 'http://localhost:3000', 'http://localhost:3001'],
       credentials: true,
     })
   )

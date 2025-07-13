@@ -87,11 +87,11 @@ const MAIN_NAVIGATION: {
         href: siteConfig.routes.billing,
         icon: RiMoneyDollarBoxLine,
       },
-      {
-        titleKey: 'API Keys',
-        href: siteConfig.routes.apiKeys,
-        icon: RiKey2Line,
-      },
+      // {
+      //   titleKey: 'API Keys',
+      //   href: siteConfig.routes.apiKeys,
+      //   icon: RiKey2Line,
+      // },
       {
         titleKey: 'Team',
         href: siteConfig.routes.team,

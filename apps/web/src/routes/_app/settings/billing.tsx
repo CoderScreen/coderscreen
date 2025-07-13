@@ -1,3 +1,4 @@
+import { BillingView } from '@/components/settings/BillingView';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/settings/billing')({
@@ -5,5 +6,5 @@ export const Route = createFileRoute('/_app/settings/billing')({
 });
 
 function RouteComponent() {
-  return <div>Hello "/_app/settings/billing"!</div>;
+  return <BillingView />;
 }

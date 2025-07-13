@@ -1,0 +1,18 @@
+export const UserAvatar = ({
+  user,
+}: {
+  user: {
+    name: string;
+    image: string | undefined | null;
+  };
+}) => {
+  return (
+    <div className='flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center border'>
+      {user.image ? (
+        <img src={user.image} alt={user.name} className='w-full h-full rounded-lg' />
+      ) : (
+        <span className='text-white text-sm font-medium'>{user.name.charAt(0).toUpperCase()}</span>
+      )}
+    </div>
+  );
+};

@@ -21,7 +21,6 @@ import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/ind
 import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary'
 import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
 import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing'
-import { Route as AppSettingsApiKeysRouteImport } from './routes/_app/settings/api-keys'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -82,11 +81,6 @@ const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
   path: '/settings/billing',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsApiKeysRoute = AppSettingsApiKeysRouteImport.update({
-  id: '/settings/api-keys',
-  path: '/settings/api-keys',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
@@ -95,7 +89,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/': typeof AppIndexRoute
-  '/settings/api-keys': typeof AppSettingsApiKeysRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/': typeof AppIndexRoute
-  '/settings/api-keys': typeof AppSettingsApiKeysRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/_app/': typeof AppIndexRoute
-  '/_app/settings/api-keys': typeof AppSettingsApiKeysRoute
   '/_app/settings/billing': typeof AppSettingsBillingRoute
   '/_app/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
@@ -141,7 +132,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rooms'
     | '/'
-    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/team'
     | '/room/$roomId/summary'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rooms'
     | '/'
-    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/team'
     | '/room/$roomId/summary'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/rooms'
     | '/_app/'
-    | '/_app/settings/api-keys'
     | '/_app/settings/billing'
     | '/_app/settings/team'
     | '/room/$roomId/summary'
@@ -273,13 +261,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBillingRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/settings/api-keys': {
-      id: '/_app/settings/api-keys'
-      path: '/settings/api-keys'
-      fullPath: '/settings/api-keys'
-      preLoaderRoute: typeof AppSettingsApiKeysRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
@@ -287,7 +268,6 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppRoomsRoute: typeof AppRoomsRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppSettingsApiKeysRoute: typeof AppSettingsApiKeysRoute
   AppSettingsBillingRoute: typeof AppSettingsBillingRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
@@ -297,7 +277,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppRoomsRoute: AppRoomsRoute,
   AppIndexRoute: AppIndexRoute,
-  AppSettingsApiKeysRoute: AppSettingsApiKeysRoute,
   AppSettingsBillingRoute: AppSettingsBillingRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
