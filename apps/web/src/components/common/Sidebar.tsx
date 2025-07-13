@@ -27,6 +27,7 @@ import {
   RiMoneyDollarBoxLine,
   RiKey2Line,
   RiTeamLine,
+  RiExternalLinkLine,
 } from '@remixicon/react';
 import { siteConfig } from '@/lib/siteConfig';
 import { useSession } from '@/query/auth.query';
@@ -44,6 +45,7 @@ const MAIN_NAVIGATION: {
     href: string;
     icon: RemixiconComponentType;
   }[];
+  isExternal?: boolean;
 }[] = [
   {
     titleKey: 'Interviews',
@@ -101,6 +103,7 @@ const MAIN_NAVIGATION: {
     titleKey: 'Documentation',
     href: siteConfig.externalRoutes.documentation,
     icon: RiBook3Line,
+    isExternal: true,
   },
 ];
 
@@ -159,6 +162,10 @@ const isMenuActive = (itemHref: string) => {
 const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
   const active = isActive(item.href);
 
+  if (item.isExternal) {
+    return renderExternalNavItem(item);
+  }
+
   if (item.children) {
     return renderNavMenuItem(item);
   }
@@ -182,6 +189,31 @@ const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
         />
         <span className='truncate'>{item.titleKey}</span>
       </Link>
+    </li>
+  );
+};
+
+const renderExternalNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
+  return (
+    <li key={item.href}>
+      <a
+        href={item.href}
+        target='_blank'
+        rel='noopener noreferrer'
+        className={cx(
+          SidebarItemClassNames.base,
+          SidebarItemClassNames.inactive,
+          focusRing,
+          'group'
+        )}
+      >
+        <item.icon
+          className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
+          aria-hidden='true'
+        />
+        <span className='truncate'>{item.titleKey}</span>
+        <RiExternalLinkLine className='h-3 w-3 shrink-0 text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200' />
+      </a>
     </li>
   );
 };
@@ -224,7 +256,7 @@ const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
         <RiArrowRightSLine
           className={cx(
             SidebarItemClassNames.icon,
-            active ? SidebarItemClassNames.activeIcon : SidebarItemClassNames.inactiveIcon,
+            SidebarItemClassNames.inactiveIcon,
             'transition-transform duration-200',
             active && 'rotate-90'
           )}

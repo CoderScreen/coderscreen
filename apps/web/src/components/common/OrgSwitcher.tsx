@@ -1,8 +1,4 @@
-import {
-  useActiveOrg,
-  useUserOrgs,
-  useSwitchOrganization,
-} from '@/query/org.query';
+import { useActiveOrg, useUserOrgs, useSwitchOrganization } from '@/query/org.query';
 import {
   Command,
   CommandEmpty,
@@ -13,11 +9,7 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   RiArrowDownSLine,
   RiAddLine,
@@ -36,6 +28,11 @@ export const OrgSwitcher = () => {
   const [switchingToOrg, setSwitchingToOrg] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  console.log({
+    org,
+    orgs,
+  });
 
   const handleOrgSwitch = async (organizationId: string) => {
     if (org?.id === organizationId) {
@@ -64,11 +61,9 @@ export const OrgSwitcher = () => {
             // role='combobox'
             // aria-expanded={open}
             // aria-label='Select organization'
-            className={cn(
-              'w-full justify-between transition-all duration-300 ease-in-out'
-            )}
+            className={cn('w-full justify-between transition-all duration-300 ease-in-out')}
           >
-            {(isActiveOrgLoading ?? !org) ? (
+            {isActiveOrgLoading || !org ? (
               <div className='flex items-center gap-2 w-full'>
                 <Skeleton className='h-5 w-5 rounded-full' />
                 <Skeleton className='h-4 w-24' />
@@ -83,15 +78,11 @@ export const OrgSwitcher = () => {
                       'h-5 w-5 rounded transition-all duration-300 flex items-center justify-center'
                     )}
                   >
-                    {org?.logo ? (
-                      <img
-                        src={org.logo}
-                        alt={org.name}
-                        className='h-5 w-5 rounded object-cover'
-                      />
+                    {org.logo ? (
+                      <img src={org.logo} alt={org.name} className='h-5 w-5 rounded object-cover' />
                     ) : (
                       <div className='h-5 w-5 rounded bg-primary text-white flex items-center justify-center text-xs'>
-                        {org?.name.charAt(0).toUpperCase()}
+                        {org.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
@@ -113,9 +104,7 @@ export const OrgSwitcher = () => {
             <CommandList>
               <CommandEmpty>
                 {isOrgsLoading ? (
-                  <div className='py-6 text-center text-sm'>
-                    Loading organizations...
-                  </div>
+                  <div className='py-6 text-center text-sm'>Loading organizations...</div>
                 ) : error ? (
                   <div className='py-6 text-center text-sm text-red-500'>
                     Failed to load organizations
@@ -127,17 +116,12 @@ export const OrgSwitcher = () => {
 
               {isOrgsLoading ? (
                 <div className='px-1 py-2'>
-                  <p className='px-2 py-1.5 text-sm text-muted-foreground'>
-                    Organizations
-                  </p>
+                  <p className='px-2 py-1.5 text-sm text-muted-foreground'>Organizations</p>
                   <div className='animate-pulse space-y-1 py-1'>
                     {Array(4)
                       .fill(0)
                       .map((_, i) => (
-                        <div
-                          key={i}
-                          className='px-2 py-1.5 flex items-center gap-2'
-                        >
+                        <div key={i} className='px-2 py-1.5 flex items-center gap-2'>
                           <Skeleton className='h-5 w-5 rounded-lg' />
                           <Skeleton className='h-4 w-[80%]' />
                         </div>
@@ -148,9 +132,7 @@ export const OrgSwitcher = () => {
                 <div className='mb-2 border border-red-200 bg-red-100 text-red-800 rounded-md p-3'>
                   <div className='flex items-center gap-2'>
                     <RiErrorWarningLine className='h-4 w-4' />
-                    <div className='text-sm'>
-                      There was a problem loading your organizations.
-                    </div>
+                    <div className='text-sm'>There was a problem loading your organizations.</div>
                   </div>
                 </div>
               ) : (
@@ -161,9 +143,7 @@ export const OrgSwitcher = () => {
                       onSelect={() => handleOrgSwitch(organization.id)}
                       className={cn(
                         'text-sm transition-all duration-200 ease-in-out',
-                        org?.id === organization.id
-                          ? 'bg-accent'
-                          : 'hover:bg-accent/50'
+                        org?.id === organization.id ? 'bg-accent' : 'hover:bg-accent/50'
                       )}
                     >
                       <div className='flex items-center gap-2 truncate'>
@@ -215,9 +195,7 @@ export const OrgSwitcher = () => {
 
                   <div className='flex flex-col'>
                     <span>Create Organization</span>
-                    <span className='text-xs text-muted-foreground'>
-                      Coming soon...
-                    </span>
+                    <span className='text-xs text-muted-foreground'>Coming soon...</span>
                   </div>
                 </CommandItem>
               </CommandGroup>

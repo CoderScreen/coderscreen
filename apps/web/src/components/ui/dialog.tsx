@@ -5,9 +5,7 @@ import * as DialogPrimitives from '@radix-ui/react-dialog';
 
 import { cx, focusRing } from '@/lib/utils';
 
-const Dialog = (
-  props: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Root>
-) => {
+const Dialog = (props: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Root>) => {
   return <DialogPrimitives.Root {...props} />;
 };
 Dialog.displayName = 'Dialog';
@@ -61,45 +59,34 @@ const DialogContent = React.forwardRef<
     handleOpenChange?: (open: boolean) => void;
     overlayClassName?: string;
   }
->(
-  (
-    { className, handleOpenChange, overlayClassName, ...props },
-    forwardedRef
-  ) => {
-    return (
-      <DialogPortal>
-        <DialogOverlay
-          handleOpenChange={handleOpenChange}
-          className={overlayClassName}
-        >
-          <DialogPrimitives.Content
-            ref={forwardedRef}
-            className={cx(
-              // base
-              'fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border p-6 shadow-lg',
-              // border color
-              'border-slate-200 ',
-              // background color
-              'bg-white',
-              // transition
-              'data-[state=open]:animate-dialogContentShow',
-              focusRing,
-              className
-            )}
-            {...props}
-          />
-        </DialogOverlay>
-      </DialogPortal>
-    );
-  }
-);
+>(({ className, handleOpenChange, overlayClassName, ...props }, forwardedRef) => {
+  return (
+    <DialogPortal>
+      <DialogOverlay handleOpenChange={handleOpenChange} className={overlayClassName}>
+        <DialogPrimitives.Content
+          ref={forwardedRef}
+          className={cx(
+            // base
+            'fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border p-6 shadow-lg',
+            // border color
+            'border-slate-200 ',
+            // background color
+            'bg-white',
+            // transition
+            'data-[state=open]:animate-dialogContentShow',
+            focusRing,
+            className
+          )}
+          {...props}
+        />
+      </DialogOverlay>
+    </DialogPortal>
+  );
+});
 
 DialogContent.displayName = 'DialogContent';
 
-const DialogHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
+const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   return <div className={cx('flex flex-col gap-y-1', className)} {...props} />;
 };
 
@@ -113,7 +100,7 @@ const DialogTitle = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       // base
-      'text-lg font-semibold',
+      'text-lg font-medium',
       // text color
       'text-stone-900',
       className
@@ -131,7 +118,7 @@ const DialogDescription = React.forwardRef<
   return (
     <DialogPrimitives.Description
       ref={forwardedRef}
-      className={cx('text-stone-500', className)}
+      className={cx('text-sm text-muted-foreground', className)}
       {...props}
     />
   );
@@ -139,16 +126,10 @@ const DialogDescription = React.forwardRef<
 
 DialogDescription.displayName = 'DialogDescription';
 
-const DialogFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
+const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
-      className={cx(
-        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
-        className
-      )}
+      className={cx('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
       {...props}
     />
   );

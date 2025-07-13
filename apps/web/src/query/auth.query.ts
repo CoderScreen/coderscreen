@@ -7,6 +7,7 @@ export const useSession = () => {
 
   return {
     user: session.data?.user!,
+    session: session.data?.session!,
     isLoading: session.isPending,
     error: session.error,
     refetch: session.refetch,

@@ -2,6 +2,7 @@ import { apiClient, authClient } from '@/query/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
+import { useSession } from '@/query/auth.query';
 
 export const useActiveOrg = () => {
   const { data, isPending, error } = authClient.useActiveOrganization();
@@ -56,11 +57,7 @@ export const useCreateOrganization = () => {
   const router = useRouter();
 
   const mutation = useMutation({
-    mutationFn: async (params: {
-      name: string;
-      slug: string;
-      goal?: string;
-    }) => {
+    mutationFn: async (params: { name: string; slug: string; goal?: string }) => {
       const data = await authClient.organization.create({
         ...params,
         metadata: {
@@ -139,6 +136,38 @@ export const useUpdateOrganization = () => {
 
   return {
     updateOrganization: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+export const useDeleteOrganization = () => {
+  const queryClient = useQueryClient();
+  const { session } = useSession();
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!session.activeOrganizationId) {
+        throw new Error('No organization ID found');
+      }
+
+      const data = await authClient.organization.delete({
+        organizationId: session.activeOrganizationId,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activeOrganization'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Organization deleted successfully',
+      ERROR_MESSAGE: 'Failed to delete organization',
+    },
+  });
+
+  return {
+    deleteOrganization: mutation.mutateAsync,
     isLoading: mutation.isPending,
     ...mutation,
   };

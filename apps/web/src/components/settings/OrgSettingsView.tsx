@@ -1,17 +1,26 @@
 import { useForm } from '@tanstack/react-form';
-import { useActiveOrg, useUpdateOrganization } from '@/query/org.query';
+import { useActiveOrg, useDeleteOrganization, useUpdateOrganization } from '@/query/org.query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { RiSaveLine, RiImageLine, RiDeleteBinLine } from '@remixicon/react';
+import { RiSaveLine, RiImageLine, RiDeleteBinLine, RiCloseLine } from '@remixicon/react';
 import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
 import { useState } from 'react';
 import { Divider } from '@/components/ui/divider';
-import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogTitle,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 export const OrgSettingsView = () => {
   const { org, isLoading: isOrgLoading } = useActiveOrg();
   const { updateOrganization, isLoading: isUpdatingOrg } = useUpdateOrganization();
+  const { deleteOrganization, isLoading: isDeletingOrg } = useDeleteOrganization();
   const [logoPreview, setLogoPreview] = useState<string | null>(org?.logo || null);
 
   const form = useForm({
@@ -44,7 +53,7 @@ export const OrgSettingsView = () => {
   };
 
   const handleDeleteOrg = () => {
-    toast.error('Not implemented');
+    deleteOrganization();
   };
 
   if (isOrgLoading) {
@@ -174,11 +183,59 @@ export const OrgSettingsView = () => {
         <MutedText>Permanently delete your organization</MutedText>
       </div>
 
-      <div className='flex justify-end'>
-        <Button variant='destructive' icon={RiDeleteBinLine} onClick={handleDeleteOrg}>
-          Delete
-        </Button>
+      <div className='flex justify-end mt-4'>
+        <DeleteOrgDialog />
       </div>
     </div>
+  );
+};
+
+const DeleteOrgDialog = () => {
+  const [open, setOpen] = useState(false);
+  const { deleteOrganization, isLoading: isDeletingOrg } = useDeleteOrganization();
+
+  const handleDeleteOrg = () => {
+    deleteOrganization();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant='destructive' icon={RiDeleteBinLine}>
+          Delete
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Organization</DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          Are you sure you want to delete your organization? This action is irreversible.
+        </DialogDescription>
+
+        <div className='text-sm my-4'>
+          This will delete:
+          <ol className='list-disc list-inside ml-4'>
+            <li>All your organization data, including candidates, interviews, and assessments</li>
+            <li>All your organization members</li>
+            <li>All your organization settings</li>
+          </ol>
+        </div>
+
+        <DialogFooter>
+          <Button variant='secondary' icon={RiCloseLine} onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant='destructive'
+            icon={RiDeleteBinLine}
+            onClick={handleDeleteOrg}
+            isLoading={isDeletingOrg}
+          >
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
