@@ -9,20 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  RiEditLine,
-  RiCloseLine,
-  RiCheckLine,
-  RiFileTextLine,
-  RiLockLine,
-  RiArrowLeftSLine,
-  RiCornerDownLeftLine,
-} from '@remixicon/react';
+import { RiEditLine, RiCloseLine, RiCheckLine, RiCornerDownLeftLine } from '@remixicon/react';
 import { toast } from 'sonner';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Shortcut } from '@/components/common/Shortcut';
-import { Badge } from '@/components/ui/badge';
 import { Link } from '@tanstack/react-router';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
@@ -122,23 +112,10 @@ export const HostRoomHeader = () => {
       </div>
 
       <div className='flex items-center gap-2'>
-        <Button variant='secondary' icon={RiFileTextLine} disabled={isReadOnly}>
-          Load Template
-          <Shortcut cmd _key='T' variant='dark' />
-        </Button>
-
-        <Button
-          variant='secondary'
-          onClick={handleCopyLink}
-          className='flex items-center gap-2'
-        >
-          {copied ? (
-            <RiCheckLine className='h-4 w-4' />
-          ) : (
-            <RiEditLine className='h-4 w-4' />
-          )}
+        <Button variant='secondary' onClick={handleCopyLink} className='flex items-center gap-2'>
+          {copied ? <RiCheckLine className='h-4 w-4' /> : <RiEditLine className='h-4 w-4' />}
           {copied ? 'Copied!' : 'Share Link'}
-          <Shortcut cmd _key='S' variant='dark' />
+          {/* <Shortcut cmd _key='S' variant='dark' /> */}
         </Button>
 
         {!isReadOnly ? (
@@ -149,7 +126,7 @@ export const HostRoomHeader = () => {
             disabled={isEndingRoom}
           >
             End Interview
-            <Shortcut cmd _key='E' />
+            {/* <Shortcut cmd _key='E' /> */}
           </Button>
         ) : (
           <Link to='/' className='flex items-center gap-2'>
@@ -165,8 +142,7 @@ export const HostRoomHeader = () => {
           <DialogHeader>
             <DialogTitle>End Interview</DialogTitle>
             <DialogDescription>
-              Are you sure you want to end this interview? This action cannot be
-              undone.
+              Are you sure you want to end this interview? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -3,7 +3,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { CodeEditor } from '@/components/room/CodeEditor';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { RiTerminalLine, RiFileTextLine, RiPencilLine, RiChatAiLine } from '@remixicon/react';
-import { CandidateRoomHeader } from '@/components/room/guest/CandidateRoomHeader';
+import { GuestRoomHeader } from '@/components/room/guest/GuestRoomHeader';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import { GuestStartView } from './GuestStartView';
 import { GuestSummaryView } from './GuestSummaryView';
@@ -93,7 +93,7 @@ const GuestRoomContent = () => {
   // Show the room content
   return (
     <div className='h-screen w-screen flex flex-col'>
-      <CandidateRoomHeader />
+      <GuestRoomHeader />
       <div className='flex-1 min-h-0'>
         <PanelGroup direction='horizontal' className='h-full'>
           <Panel>

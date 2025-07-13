@@ -6,7 +6,7 @@ if (!APP_URL) {
   throw new Error('VITE_APP_URL is not set');
 }
 
-export const CandidateRoomHeader = () => {
+export const GuestRoomHeader = () => {
   const { publicRoom, isLoading } = usePublicRoom();
 
   return (
@@ -16,7 +16,7 @@ export const CandidateRoomHeader = () => {
           {isLoading ? (
             <Skeleton className='w-42 h-6' />
           ) : (
-            <span className='w-full text-lg cursor-pointer hover:text-muted-foreground transition-colors overflow-hidden text-ellipsis whitespace-nowrap'>
+            <span className='w-full text-lg cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap'>
               {publicRoom?.title}
             </span>
           )}
