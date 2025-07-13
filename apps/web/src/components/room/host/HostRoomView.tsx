@@ -1,5 +1,5 @@
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { CodeEditor } from '@/components/room/CodeEditor';
+import { CodeEditor } from '@/components/room/editor/CodeEditor';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   RiTerminalLine,

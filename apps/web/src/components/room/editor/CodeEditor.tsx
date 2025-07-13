@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { RoomSchema } from '@coderscreen/api/schema/room';
+import { EditorSettingsDialog, type EditorSettings } from './EditorSettingsDialog';
 
 const SUPPORTED_LANGUAGES: {
   value: RoomSchema['language'];
@@ -51,6 +52,24 @@ export function CodeEditor() {
   const { executeCode, isLoading } = useCodeExecutionHistory();
   const [editorRef, setEditorRef] = useState<editor.IStandaloneCodeEditor>();
 
+  // Editor settings state
+  const [editorSettings, setEditorSettings] = useState<EditorSettings>({
+    fontSize: 14,
+    fontFamily: 'JetBrains Mono, Consolas, monospace',
+    theme: 'vs',
+    minimap: false,
+    wordWrap: 'on',
+    lineNumbers: 'on',
+    folding: true,
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+    roundedSelection: false,
+    lineDecorationsWidth: 10,
+    lineNumbersMinChars: 3,
+    glyphMargin: false,
+    padding: { top: 10, bottom: 10 },
+  });
+
   const handleOnMount = useCallback((e: editor.IStandaloneCodeEditor) => {
     setEditorRef(e);
   }, []);
@@ -84,6 +103,27 @@ export function CodeEditor() {
     };
   }, [cleanupCollaboration]);
 
+  // Update editor options when settings change
+  useEffect(() => {
+    if (editorRef) {
+      editorRef.updateOptions({
+        fontSize: editorSettings.fontSize,
+        fontFamily: editorSettings.fontFamily,
+        minimap: { enabled: editorSettings.minimap },
+        wordWrap: editorSettings.wordWrap,
+        lineNumbers: editorSettings.lineNumbers,
+        folding: editorSettings.folding,
+        automaticLayout: editorSettings.automaticLayout,
+        scrollBeyondLastLine: editorSettings.scrollBeyondLastLine,
+        roundedSelection: editorSettings.roundedSelection,
+        lineDecorationsWidth: editorSettings.lineDecorationsWidth,
+        lineNumbersMinChars: editorSettings.lineNumbersMinChars,
+        glyphMargin: editorSettings.glyphMargin,
+        padding: editorSettings.padding,
+      });
+    }
+  }, [editorRef, editorSettings]);
+
   const handleRunCode = useCallback(async () => {
     if (!editorRef || !language) {
       return;
@@ -103,6 +143,10 @@ export function CodeEditor() {
     },
     [editorRef, setLanguage]
   );
+
+  const handleSettingsChange = useCallback((newSettings: EditorSettings) => {
+    setEditorSettings(newSettings);
+  }, []);
 
   return (
     <div className='h-full w-full border bg-white text-gray-900 relative flex flex-col'>
@@ -127,6 +171,11 @@ export function CodeEditor() {
         </div>
 
         <div className='flex items-center gap-2'>
+          <EditorSettingsDialog
+            settings={editorSettings}
+            onSettingsChange={handleSettingsChange}
+            disabled={isReadOnly}
+          />
           <Button
             onClick={handleRunCode}
             isLoading={isLoading}
@@ -141,24 +190,24 @@ export function CodeEditor() {
         <Editor
           onMount={handleOnMount}
           language={language}
-          theme='vs'
+          theme={editorSettings.theme}
           className='pr-2 pt-2'
           height='100%'
           width='100%'
           options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            fontFamily: 'JetBrains Mono, Consolas, monospace',
-            lineNumbers: 'on',
-            roundedSelection: false,
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            wordWrap: 'on',
-            folding: true,
-            lineDecorationsWidth: 10,
-            lineNumbersMinChars: 3,
-            glyphMargin: false,
-            padding: { top: 10, bottom: 10 },
+            minimap: { enabled: editorSettings.minimap },
+            fontSize: editorSettings.fontSize,
+            fontFamily: editorSettings.fontFamily,
+            lineNumbers: editorSettings.lineNumbers,
+            roundedSelection: editorSettings.roundedSelection,
+            scrollBeyondLastLine: editorSettings.scrollBeyondLastLine,
+            automaticLayout: editorSettings.automaticLayout,
+            wordWrap: editorSettings.wordWrap,
+            folding: editorSettings.folding,
+            lineDecorationsWidth: editorSettings.lineDecorationsWidth,
+            lineNumbersMinChars: editorSettings.lineNumbersMinChars,
+            glyphMargin: editorSettings.glyphMargin,
+            padding: editorSettings.padding,
             readOnly: isReadOnly,
           }}
         />
