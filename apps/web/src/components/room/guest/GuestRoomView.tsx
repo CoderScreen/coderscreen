@@ -10,7 +10,7 @@ import { GuestSummaryView } from './GuestSummaryView';
 import { Guest, getGuest, setGuest } from '@/lib/guest';
 import { getRandomColor } from '@/query/realtime/utils';
 import { RoomFooter } from '@/components/room/RoomFooter';
-import { InstructionEditor } from '@/components/room/InstructionEditor';
+import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 import { usePublicRoom } from '@/query/publicRoom.query';

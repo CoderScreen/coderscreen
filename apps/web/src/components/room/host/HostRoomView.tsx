@@ -9,14 +9,14 @@ import {
   RiLockLine,
   RiStickyNoteLine,
 } from '@remixicon/react';
-import { InstructionEditor } from '@/components/room/InstructionEditor';
+import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 import { AiChatView } from '@/components/room/ai-chat/AiChatView';
-import { NotesEditor } from '@/components/room/NotesEditor';
+import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
 
 export const HostRoomView = () => {
   return (
