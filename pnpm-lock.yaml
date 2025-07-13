@@ -206,6 +206,9 @@ importers:
       '@tanstack/router-plugin':
         specifier: ^1.121.2
         version: 1.121.29(@tanstack/react-router@1.122.0)(vite@6.3.5)
+      '@tanstack/zod-adapter':
+        specifier: ^1.127.3
+        version: 1.127.3(@tanstack/react-router@1.122.0)(zod@3.25.67)
       '@tiptap/extension-collaboration':
         specifier: ^2.14.0
         version: 2.22.2(@tiptap/core@2.22.2)(@tiptap/pm@2.22.2)(y-prosemirror@1.3.5)
@@ -6785,6 +6788,17 @@ packages:
   /@tanstack/virtual-file-routes@1.121.21:
     resolution: {integrity: sha512-3nuYsTyaq6ZN7jRZ9z6Gj3GXZqBOqOT0yzd/WZ33ZFfv4yVNIvsa5Lw+M1j3sgyEAxKMqGu/FaNi7FCjr3yOdw==}
     engines: {node: '>=12'}
+    dev: false
+
+  /@tanstack/zod-adapter@1.127.3(@tanstack/react-router@1.122.0)(zod@3.25.67):
+    resolution: {integrity: sha512-G9FU9QkqttFGpkBooazjE+p3GpEO48hx9493OQicSMlNKdDA3sEZ+GXtwBZVVJYsBMaA00E7Ls62pYHP+3AeEQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      '@tanstack/react-router': '>=1.43.2'
+      zod: ^3.23.8
+    dependencies:
+      '@tanstack/react-router': 1.122.0(react-dom@19.1.0)(react@19.1.0)
+      zod: 3.25.67
     dev: false
 
   /@testing-library/dom@10.4.0:

@@ -7,17 +7,18 @@ import { RiMailLine, RiArrowRightLine, RiGoogleFill } from '@remixicon/react';
 import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
 import { useGoogleSignIn, useSignIn } from '@/query/auth.query';
-import { Link } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 
 export const SignInView = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const searchQuery = useSearch({ from: '/(auth)/login' });
 
   const { signInWithGoogle, isLoading: isLoadingGoogle } = useGoogleSignIn();
   const { signIn, isLoading: isLoadingEmail } = useSignIn();
 
   const handleSignIn = async () => {
-    await signIn({ email, password });
+    await signIn({ email, password, callbackURL: searchQuery.callbackUrl });
   };
 
   const handleSignInWithGoogle = async () => {
@@ -32,9 +33,7 @@ export const SignInView = () => {
             <div className='w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4'>
               <RiMailLine className='text-white size-6' />
             </div>
-            <LargeHeader className='text-gray-900 mb-2'>
-              Welcome back
-            </LargeHeader>
+            <LargeHeader className='text-gray-900 mb-2'>Welcome back</LargeHeader>
             <p className='text-gray-600'>Sign in to your account to continue</p>
           </CardHeader>
 

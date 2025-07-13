@@ -31,8 +31,7 @@ const getStatusInfo = (status: string) => {
       return {
         icon: RiCheckLine,
         color: 'bg-green-100 text-green-800 border-green-200',
-        message:
-          'This interview is currently active and ready for participants.',
+        message: 'This interview is currently active and ready for participants.',
         canJoin: true,
       };
     case 'scheduled':
@@ -47,16 +46,14 @@ const getStatusInfo = (status: string) => {
       return {
         icon: RiCheckLine,
         color: 'bg-amber-100 text-amber-800 border-amber-200',
-        message:
-          'This interview has been completed and is no longer accepting participants.',
+        message: 'This interview has been completed and is no longer accepting participants.',
         canJoin: false,
       };
     case 'archived':
       return {
         icon: RiArchiveLine,
         color: 'bg-gray-100 text-gray-800 border-gray-200',
-        message:
-          'This interview has been archived and is no longer accessible.',
+        message: 'This interview has been archived and is no longer accessible.',
         canJoin: false,
       };
     default:
@@ -69,10 +66,7 @@ const getStatusInfo = (status: string) => {
   }
 };
 
-export const GuestStartView = ({
-  onJoinAsGuest,
-  isLoading = false,
-}: GuestStartViewProps) => {
+export const GuestStartView = ({ onJoinAsGuest, isLoading = false }: GuestStartViewProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const { publicRoom, isLoading: isRoomLoading } = usePublicRoom();
@@ -102,9 +96,7 @@ export const GuestStartView = ({
                 <Skeleton className='w-32 h-4 mx-auto' />
               ) : (
                 <>
-                  <p className='text-gray-600 font-medium'>
-                    {publicRoom?.title}
-                  </p>
+                  <p className='text-gray-600 font-medium'>{publicRoom?.title}</p>
                   {statusInfo && !statusInfo.canJoin && (
                     <Badge className={`${statusInfo.color} border`}>
                       <statusInfo.icon className='size-3 mr-1' />
@@ -121,12 +113,7 @@ export const GuestStartView = ({
 
           <CardContent>
             {statusInfo && !statusInfo.canJoin && (
-              <div
-                className={cn(
-                  'flex items-start gap-2 p-4 rounded mb-4',
-                  statusInfo.color
-                )}
-              >
+              <div className={cn('flex items-start gap-2 p-4 rounded mb-4', statusInfo.color)}>
                 <p className='text-sm text-gray-700'>{statusInfo.message}</p>
               </div>
             )}
@@ -176,15 +163,9 @@ export const GuestStartView = ({
 
               {/* Login as Host */}
               <div className='text-center'>
-                <p className='text-sm text-gray-600 mb-3'>
-                  Are you the host of this room?
-                </p>
-                <Link to='/login'>
-                  <Button
-                    variant='secondary'
-                    className='w-full'
-                    icon={RiLoginBoxLine}
-                  >
+                <p className='text-sm text-gray-600 mb-3'>Are you the host of this room?</p>
+                <Link to='/login' search={{ callbackUrl: location.href }}>
+                  <Button variant='secondary' className='w-full' icon={RiLoginBoxLine}>
                     Login as Host
                   </Button>
                 </Link>

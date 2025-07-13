@@ -14,7 +14,7 @@ import { assetRouter } from './routes/asset.routes';
 import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
 import { templateRouter } from '@/routes/template.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
-import { RoomServer as PartyServer } from '@/partykit/server';
+import { RoomServer as PartyServer } from '@/partykit/room.do';
 import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
 

@@ -8,11 +8,11 @@ export const Route = createFileRoute('/_app')({
   pendingComponent: () => <PendingView />,
   component: RouteComponent,
   wrapInSuspense: true,
-  beforeLoad: async ({ context }) => {
+  beforeLoad: async ({ context, location }) => {
     const { user, isAuthenticated } = await context.auth; // Call the function
 
     if (!isAuthenticated || !user) {
-      throw redirect({ to: '/login' });
+      throw redirect({ to: '/login', search: { callbackUrl: location.href } });
     }
 
     if (!user.isOnboarded) {

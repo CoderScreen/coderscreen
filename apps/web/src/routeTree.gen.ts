@@ -15,7 +15,6 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
-import { Route as authVerifyRouteImport } from './routes/(auth)/verify'
 import { Route as authRegisterRouteImport } from './routes/(auth)/register'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as RoomRoomIdIndexRouteImport } from './routes/room/$roomId/index'
@@ -50,11 +49,6 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
-const authVerifyRoute = authVerifyRouteImport.update({
-  id: '/(auth)/verify',
-  path: '/verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const authRegisterRoute = authRegisterRouteImport.update({
   id: '/(auth)/register',
   path: '/register',
@@ -80,7 +74,6 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/login': typeof authLoginRoute
   '/register': typeof authRegisterRoute
-  '/verify': typeof authVerifyRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
@@ -92,7 +85,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/login': typeof authLoginRoute
   '/register': typeof authRegisterRoute
-  '/verify': typeof authVerifyRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/settings': typeof AppSettingsRoute
@@ -106,7 +98,6 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/register': typeof authRegisterRoute
-  '/(auth)/verify': typeof authVerifyRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -120,7 +111,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/login'
     | '/register'
-    | '/verify'
     | '/profile'
     | '/rooms'
     | '/settings'
@@ -132,7 +122,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/login'
     | '/register'
-    | '/verify'
     | '/profile'
     | '/rooms'
     | '/settings'
@@ -145,7 +134,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/(auth)/login'
     | '/(auth)/register'
-    | '/(auth)/verify'
     | '/_app/profile'
     | '/_app/rooms'
     | '/_app/settings'
@@ -159,7 +147,6 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   authLoginRoute: typeof authLoginRoute
   authRegisterRoute: typeof authRegisterRoute
-  authVerifyRoute: typeof authVerifyRoute
   RoomRoomIdSummaryRoute: typeof RoomRoomIdSummaryRoute
   RoomRoomIdIndexRoute: typeof RoomRoomIdIndexRoute
 }
@@ -207,13 +194,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile'
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
-    }
-    '/(auth)/verify': {
-      id: '/(auth)/verify'
-      path: '/verify'
-      fullPath: '/verify'
-      preLoaderRoute: typeof authVerifyRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/(auth)/register': {
       id: '/(auth)/register'
@@ -267,7 +247,6 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   authLoginRoute: authLoginRoute,
   authRegisterRoute: authRegisterRoute,
-  authVerifyRoute: authVerifyRoute,
   RoomRoomIdSummaryRoute: RoomRoomIdSummaryRoute,
   RoomRoomIdIndexRoute: RoomRoomIdIndexRoute,
 }
