@@ -7,19 +7,19 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
-  RiArrowDownSLine,
   RiAddLine,
   RiCheckLine,
   RiErrorWarningLine,
   RiLoader2Line,
+  RiExpandUpDownLine,
 } from '@remixicon/react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { CreateOrgDialog } from '../org/CreateOrgDialog';
+import { OrgAvatar } from '@/components/common/UserAvatar';
 
 export const OrgSwitcher = () => {
   const { org, isLoading: isActiveOrgLoading } = useActiveOrg();
@@ -31,11 +31,6 @@ export const OrgSwitcher = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [orgOpen, setOrgOpen] = useState(false);
-
-  console.log({
-    org,
-    orgs,
-  });
 
   const handleOrgSwitch = async (organizationId: string) => {
     if (org?.id === organizationId) {
@@ -55,51 +50,35 @@ export const OrgSwitcher = () => {
   };
 
   return (
-    <div className='px-3 py-4'>
+    <div className='px-2 pt-4'>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant='secondary'
-            noIcon
-            // role='combobox'
-            // aria-expanded={open}
-            // aria-label='Select organization'
-            className={cn('w-full justify-between transition-all duration-300 ease-in-out')}
-          >
+          <div className='flex items-center gap-2 cursor-pointer rounded-lg py-1.5 px-2 transition-colors hover:bg-gray-200/50'>
             {isActiveOrgLoading || !org ? (
               <div className='flex items-center gap-2 w-full'>
-                <Skeleton className='h-5 w-5 rounded-full' />
+                <Skeleton className='h-8 w-8 rounded-lg' />
                 <Skeleton className='h-4 w-24' />
               </div>
             ) : (
-              <div className='flex items-center gap-2 truncate'>
-                {error && !open ? (
-                  <RiErrorWarningLine className='h-5 w-5 text-red-500' />
-                ) : (
-                  <div
-                    className={cn(
-                      'h-5 w-5 rounded transition-all duration-300 flex items-center justify-center'
-                    )}
-                  >
-                    {org.logo ? (
-                      <img src={org.logo} alt={org.name} className='h-5 w-5 rounded object-cover' />
-                    ) : (
-                      <div className='h-5 w-5 rounded bg-primary text-white flex items-center justify-center text-xs'>
-                        {org.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                )}
-                <span className='truncate'>{org.name}</span>
-              </div>
+              <>
+                <div className='flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center border'>
+                  {error && !open ? (
+                    <RiErrorWarningLine className='h-5 w-5 text-red-500' />
+                  ) : (
+                    <OrgAvatar org={org} />
+                  )}
+                </div>
+                <div className='flex-1 min-w-0 flex items-center justify-between'>
+                  <p className='text-sm font-medium truncate'>{org.name}</p>
+                  {!switchingToOrg ? (
+                    <RiExpandUpDownLine className='text-gray-400 size-4' />
+                  ) : (
+                    <RiLoader2Line className='text-gray-400 size-4 animate-spin' />
+                  )}
+                </div>
+              </>
             )}
-
-            {!switchingToOrg ? (
-              <RiArrowDownSLine className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-            ) : (
-              <RiLoader2Line className='ml-2 h-4 w-4 shrink-0 opacity-50 animate-spin' />
-            )}
-          </Button>
+          </div>
         </PopoverTrigger>
 
         <PopoverContent className='w-[240px] p-0'>

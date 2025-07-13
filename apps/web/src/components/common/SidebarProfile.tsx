@@ -11,11 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuIconWrapper,
 } from '@/components/ui/dropdown';
-import {
-  RiUserLine,
-  RiLogoutBoxLine,
-  RiExpandUpDownLine,
-} from '@remixicon/react';
+import { RiUserLine, RiLogoutBoxLine, RiExpandUpDownLine } from '@remixicon/react';
 import { useRouter } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
@@ -45,7 +41,7 @@ export const SidebarProfile = () => {
   return (
     <div className='space-y-3'>
       {isLoading || !user || !org ? (
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-3 py-1.5 px-2'>
           <Skeleton className='w-8 h-8 rounded-lg' />
           {!isCollapsed && (
             <div className='flex-1 space-y-1'>
@@ -67,12 +63,8 @@ export const SidebarProfile = () => {
                 </div>
                 <div className='flex-1 min-w-0 flex items-center justify-between'>
                   <div>
-                    <p className='text-xs font-medium text-gray-700 truncate'>
-                      {user.name}
-                    </p>
-                    <p className='text-xs font-medium text-gray-900 truncate'>
-                      {user.email}
-                    </p>
+                    <p className='text-xs font-medium text-gray-700 truncate'>{user.name}</p>
+                    <p className='text-xs font-medium text-gray-900 truncate'>{user.email}</p>
                   </div>
                   <RiExpandUpDownLine className='text-gray-400 size-4' />
                 </div>
@@ -88,9 +80,7 @@ export const SidebarProfile = () => {
                 <div className='flex-1 min-w-0 flex items-center justify-between'>
                   <div>
                     <p className='text-xs'>{user.name}</p>
-                    <p className='text-xs text-muted-foreground'>
-                      {user.email}
-                    </p>
+                    <p className='text-xs text-muted-foreground'>{user.email}</p>
                   </div>
                 </div>
               </div>

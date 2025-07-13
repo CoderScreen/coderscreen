@@ -1,9 +1,8 @@
 'use client';
 
 import { useLocation, Link } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { cn, cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MutedText } from '@/components/ui/typography';
@@ -15,19 +14,18 @@ import {
   RiMenuLine,
   RiCloseLine,
   RiTerminalWindowFill,
-  RiFileCodeLine,
   RemixiconComponentType,
   RiListCheck3,
   RiHomeOfficeLine,
   RiUserStarLine,
   RiBook3Line,
-  RiArrowDownSLine,
   RiBuildingLine,
   RiArrowRightSLine,
   RiMoneyDollarBoxLine,
-  RiKey2Line,
   RiTeamLine,
   RiExternalLinkLine,
+  RiDashboardFill,
+  RiDashboardLine,
 } from '@remixicon/react';
 import { siteConfig } from '@/lib/siteConfig';
 import { useSession } from '@/query/auth.query';
@@ -66,6 +64,11 @@ const MAIN_NAVIGATION: {
     titleKey: 'Take-Homes',
     href: siteConfig.routes.takeHomes,
     icon: RiHomeOfficeLine,
+  },
+  {
+    titleKey: 'Templates',
+    href: siteConfig.routes.rooms,
+    icon: RiDashboardLine,
   },
   {
     titleKey: 'Candidates',
@@ -285,8 +288,10 @@ const SidebarBody = () => {
     <div className='flex flex-col h-full'>
       <OrgSwitcher />
 
+      {/* <Divider className='my-2' /> */}
+
       {/* Navigation */}
-      <nav className='flex-1 px-2 space-y-6 overflow-y-auto'>
+      <nav className='mt-4 flex-1 px-2 space-y-6 overflow-y-auto'>
         <div>
           <ul className='space-y-1.5'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
         </div>
