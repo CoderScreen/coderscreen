@@ -7,6 +7,7 @@ import {
   RiPencilLine,
   RiChatAiLine,
   RiLockLine,
+  RiStickyNoteLine,
 } from '@remixicon/react';
 import { InstructionEditor } from '@/components/room/InstructionEditor';
 import { CodeOutput } from '@/components/room/CodeOutput';
@@ -15,6 +16,7 @@ import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 import { AiChatView } from '@/components/room/ai-chat/AiChatView';
+import { NotesEditor } from '@/components/room/NotesEditor';
 
 export const HostRoomView = () => {
   return (
@@ -66,6 +68,11 @@ const HostRoomContent = () => {
                   <RiChatAiLine className='size-4 shrink-0' />
                   AI Chat
                 </TabsTrigger>
+
+                <TabsTrigger value='notes' className='flex items-center gap-1'>
+                  <RiStickyNoteLine className='size-4 shrink-0' />
+                  Notes
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value='program-output' className='flex-1 overflow-y-auto'>
@@ -82,6 +89,10 @@ const HostRoomContent = () => {
 
               <TabsContent value='ai-chat' className='flex-1 overflow-y-auto'>
                 <AiChatView role='host' />
+              </TabsContent>
+
+              <TabsContent value='notes' className='flex-1 overflow-y-auto'>
+                <NotesEditor />
               </TabsContent>
             </Tabs>
           </Panel>

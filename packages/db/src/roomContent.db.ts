@@ -21,15 +21,13 @@ export const roomContentTable = pgTable('room_contents', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
-  status: text('status')
-    .$type<RoomEntity['status']>()
-    .notNull()
-    .default('active'),
+  status: text('status').$type<RoomEntity['status']>().notNull().default('active'),
   code: jsonb('code').notNull(),
   language: text('language').notNull(),
   instructions: jsonb('instructions').notNull(),
   executionHistory: jsonb('execution_history').notNull(),
   rawContent: text('raw_content').notNull(),
+  rawPrivateContent: text('raw_private_content').notNull(),
 });
 
 export type RoomContentEntity = typeof roomContentTable.$inferSelect;

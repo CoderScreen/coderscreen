@@ -128,6 +128,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
       instructions: instructionsValue,
       executionHistory: executionHistoryValue,
       rawContent: Buffer.from(totalContent).toString('base64'),
+      rawPrivateContent: '',
       status,
     };
 
@@ -144,6 +145,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
             updatedAt: undefined,
             userId: undefined,
             organizationId: undefined,
+            rawPrivateContent: undefined,
           },
         }),
       db
