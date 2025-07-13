@@ -19,7 +19,6 @@ export function useCodeEditor() {
 
       // Attach Yjs to Monaco
       const model = editorRef.getModel();
-      console.log('model', model);
       if (!model) return;
 
       const binding = new MonacoBinding(ytext, model, new Set([editorRef]), null);

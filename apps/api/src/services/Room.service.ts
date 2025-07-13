@@ -151,10 +151,12 @@ export class RoomService {
     this.ctx.executionCtx.waitUntil(roomStub.handleAiChat(params));
   }
 
-  async startNewConversation(roomId: Id<'room'>) {
-    const roomName = this.ctx.env.Room.idFromName(roomId);
-    const roomStub = this.ctx.env.Room.get(roomName);
+  // async addRoomUser(params: { roomId: Id<'room'>; user: RoomEntity['usersJoined'][number] }) {
+  //   const { orgId } = getSession(this.ctx);
 
-    this.ctx.executionCtx.waitUntil(roomStub.startNewConversation());
-  }
+  //   return this.db
+  //     .update(roomTable)
+  //     .set({ usersJoined: [...roomTable.usersJoined, params.user] })
+  //     .where(eq(roomTable.id, params.roomId));
+  // }
 }

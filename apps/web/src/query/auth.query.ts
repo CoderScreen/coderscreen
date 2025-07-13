@@ -6,7 +6,7 @@ export const useSession = () => {
   const session = authClient.useSession();
 
   return {
-    user: session.data?.user,
+    user: session.data?.user!,
     isLoading: session.isPending,
     error: session.error,
     refetch: session.refetch,

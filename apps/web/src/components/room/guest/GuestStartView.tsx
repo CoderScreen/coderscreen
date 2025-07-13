@@ -21,7 +21,7 @@ import { formatSlug } from '@/lib/slug';
 import { cn } from '@/lib/utils';
 
 interface GuestStartViewProps {
-  onJoinAsGuest: (name: string) => void;
+  onJoinAsGuest: (name: string, email: string) => void;
   isLoading?: boolean;
 }
 
@@ -75,7 +75,7 @@ export const GuestStartView = ({ onJoinAsGuest, isLoading = false }: GuestStartV
     if (!name.trim()) {
       return;
     }
-    onJoinAsGuest(name.trim());
+    onJoinAsGuest(name.trim(), email.trim());
   };
 
   const isFormValid = name.trim().length > 0;

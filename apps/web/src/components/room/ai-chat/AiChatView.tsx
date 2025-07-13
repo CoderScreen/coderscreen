@@ -54,6 +54,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
       return {
         id: user.id,
         name: user.name,
+        email: user.email,
         color: getRandomColor(user.id),
       };
     }
@@ -62,6 +63,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
       guest ?? {
         id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
         name: 'Anonymous',
+        email: '',
         color: getRandomColor(),
       }
     );

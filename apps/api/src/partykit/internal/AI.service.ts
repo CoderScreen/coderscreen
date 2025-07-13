@@ -11,6 +11,7 @@ import { SupportedModels } from '@/schema/ai.zod';
 export interface User {
   id: string;
   name: string;
+  email: string;
   color: string;
 }
 

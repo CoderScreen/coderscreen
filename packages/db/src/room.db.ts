@@ -1,6 +1,6 @@
 import { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { organization, user } from './user.db';
 
 type RoomLanguage =

@@ -10,11 +10,16 @@ import * as Y from 'yjs';
 import { SandboxService } from './internal/Sandbox.service';
 import { AIService, ChatMessage, User } from './internal/AI.service';
 
+const KEYS = {
+  trackedUsers: 'tracked-users',
+};
+
 export class RoomServer extends YServer<AppContext['Bindings']> {
   private db: PostgresJsDatabase | null = null;
   private sandboxService: SandboxService;
   private aiService: AIService | null = null;
   private room: RoomEntity | null = null;
+  private trackedUserIds: Set<string> = new Set();
 
   /* control how often the onSave handler
    * is called with these options */
@@ -65,6 +70,16 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     // warm up the sandbox
     this.createNewSandbox(this.room.language);
+
+    this.document.awareness.on(
+      'change',
+      ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
+        const addedUsers = added.map(
+          (id) => this.document.awareness.getStates().get(id) as User | undefined
+        );
+        this.handleUserJoin(addedUsers);
+      }
+    );
   }
 
   private async initializeDefaultValues() {
@@ -116,7 +131,6 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     const status = statusValue.toJSON() as RoomEntity['status'];
 
     const totalContent = Y.encodeStateAsUpdate(this.document);
-
     const roomContent: RoomContentEntity = {
       roomId: room.id,
       createdAt: new Date().toISOString(),
@@ -217,5 +231,23 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     const messages = await this.aiService.streamResponse(params);
 
     this.ctx.waitUntil(this.aiService.onComplete(messages));
+  }
+
+  private async handleUserJoin(user: (User | undefined)[]) {
+    const filteredUsers = user.filter(
+      (user) => user !== undefined && !this.trackedUserIds.has(user.id)
+    ) as User[];
+
+    if (filteredUsers.length === 0) {
+      return;
+    }
+
+    const trackedUsers = this.document.getArray<User>(KEYS.trackedUsers);
+    // track every joined user in y.js doc
+    trackedUsers.push(filteredUsers);
+
+    filteredUsers.forEach((user) => {
+      this.trackedUserIds.add(user.id);
+    });
   }
 }

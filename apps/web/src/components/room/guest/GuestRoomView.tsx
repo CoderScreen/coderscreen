@@ -30,8 +30,8 @@ export const GuestRoomView = () => {
     }
   }, [guestInfo]);
 
-  const handleJoinAsGuest = (name: string) => {
-    const newGuest = { id: name, name, color: getRandomColor(name) };
+  const handleJoinAsGuest = (name: string, email: string) => {
+    const newGuest = { id: crypto.randomUUID(), name, color: getRandomColor(name), email };
     setGuest(newGuest);
     setGuestInfo(newGuest);
   };
@@ -52,13 +52,8 @@ export const GuestRoomView = () => {
     return <GuestSummaryView />;
   }
 
-  // If room is not active, show start view with appropriate message
-  if (publicRoom?.status !== 'active') {
-    return <GuestStartView onJoinAsGuest={handleJoinAsGuest} />;
-  }
-
-  // If no guest info and room is active, show the start view
-  if (!guestInfo) {
+  // If room is not active, show start view with appropriate message or If no guest info and room is active, show the start view
+  if (publicRoom?.status !== 'active' || !guestInfo) {
     return <GuestStartView onJoinAsGuest={handleJoinAsGuest} />;
   }
 
