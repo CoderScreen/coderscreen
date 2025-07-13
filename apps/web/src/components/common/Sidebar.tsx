@@ -3,7 +3,7 @@
 import { useLocation, Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { cx, focusRing } from '@/lib/utils';
+import { cn, cx, focusRing } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MutedText } from '@/components/ui/typography';
@@ -16,6 +16,17 @@ import {
   RiCloseLine,
   RiTerminalWindowFill,
   RiFileCodeLine,
+  RemixiconComponentType,
+  RiListCheck3,
+  RiHomeOfficeLine,
+  RiUserStarLine,
+  RiBook3Line,
+  RiArrowDownSLine,
+  RiBuildingLine,
+  RiArrowRightSLine,
+  RiMoneyDollarBoxLine,
+  RiKey2Line,
+  RiTeamLine,
 } from '@remixicon/react';
 import { siteConfig } from '@/lib/siteConfig';
 import { useSession } from '@/query/auth.query';
@@ -27,45 +38,95 @@ import { OrgSwitcher } from '@/components/common/OrgSwitcher';
 const MAIN_NAVIGATION: {
   titleKey: string;
   href: string;
-  icon: ReactNode;
+  icon: RemixiconComponentType;
+  children?: {
+    titleKey: string;
+    href: string;
+    icon: RemixiconComponentType;
+  }[];
 }[] = [
   {
     titleKey: 'Interviews',
     href: siteConfig.routes.dashboard,
-    icon: <RiTerminalWindowFill className='h-5 w-5 shrink-0' />,
+    icon: RiTerminalWindowFill,
+  },
+  // {
+  //   titleKey: 'Templates',
+  //   href: siteConfig.routes.rooms,
+  //   icon: RiFileCodeLine,
+  // },
+  {
+    titleKey: 'Assessments',
+    href: siteConfig.routes.assessments,
+    icon: RiListCheck3,
   },
   {
-    titleKey: 'Templates',
-    href: siteConfig.routes.rooms,
-    icon: <RiFileCodeLine className='h-5 w-5 shrink-0' />,
+    titleKey: 'Take-Homes',
+    href: siteConfig.routes.takeHomes,
+    icon: RiHomeOfficeLine,
+  },
+  {
+    titleKey: 'Candidates',
+    href: siteConfig.routes.candidates,
+    icon: RiUserStarLine,
+  },
+  {
+    titleKey: 'Settings',
+    href: siteConfig.routes.settings,
+    icon: RiSettings3Line,
+    children: [
+      {
+        titleKey: 'Organization',
+        href: siteConfig.routes.orgSettings,
+        icon: RiBuildingLine,
+      },
+      {
+        titleKey: 'Billing',
+        href: siteConfig.routes.billing,
+        icon: RiMoneyDollarBoxLine,
+      },
+      {
+        titleKey: 'API Keys',
+        href: siteConfig.routes.apiKeys,
+        icon: RiKey2Line,
+      },
+      {
+        titleKey: 'Team',
+        href: siteConfig.routes.team,
+        icon: RiTeamLine,
+      },
+    ],
+  },
+  {
+    titleKey: 'Documentation',
+    href: siteConfig.externalRoutes.documentation,
+    icon: RiBook3Line,
   },
 ];
 
 const ACCOUNT_NAVIGATION: {
   titleKey: string;
   href: string;
-  icon: ReactNode;
+  icon: RemixiconComponentType;
 }[] = [
   {
     titleKey: 'Settings',
     href: siteConfig.routes.settings,
-    icon: <RiSettings3Line className='h-5 w-5 shrink-0' />,
+    icon: RiSettings3Line,
   },
 ];
 
 // Styling constants
 const SidebarItemClassNames = {
-  base: 'group flex items-center gap-x-2 rounded px-2 py-1.5 text-sm transition-all duration-200 hover:bg-muted/5 border border-transparent',
-  active:
-    'bg-white hover:bg-white text-foreground border border-muted-foreground/20',
-  inactive: 'text-muted-foreground hover:text-gray-900',
-  icon: 'shrink-0 transition-colors duration-200 p-1 flex items-center justify-center',
-  activeIcon: 'text-primary',
-  inactiveIcon: 'text-gray-400 group-hover:text-gray-600',
+  base: 'group flex items-center gap-x-2 rounded px-2 py-1.5 text-sm transition-all duration-200 hover:bg-muted',
+  active: 'bg-muted',
+  inactive: 'text-muted-foreground hover:text-foreground',
+  icon: 'h-4.5 w-4.5 shrink-0 transition-colors duration-200 flex items-center justify-center text-muted-foreground',
+  activeIcon: 'text-foreground',
+  inactiveIcon: 'text-muted-foreground group-hover:text-foreground',
 };
 
-const SectionHeaderClassNames =
-  'px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2';
+const SectionHeaderClassNames = 'px-3 text-xs text-muted-foreground uppercase tracking-wider mb-2';
 
 export default function Sidebar() {
   const { isCollapsed, isMobileSidebarOpen, closeMobileSidebar } = useSidebar();
@@ -80,75 +141,125 @@ export default function Sidebar() {
       >
         <SidebarBody />
       </nav>
-      <MobileSidebar
-        isOpen={isMobileSidebarOpen}
-        onClose={closeMobileSidebar}
-      />
+      <MobileSidebar isOpen={isMobileSidebarOpen} onClose={closeMobileSidebar} />
     </>
   );
 }
 
-const SidebarBody = () => {
+const isActive = (itemHref: string) => {
   const location = useLocation();
+  return location.pathname === itemHref;
+};
 
-  const { isCollapsed } = useSidebar();
+const isMenuActive = (itemHref: string) => {
+  const location = useLocation();
+  return location.pathname.startsWith(itemHref);
+};
 
-  const isActive = (itemHref: string) => {
-    if (itemHref === '/') {
-      return location.pathname === '/';
-    }
-    return location.pathname.startsWith(itemHref);
-  };
+const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
+  const active = isActive(item.href);
 
-  const renderNavItem = (item: {
-    titleKey: string;
-    href: string;
-    icon: ReactNode;
-  }) => {
-    const active = isActive(item.href);
-
-    return (
-      <li key={item.href}>
-        <Link
-          to={item.href}
-          className={cx(
-            SidebarItemClassNames.base,
-            active
-              ? SidebarItemClassNames.active
-              : SidebarItemClassNames.inactive,
-            focusRing,
-            isCollapsed && 'justify-center px-2'
-          )}
-          title={isCollapsed ? item.titleKey : undefined}
-        >
-          <div
-            className={cx(
-              SidebarItemClassNames.icon,
-              active
-                ? SidebarItemClassNames.activeIcon
-                : SidebarItemClassNames.inactiveIcon
-            )}
-            aria-hidden='true'
-          >
-            {item.icon}
-          </div>
-          {!isCollapsed && <span className='truncate'>{item.titleKey}</span>}
-        </Link>
-      </li>
-    );
-  };
+  if (item.children) {
+    return renderNavMenuItem(item);
+  }
 
   return (
-    <div className='flex flex-col h-full bg-muted'>
+    <li key={item.href}>
+      <Link
+        to={item.href}
+        className={cx(
+          SidebarItemClassNames.base,
+          active ? SidebarItemClassNames.active : SidebarItemClassNames.inactive,
+          focusRing
+        )}
+      >
+        <item.icon
+          className={cx(
+            SidebarItemClassNames.icon,
+            active ? SidebarItemClassNames.activeIcon : SidebarItemClassNames.inactiveIcon
+          )}
+          aria-hidden='true'
+        />
+        <span className='truncate'>{item.titleKey}</span>
+      </Link>
+    </li>
+  );
+};
+
+const renderChildNavItem = (
+  item: NonNullable<(typeof MAIN_NAVIGATION)[number]['children']>[number]
+) => {
+  const active = isActive(item.href);
+
+  return (
+    <li key={item.href}>
+      <Link
+        to={item.href}
+        className={cx(
+          SidebarItemClassNames.base,
+          active ? SidebarItemClassNames.active : SidebarItemClassNames.inactive,
+          focusRing
+        )}
+      >
+        <span className='truncate'>{item.titleKey}</span>
+      </Link>
+    </li>
+  );
+};
+
+const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
+  const active = isMenuActive(item.href);
+  return (
+    <li key={item.href}>
+      <Link
+        to={item.href}
+        className={cx(SidebarItemClassNames.base, SidebarItemClassNames.inactive, focusRing)}
+      >
+        <item.icon
+          className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
+          aria-hidden='true'
+        />
+        <span className='truncate flex-1'>{item.titleKey}</span>
+
+        <RiArrowRightSLine
+          className={cx(
+            SidebarItemClassNames.icon,
+            active ? SidebarItemClassNames.activeIcon : SidebarItemClassNames.inactiveIcon,
+            'transition-transform duration-200',
+            active && 'rotate-90'
+          )}
+          aria-hidden='true'
+        />
+      </Link>
+
+      {item.children && (
+        <div
+          className={cx(
+            'overflow-hidden transition-all duration-400 ease-in-out',
+            active ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          )}
+        >
+          <ul className='space-y-1 ml-4 pl-2 mt-1 border-l border-gray-200'>
+            {item.children.map(renderChildNavItem)}
+          </ul>
+        </div>
+      )}
+    </li>
+  );
+};
+
+const SidebarBody = () => {
+  return (
+    <div className='flex flex-col h-full'>
       <OrgSwitcher />
 
       {/* Navigation */}
-      <nav className='flex-1 px-4 space-y-6 overflow-y-auto'>
+      <nav className='flex-1 px-2 space-y-6 overflow-y-auto'>
         <div>
-          <ul className='space-y-1'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
+          <ul className='space-y-1.5'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
         </div>
 
-        <div>
+        {/* <div>
           {!isCollapsed && <h2 className={SectionHeaderClassNames}>Account</h2>}
           <ul className='space-y-1'>{ACCOUNT_NAVIGATION.map(renderNavItem)}</ul>
         </div>
@@ -168,10 +279,7 @@ const SidebarBody = () => {
               title={isCollapsed ? 'Feedback' : undefined}
             >
               <RiFeedbackLine
-                className={cx(
-                  SidebarItemClassNames.icon,
-                  SidebarItemClassNames.inactiveIcon
-                )}
+                className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
                 aria-hidden='true'
               />
               {!isCollapsed && <span className='truncate'>Feedback</span>}
@@ -189,16 +297,13 @@ const SidebarBody = () => {
               title={isCollapsed ? 'Support' : undefined}
             >
               <RiQuestionAnswerLine
-                className={cx(
-                  SidebarItemClassNames.icon,
-                  SidebarItemClassNames.inactiveIcon
-                )}
+                className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
                 aria-hidden='true'
               />
               {!isCollapsed && <span className='truncate'>Support</span>}
             </Button>
           </div>
-        </div>
+        </div> */}
       </nav>
 
       {/* User Info */}
@@ -215,11 +320,7 @@ interface MobileSidebarTitleProps {
   onOpenSidebar: () => void;
 }
 
-export const MobileSidebarTitle = ({
-  title,
-  subtitle,
-  onOpenSidebar,
-}: MobileSidebarTitleProps) => {
+export const MobileSidebarTitle = ({ title, subtitle, onOpenSidebar }: MobileSidebarTitleProps) => {
   return (
     <div className='flex items-center justify-between pb-4 bg-white lg:hidden'>
       <div className='flex-1'>
@@ -260,50 +361,6 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
     };
   }, [isOpen]);
 
-  const isActive = (itemHref: string) => {
-    if (itemHref === '/') {
-      return location.pathname === '/';
-    }
-    return location.pathname.startsWith(itemHref);
-  };
-
-  const renderNavItem = (item: {
-    titleKey: string;
-    href: string;
-    icon: ReactNode;
-  }) => {
-    const active = isActive(item.href);
-
-    return (
-      <li key={item.href}>
-        <Link
-          to={item.href}
-          className={cx(
-            SidebarItemClassNames.base,
-            active
-              ? SidebarItemClassNames.active
-              : SidebarItemClassNames.inactive,
-            focusRing
-          )}
-          onClick={onClose}
-        >
-          <div
-            className={cx(
-              SidebarItemClassNames.icon,
-              active
-                ? SidebarItemClassNames.activeIcon
-                : SidebarItemClassNames.inactiveIcon
-            )}
-            aria-hidden='true'
-          >
-            {item.icon}
-          </div>
-          <span className='truncate'>{item.titleKey}</span>
-        </Link>
-      </li>
-    );
-  };
-
   return (
     <div className='lg:hidden'>
       {/* Overlay */}
@@ -329,9 +386,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
               <div className='w-8 h-8 bg-primary rounded flex items-center justify-center mr-2'>
                 <RiCodeBoxLine className='text-white size-5' />
               </div>
-              <h1 className='text-xl font-semibold text-gray-900'>
-                CoderScreen
-              </h1>
+              <h1 className='text-xl font-semibold text-gray-900'>CoderScreen</h1>
             </Link>
             <Button
               variant='ghost'
@@ -349,16 +404,12 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
           {/* Navigation */}
           <nav className='flex-1 px-4 space-y-6 overflow-y-auto'>
             <div>
-              <ul className='space-y-1'>
-                {MAIN_NAVIGATION.map(renderNavItem)}
-              </ul>
+              <ul className='space-y-1'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
             </div>
 
             <div>
               <h2 className={SectionHeaderClassNames}>Account</h2>
-              <ul className='space-y-1'>
-                {ACCOUNT_NAVIGATION.map(renderNavItem)}
-              </ul>
+              <ul className='space-y-1'>{ACCOUNT_NAVIGATION.map(renderNavItem)}</ul>
             </div>
 
             <div className='mt-auto'>
@@ -374,10 +425,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
                   variant='ghost'
                 >
                   <RiFeedbackLine
-                    className={cx(
-                      SidebarItemClassNames.icon,
-                      SidebarItemClassNames.inactiveIcon
-                    )}
+                    className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
                     aria-hidden='true'
                   />
                   <span className='truncate'>Feedback</span>
@@ -393,10 +441,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
                   variant='ghost'
                 >
                   <RiQuestionAnswerLine
-                    className={cx(
-                      SidebarItemClassNames.icon,
-                      SidebarItemClassNames.inactiveIcon
-                    )}
+                    className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
                     aria-hidden='true'
                   />
                   <span className='truncate'>Support</span>
@@ -445,12 +490,8 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
                     <span className='text-gray-500 text-sm font-medium'>?</span>
                   </div>
                   <div className='flex-1 min-w-0'>
-                    <p className='text-sm font-medium text-gray-500 truncate'>
-                      Not signed in
-                    </p>
-                    <MutedText className='text-xs'>
-                      Sign in to continue
-                    </MutedText>
+                    <p className='text-sm font-medium text-gray-500 truncate'>Not signed in</p>
+                    <MutedText className='text-xs'>Sign in to continue</MutedText>
                   </div>
                 </div>
               )}
@@ -477,11 +518,7 @@ export const PageWithMobileSidebar = ({
 
   return (
     <>
-      <MobileSidebarTitle
-        title={title}
-        subtitle={subtitle}
-        onOpenSidebar={openMobileSidebar}
-      />
+      <MobileSidebarTitle title={title} subtitle={subtitle} onOpenSidebar={openMobileSidebar} />
       {children}
     </>
   );

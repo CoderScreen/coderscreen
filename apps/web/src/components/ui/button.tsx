@@ -158,10 +158,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             )}
           >
             {isLoading ? (
-              <RiLoader2Fill
-                className='size-4 shrink-0 animate-spin'
-                aria-hidden='true'
-              />
+              <RiLoader2Fill className='size-4 shrink-0 animate-spin' aria-hidden='true' />
             ) : icon ? (
               React.createElement(icon, {
                 className: cx('size-4 shrink-0', iconClassName),

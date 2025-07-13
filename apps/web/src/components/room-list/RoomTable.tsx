@@ -9,7 +9,7 @@ import {
   TableSkeleton,
 } from '@/components/ui/table';
 import { RoomSchema } from '@coderscreen/api/schema/room';
-import { formatRelativeDatetime } from '@/lib/dateUtils';
+import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { formatSlug } from '@/lib/slug';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,7 @@ import {
   RiCornerDownRightLine,
 } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface RoomTableProps {
   rooms: RoomSchema[];
@@ -71,11 +72,7 @@ const RowActions = ({ room }: { room: RoomSchema }) => {
   return (
     <div className='flex items-center gap-2'>
       <Link to={'/room/$roomId'} params={{ roomId: room.id }}>
-        <Button
-          variant='secondary'
-          icon={RiCornerDownRightLine}
-          iconPosition='right'
-        >
+        <Button variant='secondary' icon={RiCornerDownRightLine} iconPosition='right'>
           Enter
         </Button>
       </Link>
@@ -136,7 +133,11 @@ export function RoomTable({ rooms, isLoading }: RoomTableProps) {
                 <TableCell>
                   <StatusBadge status={room.status} />
                 </TableCell>
-                <TableCell>{formatRelativeDatetime(room.createdAt)}</TableCell>
+                <TableCell>
+                  <Tooltip content={formatDatetime(room.createdAt)}>
+                    {formatRelativeDatetime(room.createdAt)}
+                  </Tooltip>
+                </TableCell>
                 <TableCell className='flex justify-between items-center gap-2 mr-4'>
                   <span className='flex items-center gap-1'>
                     <LanguageIcon language={room.language} />

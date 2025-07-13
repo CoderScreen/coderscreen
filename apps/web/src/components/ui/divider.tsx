@@ -12,7 +12,7 @@ const Divider = React.forwardRef<HTMLDivElement, DividerProps>(
       ref={forwardedRef}
       className={cx(
         // base
-        'mx-auto my-6 flex w-full items-center justify-between gap-3 text-sm',
+        'mx-auto my-4 flex w-full items-center justify-between gap-3 text-sm',
         // text color
         'text-gray-500',
         className

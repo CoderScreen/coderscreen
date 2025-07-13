@@ -39,15 +39,11 @@ export function DashboardHeader() {
     <div className='flex items-center justify-between py-4'>
       <div className='flex flex-col'>
         <SmallHeader>Interviews</SmallHeader>
-        <MutedText>Manage your interviews</MutedText>
+        <MutedText>Manage your live interviews</MutedText>
       </div>
 
       <div className='flex items-center gap-2'>
-        <Button
-          icon={RiAddLine}
-          onClick={handleCreateRoom}
-          isLoading={isLoading}
-        >
+        <Button icon={RiAddLine} onClick={handleCreateRoom} isLoading={isLoading}>
           <span>New Interview</span>
           <Shortcut cmd _key='I' />
         </Button>

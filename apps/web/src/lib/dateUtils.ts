@@ -1,11 +1,19 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import tz from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(tz);
 
 export const formatDatetime = (date: string | number | Date) => {
-  return dayjs(date).format('MMM D, YYYY HH:mm');
+  const tz = dayjs.tz.guess();
+
+  return dayjs.utc(date).tz(tz).format('MMM D, YYYY h:mm A');
 };
 
 export const formatRelativeDatetime = (rawDate: string | number | Date) => {
-  const date = dayjs(rawDate);
+  const tz = dayjs.tz.guess();
+  const date = dayjs.utc(rawDate).tz(tz);
   const now = dayjs();
   const diffInSeconds = Math.abs(now.diff(date, 'second'));
 

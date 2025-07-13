@@ -12,13 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as authRegisterRouteImport } from './routes/(auth)/register'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as RoomRoomIdIndexRouteImport } from './routes/room/$roomId/index'
+import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
 import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary'
+import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
+import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing'
+import { Route as AppSettingsApiKeysRouteImport } from './routes/_app/settings/api-keys'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -32,11 +35,6 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRoomsRoute = AppRoomsRouteImport.update({
@@ -64,10 +62,30 @@ const RoomRoomIdIndexRoute = RoomRoomIdIndexRouteImport.update({
   path: '/room/$roomId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AppRoute,
+} as any)
 const RoomRoomIdSummaryRoute = RoomRoomIdSummaryRouteImport.update({
   id: '/room/$roomId/summary',
   path: '/room/$roomId/summary',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
+  id: '/settings/team',
+  path: '/settings/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
+  id: '/settings/billing',
+  path: '/settings/billing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsApiKeysRoute = AppSettingsApiKeysRouteImport.update({
+  id: '/settings/api-keys',
+  path: '/settings/api-keys',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -76,9 +94,12 @@ export interface FileRoutesByFullPath {
   '/register': typeof authRegisterRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
-  '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
+  '/settings/api-keys': typeof AppSettingsApiKeysRoute
+  '/settings/billing': typeof AppSettingsBillingRoute
+  '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
+  '/settings': typeof AppSettingsIndexRoute
   '/room/$roomId': typeof RoomRoomIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -87,9 +108,12 @@ export interface FileRoutesByTo {
   '/register': typeof authRegisterRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
-  '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
+  '/settings/api-keys': typeof AppSettingsApiKeysRoute
+  '/settings/billing': typeof AppSettingsBillingRoute
+  '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
+  '/settings': typeof AppSettingsIndexRoute
   '/room/$roomId': typeof RoomRoomIdIndexRoute
 }
 export interface FileRoutesById {
@@ -100,9 +124,12 @@ export interface FileRoutesById {
   '/(auth)/register': typeof authRegisterRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
-  '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/settings/api-keys': typeof AppSettingsApiKeysRoute
+  '/_app/settings/billing': typeof AppSettingsBillingRoute
+  '/_app/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
+  '/_app/settings/': typeof AppSettingsIndexRoute
   '/room/$roomId/': typeof RoomRoomIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -113,9 +140,12 @@ export interface FileRouteTypes {
     | '/register'
     | '/profile'
     | '/rooms'
-    | '/settings'
     | '/'
+    | '/settings/api-keys'
+    | '/settings/billing'
+    | '/settings/team'
     | '/room/$roomId/summary'
+    | '/settings'
     | '/room/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -124,9 +154,12 @@ export interface FileRouteTypes {
     | '/register'
     | '/profile'
     | '/rooms'
-    | '/settings'
     | '/'
+    | '/settings/api-keys'
+    | '/settings/billing'
+    | '/settings/team'
     | '/room/$roomId/summary'
+    | '/settings'
     | '/room/$roomId'
   id:
     | '__root__'
@@ -136,9 +169,12 @@ export interface FileRouteTypes {
     | '/(auth)/register'
     | '/_app/profile'
     | '/_app/rooms'
-    | '/_app/settings'
     | '/_app/'
+    | '/_app/settings/api-keys'
+    | '/_app/settings/billing'
+    | '/_app/settings/team'
     | '/room/$roomId/summary'
+    | '/_app/settings/'
     | '/room/$roomId/'
   fileRoutesById: FileRoutesById
 }
@@ -172,13 +208,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/rooms': {
@@ -216,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomRoomIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/settings/': {
+      id: '/_app/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/room/$roomId/summary': {
       id: '/room/$roomId/summary'
       path: '/room/$roomId/summary'
@@ -223,21 +259,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomRoomIdSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/settings/team': {
+      id: '/_app/settings/team'
+      path: '/settings/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/billing': {
+      id: '/_app/settings/billing'
+      path: '/settings/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof AppSettingsBillingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/api-keys': {
+      id: '/_app/settings/api-keys'
+      path: '/settings/api-keys'
+      fullPath: '/settings/api-keys'
+      preLoaderRoute: typeof AppSettingsApiKeysRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppRoomsRoute: typeof AppRoomsRoute
-  AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppSettingsApiKeysRoute: typeof AppSettingsApiKeysRoute
+  AppSettingsBillingRoute: typeof AppSettingsBillingRoute
+  AppSettingsTeamRoute: typeof AppSettingsTeamRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppRoomsRoute: AppRoomsRoute,
-  AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppSettingsApiKeysRoute: AppSettingsApiKeysRoute,
+  AppSettingsBillingRoute: AppSettingsBillingRoute,
+  AppSettingsTeamRoute: AppSettingsTeamRoute,
+  AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
