@@ -83,6 +83,7 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
       rawContent: '',
       rawPrivateContent: Buffer.from(totalContent).toString('base64'),
       status: 'active',
+      trackedUsers: [],
     };
 
     await db

@@ -73,10 +73,11 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     this.document.awareness.on(
       'change',
-      ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
-        const addedUsers = added.map(
-          (id) => this.document.awareness.getStates().get(id) as User | undefined
-        );
+      ({ added }: { added: number[]; updated: number[]; removed: number[] }) => {
+        const addedUsers = added.map((id) => {
+          const state = this.document.awareness.getStates().get(id) as { user: User } | undefined;
+          return state?.user;
+        });
         this.handleUserJoin(addedUsers);
       }
     );
@@ -130,6 +131,9 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     const statusValue = this.document.getText('status');
     const status = statusValue.toJSON() as RoomEntity['status'];
 
+    const trackedUsersValue = this.document.getArray<User>(KEYS.trackedUsers);
+    const trackedUsers = trackedUsersValue.toArray();
+
     const totalContent = Y.encodeStateAsUpdate(this.document);
     const roomContent: RoomContentEntity = {
       roomId: room.id,
@@ -144,6 +148,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
       rawContent: Buffer.from(totalContent).toString('base64'),
       rawPrivateContent: '',
       status,
+      trackedUsers,
     };
 
     await Promise.all([

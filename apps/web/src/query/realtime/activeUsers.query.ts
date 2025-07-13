@@ -1,33 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { User } from '@/query/realtime/chat.query';
 
-export interface ConnectedUser {
-  clientId: string;
-  name: string;
-  color: string;
-}
-
-export interface AwarenessState {
-  user: {
-    name: string;
-    color: string;
-  };
-  cursor?: {
-    index: number;
-    length: number;
-  };
-  selection?: {
-    anchor: number;
-    head: number;
-  };
-}
+const KEYS = {
+  trackedUsers: 'tracked-users',
+};
 
 export function useActiveUsers() {
   const { provider } = useRoomContext();
-  const [activeUsers, setActiveUsers] = useState<ConnectedUser[]>([]);
-  const [awarenessStates, setAwarenessStates] = useState<
-    Map<number, AwarenessState>
-  >(new Map());
+  const [activeUsers, setActiveUsers] = useState<User[]>([]);
+  const [inactiveUsers, setInactiveUsers] = useState<User[]>([]);
 
   // Observe changes to awareness using provider.awareness
   useEffect(() => {
@@ -35,29 +17,15 @@ export function useActiveUsers() {
 
     const updateActiveUsers = () => {
       const states = provider.awareness.getStates();
-      const newAwarenessStates = new Map<number, AwarenessState>();
-
-      // Convert and validate awareness states
-      states.forEach((state: any, clientId: number) => {
-        if (state && typeof state === 'object' && state.user) {
-          newAwarenessStates.set(clientId, state as AwarenessState);
-        }
-      });
-
-      setAwarenessStates(newAwarenessStates);
 
       // Convert awareness states to connected users
-      const users: ConnectedUser[] = Array.from(states.entries())
-        .map(([clientId, awarenessState]) => {
+      const users: User[] = Array.from(states.entries())
+        .map(([_, awarenessState]) => {
           if (!awarenessState?.user) return null;
 
-          return {
-            clientId: clientId.toString(),
-            name: awarenessState.user.name,
-            color: awarenessState.user.color,
-          };
+          return awarenessState.user;
         })
-        .filter((user): user is ConnectedUser => user !== null);
+        .filter((user): user is User => user !== null);
 
       setActiveUsers(users);
     };
@@ -73,77 +41,44 @@ export function useActiveUsers() {
     };
   }, [provider]);
 
-  // Update current user's awareness state
-  const updateAwareness = useCallback(
-    (awarenessState: Partial<AwarenessState>) => {
-      if (!provider) return;
+  // Observe changes to tracked users in the Y.js document
+  useEffect(() => {
+    if (!provider) return;
 
-      const currentState = provider.awareness.getLocalState() || {};
+    const trackedUsersArray = provider.doc.getArray<User>(KEYS.trackedUsers);
 
-      // Ensure we don't overwrite the user property if it's not provided
-      const updatedState: AwarenessState = {
-        ...currentState,
-        ...awarenessState,
-        user: awarenessState.user ||
-          currentState.user || { name: '', color: '', id: '' },
-      };
+    const updateTrackedUsers = () => {
+      const users = trackedUsersArray.toArray();
 
-      provider.awareness.setLocalState(updatedState);
-    },
-    [provider]
-  );
+      // Separate active and inactive users
+      const activeUserIds = new Set(activeUsers.map((user) => user.id));
+      const activeTrackedUsers = users.filter(
+        (user) =>
+          activeUserIds.has(user.id) ||
+          activeUsers.some((activeUser) => activeUser.name === user.name)
+      );
+      const inactiveTrackedUsers = users.filter(
+        (user) =>
+          !activeUserIds.has(user.id) &&
+          !activeUsers.some((activeUser) => activeUser.name === user.name)
+      );
 
-  // Set current user's information
-  const setCurrentUser = useCallback(
-    (user: { name: string; color: string; id: string }) => {
-      if (!provider) return;
+      setInactiveUsers(inactiveTrackedUsers);
+    };
 
-      updateAwareness({
-        user,
-      });
-    },
-    [provider, updateAwareness]
-  );
+    // Set initial tracked users
+    updateTrackedUsers();
 
-  // Update cursor position
-  const updateCursor = useCallback(
-    (cursor: { index: number; length: number }) => {
-      updateAwareness({ cursor });
-    },
-    [updateAwareness]
-  );
+    // Observe changes to tracked users
+    trackedUsersArray.observe(updateTrackedUsers);
 
-  // Update text selection
-  const updateSelection = useCallback(
-    (selection: { anchor: number; head: number }) => {
-      updateAwareness({ selection });
-    },
-    [updateAwareness]
-  );
-
-  // Get unique users by email (in case of multiple connections)
-  const uniqueUsers = activeUsers.reduce(
-    (acc: ConnectedUser[], user: ConnectedUser) => {
-      if (!acc.find((u: ConnectedUser) => u.clientId === user.clientId)) {
-        acc.push(user);
-      }
-      return acc;
-    },
-    [] as ConnectedUser[]
-  );
-
-  // Get current user's awareness state
-  const currentUserState = provider ? provider.awareness.getLocalState() : null;
+    return () => {
+      trackedUsersArray.unobserve(updateTrackedUsers);
+    };
+  }, [provider, activeUsers]);
 
   return {
     activeUsers,
-    uniqueUsers,
-    awarenessStates,
-    currentUserState,
-    setCurrentUser,
-    updateCursor,
-    updateSelection,
-    updateAwareness,
-    provider,
+    inactiveUsers,
   };
 }

@@ -4,6 +4,13 @@ import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { organization, user } from './user.db';
 import { RoomEntity, roomTable } from './room.db';
 
+type TrackerUsers = {
+  id: string;
+  name: string;
+  email: string;
+  color: string;
+}[];
+
 export const roomContentTable = pgTable('room_contents', {
   roomId: text('room_id')
     .primaryKey()
@@ -26,6 +33,7 @@ export const roomContentTable = pgTable('room_contents', {
   language: text('language').notNull(),
   instructions: jsonb('instructions').notNull(),
   executionHistory: jsonb('execution_history').notNull(),
+  trackedUsers: jsonb('tracked_users').$type<TrackerUsers>().notNull().default([]),
   rawContent: text('raw_content').notNull(),
   rawPrivateContent: text('raw_private_content').notNull(),
 });
