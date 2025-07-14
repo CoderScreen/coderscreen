@@ -7,11 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  RiArrowRightLine,
-  RiQuestionMark,
-  RiUploadLine,
-} from '@remixicon/react';
+import { RiArrowRightLine, RiQuestionMark, RiUploadLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useCreateOrganization } from '@/query/org.query';
 import { useState } from 'react';
@@ -23,9 +19,10 @@ interface OrgOnboardingProps {
 }
 
 const CODERSCREEN_GOALS: string[] = [
-  'Live technical interviews',
-  'Technical assessment challenges',
-  'Upskill team members',
+  'Conduct live technical interviews',
+  'Screen candidates with coding challenges',
+  'Assign and manage take-home projects',
+  'Streamline the entire interview process',
   'Just exploring',
 ];
 
@@ -78,13 +75,11 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
     <div className='min-h-screen flex flex-col justify-center items-center py-12 px-4'>
       <div className='w-full max-w-xl'>
         {/* Heading */}
-        <h1 className='text-3xl font-bold text-gray-900 mb-2'>
-          Let's set up your organization
-        </h1>
+        <h1 className='text-3xl font-bold text-gray-900 mb-2'>Let's set up your organization</h1>
         {/* Subheading */}
         <p className='text-gray-500 mb-8 max-w-lg'>
-          Tell us more about your organization so we can provide you a
-          personalized experience tailored to your needs and preferences.
+          Tell us more about your organization so we can provide you a personalized experience
+          tailored to your needs and preferences.
         </p>
         <form
           onSubmit={(e) => {
@@ -97,9 +92,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
           <form.Field name='logo'>
             {(_) => (
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                  Logo
-                </label>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Logo</label>
                 <div className='flex items-center gap-4 mb-2'>
                   <div className='h-20 w-20 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden bg-white'>
                     {logoPreview ? (
@@ -112,9 +105,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
                     ) : (
                       <div className='h-full w-full flex items-center justify-center bg-primary'>
                         {namePreview ? (
-                          <span className='text-white text-3xl'>
-                            {namePreview.slice(0, 2)}
-                          </span>
+                          <span className='text-white text-3xl'>{namePreview.slice(0, 2)}</span>
                         ) : (
                           <RiQuestionMark className='h-10 w-10 text-white' />
                         )}
@@ -126,9 +117,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
                       type='button'
                       variant='secondary'
                       className='mb-1'
-                      onClick={() =>
-                        document.getElementById('logo-file')?.click()
-                      }
+                      onClick={() => document.getElementById('logo-file')?.click()}
                       isLoading={isUploadingLogo}
                       icon={RiUploadLine}
                     >
@@ -146,8 +135,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
                       }}
                     />
                     <div className='text-xs text-gray-400'>
-                      .png, .jpeg, .svg files up to 2MB. Recommended size is
-                      256x256px.
+                      .png, .jpeg, .svg files up to 2MB. Recommended size is 256x256px.
                     </div>
                   </div>
                 </div>
@@ -161,8 +149,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
             validators={{
               onChange: ({ value }: { value: string }) => {
                 if (!value) return 'Workspace name is required';
-                if (value.length > 100)
-                  return 'Workspace name must be less than 100 characters';
+                if (value.length > 100) return 'Workspace name must be less than 100 characters';
                 return undefined;
               },
             }}
@@ -189,9 +176,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
                   className='mb-1'
                 />
                 {field.state.meta.errors && (
-                  <p className='text-sm text-red-600'>
-                    {field.state.meta.errors.join(', ')}
-                  </p>
+                  <p className='text-sm text-red-600'>{field.state.meta.errors.join(', ')}</p>
                 )}
               </div>
             )}
@@ -212,14 +197,8 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
                 <label className='block text-sm font-medium text-gray-700 mb-2'>
                   What's your main goal with CoderScreen?
                 </label>
-                <Select
-                  value={field.state.value}
-                  onValueChange={field.handleChange}
-                >
-                  <SelectTrigger
-                    hasError={!field.state.meta.isValid}
-                    className='mb-1'
-                  >
+                <Select value={field.state.value} onValueChange={field.handleChange}>
+                  <SelectTrigger hasError={!field.state.meta.isValid} className='mb-1'>
                     <SelectValue placeholder='Select your primary goal' />
                   </SelectTrigger>
                   <SelectContent>
@@ -233,9 +212,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
                   </SelectContent>
                 </Select>
                 {field.state.meta.errors && (
-                  <p className='text-sm text-red-600'>
-                    {field.state.meta.errors.join(', ')}
-                  </p>
+                  <p className='text-sm text-red-600'>{field.state.meta.errors.join(', ')}</p>
                 )}
               </div>
             )}

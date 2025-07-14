@@ -5,9 +5,9 @@ export const Route = createFileRoute('/onboarding')({
   beforeLoad: async ({ context }) => {
     const { user } = await context.auth;
 
-    // if (user?.isOnboarded) {
-    //   return redirect({ to: '/' });
-    // }
+    if (user?.isOnboarded) {
+      return redirect({ to: '/' });
+    }
   },
   component: RouteComponent,
 });
