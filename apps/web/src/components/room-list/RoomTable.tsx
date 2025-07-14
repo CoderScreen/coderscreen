@@ -28,12 +28,20 @@ import {
   RiFileCopyLine,
   RiDeleteBinLine,
   RiCornerDownRightLine,
+  RiAddLine,
+  RiSearchLine,
+  RiRefreshLine,
 } from '@remixicon/react';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { Tooltip } from '@/components/ui/tooltip';
+import { SmallHeader } from '@/components/ui/heading';
+import { MutedText } from '@/components/ui/typography';
+import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
+import { useCreateRoom } from '@/query/room.query';
 
 interface RoomTableProps {
   rooms: RoomSchema[];
+  noRooms: boolean;
   isLoading?: boolean;
 }
 
@@ -108,7 +116,7 @@ const RowActions = ({ room }: { room: RoomSchema }) => {
   );
 };
 
-export function RoomTable({ rooms, isLoading }: RoomTableProps) {
+export function RoomTable({ rooms, isLoading, noRooms }: RoomTableProps) {
   return (
     <TableRoot>
       <Table>
@@ -123,6 +131,8 @@ export function RoomTable({ rooms, isLoading }: RoomTableProps) {
         <TableBody>
           {isLoading ? (
             <TableSkeleton numRows={10} numCols={4} />
+          ) : rooms.length === 0 ? (
+            <EmptyTable noRooms={noRooms} />
           ) : (
             rooms.map((room) => (
               <TableRow key={room.id} className='group'>
@@ -154,3 +164,60 @@ export function RoomTable({ rooms, isLoading }: RoomTableProps) {
     </TableRoot>
   );
 }
+
+const EmptyTable = ({ noRooms }: { noRooms: boolean }) => {
+  const { createRoom, isLoading } = useCreateRoom();
+  const router = useRouter();
+
+  const handleCreateRoom = async () => {
+    const randomTitle = `Interview ${Math.random().toString(36).substring(2, 15)}`;
+
+    const room = await createRoom({
+      title: randomTitle,
+      language: 'typescript',
+      notes: '',
+    });
+
+    router.navigate({ to: `/room/${room.id}` });
+  };
+
+  if (noRooms) {
+    return (
+      <TableRow>
+        <TableCell colSpan={4}>
+          <div className='flex flex-col items-center justify-center py-16 px-4'>
+            <EmptyStateIcon icon={RiAddLine} />
+            <SmallHeader className='mt-4'>No interviews yet</SmallHeader>
+            <MutedText>
+              There is nothing here to view right now, please add new interview data to get started.
+            </MutedText>
+            <Button
+              variant='primary'
+              icon={RiAddLine}
+              className='mt-4'
+              onClick={handleCreateRoom}
+              isLoading={isLoading}
+            >
+              New interview
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  // If there are rooms but filters return no results
+  return (
+    <TableRow>
+      <TableCell colSpan={4}>
+        <div className='flex flex-col items-center justify-center py-16 px-4'>
+          <EmptyStateIcon icon={RiSearchLine} />
+          <SmallHeader className='mt-4'>No interviews match your filters</SmallHeader>
+          <MutedText>
+            Try adjusting your search criteria or filters to find the interviews you're looking for.
+          </MutedText>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};

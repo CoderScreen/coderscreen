@@ -24,7 +24,7 @@ export function RoomListView() {
   return (
     <>
       <RoomFilters filters={filters} onFiltersChange={setFilters} />
-      <RoomTable rooms={filteredRooms} isLoading={isLoading} />
+      <RoomTable rooms={filteredRooms} isLoading={isLoading} noRooms={rooms?.length === 0} />
     </>
   );
 }
