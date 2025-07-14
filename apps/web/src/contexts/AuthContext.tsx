@@ -9,6 +9,10 @@ export interface AuthContext {
     name: string;
     isOnboarded: boolean;
   } | null;
+  session: {
+    id: string;
+    activeOrganizationId: string | null;
+  } | null;
   isAuthenticated: boolean;
   isInitalLoading: boolean;
   error: Error | null;
@@ -17,15 +21,22 @@ export interface AuthContext {
 const AuthContext = React.createContext<AuthContext | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const session = authClient.useSession();
+  const { data, isPending, error } = authClient.useSession();
 
-  const user = session.data?.user
+  const user = data?.user
     ? {
-        id: session.data.user.id,
-        email: session.data.user.email,
-        name: session.data.user.name || session.data.user.email,
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name || data.user.email,
         // @ts-ignore
-        isOnboarded: !!session.data.user.isOnboarded,
+        isOnboarded: !!data.user.isOnboarded,
+      }
+    : null;
+
+  const session = data
+    ? {
+        id: data.session.id,
+        activeOrganizationId: data.session.activeOrganizationId ?? null,
       }
     : null;
 
@@ -33,9 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: session.data !== null,
-        isInitalLoading: session.isPending,
-        error: session.error,
+        session,
+        isAuthenticated: data !== null,
+        isInitalLoading: isPending,
+        error,
       }}
     >
       {children}

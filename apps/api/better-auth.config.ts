@@ -39,39 +39,6 @@ export const betterAuthConfig = {
       clientSecret: GOOGLE_CLIENT_SECRET,
     },
   },
-  // emailVerification: {
-  // 	sendVerificationEmail: async ({ user, url, token }) => {
-  // 		console.log('sendVerificationEmail', { user, url, token });
-  // 		// Send verification email to user
-  // 	},
-  // 	sendOnSignUp: true,
-  // 	autoSignInAfterVerification: true,
-  // 	expiresIn: 3600, // 1 hour
-  // },
-  databaseHooks: {
-    session: {
-      create: {
-        before: async (session, context) => {
-          // get first organization id
-          const member = await db
-            .select()
-            .from(schema.member)
-            .where(eq(schema.member.userId, session.userId))
-            .limit(1)
-            .then((res) => res[0]);
-
-          const activeOrganizationId = member?.organizationId;
-
-          return {
-            data: {
-              ...session,
-              activeOrganizationId,
-            },
-          };
-        },
-      },
-    },
-  },
   user: {
     deleteUser: {
       enabled: true,
@@ -93,19 +60,7 @@ export const betterAuthConfig = {
       },
     },
   },
-  plugins: [
-    organization({
-      organizationCreation: {
-        afterCreate: async ({ user: orgUser }) => {
-          // update user to set isOnboarded to true
-          await db
-            .update(schema.user)
-            .set({ isOnboarded: true })
-            .where(eq(schema.user.id, orgUser.id));
-        },
-      },
-    }),
-  ],
+  plugins: [organization()],
 } satisfies BetterAuthOptions;
 
 export const auth: ReturnType<typeof betterAuth<typeof betterAuthConfig>> = betterAuth({

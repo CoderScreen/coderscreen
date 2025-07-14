@@ -1,11 +1,12 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { betterAuth, BetterAuthOptions, User } from 'better-auth';
+import { betterAuth, BetterAuthOptions } from 'better-auth';
 import { AppContext } from '@/index';
 import { Context } from 'hono';
 import * as schema from '@coderscreen/db/user.db';
-import { auth, betterAuthConfig } from '../../better-auth.config';
+import { betterAuthConfig } from '../../better-auth.config';
 import { useDb } from '@/db/client';
+import { organization } from 'better-auth/plugins';
+import { eq } from 'drizzle-orm';
 
 export const useAuth: (
   ctx: Context<AppContext>
@@ -13,12 +14,55 @@ export const useAuth: (
   const env = ctx.env;
   const db = useDb(ctx);
 
-  // @ts-ignore
-  return betterAuth({
+  const options = {
     trustedOrigins: [env.FE_APP_URL],
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: 'pg', schema }),
     ...betterAuthConfig,
-  });
+
+    // anything that needs db below this line
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const db = useDb(ctx);
+            // get first organization id
+            const member = await db
+              .select()
+              .from(schema.member)
+              .where(eq(schema.member.userId, session.userId))
+              .limit(1)
+              .then((res) => res[0]);
+
+            const activeOrganizationId = member?.organizationId;
+
+            return {
+              data: {
+                ...session,
+                activeOrganizationId,
+              },
+            };
+          },
+        },
+      },
+    },
+
+    plugins: [
+      organization({
+        organizationCreation: {
+          afterCreate: async ({ user: orgUser }) => {
+            // update user to set isOnboarded to true
+            await db
+              .update(schema.user)
+              .set({ isOnboarded: true })
+              .where(eq(schema.user.id, orgUser.id));
+          },
+        },
+      }),
+    ],
+    user: betterAuthConfig.user,
+  } satisfies BetterAuthOptions;
+
+  return betterAuth(options);
 };

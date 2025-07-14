@@ -10,14 +10,20 @@ export const Route = createFileRoute('/_app')({
   component: RouteComponent,
   wrapInSuspense: true,
   beforeLoad: async ({ context, location }) => {
-    const { user, isAuthenticated } = await context.auth; // Call the function
+    const { user, session, isAuthenticated } = await context.auth; // Call the function
 
     if (!isAuthenticated || !user) {
       throw redirect({ to: '/login', search: { callbackUrl: location.href } });
     }
 
+    // if user is not onboarded, redirect to onboarding page
     if (!user.isOnboarded) {
       throw redirect({ to: '/onboarding' });
+    }
+
+    // if user has no active organization, redirect to choose org page
+    if (!session?.activeOrganizationId) {
+      throw redirect({ to: '/organizations' });
     }
   },
 });

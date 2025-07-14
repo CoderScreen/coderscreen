@@ -1,7 +1,7 @@
 import { apiClient, authClient } from '@/query/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useRouter } from '@tanstack/react-router';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useSession } from '@/query/auth.query';
 
 export const useActiveOrg = () => {
@@ -25,7 +25,6 @@ export const useUserOrgs = () => {
 };
 
 export const useSwitchOrganization = () => {
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -36,9 +35,7 @@ export const useSwitchOrganization = () => {
       return data;
     },
     onSuccess: async () => {
-      // Navigate to home page after switching
-      await router.navigate({ to: '/' });
-
+      await authClient.getSession({ query: { disableCookieCache: true } });
       queryClient.invalidateQueries();
     },
     meta: {
@@ -79,7 +76,7 @@ export const useCreateOrganization = () => {
         },
       });
 
-      await router.navigate({ to: '/' });
+      await router.navigate({ to: '/', reloadDocument: true });
     },
   });
 
@@ -144,6 +141,7 @@ export const useUpdateOrganization = () => {
 export const useDeleteOrganization = () => {
   const queryClient = useQueryClient();
   const { session } = useSession();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -157,8 +155,8 @@ export const useDeleteOrganization = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activeOrganization'] });
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.clear();
+      navigate({ to: '/', reloadDocument: true });
     },
     meta: {
       SUCCESS_MESSAGE: 'Organization deleted successfully',
