@@ -65,6 +65,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "devicons-react": "^1.4.1",
+    "dockview": "^4.4.0",
     "hono": "^4.7.11",
     "monaco-editor": "^0.52.2",
     "partysocket": "1.1.4",

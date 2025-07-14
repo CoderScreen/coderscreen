@@ -149,12 +149,12 @@ export function CodeEditor() {
   }, []);
 
   return (
-    <div className='h-full w-full border bg-white text-gray-900 relative flex flex-col'>
+    <div className='h-full w-full bg-white text-gray-900 relative flex flex-col'>
       {/* Menu Bar */}
-      <div className='flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50'>
+      <div className='flex items-center justify-between border-b p-2 py-1'>
         <div className='flex items-center gap-2'>
           <Select value={language} onValueChange={handleLanguageChange} disabled={isReadOnly}>
-            <SelectTrigger className='min-w-40'>
+            <SelectTrigger className='min-w-40 py-1'>
               <SelectValue placeholder='Select a language' />
             </SelectTrigger>
             <SelectContent>
@@ -181,6 +181,7 @@ export function CodeEditor() {
             isLoading={isLoading}
             icon={RiPlayFill}
             disabled={isReadOnly}
+            className='py-1'
           >
             Run code
           </Button>
@@ -191,7 +192,7 @@ export function CodeEditor() {
           onMount={handleOnMount}
           language={language}
           theme={editorSettings.theme}
-          className='pr-2 pt-2'
+          className='pr-2'
           height='100%'
           width='100%'
           options={{

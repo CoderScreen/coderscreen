@@ -263,6 +263,9 @@ importers:
       devicons-react:
         specifier: ^1.4.1
         version: 1.4.1(react@19.1.0)
+      dockview:
+        specifier: ^4.4.0
+        version: 4.4.0(react@19.1.0)
       hono:
         specifier: ^4.7.11
         version: 4.8.2
@@ -8514,6 +8517,19 @@ packages:
     dependencies:
       path-type: 4.0.0
     dev: true
+
+  /dockview-core@4.4.0:
+    resolution: {integrity: sha512-UsBJwS3lfZXM+gaTA+bJs8rAxLd7ZEmNcUf5CbKKhiPeKIPJrNCxXxTLcnQb3IXMJUGkE0aX1ZJ4BDaZGMtzlA==}
+    dev: false
+
+  /dockview@4.4.0(react@19.1.0):
+    resolution: {integrity: sha512-cWi5R40R5kDky69vAqsKGznRx5tA0gk3Mdqe5aS2r4ollK951mWNJ/EeMmac+UP/juw4cbl0/APhXTV+EMnAbg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    dependencies:
+      dockview-core: 4.4.0
+      react: 19.1.0
+    dev: false
 
   /dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
