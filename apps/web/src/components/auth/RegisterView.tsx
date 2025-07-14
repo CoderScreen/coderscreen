@@ -3,10 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LargeHeader } from '@/components/ui/heading';
-import { RiUserLine, RiArrowRightLine, RiGoogleFill, RiMailCheckLine } from '@remixicon/react';
+import {
+  RiUserLine,
+  RiArrowRightLine,
+  RiGoogleFill,
+  RiMailCheckLine,
+  RiGithubFill,
+} from '@remixicon/react';
 import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
-import { useGoogleSignIn, useSignUp } from '@/query/auth.query';
+import { useGithubSignIn, useGoogleSignIn, useSignUp } from '@/query/auth.query';
 import { Link, useSearch } from '@tanstack/react-router';
 
 export const RegisterView = () => {
@@ -15,6 +21,7 @@ export const RegisterView = () => {
   const [isVerificationSent, setIsVerificationSent] = useState(false);
   const searchQuery = useSearch({ from: '/(auth)/register' });
   const { signInWithGoogle, isLoading: isLoadingGoogle } = useGoogleSignIn();
+  const { signInWithGithub, isLoading: isLoadingGithub } = useGithubSignIn();
   const { signUp, isLoading: isLoadingEmail } = useSignUp();
 
   const handleSignUp = async () => {
@@ -24,6 +31,10 @@ export const RegisterView = () => {
 
   const handleSignInWithGoogle = async () => {
     await signInWithGoogle({ callbackURL: searchQuery.callbackUrl });
+  };
+
+  const handleSignInWithGithub = async () => {
+    await signInWithGithub({ callbackURL: searchQuery.callbackUrl });
   };
 
   if (isVerificationSent) {
@@ -68,16 +79,28 @@ export const RegisterView = () => {
           </CardHeader>
 
           <CardContent>
-            {/* Google Sign In */}
-            <Button
-              variant='secondary'
-              className='w-full'
-              onClick={handleSignInWithGoogle}
-              isLoading={isLoadingGoogle}
-              icon={RiGoogleFill}
-            >
-              Sign up with Google
-            </Button>
+            <div className='space-y-2'>
+              {/* Google Sign In */}
+              <Button
+                variant='secondary'
+                className='w-full'
+                onClick={handleSignInWithGoogle}
+                isLoading={isLoadingGoogle}
+                icon={RiGoogleFill}
+              >
+                Sign up with Google
+              </Button>
+
+              <Button
+                variant='secondary'
+                className='w-full'
+                onClick={handleSignInWithGithub}
+                isLoading={isLoadingGithub}
+                icon={RiGithubFill}
+              >
+                Sign up with Github
+              </Button>
+            </div>
 
             <Divider />
 

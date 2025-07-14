@@ -1,10 +1,5 @@
 import { useSync } from '@tldraw/sync';
-import {
-  inlineBase64AssetStore,
-  Tldraw,
-  TLUserPreferences,
-  useTldrawUser,
-} from 'tldraw';
+import { inlineBase64AssetStore, Tldraw, TLUserPreferences, useTldrawUser } from 'tldraw';
 import { getBookmarkPreview } from './getBookmarkPreview';
 import { useCurrentRoomId } from '@/lib/params';
 import { useSession } from '@/query/auth.query';
@@ -66,6 +61,7 @@ export const WhiteboardView = () => {
       <Tldraw
         components={{
           PageMenu: null,
+          MenuPanel: null,
         }}
         store={store}
         user={tldrawUser}

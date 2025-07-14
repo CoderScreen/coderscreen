@@ -133,7 +133,7 @@ export function EditorSettingsDialog({
           variant='ghost'
           icon={RiSettings3Line}
           disabled={disabled}
-          className='h-8 w-8 p-0'
+          className='h-8 w-8 p-0 text-muted-foreground'
         />
       </DialogTrigger>
       <DialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>

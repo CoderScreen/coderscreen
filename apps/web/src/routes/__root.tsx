@@ -3,6 +3,7 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { TanstackQueryClient } from '@/query/client';
 import { Toaster } from '@/components/ui/toast';
 import { AuthContext } from '@/contexts/AuthContext';
+import { CookiesProvider } from 'react-cookie';
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -13,9 +14,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <QueryClientProvider client={TanstackQueryClient}>
-        <Outlet />
-        <Toaster richColors />
-        {/* <TanStackRouterDevtools /> */}
+        <CookiesProvider>
+          <Outlet />
+          <Toaster richColors />
+          {/* <TanStackRouterDevtools /> */}
+        </CookiesProvider>
       </QueryClientProvider>
     </>
   ),

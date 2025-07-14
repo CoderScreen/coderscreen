@@ -9,11 +9,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { RiEditLine, RiCloseLine, RiCheckLine, RiCornerDownLeftLine } from '@remixicon/react';
+import {
+  RiEditLine,
+  RiCloseLine,
+  RiCheckLine,
+  RiCornerDownLeftLine,
+  RiArrowLeftLine,
+  RiDashboardLine,
+} from '@remixicon/react';
 import { toast } from 'sonner';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@tanstack/react-router';
+import { Tooltip } from '@/components/ui/tooltip';
 
 const APP_URL = import.meta.env.VITE_APP_URL as string;
 if (!APP_URL) {
@@ -83,7 +91,13 @@ export const HostRoomHeader = () => {
   return (
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
       {/* Room Title Section */}
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center'>
+        <Tooltip content='Back to Home'>
+          <Link to='/'>
+            <Button variant='icon' icon={RiArrowLeftLine} className='text-muted-foreground' />
+          </Link>
+        </Tooltip>
+
         <div className='max-w-80'>
           {isEditingTitle && !isReadOnly ? (
             <Input

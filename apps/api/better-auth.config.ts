@@ -7,7 +7,19 @@ import * as schema from '@coderscreen/db/user.db';
 import { eq } from 'drizzle-orm';
 
 // @ts-ignore
-const { DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET } = process.env;
+const {
+  DATABASE_URL,
+  BETTER_AUTH_URL,
+  BETTER_AUTH_SECRET,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET,
+} = process.env;
+
+if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+  throw new Error('Missing environment variables for social providers');
+}
 
 const sql = postgres(DATABASE_URL!);
 const db = drizzle(sql);
@@ -16,6 +28,16 @@ export const betterAuthConfig = {
   appName: 'CoderScreen',
   emailAndPassword: {
     enabled: true,
+  },
+  socialProviders: {
+    github: {
+      clientId: GITHUB_CLIENT_ID,
+      clientSecret: GITHUB_CLIENT_SECRET,
+    },
+    google: {
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
+    },
   },
   // emailVerification: {
   // 	sendVerificationEmail: async ({ user, url, token }) => {

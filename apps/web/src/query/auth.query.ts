@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authClient } from './client';
+import { useNavigate } from '@tanstack/react-router';
+import { useCookies } from 'react-cookie';
+
+const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:3000';
 
 // Get current user session
 export const useSession = () => {
@@ -109,7 +113,7 @@ export const useGoogleSignIn = () => {
     mutationFn: async (params: { callbackURL: string | undefined }) => {
       const result = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: params.callbackURL,
+        callbackURL: `${APP_URL}${params.callbackURL ? params.callbackURL : ''}`,
       });
 
       if (result.error) {
@@ -123,13 +127,45 @@ export const useGoogleSignIn = () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
     meta: {
-      SUCCESS_MESSAGE: 'Signed in with Google successfully',
       ERROR_MESSAGE: 'Failed to sign in with Google',
     },
   });
 
   return {
     signInWithGoogle: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+// Sign in with Github
+export const useGithubSignIn = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (params: { callbackURL: string | undefined }) => {
+      const result = await authClient.signIn.social({
+        provider: 'github',
+        callbackURL: `${APP_URL}${params.callbackURL ? params.callbackURL : ''}`,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message || 'Failed to sign in with Github');
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch auth queries
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+    meta: {
+      ERROR_MESSAGE: 'Failed to sign in with Github',
+    },
+  });
+
+  return {
+    signInWithGithub: mutation.mutateAsync,
     isLoading: mutation.isPending,
     ...mutation,
   };
@@ -173,6 +209,7 @@ export const useVerifyEmail = () => {
 // Sign out
 export const useSignOut = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -187,6 +224,7 @@ export const useSignOut = () => {
     onSuccess: () => {
       // Clear auth queries from cache
       queryClient.removeQueries({ queryKey: ['auth'] });
+      navigate({ to: '/login' });
     },
     meta: {
       SUCCESS_MESSAGE: 'Signed out successfully',

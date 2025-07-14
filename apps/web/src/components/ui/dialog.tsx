@@ -33,7 +33,7 @@ const DialogOverlay = React.forwardRef<
       ref={forwardedRef}
       className={cx(
         // base
-        'fixed z-50 inset-0 overflow-y-auto',
+        'fixed z-[301] inset-0 overflow-y-auto',
         // background color
         'bg-black/70',
         // transition
