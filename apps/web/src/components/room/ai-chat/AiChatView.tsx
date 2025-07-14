@@ -171,7 +171,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
 
   return (
     <div className='h-full flex flex-col bg-white'>
-      <div className='border-b py-2 flex items-center justify-between'>
+      <div className='border-b py-1 px-2 flex items-center justify-between'>
         <Select value={config.model} onValueChange={handleModelChange} disabled={isReadOnly}>
           <SelectTrigger className='w-fit'>
             <SelectValue />
@@ -191,7 +191,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
           New Chat
         </Button>
       </div>
-      <div className='flex-1 flex flex-col overflow-y-auto'>
+      <div className='flex-1 flex flex-col overflow-y-auto px-2'>
         <div className='flex-1 p-4'>
           <div className='space-y-4'>
             {pastConversations.length > 0 ? (
@@ -226,7 +226,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
           </div>
         </div>
       </div>
-      <div className='border-t pt-4 pb-2'>
+      <div className='border-t p-2'>
         <div className='flex gap-2'>
           <Input
             value={inputValue}

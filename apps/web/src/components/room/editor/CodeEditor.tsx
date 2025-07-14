@@ -154,7 +154,7 @@ export function CodeEditor() {
       <div className='flex items-center justify-between border-b p-2 py-1'>
         <div className='flex items-center gap-2'>
           <Select value={language} onValueChange={handleLanguageChange} disabled={isReadOnly}>
-            <SelectTrigger className='min-w-40 py-1'>
+            <SelectTrigger className='min-w-40'>
               <SelectValue placeholder='Select a language' />
             </SelectTrigger>
             <SelectContent>
@@ -181,7 +181,6 @@ export function CodeEditor() {
             isLoading={isLoading}
             icon={RiPlayFill}
             disabled={isReadOnly}
-            className='py-1'
           >
             Run code
           </Button>

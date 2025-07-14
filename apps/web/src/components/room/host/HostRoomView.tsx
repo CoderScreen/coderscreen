@@ -1,31 +1,15 @@
-import { CodeEditor } from '@/components/room/editor/CodeEditor';
-import {
-  RiTerminalLine,
-  RiFileTextLine,
-  RiPencilLine,
-  RiChatAiLine,
-  RiLockLine,
-  RiStickyNoteLine,
-  RiCodeLine,
-} from '@remixicon/react';
-import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
-import { CodeOutput } from '@/components/room/CodeOutput';
+import { RiLockLine } from '@remixicon/react';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
-import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
-import { AiChatView } from '@/components/room/ai-chat/AiChatView';
-import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
+import { DockviewReact } from 'dockview';
+import { useMemo } from 'react';
 import {
-  DockviewReact,
-  IDockviewPanelHeaderProps,
-  IDockviewPanelProps,
-  themeVisualStudio,
-} from 'dockview';
-import { useCallback, useMemo } from 'react';
-import { DOCKVIEW_PANEL_IDS, lightDockviewTheme } from '../Dockview';
-import { cx } from '@/lib/utils';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  DOCKVIEW_PANEL_IDS,
+  lightDockviewTheme,
+  useDockviewComponents,
+  useTabComponents,
+} from '../Dockview';
 
 export const HostRoomView = () => {
   return (
@@ -38,75 +22,8 @@ export const HostRoomView = () => {
 const HostRoomContent = () => {
   const { currentStatus } = useRoomContext();
 
-  const components = useMemo(
-    () => ({
-      'code-editor': (props: IDockviewPanelProps) => (
-        <div className='h-full'>
-          <CodeEditor />
-        </div>
-      ),
-      instructions: (props: IDockviewPanelProps) => (
-        <div className='h-full overflow-y-auto'>
-          <InstructionEditor />
-        </div>
-      ),
-      'program-output': (props: IDockviewPanelProps) => (
-        <div className='h-full overflow-y-auto'>
-          <CodeOutput />
-        </div>
-      ),
-      whiteboard: (props: IDockviewPanelProps) => (
-        <div className='h-full overflow-y-auto'>
-          <WhiteboardView />
-        </div>
-      ),
-      'ai-chat': (props: IDockviewPanelProps) => (
-        <div className='h-full overflow-y-auto'>
-          <AiChatView role='host' />
-        </div>
-      ),
-      notes: (props: IDockviewPanelProps) => (
-        <div className='h-full overflow-y-auto'>
-          <NotesEditor />
-        </div>
-      ),
-    }),
-    []
-  );
-
-  const tabIcons = useCallback((panelId: string) => {
-    switch (panelId) {
-      case DOCKVIEW_PANEL_IDS.CODE_EDITOR:
-        return <RiCodeLine className='size-4' />;
-      case DOCKVIEW_PANEL_IDS.INSTRUCTIONS:
-        return <RiPencilLine className='size-4' />;
-      case DOCKVIEW_PANEL_IDS.PROGRAM_OUTPUT:
-        return <RiTerminalLine className='size-4' />;
-      case DOCKVIEW_PANEL_IDS.WHITEBOARD:
-        return <RiStickyNoteLine className='size-4' />;
-      case DOCKVIEW_PANEL_IDS.AI_CHAT:
-        return <RiChatAiLine className='size-4' />;
-      case DOCKVIEW_PANEL_IDS.NOTES:
-        return <RiStickyNoteLine className='size-4' />;
-    }
-  }, []);
-
-  const tabComponents = useMemo(
-    () => ({
-      tab: (props: IDockviewPanelHeaderProps) => (
-        <div
-          className={cx(
-            'h-fit flex shrink-0 items-center gap-2 p-2 pt-1 text-sm font-medium transition-all',
-            props.api.isFocused && 'border-b-2 border-primary'
-          )}
-        >
-          {tabIcons(props.api.id)}
-          <span className='truncate'>{props.api.title}</span>
-        </div>
-      ),
-    }),
-    [tabIcons]
-  );
+  const components = useDockviewComponents(false);
+  const tabComponents = useTabComponents();
 
   return (
     <div className='h-screen w-screen flex flex-col'>

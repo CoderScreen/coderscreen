@@ -18,11 +18,13 @@
   --dv-inactivegroup-hiddenpanel-tab-background-color: hsl(var(--muted));
   --dv-inactivegroup-hiddenpanel-tab-color: hsl(var(--muted-foreground));
 
+  /* Tab after active tab */
+
   /* Group view styling */
   --dv-group-view-background-color: hsl(var(--background));
 
   /* Borders and separators */
-  --dv-tab-divider-color: hsl(var(--border));
+  --dv-tab-divider-color: transparent;
   --dv-separator-border: hsl(var(--border));
   --dv-paneview-header-border-color: hsl(var(--border));
   --dv-paneview-active-outline-color: hsl(var(--ring));

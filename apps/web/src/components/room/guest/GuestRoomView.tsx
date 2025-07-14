@@ -1,8 +1,4 @@
 import { useState, useEffect } from 'react';
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { CodeEditor } from '@/components/room/editor/CodeEditor';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { RiTerminalLine, RiFileTextLine, RiPencilLine, RiChatAiLine } from '@remixicon/react';
 import { GuestRoomHeader } from '@/components/room/guest/GuestRoomHeader';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import { GuestStartView } from './GuestStartView';
@@ -10,11 +6,15 @@ import { GuestSummaryView } from './GuestSummaryView';
 import { Guest, getGuest, setGuest } from '@/lib/guest';
 import { getRandomColor } from '@/query/realtime/utils';
 import { RoomFooter } from '@/components/room/RoomFooter';
-import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
-import { CodeOutput } from '@/components/room/CodeOutput';
-import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 import { usePublicRoom } from '@/query/publicRoom.query';
-import { AiChatView } from '@/components/room/ai-chat/AiChatView';
+import { DockviewReact } from 'dockview';
+import { useMemo } from 'react';
+import {
+  DOCKVIEW_PANEL_IDS,
+  lightDockviewTheme,
+  useDockviewComponents,
+  useTabComponents,
+} from '../Dockview';
 
 export const GuestRoomView = () => {
   const [guestInfo, setGuestInfo] = useState<Guest | null>(null);
@@ -90,55 +90,63 @@ const GuestRoomContent = () => {
     return <GuestSummaryView />;
   }
 
+  const components = useDockviewComponents(true);
+  const tabComponents = useTabComponents();
+
   // Show the room content
   return (
     <div className='h-screen w-screen flex flex-col'>
       <GuestRoomHeader />
       <div className='flex-1 min-h-0'>
-        <PanelGroup direction='horizontal' className='h-full'>
-          <Panel>
-            <CodeEditor />
-          </Panel>
-          <PanelResizeHandle />
-          <Panel>
-            <Tabs defaultValue='instructions' className='h-full flex flex-col p-2 pt-4'>
-              <TabsList>
-                <TabsTrigger value='instructions' className='flex items-center gap-1'>
-                  <RiFileTextLine className='size-4 shrink-0' />
-                  Instructions
-                </TabsTrigger>
-                <TabsTrigger value='program-output' className='flex items-center gap-1'>
-                  <RiTerminalLine className='size-4 shrink-0' />
-                  Program Output
-                </TabsTrigger>
-                <TabsTrigger value='whiteboard' className='flex items-center gap-1'>
-                  <RiPencilLine className='size-4 shrink-0' />
-                  Whiteboard
-                </TabsTrigger>
-                <TabsTrigger value='ai-chat' className='flex items-center gap-1'>
-                  <RiChatAiLine className='size-4 shrink-0' />
-                  AI Chat
-                </TabsTrigger>
-              </TabsList>
+        <DockviewReact
+          theme={lightDockviewTheme}
+          components={components}
+          tabComponents={tabComponents}
+          onReady={(event) => {
+            const { api } = event;
 
-              <TabsContent value='program-output' className='flex-1 overflow-y-auto'>
-                <CodeOutput />
-              </TabsContent>
+            // Add code editor panel
+            api.addPanel({
+              id: DOCKVIEW_PANEL_IDS.CODE_EDITOR,
+              component: 'code-editor',
+              title: 'Code Editor',
+              tabComponent: 'tab',
+            });
 
-              <TabsContent value='instructions' className='flex-1 overflow-y-auto'>
-                <InstructionEditor isGuest />
-              </TabsContent>
+            // Add other panels as tabs in a second panel
+            api.addPanel({
+              id: DOCKVIEW_PANEL_IDS.INSTRUCTIONS,
+              component: 'instructions',
+              title: 'Instructions',
+              tabComponent: 'tab',
+              position: {
+                direction: 'right',
+                referencePanel: 'code-editor',
+              },
+            });
 
-              <TabsContent value='whiteboard' className='flex-1 overflow-y-auto'>
-                <WhiteboardView />
-              </TabsContent>
+            api.addPanel({
+              id: DOCKVIEW_PANEL_IDS.PROGRAM_OUTPUT,
+              component: 'program-output',
+              title: 'Program Output',
+              tabComponent: 'tab',
+            });
 
-              <TabsContent value='ai-chat' className='flex-1 overflow-y-auto'>
-                <AiChatView role='guest' />
-              </TabsContent>
-            </Tabs>
-          </Panel>
-        </PanelGroup>
+            api.addPanel({
+              id: DOCKVIEW_PANEL_IDS.WHITEBOARD,
+              component: 'whiteboard',
+              title: 'Whiteboard',
+              tabComponent: 'tab',
+            });
+
+            api.addPanel({
+              id: DOCKVIEW_PANEL_IDS.AI_CHAT,
+              component: 'ai-chat',
+              title: 'AI Chat',
+              tabComponent: 'tab',
+            });
+          }}
+        />
       </div>
       <RoomFooter />
     </div>
