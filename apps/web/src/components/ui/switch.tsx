@@ -15,11 +15,11 @@ const switchVariants = tv({
       // ring color
       'ring-black/5',
       // checked
-      'data-[state=checked]:bg-blue-500 ',
+      'data-[state=checked]:bg-primary ',
       // disabled
       'data-[disabled]:cursor-default',
       // disabled checked
-      'data-[disabled]:data-[state=checked]:bg-blue-200',
+      'data-[disabled]:data-[state=checked]:bg-primary/50',
       'data-[disabled]:data-[state=checked]:ring-gray-300',
       // disabled checked dark
       '',
@@ -46,13 +46,11 @@ const switchVariants = tv({
     size: {
       default: {
         root: 'h-5 w-9',
-        thumb:
-          'h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0',
+        thumb: 'h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0',
       },
       small: {
         root: 'h-4 w-7',
-        thumb:
-          'h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0',
+        thumb: 'h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0',
       },
     },
   },
@@ -62,27 +60,19 @@ const switchVariants = tv({
 });
 
 interface SwitchProps
-  extends Omit<
-      React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>,
-      'asChild'
-    >,
+  extends Omit<React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>, 'asChild'>,
     VariantProps<typeof switchVariants> {}
 
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
-  SwitchProps
->(({ className, size, ...props }: SwitchProps, forwardedRef) => {
-  const { root, thumb } = switchVariants({ size });
-  return (
-    <SwitchPrimitives.Root
-      ref={forwardedRef}
-      className={cx(root(), className)}
-      {...props}
-    >
-      <SwitchPrimitives.Thumb className={cx(thumb())} />
-    </SwitchPrimitives.Root>
-  );
-});
+const Switch = React.forwardRef<React.ElementRef<typeof SwitchPrimitives.Root>, SwitchProps>(
+  ({ className, size, ...props }: SwitchProps, forwardedRef) => {
+    const { root, thumb } = switchVariants({ size });
+    return (
+      <SwitchPrimitives.Root ref={forwardedRef} className={cx(root(), className)} {...props}>
+        <SwitchPrimitives.Thumb className={cx(thumb())} />
+      </SwitchPrimitives.Root>
+    );
+  }
+);
 
 Switch.displayName = 'Switch';
 

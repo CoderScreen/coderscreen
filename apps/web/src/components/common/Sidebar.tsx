@@ -86,7 +86,7 @@ const MAIN_NAVIGATION: {
         icon: RiBuildingLine,
       },
       {
-        titleKey: 'Billing',
+        titleKey: 'Billing & Usage',
         href: siteConfig.routes.billing,
         icon: RiMoneyDollarBoxLine,
       },
