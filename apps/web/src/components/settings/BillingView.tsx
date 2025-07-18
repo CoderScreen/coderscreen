@@ -4,13 +4,14 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { RiSettings3Line, RiQuestionLine } from '@remixicon/react';
+import { RiSettings3Line, RiQuestionLine, RiCalendarLine, RiVipCrownLine } from '@remixicon/react';
 import { cx } from '@/lib/utils';
 import {
   useCustomer,
   usePlans,
   useCreateCheckoutSession,
   useCreatePortalSession,
+  useUsage,
 } from '@/query/billing.query';
 import { toast } from 'sonner';
 import { BillingPlanCard } from './BillingPlanCard';
@@ -18,24 +19,10 @@ import { useMemo, useState } from 'react';
 import { PlanSchema } from '@coderscreen/api/schema/billing';
 import { useNavigate } from '@tanstack/react-router';
 import { siteConfig } from '@/lib/siteConfig';
-
-// Define Plan interface to match the actual data structure from the API
-interface PlanEntity {
-  id: string;
-  name: string;
-  price: string | null;
-  interval: string | null;
-  description: string | null;
-  stripePriceId: string;
-  group: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
-// Common styling constants
-const CARD_LIMIT_WARNING_STYLES = 'bg-red-50 border-red-200';
-const USAGE_VALUE_STYLES = 'font-medium';
-const USAGE_SUBTEXT_STYLES = 'text-xs text-muted-foreground';
+import { UsageCard } from '@/components/settings/UsageCard';
+import { Label } from '@/components/ui/label';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Toggle } from '@/components/ui/toggle';
 
 export const BillingView = () => {
   const navigate = useNavigate();
@@ -43,7 +30,8 @@ export const BillingView = () => {
   const { plans: allPlans } = usePlans();
   const { createCheckoutSession, isLoading: isCreatingCheckout } = useCreateCheckoutSession();
   const { createPortalSession, isLoading: isCreatingPortal } = useCreatePortalSession();
-  const [billingMode, setBillingMode] = useState<'monthly' | 'yearly'>('monthly');
+  const { usage, isLoading } = useUsage();
+  const [billingMode, setBillingMode] = useState<'monthly' | 'yearly'>('yearly');
 
   const plans = useMemo(() => {
     return allPlans?.filter((plan) => plan.monthly?.price !== 0) ?? [];
@@ -51,8 +39,24 @@ export const BillingView = () => {
 
   // Get current plan from customer subscription
   const currentPlan = customer?.plan;
+  const currentSubscription = customer?.subscription;
 
-  console.log('currentPlan', currentPlan);
+  // Format the resubscription date
+  const formatResubscriptionDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Format the plan price
+  const formatPlanPrice = (plan: any) => {
+    if (!plan) return '';
+    const price = plan.price / 100; // Convert from cents
+    return `$${price.toFixed(2)}/${plan.interval}`;
+  };
 
   const handleUpgrade = async (plan: PlanSchema) => {
     console.log('plan', plan);
@@ -89,50 +93,6 @@ export const BillingView = () => {
       toast.error('Failed to open billing portal');
     }
   };
-  const usageStats = {
-    interviews: { used: 2, limit: 5 },
-    teamSize: { used: 3, limit: 3 },
-    workspaces: { used: 1, limit: 1 },
-    codeExecutions: { used: 15, limit: 50 },
-    apiRateLimit: '100 per minute',
-  };
-
-  const getUsagePercentage = (used: number, limit: number) => {
-    return Math.min((used / limit) * 100, 100);
-  };
-
-  const isAtLimit = (used: number, limit: number) => {
-    return used >= limit;
-  };
-
-  // Usage stat card component
-  const UsageStatCard = ({
-    label,
-    value,
-    subtext,
-    used,
-    limit,
-    isAtLimit: atLimit = false,
-  }: {
-    label: string;
-    value: string;
-    subtext?: string;
-    used: number;
-    limit: number;
-    isAtLimit?: boolean;
-  }) => {
-    return (
-      <Card className={cx('h-full', atLimit && CARD_LIMIT_WARNING_STYLES)}>
-        <CardHeader className='pb-0'>
-          <MutedText>{label}</MutedText>
-        </CardHeader>
-        <CardContent className='flex items-center gap-2'>
-          <p className={USAGE_VALUE_STYLES}>{value}</p>
-          {subtext && <p className={USAGE_SUBTEXT_STYLES}>{subtext}</p>}
-        </CardContent>
-      </Card>
-    );
-  };
 
   return (
     <div className='min-h-screen flex flex-col p-4 max-w-7xl mx-auto space-y-6'>
@@ -153,53 +113,42 @@ export const BillingView = () => {
       </div>
 
       {/* Current Usage Details */}
-      <div>
+      <div className='flex flex-col gap-4'>
+        <div>
+          <SmallHeader>Usage</SmallHeader>
+        </div>
+
         <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
-          <UsageStatCard
-            label='Interviews (This Month)'
-            value={`${usageStats.interviews.used} / ${usageStats.interviews.limit}`}
-            used={usageStats.interviews.used}
-            limit={usageStats.interviews.limit}
-          />
-
-          <UsageStatCard
-            label='Team Members'
-            value={`${usageStats.teamSize.used} / ${usageStats.teamSize.limit}`}
-            used={usageStats.teamSize.used}
-            limit={usageStats.teamSize.limit}
-            isAtLimit={isAtLimit(usageStats.teamSize.used, usageStats.teamSize.limit)}
-          />
-
-          <UsageStatCard
-            label='Workspaces'
-            value={`${usageStats.workspaces.used} / ${usageStats.workspaces.limit}`}
-            used={usageStats.workspaces.used}
-            limit={usageStats.workspaces.limit}
-            isAtLimit={isAtLimit(usageStats.workspaces.used, usageStats.workspaces.limit)}
-          />
-
-          <UsageStatCard
-            label='Code Executions'
-            value={`${usageStats.codeExecutions.used} / ${usageStats.codeExecutions.limit}`}
-            used={usageStats.codeExecutions.used}
-            limit={usageStats.codeExecutions.limit}
-          />
+          {usage &&
+            Object.entries(usage).map(([key, value]) => <UsageCard key={key} usage={value} />)}
         </div>
       </div>
 
       {/* Plan Switching Options */}
       <div className='flex flex-col md:flex-row justify-between items-center mb-8 gap-4'>
-        <SmallHeader>Upgrade your plan</SmallHeader>
+        <div>
+          <SmallHeader>Upgrade your plan</SmallHeader>
+
+          <MutedText>
+            You are currently on the <b>{currentPlan?.name}</b> plan. Your next billing date is{' '}
+            <b>{formatResubscriptionDate(currentSubscription?.currentPeriodEnd ?? '')}</b>.
+          </MutedText>
+        </div>
 
         <div className='flex items-center gap-2'>
-          <Switch
-            id='annual-discount'
-            checked={billingMode === 'yearly'}
-            onCheckedChange={(checked) => setBillingMode(checked ? 'yearly' : 'monthly')}
-          />
-          <label htmlFor='annual-discount' className='text-sm'>
-            Annual Discount (two months free)
-          </label>
+          <ToggleGroup
+            type='single'
+            value={billingMode}
+            onValueChange={(value) => setBillingMode(value as 'monthly' | 'yearly')}
+          >
+            <ToggleGroupItem value='monthly'>Monthly</ToggleGroupItem>
+            <ToggleGroupItem value='yearly'>
+              Yearly
+              <Badge variant='success' className='ml-2'>
+                2 months free
+              </Badge>
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
 

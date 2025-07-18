@@ -19,7 +19,7 @@ import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
 import { billingRouter } from '@/routes/billing.routes';
 import { webhookRouter } from '@/routes/webhook.routes';
-import { useBilling } from '@/lib/session';
+import { getBilling } from '@/lib/session';
 
 export interface AppContext {
   Variables: {
@@ -34,7 +34,7 @@ export interface AppContext {
     publicRoom: PublicRoomSchema | null;
 
     // data stuff
-    subscription: Awaited<ReturnType<typeof useBilling>> | null;
+    subscription: Awaited<ReturnType<typeof getBilling>> | null;
   };
   Bindings: Env;
 }

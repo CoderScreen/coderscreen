@@ -12,6 +12,7 @@ import { eq, and } from 'drizzle-orm';
 import { generateId, Id } from '@coderscreen/common/id';
 import { Stripe } from 'stripe';
 import { StripeService } from '@/services/third-party/Stripe.service';
+import { getBilling } from '@/lib/session';
 
 export class BillingService {
   private stripeService: StripeService;
@@ -77,14 +78,14 @@ export class BillingService {
     priceId: string;
     returnUrl: string;
   }) {
-    const subscription = await this.getActiveSubscription(params.organizationId);
+    const billing = await getBilling(this.ctx);
 
-    if (!subscription) {
+    if (!billing) {
       throw new Error('No active subscription found!');
     }
 
     return await this.stripeService.createCheckoutSession({
-      subscription: subscription.subscription,
+      subscription: billing.subscription,
       priceId: params.priceId,
       returnUrl: params.returnUrl,
     });

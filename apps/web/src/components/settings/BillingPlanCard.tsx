@@ -132,7 +132,7 @@ export const BillingPlanCard = ({
             ? 'Current Plan'
             : plan.name === 'Enterprise'
             ? 'Contact Sales'
-            : 'Upgrade'}
+            : 'Select Plan'}
         </Button>
       </CardFooter>
     </Card>

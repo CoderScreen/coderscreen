@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { AppContext } from '../index';
 import { BillingService } from '@/services/billing/Billing.service';
-import { CustomerEntity, PlanEntity, SubscriptionEntity } from '@coderscreen/db/billing.db';
+import { PlanEntity, SubscriptionEntity } from '@coderscreen/db/billing.db';
 import { HTTPException } from 'hono/http-exception';
 
 export const getSession = (ctx: Context<AppContext>, options?: { noActiveOrg?: boolean }) => {
@@ -30,7 +30,7 @@ export const getSession = (ctx: Context<AppContext>, options?: { noActiveOrg?: b
 /**
  * Fetches and caches billing data for the current organization
  */
-export const useBilling = async (
+export const getBilling = async (
   ctx: Context<AppContext>
 ): Promise<{
   subscription: SubscriptionEntity;

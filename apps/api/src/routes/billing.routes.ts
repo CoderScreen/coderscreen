@@ -13,6 +13,7 @@ import {
   CreatePortalSchema,
 } from '@/schema/billing.zod';
 import { getSession } from '@/lib/session';
+import { UsageService } from '@/services/billing/Usage.service';
 
 export const billingRouter = new Hono<AppContext>()
   // GET /billing/customer - Get customer and subscription info
@@ -143,5 +144,18 @@ export const billingRouter = new Hono<AppContext>()
       return ctx.json({
         url: portalSession.url,
       });
+    }
+  )
+  .get(
+    '/usage',
+    describeRoute({
+      description: 'Get usage information',
+    }),
+    async (ctx) => {
+      const usageService = new UsageService(ctx);
+
+      const allUsage = await usageService.getAllUsage();
+
+      return ctx.json(allUsage);
     }
   );

@@ -101,3 +101,23 @@ export const useCreatePortalSession = () => {
     ...mutation,
   };
 };
+
+export const useUsage = () => {
+  const query = useQuery({
+    queryKey: ['billing', 'usage'],
+    queryFn: async () => {
+      const response = await apiClient.billing.usage.$get();
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch current usage');
+      }
+
+      return response.json();
+    },
+  });
+
+  return {
+    usage: query.data,
+    ...query,
+  };
+};
