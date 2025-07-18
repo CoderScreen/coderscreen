@@ -17,6 +17,9 @@ import { PublicRoomSchema } from '@/schema/room.zod';
 import { RoomServer as PartyServer } from '@/partykit/room.do';
 import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
+import { billingRouter } from '@/routes/billing.routes';
+import { webhookRouter } from '@/routes/webhook.routes';
+import { useBilling } from '@/lib/session';
 
 export interface AppContext {
   Variables: {
@@ -29,12 +32,21 @@ export interface AppContext {
 
     // public stuff
     publicRoom: PublicRoomSchema | null;
+
+    // data stuff
+    subscription: Awaited<ReturnType<typeof useBilling>> | null;
   };
   Bindings: Env;
 }
 
 const app = new Hono<AppContext>()
   .use(logger())
+  .get('/', (ctx) => {
+    return ctx.text(
+      'Welcome to CoderScreen API. Visit https://docs.coderscreen.com for documentation.',
+      200
+    );
+  })
   .get('/health', (ctx) => {
     return ctx.text('ok', 200);
   })
@@ -48,12 +60,14 @@ const app = new Hono<AppContext>()
   .all('/auth/*', (ctx) => {
     return useAuth(ctx).handler(ctx.req.raw);
   })
-  .use('*', except(['/rooms/:roomId/public/*'], authMiddleware))
+  .route('/webhook', webhookRouter)
+  .route('/rooms/:roomId/public', publicRoomRouter)
+  .use('*', authMiddleware)
   // .use('partykit/*', partyKitMiddleware)
   .route('/assets', assetRouter)
   .route('/templates', templateRouter)
   .route('/rooms', roomRouter)
-  .route('/rooms/:roomId/public', publicRoomRouter);
+  .route('/billing', billingRouter);
 
 app.get(
   '/openapi',
@@ -64,7 +78,11 @@ app.get(
         version: '1.0.0',
         description: 'API for coder screen',
       },
-      servers: [],
+      servers: [
+        {
+          url: 'https://api.coderscreen.com',
+        },
+      ],
     },
   })
 );

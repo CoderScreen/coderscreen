@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nanoid } from 'nanoid';
 
 export const Entities = {
   room: 'r',
@@ -6,6 +7,15 @@ export const Entities = {
   asset: 'a',
   template: 't',
   llmMessage: 'lm',
+  customer: 'c',
+  plan: 'p',
+  subscription: 's',
+  eventUsage: 'eu',
+  eventUsageType: 'eut',
+  orgEventLimit: 'oel',
+  eventLog: 'el',
+  usageAlert: 'ua',
+  usage: 'u',
 } as const;
 
 type Entities = typeof Entities;
@@ -29,12 +39,5 @@ export const idString = <T extends keyof Entities>(
 };
 
 export const generateId = <T extends keyof Entities>(entity: T): Id<T> => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const randomValues = crypto.getRandomValues(new Uint8Array(10));
-  const randomString = Array.from(randomValues)
-    .map((value) => characters.charAt(value % characters.length))
-    .join('');
-
-  const entityPrefix = Entities[entity];
-  return `${entityPrefix}_${randomString}` as Id<T>;
+  return `${Entities[entity]}_${nanoid()}` as Id<T>;
 };

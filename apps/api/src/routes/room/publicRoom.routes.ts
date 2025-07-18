@@ -102,7 +102,12 @@ export const publicRoomRouter = new Hono<AppContext>()
           role: z.enum(['user', 'assistant', 'system']),
           content: z.string(),
           isStreaming: z.boolean(),
-          user: z.object({ id: z.string(), name: z.string(), color: z.string() }),
+          user: z.object({
+            id: z.string(),
+            name: z.string(),
+            color: z.string(),
+            email: z.string(),
+          }),
           success: z.literal(true),
           conversationId: z.string(),
         }),

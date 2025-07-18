@@ -57,9 +57,7 @@ export const useCreateRoom = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (
-      data: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt' | 'status'>
-    ) => {
+    mutationFn: async (data: Omit<RoomSchema, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => {
       const response = await apiClient.rooms.$post({
         json: data,
       });
@@ -90,13 +88,7 @@ export const useUpdateRoom = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<RoomSchema>;
-    }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<RoomSchema> }) => {
       const response = await apiClient.rooms[':id'].$patch({
         param: { id },
         json: data,

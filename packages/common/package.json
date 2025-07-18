@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "nanoid": "^5.1.5",
     "zod": "^3.25.67"
   },
   "exports": {

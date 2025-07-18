@@ -23,8 +23,28 @@ import {
   RiTimeLine,
   RiUserLine,
   RiTeamLine,
+  RiSettings3Line,
+  RiQuestionLine,
 } from '@remixicon/react';
 import { cx } from '@/lib/utils';
+import {
+  useCustomer,
+  usePlans,
+  useCreateCheckoutSession,
+  useCreatePortalSession,
+} from '@/query/billing.query';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+
+// Define Plan interface to match the actual data structure
+interface Plan {
+  id: string;
+  name: string;
+  price: string | null;
+  interval?: string | null;
+  description?: string | null;
+  stripePriceId?: string | null;
+}
 
 // Common styling constants
 const CARD_BASE_STYLES = '';
@@ -34,11 +54,54 @@ const USAGE_VALUE_STYLES = 'font-medium';
 const USAGE_SUBTEXT_STYLES = 'text-xs text-muted-foreground';
 
 export const BillingView = () => {
+  const { customer, data: customerData } = useCustomer();
+  const { plans } = usePlans();
+  const { createCheckoutSession, isLoading: isCreatingCheckout } = useCreateCheckoutSession();
+  const { createPortalSession, isLoading: isCreatingPortal } = useCreatePortalSession();
+
+  // Use customerData directly as subscription since it appears to be the subscription object
+  const subscription = customerData;
+
+  const handleUpgrade = async (plan: Plan) => {
+    if (!plan.stripePriceId) {
+      toast.error('This plan is not available for upgrade');
+      return;
+    }
+
+    try {
+      const checkoutSession = await createCheckoutSession({
+        priceId: plan.stripePriceId,
+        successUrl: `${window.location.origin}/settings/billing?success=true`,
+        cancelUrl: `${window.location.origin}/settings/billing?canceled=true`,
+      });
+
+      // Redirect to Stripe Checkout
+      window.location.href = checkoutSession.url;
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to create checkout session');
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      const portalSession = await createPortalSession({
+        returnUrl: `${window.location.origin}/settings/billing`,
+      });
+
+      // Redirect to Stripe Billing Portal
+      window.location.href = portalSession.url;
+    } catch (error) {
+      console.error('Error creating portal session:', error);
+      toast.error('Failed to open billing portal');
+    }
+  };
+
   // Realistic data for a technical interview platform
   const workspaceInfo = {
     name: 'Engineering Team',
     id: '360',
-    plan: 'Free',
+    plan: subscription?.planId ? `Plan ${subscription.planId}` : 'Free',
     planDetails: '5 Interviews per month',
     owner: 'You',
   };
@@ -249,9 +312,20 @@ export const BillingView = () => {
 
   return (
     <div className='min-h-screen flex flex-col p-4 max-w-7xl mx-auto space-y-6'>
-      <div className=''>
-        <SmallHeader>Billing & Usage</SmallHeader>
-        <MutedText>Manage your interview platform subscription and usage</MutedText>
+      <div className='flex items-center justify-between'>
+        <div className=''>
+          <SmallHeader>Billing & Usage</SmallHeader>
+          <MutedText>Manage your interview platform subscription and usage</MutedText>
+        </div>
+
+        <div className='flex items-center gap-4'>
+          <Button variant='secondary' icon={RiQuestionLine} iconPosition='right'>
+            Need Help
+          </Button>
+          <Button onClick={handleManageBilling} icon={RiSettings3Line} disabled={isCreatingPortal}>
+            Manage Billing
+          </Button>
+        </div>
       </div>
 
       {/* Current Usage Details */}
@@ -292,71 +366,101 @@ export const BillingView = () => {
       {/* Plan Switching Options */}
       <div className='flex flex-col md:flex-row justify-between items-center mb-8 gap-4'>
         <SmallHeader>Upgrade your plan</SmallHeader>
-        <div className='flex items-center gap-4'>
-          <div className='flex items-center gap-2'>
-            <Switch id='annual-discount' />
-            <label htmlFor='annual-discount' className='text-sm'>
-              Annual Discount (two months free)
-            </label>
-          </div>
-          <Button variant='secondary'>Need Help? Contact Support</Button>
+
+        <div className='flex items-center gap-2'>
+          <Switch id='annual-discount' />
+          <label htmlFor='annual-discount' className='text-sm'>
+            Annual Discount (two months free)
+          </label>
         </div>
       </div>
 
       {/* Available Plans */}
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6'>
-        {availablePlans.map((plan) => (
-          <Card
-            key={plan.name}
-            className={cx(
-              'relative transition-all duration-200 flex flex-col',
-              plan.popular ? 'ring-2 ring-primary shadow-lg' : ''
-            )}
-          >
-            {plan.popular && (
-              <Badge className='absolute top-4 right-4 bg-primary text-white'>Most Popular</Badge>
-            )}
+        {!plans ? (
+          <div className='col-span-full text-center py-8'>
+            <MutedText>Loading plans...</MutedText>
+          </div>
+        ) : (
+          plans.map((plan) => (
+            <Card
+              key={plan.id}
+              className={cx(
+                'relative transition-all duration-200 flex flex-col',
+                plan.name === 'Professional' ? 'ring-2 ring-primary shadow-lg' : ''
+              )}
+            >
+              {plan.name === 'Professional' && (
+                <Badge className='absolute top-4 right-4 bg-primary text-white'>Most Popular</Badge>
+              )}
 
-            <CardHeader>
-              <CardTitle className='text-lg'>{plan.name}</CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
-              <div className='text-2xl'>
-                {plan.price}
-                <span className='text-sm font-normal text-muted-foreground ml-1'>
-                  {plan.period}
-                </span>
-              </div>
-            </CardHeader>
+              <CardHeader>
+                <CardTitle className='text-lg'>{plan.name}</CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+                <div className='text-2xl'>
+                  {plan.price === '0.00' || plan.price === null ? 'Free' : `$${plan.price}`}
+                  <span className='text-sm font-normal text-muted-foreground ml-1'>
+                    {plan.interval ? `per ${plan.interval}` : ''}
+                  </span>
+                </div>
+              </CardHeader>
 
-            <CardContent className='flex-1'>
-              <ul className='space-y-4'>
-                {plan.features.map((feature, index) => (
-                  <li key={index} className='flex items-center gap-2'>
+              <CardContent className='flex-1'>
+                <ul className='space-y-4'>
+                  <li className='flex items-center gap-2'>
                     <div className='p-1 rounded bg-gray-100'>
-                      <feature.icon className='w-4 h-4 text-muted-foreground' />
+                      <RiCodeLine className='w-4 h-4 text-muted-foreground' />
                     </div>
                     <div className='flex-1'>
                       <div className='flex items-center gap-2'>
-                        <span className='text-sm font-medium'>{feature.text}</span>
+                        <span className='text-sm font-medium'>
+                          {plan.name === 'Free'
+                            ? '5 Interviews'
+                            : plan.name === 'Starter'
+                            ? '50 Interviews'
+                            : plan.name === 'Professional'
+                            ? '200 Interviews'
+                            : 'Unlimited Interviews'}
+                        </span>
                       </div>
                     </div>
                   </li>
-                ))}
-              </ul>
-            </CardContent>
+                  <li className='flex items-center gap-2'>
+                    <div className='p-1 rounded bg-gray-100'>
+                      <RiTeamLine className='w-4 h-4 text-muted-foreground' />
+                    </div>
+                    <div className='flex-1'>
+                      <div className='flex items-center gap-2'>
+                        <span className='text-sm font-medium'>
+                          {plan.name === 'Free'
+                            ? '3 Team Members'
+                            : plan.name === 'Starter'
+                            ? '5 Team Members'
+                            : plan.name === 'Professional'
+                            ? '15 Team Members'
+                            : 'Unlimited Team Members'}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </CardContent>
 
-            <CardFooter className='mt-auto'>
-              <Button
-                className={`w-full`}
-                variant={plan.popular ? 'primary' : 'secondary'}
-                icon={RiArrowRightLine}
-                iconPosition='right'
-              >
-                {plan.enterprise ? 'Contact Sales' : 'Upgrade'}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+              <CardFooter className='mt-auto'>
+                <Button
+                  className={`w-full`}
+                  variant={plan.name === 'Professional' ? 'primary' : 'secondary'}
+                  icon={RiArrowRightLine}
+                  iconPosition='right'
+                  onClick={() => handleUpgrade(plan)}
+                  disabled={!plan.stripePriceId || plan.name === 'Free' || isCreatingCheckout}
+                >
+                  {plan.name === 'Free' ? 'Current Plan' : 'Upgrade'}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

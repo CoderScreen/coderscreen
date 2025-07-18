@@ -12,6 +12,7 @@ import { HTTPException } from 'hono/http-exception';
 import { privatePartyKitMiddleware } from '@/middleware/partyKit.middleware';
 
 export const roomRouter = new Hono<AppContext>()
+  .use('/:id/connect/*', privatePartyKitMiddleware)
   // GET /rooms - List all rooms
   .get(
     '/',
@@ -235,5 +236,4 @@ export const roomRouter = new Hono<AppContext>()
 
       // return room;
     }
-  )
-  .use('/:roomId/connect/*', privatePartyKitMiddleware);
+  );

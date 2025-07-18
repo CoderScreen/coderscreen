@@ -29,6 +29,8 @@
     "./roomContent.db": "./src/roomContent.db.ts",
     "./user.db": "./src/user.db.ts",
     "./template.db": "./src/template.db.ts",
-    "./llmMessage.db": "./src/llmMessage.db.ts"
+    "./llmMessage.db": "./src/llmMessage.db.ts",
+    "./billing.db": "./src/billing.db.ts",
+    "./usage.db": "./src/usage.db.ts"
   }
 }

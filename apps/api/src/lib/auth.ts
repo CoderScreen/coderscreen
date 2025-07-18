@@ -7,12 +7,14 @@ import { betterAuthConfig } from '../../better-auth.config';
 import { useDb } from '@/db/client';
 import { organization } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
+import { BillingService } from '@/services/billing/Billing.service';
 
 export const useAuth: (
   ctx: Context<AppContext>
 ) => ReturnType<typeof betterAuth<typeof betterAuthConfig>> = (ctx) => {
   const env = ctx.env;
   const db = useDb(ctx);
+  const billingService = new BillingService(ctx);
 
   const options = {
     trustedOrigins: [env.FE_APP_URL],
@@ -51,12 +53,20 @@ export const useAuth: (
     plugins: [
       organization({
         organizationCreation: {
-          afterCreate: async ({ user: orgUser }) => {
+          afterCreate: async ({ user: orgUser, organization: org }) => {
+            const db = useDb(ctx);
+
             // update user to set isOnboarded to true
             await db
               .update(schema.user)
               .set({ isOnboarded: true })
               .where(eq(schema.user.id, orgUser.id));
+
+            // Create customer for the organization
+            await billingService.createCustomerForOrganization({
+              organizationId: org.id,
+              email: orgUser.email,
+            });
           },
         },
       }),

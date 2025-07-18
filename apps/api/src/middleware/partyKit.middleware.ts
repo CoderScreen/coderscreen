@@ -26,7 +26,7 @@ export const partyKitMiddleware = createMiddleware<AppContext>(async (ctx, next)
 });
 
 export const privatePartyKitMiddleware = createMiddleware<AppContext>(async (ctx, next) => {
-  const roomId = ctx.req.param('roomId');
+  const roomId = ctx.req.param('id');
 
   if (!roomId) {
     throw new HTTPException(400, {

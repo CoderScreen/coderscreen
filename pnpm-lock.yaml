@@ -64,6 +64,9 @@ importers:
       postgres:
         specifier: ^3.4.7
         version: 3.4.7
+      stripe:
+        specifier: ^18.3.0
+        version: 18.3.0(@types/node@24.0.3)
       y-partykit:
         specifier: ^0.0.33
         version: 0.0.33(react@19.1.0)(y-protocols@1.0.6)(yjs@13.6.27)
@@ -387,6 +390,9 @@ importers:
 
   packages/common:
     dependencies:
+      nanoid:
+        specifier: ^5.1.5
+        version: 5.1.5
       zod:
         specifier: ^3.25.67
         version: 3.25.67
@@ -12262,6 +12268,19 @@ packages:
     dependencies:
       js-tokens: 9.0.1
     dev: true
+
+  /stripe@18.3.0(@types/node@24.0.3):
+    resolution: {integrity: sha512-FkxrTUUcWB4CVN2yzgsfF/YHD6WgYHduaa7VmokCy5TLCgl5UNJkwortxcedrxSavQ8Qfa4Ir4JxcbIYiBsyLg==}
+    engines: {node: '>=12.*'}
+    peerDependencies:
+      '@types/node': '>=12.x.x'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      '@types/node': 24.0.3
+      qs: 6.13.0
+    dev: false
 
   /strnum@1.1.2:
     resolution: {integrity: sha512-vrN+B7DBIoTTZjnPNewwhx6cBA/H+IS7rfW68n7XxC1y7uoiGQBxaKzqucGUgavX15dJgiGztLJ8vxuEzwqBdA==}
