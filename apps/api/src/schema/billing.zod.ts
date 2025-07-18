@@ -1,7 +1,8 @@
+import { idString } from '@coderscreen/common/id';
 import { z } from 'zod';
 
 export const CustomerSchema = z.object({
-  id: z.string(),
+  id: idString('customer'),
   createdAt: z.date(),
   updatedAt: z.date(),
   stripeCustomerId: z.string(),
@@ -11,7 +12,7 @@ export const CustomerSchema = z.object({
 });
 
 export const SubscriptionSchema = z.object({
-  id: z.string(),
+  id: idString('subscription'),
   createdAt: z.date(),
   updatedAt: z.date(),
   stripeSubscriptionId: z.string(),
@@ -31,12 +32,11 @@ export const SubscriptionSchema = z.object({
 });
 
 export const PlanSchema = z.object({
-  id: z.string(),
+  id: idString('plan'),
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string().nullable(),
   price: z.number(),
-  currency: z.string(),
-  interval: z.enum(['month', 'year']),
+  interval: z.enum(['monthly', 'yearly']),
   stripePriceId: z.string(),
   features: z.array(z.string()).optional(),
 });
@@ -59,3 +59,5 @@ export const CreateCheckoutSchema = z.object({
 export const CreatePortalSchema = z.object({
   returnUrl: z.string().url(),
 });
+
+export type PlanSchema = z.infer<typeof PlanSchema>;

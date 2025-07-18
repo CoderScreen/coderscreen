@@ -3,6 +3,7 @@ import { AppContext } from '@/index';
 import { useDb } from '@/db/client';
 import {
   customerTable,
+  PlanEntity,
   planTable,
   SubscriptionEntity,
   subscriptionTable,
@@ -72,12 +73,21 @@ export class BillingService {
   }
 
   async createCheckoutSession(params: {
-    customerId: string;
+    organizationId: string;
     priceId: string;
-    successUrl: string;
-    cancelUrl: string;
+    returnUrl: string;
   }) {
-    return await this.stripeService.createCheckoutSession(params);
+    const subscription = await this.getActiveSubscription(params.organizationId);
+
+    if (!subscription) {
+      throw new Error('No active subscription found!');
+    }
+
+    return await this.stripeService.createCheckoutSession({
+      subscription: subscription.subscription,
+      priceId: params.priceId,
+      returnUrl: params.returnUrl,
+    });
   }
 
   async createBillingPortalSession(customerId: string, returnUrl: string) {
@@ -91,7 +101,7 @@ export class BillingService {
       .select()
       .from(customerTable)
       .where(eq(customerTable.organizationId, organizationId))
-      .then((res) => res[0]);
+      .then((res) => (res.length > 0 ? res[0] : null));
   }
 
   async getActiveSubscription(organizationId: string) {
@@ -117,14 +127,38 @@ export class BillingService {
       .then((res) => (res.length > 0 ? res[0] : null));
   }
 
-  async getPlans() {
+  async getPlans(): Promise<
+    {
+      monthly: PlanEntity | null;
+      yearly: PlanEntity | null;
+    }[]
+  > {
     const db = useDb(this.ctx);
 
-    return await db
+    const allPlans = await db
       .select()
       .from(planTable)
       .where(eq(planTable.isActive, true))
       .orderBy(planTable.price);
+
+    const newMap = new Map<
+      string,
+      {
+        monthly: PlanEntity | null;
+        yearly: PlanEntity | null;
+      }
+    >();
+
+    allPlans.forEach((plan) => {
+      const cur = newMap.get(plan.group) || { monthly: null, yearly: null };
+      if (plan.interval === 'monthly') {
+        newMap.set(plan.group, { monthly: plan, yearly: cur.yearly });
+      } else {
+        newMap.set(plan.group, { monthly: cur.monthly, yearly: plan });
+      }
+    });
+
+    return Array.from(newMap.values());
   }
 
   async getPlanByStripePriceId(stripePriceId: string) {
@@ -184,6 +218,7 @@ export class BillingService {
       stripeCustomerId,
       planId: plan.id,
       stripeSubscriptionId: stripeSubscription.id,
+      stripeSubscriptionItemId: stripeSubscriptionItem.id,
       status: stripeSubscription.status,
       currentPeriodStart: new Date(
         stripeSubscriptionItem.current_period_start * 1000

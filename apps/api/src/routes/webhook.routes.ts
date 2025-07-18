@@ -70,7 +70,7 @@ export const webhookRouter = new Hono<AppContext>().post(
       const errorMessage = `Webhook handling failed. ${
         err instanceof Error ? err.message : 'Internal server error'
       }`;
-      console.log(errorMessage);
+      console.error(errorMessage);
       return ctx.text(errorMessage, 400);
     }
   }

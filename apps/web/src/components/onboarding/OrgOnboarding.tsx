@@ -42,14 +42,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
       logo: '',
     },
     onSubmit: async ({ value }) => {
-      // Generate slug from organization name
-      const slug = slugify(value.name);
-
-      // Create organization with slug
-      await createOrganization({
-        ...value,
-        slug: slug,
-      });
+      await createOrganization(value);
       onComplete();
     },
   });

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useSession } from '@/query/auth.query';
+import { slugify } from '@/lib/slug';
 
 export const useActiveOrg = () => {
   const { data, isPending, error } = authClient.useActiveOrganization();
@@ -51,12 +52,14 @@ export const useSwitchOrganization = () => {
 };
 
 export const useCreateOrganization = () => {
-  const router = useRouter();
+  const { session } = useSession();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: async (params: { name: string; slug: string; goal?: string }) => {
+    mutationFn: async (params: { name: string; goal?: string }) => {
       const data = await authClient.organization.create({
         ...params,
+        slug: `${session.userId}-${slugify(params.name)}`,
         metadata: {
           goal: params.goal,
         },
@@ -76,7 +79,7 @@ export const useCreateOrganization = () => {
         },
       });
 
-      await router.navigate({ to: '/', reloadDocument: true });
+      await navigate({ to: '/', reloadDocument: true });
     },
   });
 

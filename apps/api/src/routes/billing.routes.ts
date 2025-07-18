@@ -94,10 +94,9 @@ export const billingRouter = new Hono<AppContext>()
 
       // Create checkout session
       const checkoutSession = await billingService.createCheckoutSession({
-        customerId: customer.stripeCustomerId,
+        organizationId: orgId,
         priceId,
-        successUrl,
-        cancelUrl,
+        returnUrl: successUrl,
       });
 
       return ctx.json({
@@ -130,8 +129,6 @@ export const billingRouter = new Hono<AppContext>()
 
       // Get customer by organization
       const customer = await billingService.getCustomerByOrganizationId(orgId);
-
-      console.log('customer', customer, 'for org', orgId);
 
       if (!customer) {
         return ctx.json({ error: 'Customer not found' }, 404);

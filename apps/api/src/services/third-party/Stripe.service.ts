@@ -1,4 +1,5 @@
 import { AppContext } from '@/index';
+import { SubscriptionEntity } from '@coderscreen/db/billing.db';
 import { Context } from 'hono';
 import { Stripe } from 'stripe';
 
@@ -35,20 +36,22 @@ export class StripeService {
   }
 
   async createCheckoutSession(params: {
-    customerId: string;
+    subscription: SubscriptionEntity;
     priceId: string;
-    successUrl: string;
-    cancelUrl: string;
+    returnUrl: string;
   }) {
-    const { customerId, priceId, successUrl, cancelUrl } = params;
+    const { subscription, priceId, returnUrl } = params;
 
-    const session = await this.stripe.checkout.sessions.create({
-      customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      allow_promotion_codes: true,
+    const session = await this.stripe.billingPortal.sessions.create({
+      customer: subscription.stripeCustomerId,
+      flow_data: {
+        type: 'subscription_update_confirm',
+        subscription_update_confirm: {
+          subscription: subscription.stripeSubscriptionId,
+          items: [{ id: subscription.stripeSubscriptionItemId, price: priceId }],
+        },
+      },
+      return_url: returnUrl,
     });
 
     return session;

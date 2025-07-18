@@ -13,6 +13,7 @@ export const siteConfig = {
     team: '/settings/team',
   },
   externalRoutes: {
+    contactSales: 'mailto:team@coderscreen.com?subject=Enterprise%20Plan%20Request',
     documentation: 'https://mintlify.com',
   },
 };

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, decimal } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, decimal, integer } from 'drizzle-orm/pg-core';
 import { organization } from './user.db';
 import { Id } from '@coderscreen/common/id';
 
@@ -22,8 +22,9 @@ export const planTable = pgTable('plans', {
   name: text('name').notNull(),
   description: text('description'),
   stripePriceId: text('stripe_price_id').unique().notNull(),
-  price: decimal('price', { precision: 10, scale: 2 }),
-  interval: text('interval'), // monthly, yearly
+  price: integer('price').notNull(),
+  interval: text('interval').$type<'monthly' | 'yearly'>().notNull(), // monthly, yearly
+  group: text('group').notNull().default('free'), // free, pro, enterprise since we have both monthly and yearly plans
   isActive: boolean('is_active').default(true).notNull(),
 });
 
@@ -39,7 +40,8 @@ export const subscriptionTable = pgTable('subscriptions', {
     .notNull()
     .references(() => planTable.id),
   stripeCustomerId: text('stripe_customer_id').notNull(),
-  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
+  stripeSubscriptionItemId: text('stripe_subscription_item_id').notNull().unique(),
   status: text('status').notNull(), // active, canceled, past_due, etc.
   currentPeriodStart: timestamp('current_period_start', { mode: 'string' }),
   currentPeriodEnd: timestamp('current_period_end', { mode: 'string' }),

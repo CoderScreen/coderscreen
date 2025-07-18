@@ -16,7 +16,6 @@ interface CreateOrgDialogProps {
 
 export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
   const { open, onOpenChange } = props;
-  const navigate = useNavigate();
   const { createOrganization, isLoading } = useCreateOrganization();
   const { uploadLogo, isLoading: isUploadingLogo } = useUploadLogo();
 
@@ -29,13 +28,7 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
       logo: '',
     },
     onSubmit: async ({ value }) => {
-      // Generate slug from organization name
-      const slug = slugify(value.name);
-
-      const res = await createOrganization({
-        name: value.name,
-        slug: slug,
-      });
+      await createOrganization(value);
     },
   });
 

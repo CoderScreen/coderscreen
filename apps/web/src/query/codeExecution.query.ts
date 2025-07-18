@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCurrentRoomId } from '@/lib/params';
 import * as Y from 'yjs';
-import { ConnectionStatus } from './realtime.query';
+import { toast } from 'sonner';
 
 export interface CodeExecutionStatus {
   isRunning: boolean;
@@ -39,11 +39,7 @@ export interface CodeExecutionMessage {
 function isExecutionData(
   data: any
 ): data is { output?: string; error?: string; timestamp: number } {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    typeof data.timestamp === 'number'
-  );
+  return typeof data === 'object' && data !== null && typeof data.timestamp === 'number';
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
@@ -52,9 +48,7 @@ const getCodeExecutionWebsocketUrl = (roomId: string) => {
   return `${API_URL.replace('https', 'wss').replace('http', 'ws')}/rooms/${roomId}/public/ws`;
 };
 
-export function useCodeExecutionWebSocket(
-  setExecutionStatus?: (status: ConnectionStatus) => void
-) {
+export function useCodeExecutionWebSocket() {
   const currentRoomId = useCurrentRoomId();
   const [data, setData] = useState<CodeExecutionStatus>({
     isRunning: false,
@@ -82,9 +76,7 @@ export function useCodeExecutionWebSocket(
       const executionState = ydoc.getMap('execution');
       executionState.observe((event) => {
         console.log('Execution state changed:', event);
-        const status = executionState.get('status') as
-          | CodeExecutionState
-          | undefined;
+        const status = executionState.get('status') as CodeExecutionState | undefined;
         if (status) {
           setData({
             isRunning: status.isRunning || false,
@@ -97,12 +89,6 @@ export function useCodeExecutionWebSocket(
 
       ws.onopen = () => {
         console.log('Code execution WebSocket connected');
-
-        // Update connection status if callback provided
-        setExecutionStatus?.({
-          isConnected: true,
-          status: 'connected',
-        });
 
         // Send sync message to get current state
         ws.send(JSON.stringify({ type: 'execution', messageType: 'sync' }));
@@ -128,9 +114,7 @@ export function useCodeExecutionWebSocket(
 
                 // Manually read the current execution state after sync
                 const executionState = ydocRef.current.getMap('execution');
-                const status = executionState.get('status') as
-                  | CodeExecutionState
-                  | undefined;
+                const status = executionState.get('status') as CodeExecutionState | undefined;
 
                 console.log('Execution state after sync:', status);
 
@@ -209,13 +193,6 @@ export function useCodeExecutionWebSocket(
 
       ws.onclose = () => {
         console.log('Code execution WebSocket disconnected');
-
-        // Update connection status if callback provided
-        setExecutionStatus?.({
-          isConnected: false,
-          status: 'disconnected',
-        });
-
         // Clean up Y.js document
         if (ydocRef.current) {
           ydocRef.current.destroy();
@@ -233,25 +210,12 @@ export function useCodeExecutionWebSocket(
 
       ws.onerror = (error) => {
         console.error('Code execution WebSocket error:', error);
-
-        // Update connection status if callback provided
-        setExecutionStatus?.({
-          isConnected: false,
-          status: 'disconnected',
-          error: 'Connection error',
-        });
       };
     } catch (error) {
       console.error('Error creating code execution WebSocket:', error);
-
-      // Update connection status if callback provided
-      setExecutionStatus?.({
-        isConnected: false,
-        status: 'disconnected',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      toast.error('Failed to connect to code execution WebSocket');
     }
-  }, [currentRoomId, setExecutionStatus]);
+  }, [currentRoomId]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -268,13 +232,7 @@ export function useCodeExecutionWebSocket(
       ydocRef.current.destroy();
       ydocRef.current = null;
     }
-
-    // Update connection status if callback provided
-    setExecutionStatus?.({
-      isConnected: false,
-      status: 'disconnected',
-    });
-  }, [setExecutionStatus]);
+  }, []);
 
   useEffect(() => {
     connect();
