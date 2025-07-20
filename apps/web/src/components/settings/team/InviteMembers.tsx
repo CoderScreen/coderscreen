@@ -125,6 +125,7 @@ export const InviteMembers = () => {
   const form = useForm({
     defaultValues: initialValues,
     validators: {
+      onBlur: formSchema,
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
@@ -177,7 +178,9 @@ export const InviteMembers = () => {
                     hasError={!field.state.meta.isValid}
                   />
                   {field.state.meta.errors && (
-                    <p className='text-sm text-red-600'>{field.state.meta.errors.join(', ')}</p>
+                    <p className='text-sm text-red-600'>
+                      {field.state.meta.errors.map((e) => e?.message).join(', ')}
+                    </p>
                   )}
                 </div>
               )}
@@ -212,7 +215,7 @@ export const InviteMembers = () => {
             type='submit'
             icon={RiUserAddLine}
             isLoading={isInviting}
-            disabled={!form.state.isValid}
+            disabled={!form.state.isFormValid}
           >
             Send Invitation
           </Button>

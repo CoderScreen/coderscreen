@@ -130,6 +130,7 @@ export class BillingService {
 
   async getPlans(): Promise<
     {
+      group: 'free' | 'starter' | 'pro' | 'scale';
       monthly: PlanEntity | null;
       yearly: PlanEntity | null;
     }[]
@@ -143,19 +144,31 @@ export class BillingService {
       .orderBy(planTable.price);
 
     const newMap = new Map<
-      string,
+      'free' | 'starter' | 'pro' | 'scale',
       {
+        group: 'free' | 'starter' | 'pro' | 'scale';
         monthly: PlanEntity | null;
         yearly: PlanEntity | null;
       }
     >();
 
     allPlans.forEach((plan) => {
-      const cur = newMap.get(plan.group) || { monthly: null, yearly: null };
+      const cur = newMap.get(plan.group as 'free' | 'starter' | 'pro' | 'scale') || {
+        monthly: null,
+        yearly: null,
+      };
       if (plan.interval === 'monthly') {
-        newMap.set(plan.group, { monthly: plan, yearly: cur.yearly });
+        newMap.set(plan.group as 'free' | 'starter' | 'pro' | 'scale', {
+          group: plan.group as 'free' | 'starter' | 'pro' | 'scale',
+          monthly: plan,
+          yearly: cur.yearly,
+        });
       } else {
-        newMap.set(plan.group, { monthly: cur.monthly, yearly: plan });
+        newMap.set(plan.group as 'free' | 'starter' | 'pro' | 'scale', {
+          group: plan.group as 'free' | 'starter' | 'pro' | 'scale',
+          monthly: cur.monthly,
+          yearly: plan,
+        });
       }
     });
 

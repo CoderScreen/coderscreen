@@ -60,7 +60,7 @@ const ToggleGroupItem = React.forwardRef<ToggleGroupItemElement, ToggleGroupItem
           'data-[state=off]:text-gray-600 data-[state=off]:hover:text-gray-900 data-[state=off]:hover:bg-gray-50',
           'data-[state=on]:bg-white data-[state=on]:text-gray-900 data-[state=on]:shadow-sm',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled:pointer-events-none disabled:opacity-50',
+          'disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
           className
         )}
         {...props}

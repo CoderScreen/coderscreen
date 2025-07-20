@@ -50,7 +50,6 @@ export const eventLogTable = pgTable('event_log', {
   eventType: text('event_type').notNull().$type<EventType>(),
   amount: integer('amount').notNull().default(1),
   userId: text('user_id'),
-  resourceId: text('resource_id'),
   metadata: jsonb('metadata'),
 });
 

@@ -8,11 +8,42 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RiCodeLine, RiTeamLine, RiArrowRightLine } from '@remixicon/react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { RiCodeLine, RiTeamLine, RiArrowRightLine, RemixiconComponentType } from '@remixicon/react';
 import { cx } from '@/lib/utils';
 import { PlanSchema } from '@coderscreen/api/schema/billing';
 
+const PLAN_FEATURE_MAP: Record<
+  'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
+  Array<{
+    icon: RemixiconComponentType;
+    label: string;
+  }>
+> = {
+  free: [
+    { icon: RiCodeLine, label: '5 Interviews' },
+    { icon: RiTeamLine, label: '3 Team Members' },
+  ],
+  starter: [
+    { icon: RiCodeLine, label: '50 Interviews' },
+    { icon: RiTeamLine, label: '5 Team Members' },
+  ],
+  pro: [
+    { icon: RiCodeLine, label: '200 Interviews' },
+    { icon: RiTeamLine, label: '15 Team Members' },
+  ],
+  scale: [
+    { icon: RiCodeLine, label: 'Unlimited Interviews' },
+    { icon: RiTeamLine, label: 'Unlimited Team Members' },
+  ],
+  enterprise: [
+    { icon: RiCodeLine, label: 'Unlimited Interviews' },
+    { icon: RiTeamLine, label: 'Unlimited Team Members' },
+  ],
+};
+
 export const BillingPlanCard = ({
+  group,
   monthly,
   yearly,
   mode,
@@ -20,7 +51,9 @@ export const BillingPlanCard = ({
   isPopular = false,
   onUpgrade,
   isCreatingCheckout = false,
+  isLoading = false,
 }: {
+  group: 'free' | 'starter' | 'pro' | 'scale' | 'enterprise';
   monthly: PlanSchema | null;
   yearly: PlanSchema | null;
   mode: PlanSchema['interval'];
@@ -28,7 +61,35 @@ export const BillingPlanCard = ({
   isPopular?: boolean;
   onUpgrade?: (plan: PlanSchema) => void;
   isCreatingCheckout?: boolean;
+  isLoading?: boolean;
 }) => {
+  if (isLoading) {
+    return (
+      <Card className='relative transition-all duration-200 flex flex-col'>
+        <CardHeader>
+          <Skeleton className='h-6 w-32 mb-2' />
+          <Skeleton className='h-4 w-48 mb-4' />
+          <Skeleton className='h-8 w-20' />
+        </CardHeader>
+        <CardContent className='flex-1'>
+          <div className='space-y-4'>
+            <div className='flex items-center gap-2'>
+              <Skeleton className='w-6 h-6 rounded' />
+              <Skeleton className='h-4 w-32' />
+            </div>
+            <div className='flex items-center gap-2'>
+              <Skeleton className='w-6 h-6 rounded' />
+              <Skeleton className='h-4 w-36' />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className='mt-auto'>
+          <Skeleton className='h-10 w-full' />
+        </CardFooter>
+      </Card>
+    );
+  }
+
   // Select the plan based on mode, fallback to the other if the preferred one is null
   const plan = mode === 'monthly' ? monthly || yearly : yearly || monthly;
   const isYearly = mode === 'yearly';
@@ -79,42 +140,21 @@ export const BillingPlanCard = ({
 
       <CardContent className='flex-1'>
         <ul className='space-y-4'>
-          <li className='flex items-center gap-2'>
-            <div className='p-1 rounded bg-gray-100'>
-              <RiCodeLine className='w-4 h-4 text-muted-foreground' />
-            </div>
-            <div className='flex-1'>
-              <div className='flex items-center gap-2'>
-                <span className='text-sm font-medium'>
-                  {plan.name === 'Free'
-                    ? '5 Interviews'
-                    : plan.name === 'Starter'
-                    ? '50 Interviews'
-                    : plan.name === 'Professional'
-                    ? '200 Interviews'
-                    : 'Unlimited Interviews'}
-                </span>
-              </div>
-            </div>
-          </li>
-          <li className='flex items-center gap-2'>
-            <div className='p-1 rounded bg-gray-100'>
-              <RiTeamLine className='w-4 h-4 text-muted-foreground' />
-            </div>
-            <div className='flex-1'>
-              <div className='flex items-center gap-2'>
-                <span className='text-sm font-medium'>
-                  {plan.name === 'Free'
-                    ? '3 Team Members'
-                    : plan.name === 'Starter'
-                    ? '5 Team Members'
-                    : plan.name === 'Professional'
-                    ? '15 Team Members'
-                    : 'Unlimited Team Members'}
-                </span>
-              </div>
-            </div>
-          </li>
+          {PLAN_FEATURE_MAP[group].map((feature, index) => {
+            const IconComponent = feature.icon;
+            return (
+              <li key={index} className='flex items-center gap-2'>
+                <div className='p-1 rounded bg-gray-100'>
+                  <IconComponent className='w-4 h-4 text-muted-foreground' />
+                </div>
+                <div className='flex-1'>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-sm font-medium'>{feature.label}</span>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </CardContent>
 

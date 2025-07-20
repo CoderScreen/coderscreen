@@ -10,10 +10,7 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createAuthClient } from 'better-auth/react';
-import {
-  organizationClient,
-  inferAdditionalFields,
-} from 'better-auth/client/plugins';
+import { organizationClient, inferAdditionalFields } from 'better-auth/client/plugins';
 
 const API_URL = 'http://localhost:8000';
 export const apiClient = hc<AppRouter>(API_URL, {
@@ -24,22 +21,14 @@ export const apiClient = hc<AppRouter>(API_URL, {
 
 export const TanstackQueryClient = new QueryClient({
   queryCache: new QueryCache({
-    onSuccess: (
-      _data: unknown,
-      query: Query<unknown, unknown, unknown, QueryKey>
-    ): void => {
+    onSuccess: (_data: unknown, query: Query<unknown, unknown, unknown, QueryKey>): void => {
       if (query.meta?.SUCCESS_MESSAGE) {
         toast.success(`${query.meta.SUCCESS_MESSAGE}`);
       }
     },
-    onError: (
-      error: unknown,
-      query: Query<unknown, unknown, unknown, QueryKey>
-    ): void => {
+    onError: (error: unknown, query: Query<unknown, unknown, unknown, QueryKey>): void => {
       if (error instanceof Error) {
-        toast.error(
-          `${query.meta?.ERROR_MESSAGE ?? 'Something went wrong!'}: ${error.message}`
-        );
+        toast.error(`${query.meta?.ERROR_MESSAGE ?? 'Something went wrong!'}: ${error.message}`);
       }
       throw error;
     },
@@ -52,9 +41,7 @@ export const TanstackQueryClient = new QueryClient({
       mutation: Mutation<unknown, unknown, unknown, unknown>
     ): void => {
       if (error instanceof Error) {
-        toast.error(
-          `${mutation.meta?.ERROR_MESSAGE ?? 'Something went wrong!'}: ${error.message}`
-        );
+        toast.error(`${mutation.meta?.ERROR_MESSAGE ?? 'Something went wrong!'}: ${error.message}`);
       }
       throw error;
     },

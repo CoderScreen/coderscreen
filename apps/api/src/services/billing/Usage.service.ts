@@ -77,8 +77,8 @@ export class UsageService {
     // Get or create usage record for current cycle
     const usage = await this.getOrCreateUsage(eventType);
 
-    // Check if already exceeded
-    if (usage.count >= usage.limit) {
+    // Check if already or will be exceeded
+    if (usage.count + amount >= usage.limit) {
       return {
         eventType: usage.eventType,
         count: usage.count,
@@ -94,8 +94,10 @@ export class UsageService {
         eventType,
         amount,
         userId: user.id,
-        resourceId: resource?.id ?? null,
-        metadata: metadata || {},
+        metadata: {
+          ...metadata,
+          resource,
+        },
       }),
     ]);
     return {

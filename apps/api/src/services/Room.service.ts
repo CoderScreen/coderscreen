@@ -10,22 +10,39 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { getSession } from '@/lib/session';
 import { TemplateEntity } from '@coderscreen/db/template.db';
 import { ChatMessage, User } from '@/partykit/internal/AI.service';
+import { UsageService } from '@/services/billing/Usage.service';
 
 export class RoomService {
   private readonly db: PostgresJsDatabase;
+  private readonly usageService: UsageService;
 
   constructor(private readonly ctx: Context<AppContext>) {
     this.db = useDb(ctx);
+    this.usageService = new UsageService(ctx);
   }
 
   async createRoom(
     values: Omit<RoomEntity, 'id' | 'createdAt' | 'updatedAt' | 'organizationId' | 'userId'>
   ) {
     const { user, orgId } = getSession(this.ctx);
+    const roomId = generateId('room');
+
+    const usageResult = await this.usageService.trackEvent({
+      eventType: 'live_interview',
+      resource: {
+        id: roomId,
+        type: 'room',
+      },
+    });
+
+    if (usageResult.exceeded) {
+      throw new Error('You have reached the limit of live interviews');
+    }
+
     return this.db
       .insert(roomTable)
       .values({
-        id: generateId('room'),
+        id: roomId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         organizationId: orgId,

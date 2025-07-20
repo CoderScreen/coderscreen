@@ -20,6 +20,7 @@ import { PrivateRoomServer } from './partykit/privateRoom.do';
 import { billingRouter } from '@/routes/billing.routes';
 import { webhookRouter } from '@/routes/webhook.routes';
 import { getBilling } from '@/lib/session';
+import { HTTPException } from 'hono/http-exception';
 
 export interface AppContext {
   Variables: {
@@ -67,7 +68,16 @@ const app = new Hono<AppContext>()
   .route('/assets', assetRouter)
   .route('/templates', templateRouter)
   .route('/rooms', roomRouter)
-  .route('/billing', billingRouter);
+  .route('/billing', billingRouter)
+  .onError((err, ctx) => {
+    if (err instanceof HTTPException) {
+      return ctx.text(err.message, err.status);
+    } else if (err instanceof Error) {
+      return ctx.text(err.message, 500);
+    } else {
+      return ctx.text('Internal server error', 500);
+    }
+  });
 
 app.get(
   '/openapi',

@@ -61,9 +61,12 @@ export const useCreateRoom = () => {
       const response = await apiClient.rooms.$post({
         json: data,
       });
+
       if (!response.ok) {
-        throw new Error('Failed to create room');
+        const textResponse = await response.text();
+        throw new Error(textResponse.length > 0 ? textResponse : 'Failed to create room');
       }
+
       return response.json();
     },
     onSuccess: () => {

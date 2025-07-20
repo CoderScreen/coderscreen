@@ -1,11 +1,8 @@
 import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { RiSettings3Line, RiQuestionLine, RiCalendarLine, RiVipCrownLine } from '@remixicon/react';
-import { cx } from '@/lib/utils';
+import { RiSettings3Line, RiQuestionLine } from '@remixicon/react';
 import {
   useCustomer,
   usePlans,
@@ -20,14 +17,12 @@ import { PlanSchema } from '@coderscreen/api/schema/billing';
 import { useNavigate } from '@tanstack/react-router';
 import { siteConfig } from '@/lib/siteConfig';
 import { UsageCard } from '@/components/settings/UsageCard';
-import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Toggle } from '@/components/ui/toggle';
 
 export const BillingView = () => {
   const navigate = useNavigate();
   const { customer } = useCustomer();
-  const { plans: allPlans } = usePlans();
+  const { plans: allPlans, isLoading: isLoadingPlans } = usePlans();
   const { createCheckoutSession, isLoading: isCreatingCheckout } = useCreateCheckoutSession();
   const { createPortalSession, isLoading: isCreatingPortal } = useCreatePortalSession();
   const { usage, isLoading } = useUsage();
@@ -49,13 +44,6 @@ export const BillingView = () => {
       month: 'long',
       day: 'numeric',
     });
-  };
-
-  // Format the plan price
-  const formatPlanPrice = (plan: any) => {
-    if (!plan) return '';
-    const price = plan.price / 100; // Convert from cents
-    return `$${price.toFixed(2)}/${plan.interval}`;
   };
 
   const handleUpgrade = async (plan: PlanSchema) => {
@@ -119,8 +107,13 @@ export const BillingView = () => {
         </div>
 
         <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
-          {usage &&
-            Object.entries(usage).map(([key, value]) => <UsageCard key={key} usage={value} />)}
+          {isLoading
+            ? // Show 4 loading usage cards
+              Array.from({ length: 4 }).map((_, index) => (
+                <UsageCard key={`loading-usage-${index}`} isLoading={true} />
+              ))
+            : usage &&
+              Object.entries(usage).map(([key, value]) => <UsageCard key={key} usage={value} />)}
         </div>
       </div>
 
@@ -154,14 +147,22 @@ export const BillingView = () => {
 
       {/* Available Plans */}
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6'>
-        {!plans ? (
-          <div className='col-span-full text-center py-8'>
-            <MutedText>Loading plans...</MutedText>
-          </div>
+        {isLoadingPlans ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <BillingPlanCard
+              group='free'
+              key={`loading-plan-${index}`}
+              monthly={null}
+              yearly={null}
+              mode={billingMode}
+              isLoading={true}
+            />
+          ))
         ) : (
           <>
             {plans.map((plan, index) => (
               <BillingPlanCard
+                group={plan.group}
                 key={plan.monthly?.id || plan.yearly?.id}
                 monthly={plan.monthly}
                 yearly={plan.yearly}
@@ -176,6 +177,7 @@ export const BillingView = () => {
             {/* Enterprise Plan - Always present */}
             <BillingPlanCard
               key='enterprise'
+              group='enterprise'
               monthly={{
                 id: 'p_enterprise',
                 name: 'Enterprise',

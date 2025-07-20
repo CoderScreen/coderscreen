@@ -1,12 +1,13 @@
 import { UsageResultSchema } from '@coderscreen/api/schema/usage';
 import { MutedText } from '@/components/ui/typography';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
 
-// Common styling constants
-const CARD_LIMIT_WARNING_STYLES = 'bg-red-50 border-red-200';
+// Common styling constant
+const CARD_WARNING_STYLES = 'bg-amber-50 border-amber-200';
+const CARD_LIMIT_STYLES = 'bg-red-50 border-red-200';
 const USAGE_VALUE_STYLES = 'font-medium';
-const USAGE_SUBTEXT_STYLES = 'text-xs text-muted-foreground';
 
 const USAGE_TYPE_MAP = {
   live_interview: {
@@ -17,45 +18,46 @@ const USAGE_TYPE_MAP = {
   },
 } as const satisfies Record<UsageResultSchema['eventType'], { label: string }>;
 
-// Usage stat card component
-const UsageStatCard = ({
-  label,
-  value,
-  subtext,
-  used,
-  limit,
-  isAtLimit: atLimit = false,
+export const UsageCard = ({
+  usage,
+  isLoading = false,
 }: {
-  label: string;
-  value: string;
-  subtext?: string;
-  used: number;
-  limit: number;
-  isAtLimit?: boolean;
+  usage?: UsageResultSchema;
+  isLoading?: boolean;
 }) => {
+  if (isLoading) {
+    return (
+      <Card className='h-full'>
+        <CardHeader className='pb-2'>
+          <Skeleton className='h-4 w-24' />
+        </CardHeader>
+        <CardContent className='flex items-center gap-2'>
+          <Skeleton className='h-5 w-16' />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!usage) return null;
+
+  const usageInfo = USAGE_TYPE_MAP[usage.eventType];
+  const percent = Math.round((usage.count / usage.limit) * 100);
+
   return (
-    <Card className={cx('h-full', atLimit && CARD_LIMIT_WARNING_STYLES)}>
+    <Card
+      className={cx(
+        'h-full',
+        percent > 80 ? (usage.exceeded ? CARD_LIMIT_STYLES : CARD_WARNING_STYLES) : ''
+      )}
+    >
       <CardHeader className='pb-0'>
-        <MutedText>{label}</MutedText>
+        <MutedText>{usageInfo.label}</MutedText>
       </CardHeader>
       <CardContent className='flex items-center gap-2'>
-        <p className={USAGE_VALUE_STYLES}>{value}</p>
-        {subtext && <p className={USAGE_SUBTEXT_STYLES}>{subtext}</p>}
+        <p className={USAGE_VALUE_STYLES}>
+          {usage.count} / {usage.limit}
+        </p>
       </CardContent>
     </Card>
-  );
-};
-
-export const UsageCard = ({ usage }: { usage: UsageResultSchema }) => {
-  const usageInfo = USAGE_TYPE_MAP[usage.eventType];
-
-  return (
-    <UsageStatCard
-      label={usageInfo.label}
-      value={`${usage.count} / ${usage.limit}`}
-      used={usage.count}
-      limit={usage.limit}
-      isAtLimit={usage.exceeded}
-    />
   );
 };

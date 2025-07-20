@@ -1,13 +1,16 @@
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { betterAuth, BetterAuthOptions } from 'better-auth';
+import { APIError } from 'better-auth/api';
 import { AppContext } from '@/index';
 import { Context } from 'hono';
 import * as schema from '@coderscreen/db/user.db';
 import { betterAuthConfig } from '../../better-auth.config';
 import { useDb } from '@/db/client';
-import { organization } from 'better-auth/plugins';
+import { createAuthMiddleware, organization } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
 import { BillingService } from '@/services/billing/Billing.service';
+import { UsageService } from '@/services/billing/Usage.service';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 export const useAuth: (
   ctx: Context<AppContext>
@@ -15,6 +18,7 @@ export const useAuth: (
   const env = ctx.env;
   const db = useDb(ctx);
   const billingService = new BillingService(ctx);
+  const usageService = new UsageService(ctx);
 
   const options = {
     trustedOrigins: [env.FE_APP_URL],
@@ -52,6 +56,12 @@ export const useAuth: (
 
     plugins: [
       organization({
+        invitationLimit: async (data) => {
+          const numMembers = await usageService.getCurrentUsage('team_members');
+
+          return numMembers.limit;
+        },
+
         organizationCreation: {
           afterCreate: async ({ user: orgUser, organization: org }) => {
             const db = useDb(ctx);
@@ -72,7 +82,54 @@ export const useAuth: (
       }),
     ],
     user: betterAuthConfig.user,
+    hooks: {
+      before: createAuthMiddleware(async (authCtx) => {
+        if (authCtx.path === '/organization/invite-member') {
+          const sessionCookieToken = await authCtx.getSignedCookie(
+            authCtx.context.authCookies.sessionToken.name,
+            authCtx.context.secret
+          );
+          if (!sessionCookieToken) {
+            throw new APIError('BAD_REQUEST', {
+              message: 'Invalid session token',
+            });
+          }
+
+          const session = await getSessionManual({ token: sessionCookieToken, db });
+          ctx.set('user', {} as any);
+          ctx.set('session', session);
+
+          const usageResult = await usageService.getCurrentUsage('team_members');
+
+          if (usageResult.exceeded) {
+            throw new APIError('BAD_REQUEST', {
+              message: 'You are not allowed to invite members to this organization',
+            });
+          }
+        }
+
+        return;
+      }),
+    },
   } satisfies BetterAuthOptions;
 
   return betterAuth(options);
+};
+
+const getSessionManual = async (params: { token: string; db: PostgresJsDatabase }) => {
+  const { token, db } = params;
+
+  const session = await db
+    .select()
+    .from(schema.session)
+    .where(eq(schema.session.token, token))
+    .then((res) => (res.length > 0 ? res[0] : null));
+
+  if (!session) {
+    throw new APIError('BAD_REQUEST', {
+      message: 'Invalid session token',
+    });
+  }
+
+  return session;
 };
