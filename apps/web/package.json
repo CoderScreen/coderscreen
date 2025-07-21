@@ -68,6 +68,7 @@
     "dockview": "^4.4.0",
     "hono": "^4.7.11",
     "monaco-editor": "^0.52.2",
+    "motion": "^12.23.6",
     "partysocket": "1.1.4",
     "react": "^19.0.0",
     "react-cookie": "^8.0.1",

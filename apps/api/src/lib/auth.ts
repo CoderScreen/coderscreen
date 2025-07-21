@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 import { BillingService } from '@/services/billing/Billing.service';
 import { UsageService } from '@/services/billing/Usage.service';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { LoopsService } from '@/services/third-party/Loops.service';
 
 export const useAuth: (
   ctx: Context<AppContext>
@@ -19,6 +20,7 @@ export const useAuth: (
   const db = useDb(ctx);
   const billingService = new BillingService(ctx);
   const usageService = new UsageService(ctx);
+  const loopsService = new LoopsService(ctx);
 
   const options = {
     trustedOrigins: [env.FE_APP_URL],
@@ -26,9 +28,18 @@ export const useAuth: (
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: 'pg', schema }),
     ...betterAuthConfig,
-
     // anything that needs db below this line
     databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            await loopsService.createContact({
+              email: user.email,
+              name: user.name,
+            });
+          },
+        },
+      },
       session: {
         create: {
           before: async (session) => {
@@ -81,7 +92,6 @@ export const useAuth: (
         },
       }),
     ],
-    user: betterAuthConfig.user,
     hooks: {
       before: createAuthMiddleware(async (authCtx) => {
         if (authCtx.path === '/organization/invite-member') {
@@ -110,6 +120,15 @@ export const useAuth: (
 
         return;
       }),
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async (data) => {
+        await loopsService.sendTransactionalEmail('verification_code', data.user.email, {
+          verification_url: data.url,
+        });
+      },
     },
   } satisfies BetterAuthOptions;
 

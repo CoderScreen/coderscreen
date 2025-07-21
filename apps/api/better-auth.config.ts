@@ -28,6 +28,7 @@ export const betterAuthConfig = {
   appName: 'CoderScreen',
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
   },
   socialProviders: {
     github: {

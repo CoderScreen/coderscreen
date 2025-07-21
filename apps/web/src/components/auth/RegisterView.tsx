@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
 import { useGithubSignIn, useGoogleSignIn, useSignUp } from '@/query/auth.query';
 import { Link, useSearch } from '@tanstack/react-router';
+import { siteConfig } from '@/lib/siteConfig';
 
 export const RegisterView = () => {
   const [email, setEmail] = useState('');
@@ -39,25 +40,36 @@ export const RegisterView = () => {
 
   if (isVerificationSent) {
     return (
-      <div className='min-h-screen w-full flex items-center justify-center bg-gray-50 px-4 py-16'>
+      <div className='min-h-screen w-full flex items-center justify-center px-4 py-16'>
         <div className='w-full max-w-md'>
           <Card className='shadow-lg border-gray-200'>
             <CardHeader className='text-center pb-4'>
-              <div className='w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-4'>
+              <div className='w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4'>
                 <RiMailCheckLine className='text-white size-6' />
               </div>
-              <LargeHeader className='text-gray-900 mb-2'>Check your email</LargeHeader>
-              <p className='text-gray-600'>
-                We've sent a verification link to <strong>{email}</strong>
+              <LargeHeader className='text-gray-900 mb-2'>Verify your email</LargeHeader>
+              <p className='text-gray-700 text-base font-medium'>
+                We sent a verification link to{' '}
+                <span className='font-semibold break-all'>{email}</span>
               </p>
             </CardHeader>
 
             <CardContent className='text-center'>
-              <p className='text-sm text-gray-500 mb-4'>
-                Click the link in your email to verify your account and complete the signup process.
+              <p className='text-sm text-gray-600 mb-4'>
+                Please check your inbox and click the link to verify your account and complete the
+                signup process.
+              </p>
+              <p className='text-xs text-gray-400 mb-2'>
+                Didn't receive the email? Check your spam folder.
               </p>
               <p className='text-xs text-gray-400'>
-                Didn't receive the email? Check your spam folder or contact support.
+                Still need help?{' '}
+                <a
+                  href={siteConfig.externalRoutes.contactSupport}
+                  className='text-primary hover:underline font-medium'
+                >
+                  Contact support
+                </a>
               </p>
             </CardContent>
           </Card>

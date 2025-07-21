@@ -234,7 +234,13 @@ export const BillingPlanCard = ({
         <CardTitle className='text-lg'>{plan.name}</CardTitle>
         <CardDescription>{plan.description}</CardDescription>
         <div className='text-2xl'>
-          {plan.name === 'Enterprise' ? 'Custom' : plan.price === 0 ? 'Free' : `$${plan.price}`}
+          {plan.name === 'Enterprise' ? (
+            'Custom'
+          ) : plan.price === 0 ? (
+            'Free'
+          ) : (
+            <span>${plan.price}</span>
+          )}
 
           {plan.price > 0 && plan.name !== 'Enterprise' ? (
             <>

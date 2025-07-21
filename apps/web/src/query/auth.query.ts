@@ -36,7 +36,7 @@ export const useSignUp = () => {
         name: email,
         email,
         password,
-        callbackURL,
+        callbackURL: `${APP_URL}${callbackURL ? callbackURL : ''}`,
       });
 
       if (result.error) {
