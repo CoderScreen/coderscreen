@@ -212,10 +212,9 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
 
             {/* Current Messages */}
             {messages.length === 0 ? (
-              <div className='text-center text-slate-500 py-8'>
-                <RiRobotFill className='h-12 w-12 mx-auto mb-4 text-slate-300' />
-                <p className='text-slate-600'>Start a conversation with the AI assistant</p>
-                <p className='text-sm text-slate-500'>
+              <div className='text-center py-8'>
+                <p className='text-muted-foreground'>Start a conversation with the AI assistant</p>
+                <p className='text-sm text-muted-foreground'>
                   Ask for help with your code or programming questions
                 </p>
               </div>

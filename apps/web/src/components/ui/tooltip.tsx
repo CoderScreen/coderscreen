@@ -19,12 +19,10 @@ interface TooltipProps
   showArrow?: boolean;
   triggerAsChild?: boolean;
   arrowClassName?: string;
+  triggerClassName?: string;
 }
 
-const Tooltip = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitives.Content>,
-  TooltipProps
->(
+const Tooltip = React.forwardRef<React.ElementRef<typeof TooltipPrimitives.Content>, TooltipProps>(
   (
     {
       children,
@@ -40,6 +38,7 @@ const Tooltip = React.forwardRef<
       sideOffset = 10,
       triggerAsChild = false,
       arrowClassName,
+      triggerClassName,
       ...props
     }: TooltipProps,
     forwardedRef
@@ -52,7 +51,11 @@ const Tooltip = React.forwardRef<
           onOpenChange={onOpenChange}
           delayDuration={delayDuration}
         >
-          <TooltipPrimitives.Trigger onClick={onClick} asChild={triggerAsChild}>
+          <TooltipPrimitives.Trigger
+            onClick={onClick}
+            asChild={triggerAsChild}
+            className={triggerClassName}
+          >
             {children}
           </TooltipPrimitives.Trigger>
           <TooltipPrimitives.Portal>

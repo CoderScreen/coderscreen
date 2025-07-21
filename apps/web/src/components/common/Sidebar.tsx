@@ -32,6 +32,7 @@ import { useSession } from '@/query/auth.query';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { SidebarProfile } from '@/components/common/SidebarProfile';
 import { OrgSwitcher } from '@/components/common/OrgSwitcher';
+import { Tooltip } from '@/components/ui/tooltip';
 
 // Navigation configuration
 const MAIN_NAVIGATION: {
@@ -44,6 +45,7 @@ const MAIN_NAVIGATION: {
     icon: RemixiconComponentType;
   }[];
   isExternal?: boolean;
+  comingSoon?: boolean;
 }[] = [
   {
     titleKey: 'Interviews',
@@ -59,21 +61,25 @@ const MAIN_NAVIGATION: {
     titleKey: 'Assessments',
     href: siteConfig.routes.assessments,
     icon: RiListCheck3,
+    comingSoon: true,
   },
   {
     titleKey: 'Take-Homes',
     href: siteConfig.routes.takeHomes,
     icon: RiHomeOfficeLine,
+    comingSoon: true,
   },
   {
     titleKey: 'Templates',
     href: siteConfig.routes.rooms,
     icon: RiDashboardLine,
+    comingSoon: true,
   },
   {
     titleKey: 'Candidates',
     href: siteConfig.routes.candidates,
     icon: RiUserStarLine,
+    comingSoon: true,
   },
   {
     titleKey: 'Settings',
@@ -102,12 +108,12 @@ const MAIN_NAVIGATION: {
       },
     ],
   },
-  {
-    titleKey: 'Documentation',
-    href: siteConfig.externalRoutes.documentation,
-    icon: RiBook3Line,
-    isExternal: true,
-  },
+  // {
+  //   titleKey: 'Documentation',
+  //   href: siteConfig.externalRoutes.documentation,
+  //   icon: RiBook3Line,
+  //   isExternal: true,
+  // },
 ];
 
 const ACCOUNT_NAVIGATION: {
@@ -173,25 +179,38 @@ const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
     return renderNavMenuItem(item);
   }
 
+  const LinkWrapper = ({ children }: { children: React.ReactNode }) =>
+    item.comingSoon ? (
+      <Tooltip content={<span>Coming soon</span>} triggerClassName='w-full'>
+        {children}
+      </Tooltip>
+    ) : (
+      children
+    );
+
   return (
     <li key={item.href}>
-      <Link
-        to={item.href}
-        className={cx(
-          SidebarItemClassNames.base,
-          active ? SidebarItemClassNames.active : SidebarItemClassNames.inactive,
-          focusRing
-        )}
-      >
-        <item.icon
+      <LinkWrapper>
+        <Link
+          to={item.href}
           className={cx(
-            SidebarItemClassNames.icon,
-            active ? SidebarItemClassNames.activeIcon : SidebarItemClassNames.inactiveIcon
+            SidebarItemClassNames.base,
+            active ? SidebarItemClassNames.active : SidebarItemClassNames.inactive,
+            item.comingSoon ? 'opacity-50 cursor-not-allowed' : '',
+            focusRing
           )}
-          aria-hidden='true'
-        />
-        <span className='truncate'>{item.titleKey}</span>
-      </Link>
+          disabled={item.comingSoon}
+        >
+          <item.icon
+            className={cx(
+              SidebarItemClassNames.icon,
+              active ? SidebarItemClassNames.activeIcon : SidebarItemClassNames.inactiveIcon
+            )}
+            aria-hidden='true'
+          />
+          <span className='truncate'>{item.titleKey}</span>
+        </Link>
+      </LinkWrapper>
     </li>
   );
 };

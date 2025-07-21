@@ -51,17 +51,17 @@ export const useSwitchOrganization = () => {
   };
 };
 
-export const useCreateOrganization = () => {
+export const useCreateOrganization = (options: { dontRedirect?: boolean } = {}) => {
   const { session } = useSession();
   const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: async (params: { name: string; goal?: string }) => {
       const data = await authClient.organization.create({
-        ...params,
+        name: params.name,
         slug: `${session.userId}-${slugify(params.name)}`,
         metadata: {
-          goal: params.goal,
+          goal: params.goal ?? '',
         },
       });
 
@@ -79,7 +79,9 @@ export const useCreateOrganization = () => {
         },
       });
 
-      await navigate({ to: '/', reloadDocument: true });
+      if (!options.dontRedirect) {
+        await navigate({ to: '/', reloadDocument: true });
+      }
     },
   });
 

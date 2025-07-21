@@ -11,6 +11,7 @@ import { SmallHeader } from '@/components/ui/heading';
 import { Button } from '@/components/ui/button';
 import { RiCheckLine, RiMailSendLine } from '@remixicon/react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from '@tanstack/react-router';
 
 export const AcceptInvitationView = () => {
   const { invitation, isLoading } = useInvitation();
@@ -39,6 +40,10 @@ export const AcceptInvitationView = () => {
     return (
       <div className='flex justify-center items-center min-h-[40vh]'>
         <div className='text-muted-foreground'>Invitation not found or expired.</div>
+
+        <Link to='/'>
+          <Button variant='secondary'>Go to home</Button>
+        </Link>
       </div>
     );
   }
