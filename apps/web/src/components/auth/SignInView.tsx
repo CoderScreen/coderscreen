@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
 import { useGoogleSignIn, useGithubSignIn, useSignIn } from '@/query/auth.query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { CustomComponent } from '@coderscreen/ui/custom';
 
 export const SignInView = () => {
   const [email, setEmail] = useState('');
@@ -37,6 +38,8 @@ export const SignInView = () => {
       <div className='w-full max-w-md'>
         <Card className='shadow-lg border-gray-200 relative'>
           <CardHeader className='text-center pb-4'>
+            <CustomComponent>12312</CustomComponent>
+
             <div className='w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4'>
               <RiMailLine className='text-white size-6' />
             </div>
