@@ -160,6 +160,7 @@ export const RegisterView = () => {
                   Already have an account?{' '}
                   <Link
                     to='/login'
+                    search={{ callbackUrl: searchQuery.callbackUrl }}
                     className='text-primary hover:text-primary/80 font-medium transition-colors'
                   >
                     Sign in

@@ -7,11 +7,12 @@ import * as schema from '@coderscreen/db/user.db';
 import { betterAuthConfig } from '../../better-auth.config';
 import { useDb } from '@/db/client';
 import { createAuthMiddleware, organization } from 'better-auth/plugins';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { BillingService } from '@/services/billing/Billing.service';
 import { UsageService } from '@/services/billing/Usage.service';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { LoopsService } from '@/services/third-party/Loops.service';
+import { retryable } from '@/lib/utils';
 
 export const useAuth: (
   ctx: Context<AppContext>
@@ -33,10 +34,33 @@ export const useAuth: (
       user: {
         create: {
           after: async (user) => {
-            await loopsService.createContact({
-              email: user.email,
-              name: user.name,
-            });
+            await Promise.all([
+              retryable(() =>
+                loopsService.createContact({
+                  email: user.email,
+                  name: user.name,
+                })
+              ),
+              retryable(async () => {
+                // check if user is invited to any organization, if so they dont need to be onboarded
+                const db = useDb(ctx);
+                const invitations = await db
+                  .select()
+                  .from(schema.invitation)
+                  .where(eq(schema.invitation.email, user.email))
+                  .limit(1);
+
+                if (invitations.length === 0) {
+                  return;
+                }
+
+                // create user as onboarded
+                await db
+                  .update(schema.user)
+                  .set({ isOnboarded: true })
+                  .where(eq(schema.user.id, user.id));
+              }),
+            ]);
           },
         },
       },
@@ -49,6 +73,7 @@ export const useAuth: (
               .select()
               .from(schema.member)
               .where(eq(schema.member.userId, session.userId))
+              .orderBy(desc(schema.member.createdAt))
               .limit(1)
               .then((res) => res[0]);
 
@@ -67,10 +92,19 @@ export const useAuth: (
 
     plugins: [
       organization({
-        invitationLimit: async (data) => {
+        invitationLimit: async () => {
           const numMembers = await usageService.getCurrentUsage('team_members');
-
           return numMembers.limit;
+        },
+        sendInvitationEmail: async (data) => {
+          const inviteLink = `${env.FE_APP_URL}/accept-invitation/${data.id}`;
+
+          await loopsService.sendTransactionalEmail('org_invitation', data.email, {
+            invited_by_username: data.inviter.user.name,
+            invited_by_email: data.inviter.user.email,
+            org_name: data.organization.name,
+            invite_link: inviteLink,
+          });
         },
 
         organizationCreation: {

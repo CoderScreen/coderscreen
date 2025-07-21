@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { ChooseOrgView } from '@/components/org/ChooseOrgView';
+import { AcceptInvitationView } from '@/components/invitations/AccInvView';
 
-export const Route = createFileRoute('/organizations')({
+export const Route = createFileRoute('/accept-invitation/$invId')({
   component: RouteComponent,
   beforeLoad: async ({ context, location }) => {
-    const { user, session, isAuthenticated } = await context.auth; // Call the function
+    const { user, isAuthenticated } = await context.auth; // Call the function
 
     if (!isAuthenticated || !user) {
       throw redirect({ to: '/login', search: { callbackUrl: location.href } });
@@ -13,5 +13,5 @@ export const Route = createFileRoute('/organizations')({
 });
 
 function RouteComponent() {
-  return <ChooseOrgView />;
+  return <AcceptInvitationView />;
 }

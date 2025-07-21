@@ -13,6 +13,7 @@ import { Route as OrganizationsRouteImport } from './routes/organizations'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AcceptInvitationInvIdRouteImport } from './routes/accept-invitation/$invId'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as authRegisterRouteImport } from './routes/(auth)/register'
@@ -41,6 +42,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AcceptInvitationInvIdRoute = AcceptInvitationInvIdRouteImport.update({
+  id: '/accept-invitation/$invId',
+  path: '/accept-invitation/$invId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoomsRoute = AppRoomsRouteImport.update({
   id: '/rooms',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof authRegisterRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
+  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
   '/': typeof AppIndexRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/register': typeof authRegisterRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
+  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
   '/': typeof AppIndexRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/(auth)/register': typeof authRegisterRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
+  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
   '/_app/': typeof AppIndexRoute
   '/_app/settings/billing': typeof AppSettingsBillingRoute
   '/_app/settings/team': typeof AppSettingsTeamRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/profile'
     | '/rooms'
+    | '/accept-invitation/$invId'
     | '/'
     | '/settings/billing'
     | '/settings/team'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/profile'
     | '/rooms'
+    | '/accept-invitation/$invId'
     | '/'
     | '/settings/billing'
     | '/settings/team'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/(auth)/register'
     | '/_app/profile'
     | '/_app/rooms'
+    | '/accept-invitation/$invId'
     | '/_app/'
     | '/_app/settings/billing'
     | '/_app/settings/team'
@@ -184,6 +196,7 @@ export interface RootRouteChildren {
   OrganizationsRoute: typeof OrganizationsRoute
   authLoginRoute: typeof authLoginRoute
   authRegisterRoute: typeof authRegisterRoute
+  AcceptInvitationInvIdRoute: typeof AcceptInvitationInvIdRoute
   RoomRoomIdSummaryRoute: typeof RoomRoomIdSummaryRoute
   RoomRoomIdIndexRoute: typeof RoomRoomIdIndexRoute
 }
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/accept-invitation/$invId': {
+      id: '/accept-invitation/$invId'
+      path: '/accept-invitation/$invId'
+      fullPath: '/accept-invitation/$invId'
+      preLoaderRoute: typeof AcceptInvitationInvIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/rooms': {
       id: '/_app/rooms'
@@ -310,6 +330,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrganizationsRoute: OrganizationsRoute,
   authLoginRoute: authLoginRoute,
   authRegisterRoute: authRegisterRoute,
+  AcceptInvitationInvIdRoute: AcceptInvitationInvIdRoute,
   RoomRoomIdSummaryRoute: RoomRoomIdSummaryRoute,
   RoomRoomIdIndexRoute: RoomRoomIdIndexRoute,
 }

@@ -3,7 +3,6 @@ import Sidebar from '@/components/common/Sidebar';
 import { Outlet } from '@tanstack/react-router';
 import { PendingView } from '@/components/common/PendingView';
 import { SidebarProvider } from '@/contexts/SidebarContext';
-import { CookiesProvider } from 'react-cookie';
 
 export const Route = createFileRoute('/_app')({
   pendingComponent: () => <PendingView />,

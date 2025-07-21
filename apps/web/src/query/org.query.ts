@@ -1,7 +1,7 @@
 import { apiClient, authClient } from '@/query/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useSession } from '@/query/auth.query';
 import { slugify } from '@/lib/slug';
 

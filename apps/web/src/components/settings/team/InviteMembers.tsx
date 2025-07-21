@@ -19,6 +19,7 @@ import {
   RiTimeLine,
   RiCheckLine,
   RiCloseCircleLine,
+  RiLockLine,
 } from '@remixicon/react';
 import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
@@ -55,6 +56,7 @@ import { Invitation } from 'better-auth/plugins/organization';
 import { formatDatetime } from '@/lib/dateUtils';
 import { formatSlug } from '@/lib/slug';
 import { useUsage } from '@/query/billing.query';
+import { useCurrentMember } from '@/query/auth.query';
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -109,8 +111,13 @@ const initialValues = {
 } as z.infer<typeof formSchema>;
 
 export const InviteMembers = () => {
+  const { member } = useCurrentMember();
   const { usage } = useUsage('team_members');
   const [cancelInvitationId, setCancelInvitationId] = useState<string | null>(null);
+
+  const canEdit = useMemo(() => {
+    return member?.role === 'owner' || member?.role === 'admin';
+  }, [member]);
 
   const { invitations, isLoading: isLoadingInvitations } = useInvitations();
   const sortedInvitations = useMemo(() => {
@@ -178,7 +185,7 @@ export const InviteMembers = () => {
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     hasError={!field.state.meta.isValid}
-                    disabled={usage?.exceeded}
+                    disabled={usage?.exceeded || !canEdit}
                   />
                   {field.state.meta.errors && (
                     <p className='text-sm text-red-600'>
@@ -198,7 +205,7 @@ export const InviteMembers = () => {
                   <Select
                     value={field.state.value}
                     onValueChange={(value) => field.handleChange(value as 'member' | 'admin')}
-                    disabled={usage?.exceeded}
+                    disabled={usage?.exceeded || !canEdit}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder='Select role' />
@@ -225,6 +232,13 @@ export const InviteMembers = () => {
                 </p>
               </div>
             </div>
+          ) : !canEdit ? (
+            <div className='px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-lg'>
+              <div className='flex items-center gap-2'>
+                <RiLockLine className='h-4 w-4 text-amber-600' />
+                <p className='text-sm text-amber-800'>Only admins and owners can invite members.</p>
+              </div>
+            </div>
           ) : (
             <div />
           )}
@@ -234,7 +248,7 @@ export const InviteMembers = () => {
               type='submit'
               icon={RiUserAddLine}
               isLoading={isInviting}
-              disabled={!form.state.isFormValid || usage?.exceeded}
+              disabled={!form.state.isFormValid || usage?.exceeded || !canEdit}
             >
               Send Invitation
             </Button>
@@ -244,7 +258,18 @@ export const InviteMembers = () => {
 
       {/* Pending Invitations */}
       <div className='mt-4'>
-        <h3 className='text-lg font-medium text-gray-900'>Pending Invitations</h3>
+        <div>
+          <SmallHeader>Pending Invitations</SmallHeader>
+
+          {usage?.exceeded ? (
+            <MutedText>You have no more invitations left</MutedText>
+          ) : (
+            <MutedText>
+              You can invite up to {usage?.limit ?? 0 - (usage?.count ?? 0)} members
+            </MutedText>
+          )}
+        </div>
+
         <TableRoot>
           <Table>
             <TableHead>
@@ -269,10 +294,13 @@ export const InviteMembers = () => {
                         <span className='text-sm text-gray-500'>
                           {formatDatetime(invitation.expiresAt)}
                         </span>
-                        <InvitationActions
-                          onCancel={() => setCancelInvitationId(invitation.id)}
-                          onResend={() => handleResendInvitation(invitation)}
-                        />
+
+                        {canEdit && (
+                          <InvitationActions
+                            onCancel={() => setCancelInvitationId(invitation.id)}
+                            onResend={() => handleResendInvitation(invitation)}
+                          />
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -340,7 +368,10 @@ const InvitationActions = ({
           <RiResetRightLine className='h-4 w-4 mr-2' />
           Resend
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onCancel}>
+        <DropdownMenuItem
+          onClick={onCancel}
+          className='text-red-600 focus:text-red-600 focus:bg-red-50'
+        >
           <RiDeleteBinLine className='h-4 w-4 mr-2' />
           Cancel
         </DropdownMenuItem>

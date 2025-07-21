@@ -7,11 +7,12 @@ import { RiMailLine, RiArrowRightLine, RiGoogleFill, RiGithubFill } from '@remix
 import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
 import { useGoogleSignIn, useGithubSignIn, useSignIn } from '@/query/auth.query';
-import { Link, useSearch } from '@tanstack/react-router';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 
 export const SignInView = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
   const searchQuery = useSearch({ from: '/(auth)/login' });
 
   const { signInWithGoogle, isLoading: isLoadingGoogle } = useGoogleSignIn();
@@ -20,6 +21,7 @@ export const SignInView = () => {
 
   const handleSignIn = async () => {
     await signIn({ email, password, callbackURL: searchQuery.callbackUrl });
+    navigate({ to: searchQuery.callbackUrl ?? '/' });
   };
 
   const handleSignInWithGoogle = async () => {
@@ -112,6 +114,7 @@ export const SignInView = () => {
                   Don't have an account?{' '}
                   <Link
                     to='/register'
+                    search={{ callbackUrl: searchQuery.callbackUrl }}
                     className='text-primary hover:text-primary/80 font-medium transition-colors'
                   >
                     Sign up

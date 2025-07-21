@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -34,11 +34,16 @@ import {
   RiShieldUserLine,
   RiDeleteBinLine,
   RiCloseLine,
+  RiMore2Line,
 } from '@remixicon/react';
-import { useSession } from '@/query/auth.query';
+import { useCurrentMember, useSession } from '@/query/auth.query';
 import { formatDatetime } from '@/lib/dateUtils';
 import { useActiveOrg } from '@/query/org.query';
 import { UserAvatar } from '@/components/common/UserAvatar';
+import { SmallHeader } from '@/components/ui/heading';
+import { MutedText } from '@/components/ui/typography';
+import { useUsage } from '@/query/billing.query';
+import { useRemoveMember } from '@/query/team.query';
 
 export const getRoleBadge = (role: string) => {
   switch (role) {
@@ -70,7 +75,7 @@ const MemberActions = ({ member, onRemove }: { member: any; onRemove: (id: strin
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='icon' icon={RiMoreLine} />
+        <Button variant='icon' icon={RiMore2Line} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
         <DropdownMenuItem
@@ -87,30 +92,29 @@ const MemberActions = ({ member, onRemove }: { member: any; onRemove: (id: strin
   );
 };
 export const MembersTable = () => {
-  const { user } = useSession();
+  const { member } = useCurrentMember();
   const { org, isLoading: isLoadingOrg } = useActiveOrg();
 
   const [removeMemberId, setRemoveMemberId] = useState<string | null>(null);
 
-  const handleRemoveMember = (memberId: string) => {
-    // TODO: Implement actual API call
-    console.log('Remove member:', memberId);
+  const { removeMember, isLoading: isRemovingMember } = useRemoveMember();
+
+  const handleRemoveMember = async (memberId: string) => {
+    await removeMember(memberId);
     setRemoveMemberId(null);
   };
 
-  const canManageMember = (memberRole: string, memberId: string) => {
-    if (!user) return false;
-    // Owner can manage everyone except themselves
-    if (user.id === memberId) return false;
-    // Admin can manage members but not owners or other admins
-    return memberRole === 'member';
-  };
+  const canManageMember = useMemo(() => {
+    return member?.role === 'owner' || member?.role === 'admin';
+  }, [member]);
 
   return (
     <div>
       {/* Current Members */}
       <div>
-        <h3 className='text-lg font-medium text-gray-900'>Current Members</h3>
+        <div>
+          <SmallHeader>Current Members</SmallHeader>
+        </div>
         <TableRoot>
           <Table>
             <TableHead>
@@ -143,7 +147,7 @@ export const MembersTable = () => {
                         {formatDatetime(member.createdAt)}
                       </span>
 
-                      {canManageMember(member.role, member.id) && (
+                      {canManageMember && (
                         <MemberActions member={member} onRemove={setRemoveMemberId} />
                       )}
                     </TableCell>
@@ -166,15 +170,15 @@ export const MembersTable = () => {
             organization.
           </DialogDescription>
           <DialogFooter>
-            <Button variant='secondary' onClick={() => setRemoveMemberId(null)}>
-              <RiCloseLine className='h-4 w-4 mr-2' />
+            <Button variant='secondary' onClick={() => setRemoveMemberId(null)} icon={RiCloseLine}>
               Cancel
             </Button>
             <Button
               variant='destructive'
               onClick={() => removeMemberId && handleRemoveMember(removeMemberId)}
+              icon={RiDeleteBinLine}
+              isLoading={isRemovingMember}
             >
-              <RiDeleteBinLine className='h-4 w-4 mr-2' />
               Remove
             </Button>
           </DialogFooter>

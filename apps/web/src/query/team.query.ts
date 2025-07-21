@@ -85,3 +85,27 @@ export const useCancelInvitation = () => {
     ...mutation,
   };
 };
+
+export const useRemoveMember = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (memberId: string) => {
+      const response = await authClient.organization.removeMember({
+        memberIdOrEmail: memberId,
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      return response.data;
+    },
+  });
+
+  return {
+    removeMember: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};

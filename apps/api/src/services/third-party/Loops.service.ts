@@ -2,17 +2,19 @@ import { AppContext } from '@/index';
 import { Context } from 'hono';
 import { LoopsClient } from 'loops';
 
-type TransactionalEmailTypes = 'verification_code' | 'portal_verification_code';
+type TransactionalEmailTypes = 'verification_code' | 'org_invitation';
 type TransactionEmailParams = {
   verification_code: {
     params: {
       verification_url: string;
     };
   };
-  portal_verification_code: {
+  org_invitation: {
     params: {
-      api_name: string;
-      verification_code: string;
+      invited_by_username: string;
+      invited_by_email: string;
+      org_name: string;
+      invite_link: string;
     };
   };
 };
@@ -24,7 +26,7 @@ type TransactionEmailPayload<T extends TransactionalEmailTypes> = T extends Tran
 
 const TRANSACTIONAL_EMAIL_IDS = {
   verification_code: 'cm0effdre00dlnm463tk8qno2',
-  portal_verification_code: 'cm0effdre00dlnm463tk8qno2',
+  org_invitation: 'cm0effdre00dlnm463tk8qno2',
 } as Record<TransactionalEmailTypes, string>;
 
 export class LoopsService {

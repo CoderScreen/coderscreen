@@ -1,7 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authClient } from './client';
 import { useNavigate } from '@tanstack/react-router';
-import { useCookies } from 'react-cookie';
 
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:3000';
 
@@ -15,6 +14,19 @@ export const useSession = () => {
     isLoading: session.isPending,
     error: session.error,
     refetch: session.refetch,
+  };
+};
+
+export const useCurrentMember = () => {
+  const { user } = useSession();
+  const query = useQuery({
+    queryKey: ['member', user.id],
+    queryFn: () => authClient.organization.getActiveMember(),
+  });
+
+  return {
+    ...query,
+    member: query.data?.data,
   };
 };
 
