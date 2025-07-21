@@ -128,7 +128,10 @@ export const useAuth: (
     ],
     hooks: {
       before: createAuthMiddleware(async (authCtx) => {
-        if (authCtx.path === '/organization/invite-member') {
+        if (
+          authCtx.path === '/organization/invite-member' ||
+          authCtx.path == '/organizaiton/accept-invitation'
+        ) {
           const sessionCookieToken = await authCtx.getSignedCookie(
             authCtx.context.authCookies.sessionToken.name,
             authCtx.context.secret

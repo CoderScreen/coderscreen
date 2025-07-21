@@ -147,7 +147,7 @@ export const MembersTable = () => {
                         {formatDatetime(member.createdAt)}
                       </span>
 
-                      {canManageMember && (
+                      {member.role !== 'owner' && canManageMember && (
                         <MemberActions member={member} onRemove={setRemoveMemberId} />
                       )}
                     </TableCell>

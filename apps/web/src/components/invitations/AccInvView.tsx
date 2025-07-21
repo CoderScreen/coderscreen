@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/card';
 import { SmallHeader } from '@/components/ui/heading';
 import { Button } from '@/components/ui/button';
-import { RiCheckLine } from '@remixicon/react';
+import { RiCheckLine, RiMailSendLine } from '@remixicon/react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const AcceptInvitationView = () => {
   const { invitation, isLoading } = useInvitation();
@@ -17,8 +18,19 @@ export const AcceptInvitationView = () => {
 
   if (isLoading) {
     return (
-      <div className='flex justify-center items-center min-h-[40vh]'>
-        <div className='animate-pulse text-muted-foreground'>Loading invitation...</div>
+      <div className='flex justify-center items-center h-screen px-2'>
+        <Card className='w-full max-w-md mx-auto'>
+          <CardHeader>
+            <div className='flex flex-col items-center gap-2'>
+              <Skeleton className='h-10 w-10 rounded-full mb-2' />
+              <Skeleton className='h-6 w-32 mb-1' />
+              <Skeleton className='h-4 w-24' />
+            </div>
+          </CardHeader>
+          <CardFooter>
+            <Skeleton className='h-10 w-full rounded' />
+          </CardFooter>
+        </Card>
       </div>
     );
   }
@@ -32,13 +44,24 @@ export const AcceptInvitationView = () => {
   }
 
   return (
-    <div className='flex justify-center items-center min-h-[60vh] px-2'>
+    <div className='flex justify-center items-center h-screen px-2'>
       <Card className='w-full max-w-md mx-auto'>
         <CardHeader>
-          <SmallHeader>Accept Invitation</SmallHeader>
-          <CardTitle className='mt-2'>{invitation.organizationName}</CardTitle>
-          <CardDescription>Invited by: {invitation.inviterEmail}</CardDescription>
+          <div className='flex flex-col items-center gap-2'>
+            <RiMailSendLine size={40} className='text-primary mb-1' />
+            <SmallHeader>You've been invited!</SmallHeader>
+            <CardTitle className='mt-1 text-center'>{invitation.organizationName}</CardTitle>
+            <CardDescription className='text-center'>
+              Invited by{' '}
+              <span className='font-medium text-foreground'>{invitation.inviterEmail}</span>
+            </CardDescription>
+          </div>
         </CardHeader>
+        <CardContent>
+          <div className='text-center text-muted-foreground mb-2'>
+            Accept the invitation below to join this organization and start collaborating.
+          </div>
+        </CardContent>
         <CardFooter>
           <Button
             className='w-full'

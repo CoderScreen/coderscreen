@@ -61,7 +61,7 @@ export const SidebarProfile = () => {
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div className='flex-1 min-w-0 flex items-center justify-between'>
+                <div className='flex-1 min-w-0 overflow-hidden flex items-center justify-between'>
                   <div>
                     <p className='text-xs font-medium text-gray-700 truncate'>{user.name}</p>
                     <p className='text-xs font-medium text-gray-900 truncate'>{user.email}</p>
