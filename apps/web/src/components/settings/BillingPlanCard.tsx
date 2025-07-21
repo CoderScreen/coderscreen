@@ -9,36 +9,152 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RiCodeLine, RiTeamLine, RiArrowRightLine, RemixiconComponentType } from '@remixicon/react';
+import {
+  RiTeamLine,
+  RiArrowRightLine,
+  RemixiconComponentType,
+  RiCustomerServiceLine,
+  RiGlobalLine,
+  RiHistoryLine,
+  RiSwap2Line,
+  RiPaletteLine,
+  RiTerminalWindowFill,
+  RiBaseStationLine,
+  RiLockPasswordLine,
+} from '@remixicon/react';
 import { cx } from '@/lib/utils';
 import { PlanSchema } from '@coderscreen/api/schema/billing';
+
+const LIMIT_MAP = {
+  live_interview: {
+    icon: RiTerminalWindowFill,
+    label: 'Live Interviews',
+    renews: true,
+  },
+  team_members: {
+    icon: RiTeamLine,
+    label: 'Team Members',
+    renews: false,
+  },
+} satisfies Record<
+  keyof PlanSchema['limits'],
+  {
+    icon: RemixiconComponentType;
+    label: string;
+    renews: boolean;
+  }
+>;
 
 const PLAN_FEATURE_MAP: Record<
   'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
   Array<{
     icon: RemixiconComponentType;
     label: string;
+    subText?: string;
   }>
 > = {
-  free: [
-    { icon: RiCodeLine, label: '5 Interviews' },
-    { icon: RiTeamLine, label: '3 Team Members' },
-  ],
+  free: [],
   starter: [
-    { icon: RiCodeLine, label: '50 Interviews' },
-    { icon: RiTeamLine, label: '5 Team Members' },
+    {
+      icon: RiHistoryLine,
+      label: 'Interview Playback',
+      subText: `Replay interviews to review every step of a candidate's coding process`,
+    },
+    {
+      icon: RiGlobalLine,
+      label: 'Advanced Interviews',
+      subText: 'Multi-file & framework support. (React, Next.js, etc.)',
+    },
+    {
+      icon: RiBaseStationLine,
+      label: 'API Access',
+      subText: 'Access to our API for custom integrations',
+    },
+    { icon: RiCustomerServiceLine, label: 'Basic Support' },
   ],
   pro: [
-    { icon: RiCodeLine, label: '200 Interviews' },
-    { icon: RiTeamLine, label: '15 Team Members' },
+    {
+      icon: RiHistoryLine,
+      label: 'Interview Playback',
+      subText: `Replay interviews to review every step of a candidate's coding process`,
+    },
+    {
+      icon: RiGlobalLine,
+      label: 'Advanced Interviews',
+      subText: 'Multi-file & framework support. (React, Next.js, etc.)',
+    },
+    {
+      icon: RiBaseStationLine,
+      label: 'API Access',
+      subText: 'Access to our API for custom integrations',
+    },
+    { icon: RiCustomerServiceLine, label: 'Priority Support' },
   ],
   scale: [
-    { icon: RiCodeLine, label: 'Unlimited Interviews' },
-    { icon: RiTeamLine, label: 'Unlimited Team Members' },
+    {
+      icon: RiHistoryLine,
+      label: 'Interview Playback',
+      subText: `Replay interviews to review every step of a candidate's coding process`,
+    },
+    {
+      icon: RiGlobalLine,
+      label: 'Advanced Interviews',
+      subText: 'Multi-file & framework support. (React, Next.js, etc.)',
+    },
+    {
+      icon: RiBaseStationLine,
+      label: 'API Access',
+      subText: 'Access to our API for custom integrations',
+    },
+    {
+      icon: RiSwap2Line,
+      label: 'ATS Integrations',
+      subText: 'Greenhouse, Lever, Ashby, etc.',
+    },
+    {
+      icon: RiPaletteLine,
+      label: 'Custom Branding and Domains',
+      subText: 'Enhance your interview experience with your own branding',
+    },
+    {
+      icon: RiCustomerServiceLine,
+      label: 'Dedicated Support',
+    },
   ],
   enterprise: [
-    { icon: RiCodeLine, label: 'Unlimited Interviews' },
-    { icon: RiTeamLine, label: 'Unlimited Team Members' },
+    {
+      icon: RiHistoryLine,
+      label: 'Interview Playback',
+      subText: `Replay interviews to review every step of a candidate's coding process`,
+    },
+    {
+      icon: RiGlobalLine,
+      label: 'Advanced Interviews',
+      subText: 'Multi-file & framework support. (React, Next.js, etc.)',
+    },
+    {
+      icon: RiBaseStationLine,
+      label: 'API Access',
+      subText: 'Access to our API for custom integrations',
+    },
+    {
+      icon: RiSwap2Line,
+      label: 'ATS Integrations',
+      subText: 'Greenhouse, Lever, Ashby, etc.',
+    },
+    {
+      icon: RiPaletteLine,
+      label: 'Custom Branding and Domains',
+      subText: 'Enhance your interview experience with your own branding',
+    },
+    {
+      icon: RiLockPasswordLine,
+      label: 'SSO Login',
+    },
+    {
+      icon: RiCustomerServiceLine,
+      label: 'Whiteglove Support',
+    },
   ],
 };
 
@@ -118,39 +234,77 @@ export const BillingPlanCard = ({
         <CardTitle className='text-lg'>{plan.name}</CardTitle>
         <CardDescription>{plan.description}</CardDescription>
         <div className='text-2xl'>
-          {plan.name === 'Enterprise'
-            ? 'Custom'
-            : plan.price === 0 || plan.price === null
-            ? 'Free'
-            : `$${plan.price}`}
+          {plan.name === 'Enterprise' ? 'Custom' : plan.price === 0 ? 'Free' : `$${plan.price}`}
 
-          {plan.price > 0 && plan.name !== 'Enterprise' && (
-            <span className='text-sm font-normal text-muted-foreground ml-1'>
-              per {plan.interval}
-            </span>
-          )}
-
-          {isYearly && plan.price !== 0 && plan.price !== null && plan.name !== 'Enterprise' && (
-            <Badge className='ml-2' variant='success'>
-              2 months free
-            </Badge>
-          )}
+          {plan.price > 0 && plan.name !== 'Enterprise' ? (
+            <>
+              <span className='text-sm font-normal text-muted-foreground ml-1'>
+                per {plan.interval}
+              </span>
+              {isYearly && (
+                <Badge className='ml-2' variant='success'>
+                  2 months free
+                </Badge>
+              )}
+            </>
+          ) : null}
         </div>
+
+        <Button
+          className='my-4'
+          variant={isPopular ? 'primary' : 'secondary'}
+          icon={RiArrowRightLine}
+          iconPosition='right'
+          onClick={() => plan && onUpgrade?.(plan)}
+          isLoading={isCreatingCheckout}
+          disabled={isCurrentPlan}
+        >
+          {isCurrentPlan
+            ? 'Current Plan'
+            : plan.name === 'Enterprise'
+            ? 'Contact Sales'
+            : 'Select Plan'}
+        </Button>
       </CardHeader>
 
       <CardContent className='flex-1'>
         <ul className='space-y-4'>
+          {Object.entries(LIMIT_MAP).map(([key, { icon: IconComponent, label, renews }]) => {
+            const rawValue = plan.limits[key as keyof PlanSchema['limits']];
+            const value = rawValue === -1 ? 'Custom' : rawValue;
+
+            return (
+              <li key={key} className={cx('flex gap-2', renews ? 'items-start' : 'items-center')}>
+                <div className='p-1'>
+                  <IconComponent className='w-4 h-4 text-muted-foreground' />
+                </div>
+                <div className='flex-1 flex flex-col justify-center'>
+                  <span className='text-sm font-medium'>
+                    {value} {label}
+                  </span>
+                  {renews && rawValue !== -1 && (
+                    <span className='text-xs text-muted-foreground/70'>renews {plan.interval}</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+
           {PLAN_FEATURE_MAP[group].map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <li key={index} className='flex items-center gap-2'>
-                <div className='p-1 rounded bg-gray-100'>
+              <li
+                key={index}
+                className={cx('flex gap-2', feature.subText ? 'items-start' : 'items-center')}
+              >
+                <div className='p-1'>
                   <IconComponent className='w-4 h-4 text-muted-foreground' />
                 </div>
-                <div className='flex-1'>
-                  <div className='flex items-center gap-2'>
-                    <span className='text-sm font-medium'>{feature.label}</span>
-                  </div>
+                <div className='flex-1 flex flex-col justify-center'>
+                  <span className='text-sm font-medium'>{feature.label}</span>
+                  {feature.subText && (
+                    <span className='text-xs text-muted-foreground/70'>{feature.subText}</span>
+                  )}
                 </div>
               </li>
             );
@@ -158,7 +312,7 @@ export const BillingPlanCard = ({
         </ul>
       </CardContent>
 
-      <CardFooter className='mt-auto'>
+      {/* <CardFooter className='mt-auto'>
         <Button
           className={`w-full`}
           variant={isPopular ? 'primary' : 'secondary'}
@@ -174,7 +328,7 @@ export const BillingPlanCard = ({
             ? 'Contact Sales'
             : 'Select Plan'}
         </Button>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 };

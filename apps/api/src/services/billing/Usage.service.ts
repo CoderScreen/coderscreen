@@ -13,6 +13,7 @@ import {
 } from '@coderscreen/db/usage.db';
 import { getBilling, getSession } from '@/lib/session';
 import { member } from '@coderscreen/db/user.db';
+import { PlanEntity, SubscriptionEntity } from '@coderscreen/db/billing.db';
 
 /**
  * Simplified Usage Tracking Service
@@ -117,8 +118,6 @@ export class UsageService {
   async getAllUsage(): Promise<{
     [key in AllUsageTypes]: UsageResult;
   }> {
-    const { orgId } = getSession(this.ctx);
-
     const getFallBackUsage = (eventType: AllUsageTypes) => ({
       eventType,
       count: 0,
@@ -183,16 +182,17 @@ export class UsageService {
       };
     }
 
+    const billing = await getBilling(this.ctx);
+
     // Create new usage record with default limits
-    const defaultLimits = this.getDefaultLimits(eventType);
     const newUsage: EventUsageEntity = {
-      id: generateId('usage'),
+      id: generateId('eventUsage'),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       organizationId: orgId,
       eventType,
       count: 0,
-      limit: defaultLimits.limit,
+      limit: billing.plan.limits[eventType],
       cycleStart,
     };
 
@@ -200,7 +200,7 @@ export class UsageService {
     return {
       eventType,
       count: newUsage.count,
-      limit: defaultLimits.limit,
+      limit: billing.plan.limits[eventType],
       exceeded: false,
     };
   }
@@ -208,7 +208,13 @@ export class UsageService {
   /**
    * Increment usage count atomically
    */
-  private async incrementUsage(orgId: string, eventType: EventType, amount: number) {
+  private async incrementUsage(orgId: string, rawEventType: AllUsageTypes, amount: number) {
+    // if eventType is a custom usage type, we don't increment since tracked in a custom way
+    if (CUSTOM_USAGE_EVENT_TYPES.includes(rawEventType as CustomUsageType)) {
+      return;
+    }
+
+    const eventType = rawEventType as EventType;
     const cycleStart = await this.getCycleStart();
 
     await this.db
@@ -231,22 +237,7 @@ export class UsageService {
    */
   private async getCycleStart(): Promise<string> {
     const { subscription } = await getBilling(this.ctx);
-
-    if (!subscription.currentPeriodStart) {
-      throw new Error('No current period start found');
-    }
-
     return subscription.currentPeriodStart;
-  }
-
-  /**
-   * Get default limits for event types
-   */
-  private getDefaultLimits(eventType: EventType) {
-    const limits = {
-      live_interview: { limit: 100 },
-    };
-    return limits[eventType] || { limit: 100 };
   }
 
   /**
@@ -263,6 +254,7 @@ export class UsageService {
   }
 
   private async getCustomUsage(eventType: CustomUsageType): Promise<UsageResult> {
+    const { plan: currentPlan } = await getBilling(this.ctx);
     switch (eventType) {
       case 'team_members':
         const { orgId } = getSession(this.ctx);
@@ -274,14 +266,50 @@ export class UsageService {
           .where(eq(member.organizationId, orgId))
           .then((res) => res[0]);
 
+        const limit = currentPlan.limits['team_members'];
+
         return {
           eventType: 'team_members',
           count: memberCount.count,
-          limit: 10,
-          exceeded: false,
+          limit,
+          exceeded: memberCount.count >= limit,
         };
       default:
         throw new Error(`Unknown custom usage type: ${eventType}`);
     }
+  }
+
+  async updateUsageLimits(params: {
+    limits: PlanEntity['limits'];
+    subscription: SubscriptionEntity;
+    orgId: string;
+  }) {
+    const { limits, subscription, orgId } = params;
+
+    // upsert eventUsageTable entites with new limits
+    const newUsages: EventUsageEntity[] = Object.entries(limits).map(([eventType, limit]) => ({
+      id: generateId('eventUsage'),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      organizationId: orgId,
+      eventType: eventType as EventType,
+      limit,
+      count: 0,
+      cycleStart: subscription.currentPeriodStart,
+    }));
+
+    await this.db
+      .insert(eventUsageTable)
+      .values(newUsages)
+      .onConflictDoUpdate({
+        target: [
+          eventUsageTable.organizationId,
+          eventUsageTable.eventType,
+          eventUsageTable.cycleStart,
+        ],
+        set: {
+          limit: sql`excluded.limit`,
+        },
+      });
   }
 }

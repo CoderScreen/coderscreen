@@ -13,18 +13,22 @@ import { generateId, Id } from '@coderscreen/common/id';
 import { Stripe } from 'stripe';
 import { StripeService } from '@/services/third-party/Stripe.service';
 import { getBilling } from '@/lib/session';
+import { UsageService } from './Usage.service';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 export class BillingService {
   private stripeService: StripeService;
+  private usageService: UsageService;
+  private db: PostgresJsDatabase;
 
   constructor(private readonly ctx: Context<AppContext>) {
     this.stripeService = new StripeService(this.ctx);
+    this.usageService = new UsageService(this.ctx);
+    this.db = useDb(this.ctx);
   }
 
   async createCustomerForOrganization(params: { organizationId: string; email: string }) {
     const { organizationId, email } = params;
-
-    const db = useDb(this.ctx);
 
     // Create Stripe customer
     const stripeCustomer = await this.stripeService.createCustomer({
@@ -36,7 +40,7 @@ export class BillingService {
     });
 
     // Create customer record in database
-    const customer = await db
+    const customer = await this.db
       .insert(customerTable)
       .values({
         organizationId,
@@ -55,9 +59,8 @@ export class BillingService {
   async assignFreePlanToCustomer(params: { stripeCustomerId: string }) {
     const { stripeCustomerId } = params;
     const freePlanId = this.ctx.env.FREE_PLAN_ID as Id<'plan'>;
-    const db = useDb(this.ctx);
 
-    const freePlan = await db
+    const freePlan = await this.db
       .select()
       .from(planTable)
       .where(eq(planTable.id, freePlanId))
@@ -96,9 +99,7 @@ export class BillingService {
   }
 
   async getCustomerByOrganizationId(organizationId: string) {
-    const db = useDb(this.ctx);
-
-    return await db
+    return await this.db
       .select()
       .from(customerTable)
       .where(eq(customerTable.organizationId, organizationId))
@@ -106,9 +107,7 @@ export class BillingService {
   }
 
   async getActiveSubscription(organizationId: string) {
-    const db = useDb(this.ctx);
-
-    return await db
+    return await this.db
       .select({
         subscription: subscriptionTable,
         plan: planTable,
@@ -220,6 +219,16 @@ export class BillingService {
       return stripeSubscription.customer.id;
     })();
 
+    const customer = await this.db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.stripeCustomerId, stripeCustomerId))
+      .then((res) => res[0]);
+
+    if (!customer) {
+      throw new Error(`Customer with stripe customer id ${stripeCustomerId} not found`);
+    }
+
     // need to get associated plan from the stripe subscription
     const stripePriceId = stripeSubscriptionItem.price.id;
 
@@ -255,6 +264,12 @@ export class BillingService {
       })
       .returning()
       .then((res) => res[0]);
+
+    await this.usageService.updateUsageLimits({
+      limits: plan.limits,
+      subscription,
+      orgId: customer.organizationId,
+    });
 
     return subscription;
   }

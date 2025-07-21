@@ -3,11 +3,13 @@ import { MutedText } from '@/components/ui/typography';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
+import { ProgressCircle } from '@/components/ui/progresscircle';
+import { Gauge } from '@/components/ui/gauge';
 
 // Common styling constant
 const CARD_WARNING_STYLES = 'bg-amber-50 border-amber-200';
 const CARD_LIMIT_STYLES = 'bg-red-50 border-red-200';
-const USAGE_VALUE_STYLES = 'font-medium';
+const USAGE_VALUE_STYLES = 'font-medium ml-2';
 
 const USAGE_TYPE_MAP = {
   live_interview: {
@@ -47,13 +49,20 @@ export const UsageCard = ({
     <Card
       className={cx(
         'h-full',
-        percent > 80 ? (usage.exceeded ? CARD_LIMIT_STYLES : CARD_WARNING_STYLES) : ''
+        percent > 70 ? (usage.exceeded ? CARD_LIMIT_STYLES : CARD_WARNING_STYLES) : ''
       )}
     >
       <CardHeader className='pb-0'>
         <MutedText>{usageInfo.label}</MutedText>
       </CardHeader>
-      <CardContent className='flex items-center gap-2'>
+      <CardContent className='flex items-center'>
+        <Gauge value={percent} size={20} strokeWidth={12} showAnimation reverseValue />
+        {/* <ProgressCircle
+          value={percent}
+          radius={8}
+          strokeWidth={2}
+          variant={percent > 80 ? (usage.exceeded ? 'error' : 'warning') : 'default'}
+        /> */}
         <p className={USAGE_VALUE_STYLES}>
           {usage.count} / {usage.limit}
         </p>

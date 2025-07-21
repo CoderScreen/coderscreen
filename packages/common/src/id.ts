@@ -12,10 +12,7 @@ export const Entities = {
   subscription: 's',
   eventUsage: 'eu',
   eventUsageType: 'eut',
-  orgEventLimit: 'oel',
   eventLog: 'el',
-  usageAlert: 'ua',
-  usage: 'u',
 } as const;
 
 type Entities = typeof Entities;

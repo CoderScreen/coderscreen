@@ -1,32 +1,15 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  integer,
-  uniqueIndex,
-  jsonb,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
 import { organization } from './user.db';
 import { Id } from '@coderscreen/common/id';
 
 export type EventType = 'live_interview';
 
-export const eventTypesTable = pgTable('event_types', {
-  id: text('id').primaryKey().$type<EventType>(),
-  createdAt: timestamp('created_at', { mode: 'string' })
-    .$defaultFn(() => new Date().toISOString())
-    .notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  doesReset: boolean('does_reset').notNull().default(true),
-});
+// TODO: figure out better way of tracking usage relative to a cycle
 
-// Simplified usage tracking - combines limits and current usage
 export const eventUsageTable = pgTable(
   'event_usage',
   {
-    id: text('id').primaryKey().$type<Id<'usage'>>(),
+    id: text('id').primaryKey().$type<Id<'eventUsage'>>(),
     createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).notNull(),
     organizationId: text('organization_id')
@@ -40,7 +23,6 @@ export const eventUsageTable = pgTable(
   (t) => [uniqueIndex('uq_usage_org_type_cycle').on(t.organizationId, t.eventType, t.cycleStart)]
 );
 
-// Optional: Simple event log for analytics (can be disabled if not needed)
 export const eventLogTable = pgTable('event_log', {
   id: text('id').primaryKey().$type<Id<'eventLog'>>(),
   createdAt: timestamp('created_at', { mode: 'string' }).notNull(),

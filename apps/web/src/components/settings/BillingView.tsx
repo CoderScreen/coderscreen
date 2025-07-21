@@ -8,7 +8,7 @@ import {
   usePlans,
   useCreateCheckoutSession,
   useCreatePortalSession,
-  useUsage,
+  useAllUsage,
 } from '@/query/billing.query';
 import { toast } from 'sonner';
 import { BillingPlanCard } from './BillingPlanCard';
@@ -25,7 +25,7 @@ export const BillingView = () => {
   const { plans: allPlans, isLoading: isLoadingPlans } = usePlans();
   const { createCheckoutSession, isLoading: isCreatingCheckout } = useCreateCheckoutSession();
   const { createPortalSession, isLoading: isCreatingPortal } = useCreatePortalSession();
-  const { usage, isLoading } = useUsage();
+  const { usage, isLoading } = useAllUsage();
   const [billingMode, setBillingMode] = useState<'monthly' | 'yearly'>('yearly');
 
   const plans = useMemo(() => {
@@ -132,7 +132,11 @@ export const BillingView = () => {
           <ToggleGroup
             type='single'
             value={billingMode}
-            onValueChange={(value) => setBillingMode(value as 'monthly' | 'yearly')}
+            onValueChange={(value) => {
+              if (value && value !== '') {
+                setBillingMode(value as 'monthly' | 'yearly');
+              }
+            }}
           >
             <ToggleGroupItem value='monthly'>Monthly</ToggleGroupItem>
             <ToggleGroupItem value='yearly'>
@@ -185,7 +189,10 @@ export const BillingView = () => {
                 price: -1,
                 interval: 'monthly' as const,
                 stripePriceId: 'contact_enterprise', // No Stripe price ID for enterprise
-                features: undefined,
+                limits: {
+                  team_members: -1,
+                  live_interview: -1,
+                },
               }}
               yearly={null}
               mode='monthly'

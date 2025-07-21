@@ -38,7 +38,7 @@ export const PlanSchema = z.object({
   price: z.number(),
   interval: z.enum(['monthly', 'yearly']),
   stripePriceId: z.string(),
-  features: z.array(z.string()).optional(),
+  limits: z.record(z.enum(['team_members', 'live_interview']), z.number()),
 });
 
 export const CheckoutSessionSchema = z.object({

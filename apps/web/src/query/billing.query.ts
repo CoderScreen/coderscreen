@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
+import { UsageResultSchema } from '@coderscreen/api/schema/usage';
 
 export interface CheckoutSession {
   sessionId: string;
@@ -102,7 +103,7 @@ export const useCreatePortalSession = () => {
   };
 };
 
-export const useUsage = () => {
+export const useAllUsage = () => {
   const query = useQuery({
     queryKey: ['billing', 'usage'],
     queryFn: async () => {
@@ -110,6 +111,28 @@ export const useUsage = () => {
 
       if (!response.ok) {
         throw new Error('Failed to fetch current usage');
+      }
+
+      return response.json();
+    },
+  });
+
+  return {
+    usage: query.data,
+    ...query,
+  };
+};
+
+export const useUsage = (eventType: UsageResultSchema['eventType']) => {
+  const query = useQuery({
+    queryKey: ['billing', 'usage', eventType],
+    queryFn: async () => {
+      const response = await apiClient.billing.usage[':eventType'].$get({
+        param: { eventType },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch usage');
       }
 
       return response.json();

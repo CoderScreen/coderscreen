@@ -14,6 +14,7 @@ import {
 } from '@/schema/billing.zod';
 import { getSession } from '@/lib/session';
 import { UsageService } from '@/services/billing/Usage.service';
+import { UsageResultSchema } from '@/schema/usage.zod';
 
 export const billingRouter = new Hono<AppContext>()
   // GET /billing/customer - Get customer and subscription info
@@ -157,5 +158,30 @@ export const billingRouter = new Hono<AppContext>()
       const allUsage = await usageService.getAllUsage();
 
       return ctx.json(allUsage);
+    }
+  )
+  .get(
+    '/usage/:eventType',
+    describeRoute({
+      description: 'Get usage information',
+      responses: {
+        200: {
+          description: 'Usage information',
+          content: {
+            'application/json': {
+              schema: resolver(UsageResultSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator('param', z.object({ eventType: z.enum(['team_members', 'live_interview']) })),
+    async (ctx) => {
+      const usageService = new UsageService(ctx);
+      const { eventType } = ctx.req.valid('param');
+
+      const usage = await usageService.getCurrentUsage(eventType);
+
+      return ctx.json(usage);
     }
   );

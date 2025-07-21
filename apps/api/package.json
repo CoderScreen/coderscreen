@@ -11,7 +11,8 @@
     "cf-types": "wrangler types",
     "auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./better-auth.config.ts --output ../../packages/db/src/user.db.ts",
     "sandbox:build": "cd ../.. && pnpm sandbox:build",
-    "sandbox:push": "wrangler containers push sandbox-image"
+    "sandbox:push": "wrangler containers push sandbox-image",
+    "stripe:listen": "stripe listen --forward-to localhost:8000/webhook/stripe"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.36",

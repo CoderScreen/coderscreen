@@ -54,6 +54,7 @@ import {
 import { Invitation } from 'better-auth/plugins/organization';
 import { formatDatetime } from '@/lib/dateUtils';
 import { formatSlug } from '@/lib/slug';
+import { useUsage } from '@/query/billing.query';
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -108,6 +109,7 @@ const initialValues = {
 } as z.infer<typeof formSchema>;
 
 export const InviteMembers = () => {
+  const { usage } = useUsage('team_members');
   const [cancelInvitationId, setCancelInvitationId] = useState<string | null>(null);
 
   const { invitations, isLoading: isLoadingInvitations } = useInvitations();
@@ -176,6 +178,7 @@ export const InviteMembers = () => {
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     hasError={!field.state.meta.isValid}
+                    disabled={usage?.exceeded}
                   />
                   {field.state.meta.errors && (
                     <p className='text-sm text-red-600'>
@@ -195,6 +198,7 @@ export const InviteMembers = () => {
                   <Select
                     value={field.state.value}
                     onValueChange={(value) => field.handleChange(value as 'member' | 'admin')}
+                    disabled={usage?.exceeded}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder='Select role' />
@@ -210,15 +214,31 @@ export const InviteMembers = () => {
           </div>
         </div>
 
-        <div className='flex justify-end'>
-          <Button
-            type='submit'
-            icon={RiUserAddLine}
-            isLoading={isInviting}
-            disabled={!form.state.isFormValid}
-          >
-            Send Invitation
-          </Button>
+        <div className='flex justify-between'>
+          {usage?.exceeded ? (
+            <div className='px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-lg'>
+              <div className='flex items-center gap-2'>
+                <RiTimeLine className='h-4 w-4 text-amber-600' />
+                <p className='text-sm text-amber-800'>
+                  You've reached your team member limit. Please upgrade your plan to invite more
+                  members.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div />
+          )}
+
+          <div>
+            <Button
+              type='submit'
+              icon={RiUserAddLine}
+              isLoading={isInviting}
+              disabled={!form.state.isFormValid || usage?.exceeded}
+            >
+              Send Invitation
+            </Button>
+          </div>
         </div>
       </form>
 
