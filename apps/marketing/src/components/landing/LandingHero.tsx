@@ -1,5 +1,7 @@
 import LandingCanvas from '@/components/landing/LandingCanvas';
+import { Badge } from '@coderscreen/ui/badge';
 import { Button } from '@coderscreen/ui/button';
+import { RiGithubLine } from '@remixicon/react';
 
 export const LandingHero = () => {
   return (
@@ -18,11 +20,16 @@ export const LandingHero = () => {
       >
         {/* Text Content */}
         <div className='flex flex-col items-center gap-4 mb-6'>
-          <h1 className='text-4xl font-bold text-center'>For Developers Hiring Developers</h1>
+          <Badge variant='warning' className='flex flex-row'>
+            <RiGithubLine className='h-4 w-4 shrink-0' />
+            <span>Check out our GitHub</span>
+          </Badge>
+          <h1 className='text-5xl font-bold text-center'>
+            For Developers <br /> Hiring Developers
+          </h1>
           <p className='text-muted-foreground text-center'>
-            CoderScreen is purpose-built for technical interviews, our platform combines real-time
-            collaborative coding with intuitive design—enabling interviewers and candidates to focus
-            on problem-solving, clear communication, and a seamless assessment experience.
+            CoderScreen is open source and built for technical interviews. Enjoy real-time
+            collaborative coding and a seamless, intuitive experience—free for everyone.
           </p>
         </div>
 

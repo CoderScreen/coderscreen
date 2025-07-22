@@ -11,9 +11,12 @@
   "dependencies": {
     "@coderscreen/ui": "workspace:^",
     "@remixicon/react": "^4.6.0",
+    "clsx": "^2.1.1",
+    "motion": "^12.23.6",
     "next": "15.4.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
