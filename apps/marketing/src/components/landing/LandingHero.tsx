@@ -6,7 +6,7 @@ import { RiGithubLine } from '@remixicon/react';
 export const LandingHero = () => {
   return (
     <div className='relative p-6'>
-      <div className='w-full h-full rounded-lg overflow-hidden'>
+      <div className='w-full rounded-lg overflow-hidden'>
         <LandingCanvas />
       </div>
 

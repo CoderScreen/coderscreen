@@ -136,10 +136,7 @@ export const LandingPricing = () => {
               )}
             >
               {plan.popular && (
-                <Badge
-                  variant='warning'
-                  className='absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1'
-                >
+                <Badge className='absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-1'>
                   <RiStarLine className='h-3 w-3' />
                   Most Popular
                 </Badge>

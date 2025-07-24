@@ -38,17 +38,6 @@ const TOP_FEATURES: Feature[] = [
 export const LandingFeatures = () => {
   return (
     <section className='w-full'>
-      {/* <div className='w-full border-b border-border/50 p-6'>
-        <div className='flex flex-col gap-4'>
-          <h2 className='text-3xl font-semibold'>From screening to interviewing</h2>
-          <p className='text-muted-foreground'>
-            Turn your API into an MCP server with structured inputs, prompt-tuned descriptions, and
-            hosted execution. Start with your OpenAPI spec and unlock tools that work out of the box
-            with agents like Claude and Cursor.
-          </p>
-        </div>
-      </div> */}
-
       <div className='w-full grid grid-cols-1 lg:grid-cols-3'>
         {TOP_FEATURES.map((feature, index) => (
           <Card
