@@ -57,10 +57,10 @@ const WorkflowVisual = () => {
   return (
     <div className='relative min-h-72 w-full h-full flex items-center justify-center'>
       {/* Workflow Container */}
-      <div className='relative w-full max-w-4xl'>
+      <div className='relative w-full flex items-center justify-between'>
         {/* Progress Line */}
         <motion.div
-          className='absolute top-1/2 left-0 right-0 h-0.5 -translate-y-1/2 z-0'
+          className='absolute top-1/2 mt-2 lg:mt-0 left-0 right-0 h-0.5 -translate-y-1/2 z-0'
           style={{
             background: useTransform(
               progressPercentage,
@@ -71,14 +71,14 @@ const WorkflowVisual = () => {
         />
 
         {/* Workflow Steps with Labels */}
-        <div className='relative flex justify-between items-start z-10'>
+        <div className='w-full relative flex items-center justify-between z-10'>
           {stages.map((stage, index) => {
             const Icon = stage.icon;
             const isActive = index <= visualActiveStage;
 
             return (
               <div key={stage.title} className='flex flex-col items-center'>
-                <div className='relative mb-6'>
+                <div className='relative mb-8'>
                   {/* Stage Circle */}
                   <motion.div
                     className='w-16 h-16 rounded-full flex items-center justify-center shadow-lg'
@@ -241,7 +241,7 @@ const SECOND_SECTION_FEATURES: {
 
 export const LandingWorkflow = () => {
   return (
-    <section className='w-full py-10  '>
+    <section className='w-full py-10 border-t border-border/50'>
       <div className='w-full px-6 pb-10 border-b border-border/50'>
         <div className='flex flex-col items-center gap-1'>
           <h2 className='text-3xl font-semibold'>End-to-End Technical Hiring</h2>

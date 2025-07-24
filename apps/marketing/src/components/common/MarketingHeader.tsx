@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@coderscreen/ui/button';
-import { RiCloseLine, RiMenuLine } from '@remixicon/react';
+import { RiCloseLine, RiMenuLine, RiGithubLine, RiStarLine } from '@remixicon/react';
 import { Logo } from '@/components/common/Logo';
+import { siteConfig } from '@/lib/siteConfig';
 
 export const MarketingHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
@@ -52,7 +52,16 @@ export const MarketingHeader = () => {
 
           {/* Desktop CTA Buttons */}
           <div className='hidden md:flex items-center space-x-4'>
-            <Button variant='ghost'>Sign In</Button>
+            <a href={siteConfig.githubUrl} target='_blank' rel='noopener noreferrer'>
+              <Button variant='ghost' className='flex items-center gap-2'>
+                <RiGithubLine className='h-4 w-4' />
+                GitHub
+                {/* <span className='ml-1 flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full'>
+                <RiStarLine className='h-3 w-3' />
+                {stars.toLocaleString()}
+              </span> */}
+              </Button>
+            </a>
             <Button>Get Started</Button>
           </div>
 
@@ -102,8 +111,12 @@ export const MarketingHeader = () => {
               </a>
               <div className='pt-4 pb-3 border-t border-gray-200'>
                 <div className='flex flex-col space-y-2'>
-                  <Button variant='ghost' className='justify-start'>
-                    Sign In
+                  <Button variant='ghost' className='justify-start flex items-center gap-2'>
+                    <RiGithubLine className='h-4 w-4' />
+                    GitHub
+                    {/* <span className='ml-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full'>
+                      {stars.toLocaleString()}
+                    </span> */}
                   </Button>
                   <Button className='justify-start'>Get Started</Button>
                 </div>
