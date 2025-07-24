@@ -3,29 +3,19 @@
 import React, { useRef, useEffect } from 'react';
 
 const BG_COLOR = '#fff';
-const FG_COLOR = '#222'; // much darker dots
-const CHAR_SET = [' ', '.', '-', '~', '*', '=', '%', '#', '@']; // from dimmest to brightest
-const FONT_SIZE = 16; // px
-const LINE_HEIGHT = 18; // px
-const COL_WIDTH = 10; // px
+const CHAR_SET = [' ', '.', '-', '~', '*', '=', '%', '#', '@'];
+const FONT_SIZE = 16;
+const LINE_HEIGHT = 18;
+const COL_WIDTH = 10;
 const NUM_RIBBONS = 4;
-const RIBBON_AMPLITUDE = [32, 44, 56, 68]; // increase amplitude for more visible waves
-const RIBBON_SPEED = [0.18, 0.13, 0.09, 0.07];
-const DOT_CHAR = '.'; // Always use dot
+const DOT_CHAR = '.';
 
 function getAsciiChar(intensity: number) {
-  // intensity: 0 (dark) to 1 (bright)
   const idx = Math.floor(intensity * (CHAR_SET.length - 1));
   return CHAR_SET[idx];
 }
 
-function getDotAlpha(intensity: number) {
-  // intensity: 0 (light) to 1 (dark)
-  // Map to alpha: 0.1 (light) to 1 (dark)
-  return 0.1 + 0.9 * intensity;
-}
-
-// Function to check if a point is inside a rounded rectangle (less round than oval)
+// Function to check if a point is inside a rounded rectangle
 function isInsideOval(
   x: number,
   y: number,
@@ -36,9 +26,6 @@ function isInsideOval(
 ): boolean {
   const normalizedX = (x - centerX) / (width / 2);
   const normalizedY = (y - centerY) / (height / 2);
-
-  // Use a higher power to make it more rectangular/blocky
-  // Power of 4 instead of 2 makes it more square-like
   return Math.pow(Math.abs(normalizedX), 4) + Math.pow(Math.abs(normalizedY), 4) <= 1;
 }
 
@@ -68,70 +55,92 @@ const LandingCanvas: React.FC = () => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.font = `${FONT_SIZE}px monospace`;
-    ctx.textBaseline = 'top';
-    let t = 0;
+
+    let time = 0;
+
     function draw() {
       if (!ctx) return;
       const { width, height } = sizeRef.current;
+
+      // Clear canvas
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = BG_COLOR;
       ctx.fillRect(0, 0, width, height);
+
+      // Set font
       ctx.font = `${FONT_SIZE}px monospace`;
       ctx.textBaseline = 'top';
 
-      // Define the oval parameters (horizontal oval in center)
+      // Define the oval parameters
       const centerX = width / 2;
       const centerY = height / 2;
-      const ovalWidth = width * 0.75; // 75% of canvas width - extended edges
-      const ovalHeight = height * 0.6; // 75% of canvas height - extended edges
+      const ovalWidth = width * 0.75;
+      const ovalHeight = height * 0.6;
 
       // Calculate grid size
       const cols = Math.floor(width / COL_WIDTH);
       const rows = Math.floor(height / LINE_HEIGHT);
 
-      // For each cell, determine intensity based on ribbons
+      // Create moving ribbons that travel across the screen
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           // Map cell to canvas coordinates
           const px = x * COL_WIDTH + COL_WIDTH / 2;
           const py = y * LINE_HEIGHT + LINE_HEIGHT / 2;
 
-          // Check if this position is inside the oval - if so, skip drawing
+          // Skip if inside the oval
           if (isInsideOval(px, py, centerX, centerY, ovalWidth, ovalHeight)) {
             continue;
           }
 
-          // Calculate intensity from all ribbons
+          // Calculate intensity from moving ribbons
           let intensity = 0;
+
+          // Create 4 ribbons that move horizontally across the screen
           for (let i = 0; i < NUM_RIBBONS; i++) {
-            const baseY = (sizeRef.current.height / (NUM_RIBBONS + 1)) * (i + 1);
-            const amp = RIBBON_AMPLITUDE[i];
-            const speed = RIBBON_SPEED[i];
-            // Sine wave for ribbon
-            const phase = t * speed + x * 0.18 + i * 1.2;
-            const ribbonY = baseY + Math.sin(phase) * amp;
-            // If this cell is close to the ribbon, add to intensity
-            const dist = Math.abs(py - ribbonY);
-            const contrib = Math.max(0, 1 - dist / (amp * 1.2));
-            intensity += contrib;
+            const ribbonY = (height / (NUM_RIBBONS + 1)) * (i + 1);
+            const ribbonSpeed = 0.5 + i * 0.3; // Different speeds for each ribbon
+            const ribbonWidth = 300 + i * 50; // Different widths
+
+            // Calculate the ribbon's current position (moves from left to right)
+            const ribbonX = ((time * ribbonSpeed * 50) % (width + ribbonWidth)) - ribbonWidth / 2;
+
+            // Calculate distance from current pixel to the ribbon
+            const distX = Math.abs(px - ribbonX);
+            const distY = Math.abs(py - ribbonY);
+
+            // Create a soft ribbon effect
+            const ribbonInfluence =
+              Math.max(0, 1 - distX / (ribbonWidth / 2)) * Math.max(0, 1 - distY / 30);
+
+            intensity += ribbonInfluence * 0.8;
           }
-          // Exaggerate intensity for more visible waves
-          intensity = Math.pow(Math.min(1, Math.max(0, intensity / NUM_RIBBONS)), 2.5); // more contrast
-          // Map intensity to color (darker = higher intensity)
-          const shade = Math.floor(220 - 180 * intensity); // 220 (light) to 40 (dark)
+
+          // Add some vertical wave motion
+          const waveIntensity = Math.sin(time * 0.5 + px * 0.02) * 0.3 + 0.3;
+          intensity += waveIntensity;
+
+          // Normalize and enhance intensity
+          intensity = Math.min(1, Math.max(0, intensity));
+          intensity = Math.pow(intensity, 0.8);
+
+          // Map intensity to color
+          const shade = Math.floor(250 - 150 * intensity);
           ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
-          ctx.globalAlpha = 0.7 + 0.3 * intensity;
           ctx.fillText(DOT_CHAR, px - COL_WIDTH / 2, py - LINE_HEIGHT / 2);
         }
       }
-      ctx.globalAlpha = 1;
-      t += 0.04;
+
+      // Update time for animation
+      time += 0.05;
       animationRef.current = requestAnimationFrame(draw);
     }
+
     draw();
     return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
   }, []);
 
