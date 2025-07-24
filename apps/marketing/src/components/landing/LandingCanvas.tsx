@@ -25,6 +25,23 @@ function getDotAlpha(intensity: number) {
   return 0.1 + 0.9 * intensity;
 }
 
+// Function to check if a point is inside a rounded rectangle (less round than oval)
+function isInsideOval(
+  x: number,
+  y: number,
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number
+): boolean {
+  const normalizedX = (x - centerX) / (width / 2);
+  const normalizedY = (y - centerY) / (height / 2);
+
+  // Use a higher power to make it more rectangular/blocky
+  // Power of 4 instead of 2 makes it more square-like
+  return Math.pow(Math.abs(normalizedX), 4) + Math.pow(Math.abs(normalizedY), 4) <= 1;
+}
+
 const LandingCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
@@ -62,15 +79,29 @@ const LandingCanvas: React.FC = () => {
       ctx.fillRect(0, 0, width, height);
       ctx.font = `${FONT_SIZE}px monospace`;
       ctx.textBaseline = 'top';
+
+      // Define the oval parameters (horizontal oval in center)
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const ovalWidth = width * 0.75; // 75% of canvas width - extended edges
+      const ovalHeight = height * 0.6; // 75% of canvas height - extended edges
+
       // Calculate grid size
       const cols = Math.floor(width / COL_WIDTH);
       const rows = Math.floor(height / LINE_HEIGHT);
+
       // For each cell, determine intensity based on ribbons
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           // Map cell to canvas coordinates
           const px = x * COL_WIDTH + COL_WIDTH / 2;
           const py = y * LINE_HEIGHT + LINE_HEIGHT / 2;
+
+          // Check if this position is inside the oval - if so, skip drawing
+          if (isInsideOval(px, py, centerX, centerY, ovalWidth, ovalHeight)) {
+            continue;
+          }
+
           // Calculate intensity from all ribbons
           let intensity = 0;
           for (let i = 0; i < NUM_RIBBONS; i++) {

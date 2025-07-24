@@ -7,7 +7,7 @@ import {
   RiHomeOfficeLine,
   RiListCheck3,
   RiShakeHandsLine,
-  RiTerminalBoxFill,
+  RiTerminalBoxLine,
 } from '@remixicon/react';
 import { ReactNode, useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'motion/react';
@@ -48,7 +48,7 @@ const WorkflowVisual = () => {
   const stages = [
     { icon: RiListCheck3, title: 'Assessment', description: 'Automated screening' },
     { icon: RiHomeOfficeLine, title: 'Take-Home', description: 'Project-based evaluation' },
-    { icon: RiTerminalBoxFill, title: 'Live Interview', description: 'Real-time collaboration' },
+    { icon: RiTerminalBoxLine, title: 'Live Interview', description: 'Real-time collaboration' },
     { icon: RiShakeHandsLine, title: 'Hired', description: 'Successful placement' },
   ];
 
