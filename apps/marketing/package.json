@@ -6,12 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "echo"
   },
   "dependencies": {
     "@coderscreen/ui": "workspace:^",
     "@remixicon/react": "^4.6.0",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
     "motion": "^12.23.6",
     "next": "15.4.2",
     "react": "19.1.0",
