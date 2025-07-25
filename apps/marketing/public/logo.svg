@@ -1,0 +1,10 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+	<title>logo</title>
+	<style>
+		.s0 { fill: #1860fb } 
+	</style>
+	<path class="s0" d="m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z"/>
+	<path class="s0" d="m33 60.6l51.8 28.7v100.7l-51.8-28.7z"/>
+	<path class="s0" d="m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z"/>
+	<path class="s0" d="m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z"/>
+</svg>
