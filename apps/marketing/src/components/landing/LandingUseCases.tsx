@@ -37,7 +37,7 @@ const TOP_FEATURES: Feature[] = [
 
 export const LandingUseCases = () => {
   return (
-    <section className='w-full'>
+    <section className='w-full' id='use-cases'>
       <div className='w-full grid grid-cols-1 lg:grid-cols-3'>
         {TOP_FEATURES.map((feature, index) => (
           <Card

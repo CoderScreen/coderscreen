@@ -14,8 +14,8 @@ export const LandingHero = () => {
       <section className='relative z-10 max-w-4xl mx-auto text-center px-6'>
         {/* GitHub Badge */}
         <div className='mb-2'>
-          <a href={siteConfig.githubUrl} target='_blank' rel='noopener noreferrer'>
-            <Badge variant='warning' className='py-2.5 px-4'>
+          <a href={siteConfig.external.githubRepo} target='_blank' rel='noopener noreferrer'>
+            <Badge variant='warning' className='py-1.5 px-4'>
               <RiGithubLine className='h-4 w-4 shrink-0' />
               <span className='font-medium'>Star us on GitHub</span>
             </Badge>
@@ -38,12 +38,16 @@ export const LandingHero = () => {
 
         {/* CTA Buttons */}
         <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
-          <Button variant='primary' className='px-6 py-2 text-base font-semibold'>
-            Get started for free
-          </Button>
-          <Button variant='secondary' className='px-6 py-2 text-base font-semibold'>
-            Book a demo
-          </Button>
+          <a href={siteConfig.external.getStarted}>
+            <Button variant='primary' className='px-6 py-2 text-base font-semibold'>
+              Get started for free
+            </Button>
+          </a>
+          <a href={siteConfig.external.bookDemo}>
+            <Button variant='secondary' className='px-6 py-2 text-base font-semibold'>
+              Book a demo
+            </Button>
+          </a>
         </div>
       </section>
     </div>

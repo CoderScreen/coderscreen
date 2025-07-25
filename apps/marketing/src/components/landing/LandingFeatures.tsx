@@ -73,7 +73,7 @@ export const LandingFeatures = () => {
   const [selectedFeature, setSelectedFeature] = useState<Feature>(features[0]);
 
   return (
-    <section className='py-20 bg-white'>
+    <section id='features' className='py-20 bg-white'>
       <div className='container mx-auto px-4'>
         <div className='flex flex-col items-center gap-1 mb-10'>
           <h2 className='text-3xl font-semibold'>Smarter Interviews, Better Signals</h2>

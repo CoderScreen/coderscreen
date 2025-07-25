@@ -43,7 +43,7 @@ const FAQ_ITEMS = [
 
 export const LandingFAQ = () => {
   return (
-    <section className='w-full'>
+    <section id='faq' className='w-full'>
       <div className='w-full p-6'>
         <div className='flex flex-col gap-4 text-center mb-12'>
           <h2 className='text-3xl font-semibold'>Frequently asked questions</h2>

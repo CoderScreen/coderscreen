@@ -166,7 +166,7 @@ const IntegrationsVisual = () => {
           top: '50%',
         }}
       >
-        <Logo className='text-white' />
+        <Logo className='text-white h-6 w-6' />
       </div>
 
       {ATS_LOGOS.slice(0, 5).map((logo, index) => {
@@ -241,7 +241,7 @@ const SECOND_SECTION_FEATURES: {
 
 export const LandingWorkflow = () => {
   return (
-    <section className='w-full py-10 border-t border-border/50'>
+    <section id='workflow' className='w-full pt-10 border-t border-border/50'>
       <div className='w-full px-6 pb-10 border-b border-border/50'>
         <div className='flex flex-col items-center gap-1'>
           <h2 className='text-3xl font-semibold'>End-to-End Technical Hiring</h2>
