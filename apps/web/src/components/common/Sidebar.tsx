@@ -181,7 +181,7 @@ const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
 
   const LinkWrapper = ({ children }: { children: React.ReactNode }) =>
     item.comingSoon ? (
-      <Tooltip content={<span>Coming soon</span>} triggerClassName='w-full'>
+      <Tooltip showArrow content={<span>Coming soon</span>} triggerClassName='w-full'>
         {children}
       </Tooltip>
     ) : (

@@ -6,7 +6,7 @@ export const siteConfig = {
     // social links
     x: 'https://x.com/coderscreen',
     linkedin: 'https://www.linkedin.com/company/coderscreen',
-    githubRepo: 'https://github.com/coderscreen/coderscreen',
+    githubRepo: 'https://github.com/coderscreen',
     // app links
     getStarted: 'https://app.coderscreen.com/signup',
     bookDemo: 'https://cal.com/coderscreen/demo',
