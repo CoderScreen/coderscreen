@@ -4,6 +4,7 @@ import { MarketingHeader } from '@/components/common/MarketingHeader';
 import { MarketingFooter } from '@/components/common/MarketingFooter';
 
 import './globals.css';
+import Script from 'next/script';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -63,6 +64,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
+      {process.env.NEXT_PUBLIC_SEND_ANALYTICS === 'true' ? (
+        <Script
+          defer
+          src='https://umami-production-7615.up.railway.app/script.js'
+          data-website-id='3ff7c2b0-556e-4f19-be09-fb15858d4693'
+        />
+      ) : null}
       <body className={`${geistSans.className} ${geistMono.variable} antialiased`}>
         <MarketingHeader />
         {children}
