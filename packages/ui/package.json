@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.3",
     "@remixicon/react": "^4.6.0",
     "react": "^19.1.0",
     "tailwind-variants": "^0.3.1"

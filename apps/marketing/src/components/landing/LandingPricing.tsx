@@ -20,7 +20,6 @@ import {
 } from '@remixicon/react';
 import { useState } from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@coderscreen/ui/toggle-group';
-import { getBillingPlans } from '@/query/plans.query';
 import { siteConfig } from '@/lib/siteConfig';
 
 const LIMIT_MAP = {
@@ -288,7 +287,7 @@ export const LandingPricing = () => {
               )}
             >
               {plan.popular && (
-                <Badge className='absolute top-4 right-4 bg-primary text-white flex items-center gap-1'>
+                <Badge className='absolute top-2 md:top-4 right-2 md:right-4 bg-primary text-white flex items-center gap-1'>
                   <RiStarLine className='h-3 w-3' />
                   Most Popular
                 </Badge>

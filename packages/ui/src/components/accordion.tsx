@@ -36,7 +36,7 @@ const AccordionTrigger = React.forwardRef<
       <RiAddLine
         className={cx(
           // base
-          'size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.87,_0,_0.13,_1)] group-data-[state=open]:-rotate-45',
+          'size-5 shrink-0 transition-transform duration-150 group-data-[state=open]:-rotate-45',
           // text color
           'text-gray-400',
           // disabled
@@ -59,7 +59,7 @@ const AccordionContent = React.forwardRef<
   <AccordionPrimitives.Content
     ref={forwardedRef}
     className={cx(
-      'transform-gpu data-[state=closed]:animate-accordionClose data-[state=open]:animate-accordionOpen'
+      'transform-gpu data-[state=closed]:animate-accordion-close data-[state=open]:animate-accordion-open'
     )}
     {...props}
   >
