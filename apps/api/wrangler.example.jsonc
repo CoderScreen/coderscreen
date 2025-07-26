@@ -1,0 +1,85 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "coderscreen-api",
+  "compatibility_date": "2025-06-01",
+  "main": "./src/index.ts",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "observability": {
+    "enabled": true
+  },
+  "dev": {
+    "port": 8000
+  },
+  "upload_source_maps": true,
+  "vars": {
+    "NODE_ENV": "production", // production or development
+    "FE_APP_URL": "", // url of web app
+    "FREE_PLAN_ID": "", // id of free plan (billing.db.ts)
+    "BETTER_AUTH_URL": "", // web app url + /auth
+    "STRIPE_PUBLISHABLE_KEY": "", // stripe publishable key
+    "STRIPE_SECRET_KEY": "", // stripe secret key
+    "STRIPE_WEBHOOK_SECRET": "", // stripe webhook secret
+
+    // Constant Vars
+    "DATABASE_URL": "", // database url
+    "LOOPS_API_KEY": "", // loops api key
+    "OPENROUTER_API_KEY": "", // openrouter api key
+    "ASSETS_URL": "", // public url of r2 bucket
+    "BETTER_AUTH_SECRET": "", // better auth secret
+    "GOOGLE_CLIENT_ID": "", // google client id
+    "GOOGLE_CLIENT_SECRET": "", // google client secret
+    "GITHUB_CLIENT_ID": "", // github client id
+    "GITHUB_CLIENT_SECRET": "" // github client secret
+  },
+  "containers": [
+    {
+      "max_instances": 10,
+      "name": "sandbox",
+      "class_name": "Sandbox",
+      "image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:production",
+      // registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:latest
+      "instance_type": "standard"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "SANDBOX",
+        "class_name": "Sandbox"
+      },
+      {
+        "name": "Room",
+        "class_name": "PartyServer"
+      },
+      {
+        "name": "PrivateRoom",
+        "class_name": "PrivateRoomServer"
+      },
+      {
+        "name": "WHITEBOARD_DO",
+        "class_name": "WhiteboardDurableObject"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "Sandbox",
+        "PartyServer",
+        "PrivateRoomServer",
+        "WhiteboardDurableObject"
+      ]
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ASSETS_BUCKET",
+      "bucket_name": "coderscreen-assets"
+    },
+    {
+      "binding": "WHITEBOARD_ASSETS_BUCKET",
+      "bucket_name": "coderscreen-whiteboard"
+    }
+  ]
+}
