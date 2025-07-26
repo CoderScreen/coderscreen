@@ -45,6 +45,7 @@ export class LoopsService {
     email: string,
     params: TransactionEmailPayload<T>
   ): Promise<any> {
+    //@ts-expect-error - this is a hack to get the environment variable
     if (this.ctx.env.NODE_ENV !== 'development') {
       return this.client.sendTransactionalEmail({
         transactionalId: TRANSACTIONAL_EMAIL_IDS[type],

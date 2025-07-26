@@ -26,7 +26,7 @@ export const OrgAvatar = ({
   };
 }) => {
   return (
-    <div className='flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border'>
+    <div className='flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center'>
       {org.logo ? (
         <img src={org.logo} alt={org.name} className='w-full h-full rounded-lg' />
       ) : (

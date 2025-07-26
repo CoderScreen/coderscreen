@@ -17,73 +17,77 @@ import { SpawnOptions } from 'child_process';
 import { ExecuteResponse } from '@/lib/sandbox';
 
 export class CustomSandbox extends Sandbox<AppContext['Bindings']> {
-	FALLBACK_TIMEOUT_MS = 15000; // 15 seconds
-	defaultPort = 3000; // Port the container is listening on
-	sleepAfter = '10m'; // Stop the instance if requests not sent for 1h
+  FALLBACK_TIMEOUT_MS = 15000; // 15 seconds
+  defaultPort = 3000; // Port the container is listening on
+  sleepAfter = '10m'; // Stop the instance if requests not sent for 1h
 
-	async exec(command: string, args: string[], options?: { stream?: boolean; childOptions?: SpawnOptions }): Promise<ExecuteResponse> {
-		let start = Date.now();
-		const result = await super.exec(command, args, {
-			...options,
-			childOptions: {
-				...options?.childOptions,
-				timeout: options?.childOptions?.timeout || this.FALLBACK_TIMEOUT_MS,
-			},
-		});
-		let end = Date.now();
-		const elapsedTime = end - start;
+  async exec(
+    command: string,
+    args: string[],
+    options?: { stream?: boolean; childOptions?: SpawnOptions }
+  ): Promise<ExecuteResponse> {
+    let start = Date.now();
+    const result = await super.exec(command, args, {
+      ...options,
+      childOptions: {
+        ...options?.childOptions,
+        timeout: options?.childOptions?.timeout || this.FALLBACK_TIMEOUT_MS,
+      },
+    });
+    let end = Date.now();
+    const elapsedTime = end - start;
 
-		if (!result) {
-			return CodeRunner.emptyResponse;
-		}
+    if (!result) {
+      return CodeRunner.emptyResponse;
+    }
 
-		if (result.exitCode === 2) {
-			return CodeRunner.timeoutResponse;
-		}
+    if (result.exitCode === 2) {
+      return CodeRunner.timeoutResponse;
+    }
 
-		return {
-			id: crypto.randomUUID(),
-			elapsedTime,
-			...result,
-		};
-	}
+    return {
+      id: crypto.randomUUID(),
+      elapsedTime,
+      ...result,
+    };
+  }
 
-	async runCode(params: { language: RoomEntity['language']; code: string }) {
-		const { language, code } = params;
+  async runCode(params: { language: RoomEntity['language']; code: string }) {
+    const { language, code } = params;
 
-		const runner: CodeRunner = (() => {
-			switch (language) {
-				case 'javascript':
-					return new JavaScriptRunner(this, code);
-				case 'typescript':
-					return new TypescriptRunner(this, code);
-				case 'python':
-					return new PythonRunner(this, code);
-				case 'bash':
-					return new BashRunner(this, code);
-				case 'c':
-					return new CRunner(this, code);
-				case 'c++':
-					return new CppRunner(this, code);
-				case 'go':
-					return new GoRunner(this, code);
-				case 'rust':
-					return new RustRunner(this, code);
-				case 'php':
-					return new PhpRunner(this, code);
-				case 'ruby':
-					return new RubyRunner(this, code);
-				case 'java':
-					return new JavaRunner(this, code);
-				default:
-					throw new Error(`Unsupported language: ${language}`);
-			}
-		})();
+    const runner: CodeRunner = (() => {
+      switch (language) {
+        case 'javascript':
+          return new JavaScriptRunner(this, code);
+        case 'typescript':
+          return new TypescriptRunner(this, code);
+        case 'python':
+          return new PythonRunner(this, code);
+        case 'bash':
+          return new BashRunner(this, code);
+        case 'c':
+          return new CRunner(this, code);
+        case 'c++':
+          return new CppRunner(this, code);
+        case 'go':
+          return new GoRunner(this, code);
+        case 'rust':
+          return new RustRunner(this, code);
+        case 'php':
+          return new PhpRunner(this, code);
+        case 'ruby':
+          return new RubyRunner(this, code);
+        case 'java':
+          return new JavaRunner(this, code);
+        default:
+          throw new Error(`Unsupported language: ${language}`);
+      }
+    })();
 
-		await runner.setup();
-		const result = await runner.execute();
-		this.ctx.waitUntil(runner.cleanup());
+    await runner.setup();
+    const result = await runner.execute();
+    this.ctx.waitUntil(runner.cleanup());
 
-		return result;
-	}
+    return result;
+  }
 }

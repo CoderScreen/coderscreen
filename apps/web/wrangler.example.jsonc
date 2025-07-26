@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "coderscreen-web",
+  "compatibility_date": "2025-06-01",
+  "main": "./src/worker.ts",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "observability": {
+    "enabled": true
+  },
+  "dev": {
+    "port": 3000
+  },
+  "upload_source_maps": true,
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  }
+}

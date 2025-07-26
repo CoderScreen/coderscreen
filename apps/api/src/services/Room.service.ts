@@ -11,6 +11,7 @@ import { getSession } from '@/lib/session';
 import { TemplateEntity } from '@coderscreen/db/template.db';
 import { ChatMessage, User } from '@/partykit/internal/AI.service';
 import { UsageService } from '@/services/billing/Usage.service';
+import { HTTPException } from 'hono/http-exception';
 
 export class RoomService {
   private readonly db: PostgresJsDatabase;
@@ -36,7 +37,9 @@ export class RoomService {
     });
 
     if (usageResult.exceeded) {
-      throw new Error('You have reached the limit of live interviews');
+      throw new HTTPException(403, {
+        message: 'You have reached the limit of live interviews',
+      });
     }
 
     return this.db

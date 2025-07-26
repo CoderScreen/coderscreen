@@ -79,7 +79,7 @@ export class UsageService {
     const usage = await this.getOrCreateUsage(eventType);
 
     // Check if already or will be exceeded
-    if (usage.count + amount >= usage.limit) {
+    if (usage.count + amount > usage.limit) {
       return {
         eventType: usage.eventType,
         count: usage.count,

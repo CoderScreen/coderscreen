@@ -61,7 +61,7 @@ export const OrgSwitcher = () => {
               </div>
             ) : (
               <>
-                <div className='flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center border'>
+                <div className='flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center'>
                   {error && !open ? (
                     <RiErrorWarningLine className='h-5 w-5 text-red-500' />
                   ) : (

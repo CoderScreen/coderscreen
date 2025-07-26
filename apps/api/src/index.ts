@@ -21,7 +21,6 @@ import { billingRouter } from '@/routes/billing.routes';
 import { webhookRouter } from '@/routes/webhook.routes';
 import { getBilling } from '@/lib/session';
 import { HTTPException } from 'hono/http-exception';
-import { createMiddleware } from 'hono/factory';
 
 export interface AppContext {
   Variables: {
