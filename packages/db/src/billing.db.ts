@@ -1,8 +1,6 @@
-import { pgTable, text, timestamp, boolean, decimal, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
 import { organization } from './user.db';
 import { Id } from '@coderscreen/common/id';
-import { EventType } from './usage.db';
-import { AllUsageTypes } from '@/services/billing/Usage.service';
 
 export const customerTable = pgTable('customers', {
   organizationId: text('organization_id')
@@ -15,6 +13,8 @@ export const customerTable = pgTable('customers', {
   stripeCustomerId: text('stripe_customer_id').notNull().unique(),
   email: text('email').notNull(),
 });
+
+type AllUsageTypes = 'live_interview' | 'team_members';
 
 export const planTable = pgTable('plans', {
   id: text('id').primaryKey().$type<Id<'plan'>>(),

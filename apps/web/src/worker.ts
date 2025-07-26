@@ -4,6 +4,7 @@ interface Env {
 
 export default {
   async fetch(request, env) {
+    console.log('fetch', env);
     return new Response('Not found', { status: 404 });
     // console.log('fetch', env);
     // try {

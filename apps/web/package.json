@@ -6,11 +6,11 @@
     "dev": "vite --port 3000",
     "start": "vite --port 3000",
     "build": "vite build && tsc",
-    "serve": "vite preview",
+    "preview": "pnpm run build && vite preview --port 3000",
     "test": "vitest run",
     "cf-types": "wrangler types",
     "cf-dev": "wrangler dev",
-    "cf-deploy": "pnpm run build && wrangler deploy"
+    "cf-deploy": "CLOUDFLARE_ENV=production pnpm run build && wrangler deploy"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.7.5",

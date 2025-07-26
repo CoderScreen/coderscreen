@@ -26,11 +26,13 @@ export const OrgAvatar = ({
   };
 }) => {
   return (
-    <div className='flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center border'>
+    <div className='flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border'>
       {org.logo ? (
         <img src={org.logo} alt={org.name} className='w-full h-full rounded-lg' />
       ) : (
-        <span className='text-white text-sm font-medium'>{org.name.charAt(0).toUpperCase()}</span>
+        <span className='text-white text-sm font-medium bg-primary'>
+          {org.name.charAt(0).toUpperCase()}
+        </span>
       )}
     </div>
   );

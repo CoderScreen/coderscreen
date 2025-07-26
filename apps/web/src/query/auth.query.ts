@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authClient } from './client';
 import { useNavigate } from '@tanstack/react-router';
 
-const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:3000';
+const APP_URL = import.meta.env.VITE_APP_URL;
+if (!APP_URL) {
+  throw new Error(`VITE_APP_URL is not set, env: ${JSON.stringify(import.meta.env, null, 2)}`);
+}
 
 // Get current user session
 export const useSession = () => {

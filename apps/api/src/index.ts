@@ -21,6 +21,7 @@ import { billingRouter } from '@/routes/billing.routes';
 import { webhookRouter } from '@/routes/webhook.routes';
 import { getBilling } from '@/lib/session';
 import { HTTPException } from 'hono/http-exception';
+import { createMiddleware } from 'hono/factory';
 
 export interface AppContext {
   Variables: {
@@ -51,6 +52,12 @@ const app = new Hono<AppContext>()
   .get('/health', (ctx) => {
     return ctx.text('ok', 200);
   })
+  .use((ctx, next) => {
+    return cors({
+      origin: ctx.env.FE_APP_URL,
+      credentials: true,
+    })(ctx, next);
+  })
   .use(
     cors({
       origin: ['https://coderscreen.com', 'http://localhost:3000', 'http://localhost:3001'],
@@ -61,10 +68,9 @@ const app = new Hono<AppContext>()
   .all('/auth/*', (ctx) => {
     return useAuth(ctx).handler(ctx.req.raw);
   })
+  .use('*', except(['/webhook', '/rooms/:roomId/public'], authMiddleware))
   .route('/webhook', webhookRouter)
   .route('/rooms/:roomId/public', publicRoomRouter)
-  .use('*', authMiddleware)
-  // .use('partykit/*', partyKitMiddleware)
   .route('/assets', assetRouter)
   .route('/templates', templateRouter)
   .route('/rooms', roomRouter)

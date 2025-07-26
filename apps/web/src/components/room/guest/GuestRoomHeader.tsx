@@ -1,11 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePublicRoom } from '@/query/publicRoom.query';
 
-const APP_URL = import.meta.env.VITE_APP_URL as string;
-if (!APP_URL) {
-  throw new Error('VITE_APP_URL is not set');
-}
-
 export const GuestRoomHeader = () => {
   const { publicRoom, isLoading } = usePublicRoom();
 

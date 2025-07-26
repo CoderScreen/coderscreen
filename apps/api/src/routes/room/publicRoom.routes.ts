@@ -15,7 +15,6 @@ import { HTTPException } from 'hono/http-exception';
 
 export const publicRoomRouter = new Hono<AppContext>()
   .use(publicRoomMiddleware)
-  .route('/whiteboard', whiteboardRouter)
   .use('/connect/*', partyKitMiddleware)
   .get(
     '/',
@@ -136,4 +135,5 @@ export const publicRoomRouter = new Hono<AppContext>()
 
       return ctx.json({ message: 'Chat with the AI' });
     }
-  );
+  )
+  .route('/whiteboard', whiteboardRouter);

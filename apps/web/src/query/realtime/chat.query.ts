@@ -95,7 +95,7 @@ export function useAIChat() {
   const addMessages = (message: string, user: User) => {
     const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
 
-    const userMessage: ChatMessage & { user: User } = {
+    const userMessage: ChatMessage & { user: User; success: true } = {
       id: crypto.randomUUID(),
       role: 'user',
       content: message.trim(),
@@ -106,7 +106,7 @@ export function useAIChat() {
       conversationId: currentConversationId,
     };
 
-    const assistantMessage: ChatMessage & { user: null } = {
+    const assistantMessage: ChatMessage & { user: null; success: true } = {
       id: crypto.randomUUID(),
       role: 'assistant',
       content: 'Thinking...',

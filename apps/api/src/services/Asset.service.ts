@@ -14,7 +14,11 @@ export class AssetService {
     const db = useDb(this.ctx);
 
     const assetId = generateId('asset');
-    const fileType = base64Data.split(';')[0].split('/')[1];
+
+    // Extract content type and file extension from base64 data
+    const contentTypeMatch = base64Data.match(/^data:([^;]+);base64,/);
+    const contentType = contentTypeMatch ? contentTypeMatch[1] : 'image/png';
+    const fileType = contentType.split('/')[1] || 'png';
     const key = `${assetId}.${fileType}`;
 
     const publicUrl = `${this.ctx.env.ASSETS_URL}/${key}`;
@@ -33,8 +37,15 @@ export class AssetService {
         .returning()
         .then((asset) => asset[0]);
 
-      // upload to r2
-      await this.ctx.env.ASSETS_BUCKET.put(key, base64Data);
+      // Convert base64 to binary and upload to r2
+      const base64Content = base64Data.replace(/^data:[^;]+;base64,/, '');
+      const binaryData = Uint8Array.from(atob(base64Content), (c) => c.charCodeAt(0));
+
+      await this.ctx.env.ASSETS_BUCKET.put(key, binaryData, {
+        httpMetadata: {
+          contentType,
+        },
+      });
 
       return _asset;
     });

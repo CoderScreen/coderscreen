@@ -25,5 +25,6 @@
       "@/*": ["./src/*"],
       "@coderscreen/api/schema/*": ["../api/src/schema/*.zod.ts"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", ".dev.vars"]
 }

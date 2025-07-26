@@ -13,7 +13,6 @@ import {
   RiCloseLine,
   RiDeleteBinLine,
   RiMore2Line,
-  RiRefreshLine,
   RiResetRightLine,
   RiUserAddLine,
   RiTimeLine,
@@ -116,7 +115,8 @@ export const InviteMembers = () => {
   const [cancelInvitationId, setCancelInvitationId] = useState<string | null>(null);
 
   const canEdit = useMemo(() => {
-    return member?.role === 'owner' || member?.role === 'admin';
+    if (!member) return true;
+    return member.role === 'owner' || member.role === 'admin';
   }, [member]);
 
   const { invitations, isLoading: isLoadingInvitations } = useInvitations();

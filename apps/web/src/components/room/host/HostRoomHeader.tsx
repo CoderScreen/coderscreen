@@ -20,13 +20,8 @@ import {
 import { toast } from 'sonner';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { Tooltip } from '@/components/ui/tooltip';
-
-const APP_URL = import.meta.env.VITE_APP_URL as string;
-if (!APP_URL) {
-  throw new Error('VITE_APP_URL is not set');
-}
 
 export const HostRoomHeader = () => {
   const { room, isLoading } = useRoom();
@@ -43,10 +38,11 @@ export const HostRoomHeader = () => {
 
   // Check if room is in read-only mode (completed)
   const isReadOnly = room?.status === 'completed';
+  const location = useLocation();
 
   const handleCopyLink = async () => {
     try {
-      const shareLink = `${APP_URL}/room/${room?.id}`;
+      const shareLink = location.href;
       await navigator.clipboard.writeText(shareLink);
       setCopied(true);
       toast.success('Link copied to clipboard!');

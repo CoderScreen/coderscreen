@@ -91,9 +91,6 @@ export const BillingView = () => {
         </div>
 
         <div className='flex items-center gap-4'>
-          <Button variant='secondary' icon={RiQuestionLine} iconPosition='right'>
-            Need Help
-          </Button>
           <Button onClick={handleManageBilling} icon={RiSettings3Line} disabled={isCreatingPortal}>
             Manage Billing
           </Button>

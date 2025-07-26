@@ -3,6 +3,7 @@ import { useRoomContext } from '@/contexts/RoomContext';
 import { useRunRoomCode } from '@/query/publicRoom.query';
 import { ExecOutputSchema } from '@coderscreen/api/schema/sandbox';
 import { z } from 'zod';
+import { RoomSchema } from '@coderscreen/api/schema/room';
 
 type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
@@ -35,7 +36,7 @@ export function useCodeExecutionHistory() {
 
   // Run code and store result in history
   const executeCode = useCallback(
-    async (code: string, language: string) => {
+    async (code: string, language: RoomSchema['language']) => {
       if (!provider || isReadOnly) {
         return;
       }
