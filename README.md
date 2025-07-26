@@ -1,6 +1,6 @@
 <p align="center">
   <p align="center">
-   <img width="150" height="150" src="https://raw.githubusercontent.com/coderscreen/coderscreen/content/logo.png" alt="Logo">
+   <img width="150" height="150" src="https://raw.githubusercontent.com/CoderScreen/coderscreen/refs/heads/main/content/logo.png" alt="Logo">
   </p>
 	<h1 align="center"><b>CoderScreen</b></h1>
 	<p align="center">
