@@ -23,6 +23,7 @@ export const getSession = (ctx: Context<AppContext>, options?: { noActiveOrg?: b
   return {
     user,
     session,
+    // biome-ignore lint/style/noNonNullAssertion: needed for option
     orgId: session.activeOrganizationId!,
   };
 };

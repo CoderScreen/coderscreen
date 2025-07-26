@@ -1,6 +1,6 @@
-import { Id } from '@coderscreen/common/id';
+import { Id } from "@coderscreen/common/id";
 
-export const getSandboxId = (roomId: Id<'room'>, language?: string) => {
+export const getSandboxId = (roomId: Id<"room">, language?: string) => {
 	return `s_${roomId}`;
 };
 
@@ -25,13 +25,15 @@ export interface FormattedOutput {
 	elapsedTime: number;
 }
 
-export const formatExecOutput = (output: void | ExecuteResponse): FormattedOutput => {
+export const formatExecOutput = (
+	output: void | ExecuteResponse
+): FormattedOutput => {
 	if (!output) {
 		return {
 			success: false,
 			timestamp: new Date().toISOString(),
-			stdout: '',
-			stderr: 'No output from execution',
+			stdout: "",
+			stderr: "No output from execution",
 			exitCode: 0,
 			elapsedTime: 0,
 		};

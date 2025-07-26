@@ -4,6 +4,13 @@
     "packages/*"
   ],
   "scripts": {
+    "nx:lint": "npx nx run-many --target=lint",
+    "nx:build": "npx nx run-many --target=build",
+    "build": "nx next:build && echo 'Build complete'",
     "sandbox:build": "docker build -t sandbox-image -f ./apps/api/src/containers/images/Dockerfile ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.1.2",
+    "nx": "21.3.7"
   }
 }

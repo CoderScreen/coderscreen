@@ -130,7 +130,7 @@ export const useAuth: (
       before: createAuthMiddleware(async (authCtx) => {
         if (
           authCtx.path === '/organization/invite-member' ||
-          authCtx.path == '/organizaiton/accept-invitation'
+          authCtx.path === '/organizaiton/accept-invitation'
         ) {
           const sessionCookieToken = await authCtx.getSignedCookie(
             authCtx.context.authCookies.sessionToken.name,
