@@ -95,7 +95,7 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
 
   private getDb() {
     if (!this.db) {
-      const sql = postgres(this.env.DATABASE_URL);
+      const sql = postgres(this.env.INFISCAL_DATABASE_URL);
       this.db = drizzle(sql);
     }
 

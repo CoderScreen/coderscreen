@@ -23,9 +23,8 @@
 	"vars": {
 		"NODE_ENV": "production",
 		"FE_APP_URL": "https://app.coderscreen.com",
-		"FREE_PLAN_ID": "free",
-		"BETTER_AUTH_URL": "https://api.coderscreen.com/auth",
 		"ASSETS_URL": "https://assets.coderscreen.com",
+		"FREE_PLAN_ID": "free",
 	},
 	"containers": [
 		{

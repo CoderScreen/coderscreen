@@ -33,7 +33,7 @@ export class LoopsService {
   private client: LoopsClient;
 
   constructor(private readonly ctx: Context<AppContext>) {
-    this.client = new LoopsClient(this.ctx.env.LOOPS_API_KEY);
+    this.client = new LoopsClient(this.ctx.env.INFISCAL_LOOPS_API_KEY);
   }
 
   async createContact(params: { email: string; name: string }) {
