@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "echo"
+    "lint": "biome check src",
+    "lint:fix": "biome check src --write",
+    "format": "biome format --write src"
   },
   "dependencies": {
     "@coderscreen/ui": "workspace:^",

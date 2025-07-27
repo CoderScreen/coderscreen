@@ -1,4 +1,4 @@
-const defaultColor = '#1860fb';
+// const defaultColor = '#1860fb';
 
 export const Logo = ({ className }: { className?: string }) => {
   return (
@@ -8,6 +8,7 @@ export const Logo = ({ className }: { className?: string }) => {
       xmlns='http://www.w3.org/2000/svg'
       className={className}
     >
+      <title>CoderScreen Logo</title>
       <path
         d='M63 74.2773L98 95.2773L36.75 132.027L0 111.027L63 74.2773Z'
         fill='currentColor'

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'motion/react';
+import Image from 'next/image';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface Feature {
@@ -83,7 +84,7 @@ export const LandingFeatures = () => {
 
           {/* Right Side - Feature Content */}
           <div className='lg:col-span-2 ml-4 border-l border-border/50 pl-4 bg-white'>
-            <img
+            <Image
               src={selectedFeature.image}
               alt={selectedFeature.imageAlt}
               className='w-full h-full object-contain border border-border/50 rounded-xl'

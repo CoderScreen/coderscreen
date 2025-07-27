@@ -4,8 +4,9 @@
   "type": "module",
   "description": "",
   "scripts": {
-    "format": "biome format --write",
     "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format --write",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

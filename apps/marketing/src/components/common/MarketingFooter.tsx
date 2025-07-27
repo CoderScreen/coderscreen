@@ -1,9 +1,9 @@
 'use client';
 
+import { RiGithubLine, RiLinkedinBoxLine, RiTwitterXLine } from '@remixicon/react';
 import React from 'react';
 import { Logo } from '@/components/common/Logo';
 import { siteConfig } from '@/lib/siteConfig';
-import { RiGithubLine, RiLinkedinBoxLine, RiTwitterXLine } from '@remixicon/react';
 
 export const MarketingFooter: React.FC = () => {
   const scrollToSection = (sectionId: string) => {
@@ -62,6 +62,7 @@ export const MarketingFooter: React.FC = () => {
                 <button
                   onClick={() => scrollToSection('features')}
                   className='text-gray-600 hover:text-gray-900 transition-colors text-left w-full'
+                  type='button'
                 >
                   Features
                 </button>
@@ -70,6 +71,7 @@ export const MarketingFooter: React.FC = () => {
                 <button
                   onClick={() => scrollToSection('pricing')}
                   className='text-gray-600 hover:text-gray-900 transition-colors text-left w-full'
+                  type='button'
                 >
                   Pricing
                 </button>

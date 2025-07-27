@@ -21,7 +21,7 @@ export const AssessmentVisual = () => {
         `}
       </pre>
       {candidates.map((candidate, index) => (
-        <div key={index} className={cx('text-xs mt-[1rem]', index === 0 ? 'mt-0' : '')}>
+        <div key={candidate.name} className={cx('text-xs mt-[1rem]', index === 0 ? 'mt-0' : '')}>
           <div className='text-gray-900 font-medium'>{candidate.name}</div>
           <div className='flex items-center gap-2'>
             <span className='text-gray-600'>Score:</span>

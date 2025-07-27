@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { MarketingHeader } from '@/components/common/MarketingHeader';
 import { MarketingFooter } from '@/components/common/MarketingFooter';
+import { MarketingHeader } from '@/components/common/MarketingHeader';
 
 import './globals.css';
 import Script from 'next/script';

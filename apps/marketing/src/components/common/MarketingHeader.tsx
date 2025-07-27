@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@coderscreen/ui/button';
-import { RiCloseLine, RiMenuLine, RiGithubLine } from '@remixicon/react';
+import { RiCloseLine, RiGithubLine, RiMenuLine } from '@remixicon/react';
+import Link from 'next/link';
+import { useState } from 'react';
 import { Logo } from '@/components/common/Logo';
 import { siteConfig } from '@/lib/siteConfig';
-import Link from 'next/link';
 
 export const MarketingHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,24 +36,28 @@ export const MarketingHeader = () => {
             <button
               onClick={() => scrollToSection('use-cases')}
               className='text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors cursor-pointer'
+              type='button'
             >
               Use Cases
             </button>
             <button
               onClick={() => scrollToSection('features')}
               className='text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors cursor-pointer'
+              type='button'
             >
               Features
             </button>
             <button
               onClick={() => scrollToSection('pricing')}
               className='text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors cursor-pointer'
+              type='button'
             >
               Pricing
             </button>
             <button
               onClick={() => scrollToSection('faq')}
               className='text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors cursor-pointer'
+              type='button'
             >
               FAQ
             </button>
@@ -96,30 +100,35 @@ export const MarketingHeader = () => {
               <button
                 onClick={() => scrollToSection('features')}
                 className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'
+                type='button'
               >
                 Solutions
               </button>
               <button
                 onClick={() => scrollToSection('features')}
                 className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'
+                type='button'
               >
                 Features
               </button>
               <button
                 onClick={() => scrollToSection('workflow')}
                 className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'
+                type='button'
               >
                 Process
               </button>
               <button
                 onClick={() => scrollToSection('pricing')}
                 className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'
+                type='button'
               >
                 Pricing
               </button>
               <button
                 onClick={() => scrollToSection('faq')}
                 className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'
+                type='button'
               >
                 FAQ
               </button>

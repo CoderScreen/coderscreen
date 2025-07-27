@@ -1,5 +1,4 @@
 'use client';
-import { Button } from '@coderscreen/ui/button';
 import {
   Accordion,
   AccordionContent,
@@ -59,7 +58,7 @@ export const LandingFAQ = () => {
       <div className='max-w-3xl mx-auto'>
         <Accordion type='single' collapsible className='w-full'>
           {FAQ_ITEMS.map((item, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
+            <AccordionItem key={item.question} value={`item-${index}`}>
               <AccordionTrigger className='text-left'>{item.question}</AccordionTrigger>
               <AccordionContent>{item.answer}</AccordionContent>
             </AccordionItem>
