@@ -25,8 +25,8 @@ export const useAuth: (
 
   const options = {
     trustedOrigins: [env.FE_APP_URL],
-    baseURL: env.BETTER_AUTH_URL,
-    secret: env.BETTER_AUTH_SECRET,
+    baseURL: env.INFISCAL_BETTER_AUTH_URL,
+    secret: env.INFISCAL_BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: 'pg', schema }),
     ...betterAuthConfig,
     // anything that needs db below this line

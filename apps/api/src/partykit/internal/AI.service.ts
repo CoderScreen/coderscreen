@@ -69,7 +69,7 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
     this.room = room;
 
     this.client = new OpenAI({
-      apiKey: this.env.OPENROUTER_API_KEY,
+      apiKey: this.env.INFISCAL_OPENROUTER_API_KEY,
       baseURL: 'https://openrouter.ai/api/v1',
     });
   }
@@ -341,7 +341,7 @@ User's question: ${userMessage.content}
 
   private getDb() {
     if (!this.db) {
-      const sql = postgres(this.env.DATABASE_URL);
+      const sql = postgres(this.env.INFISCAL_DATABASE_URL);
       this.db = drizzle(sql);
     }
 
