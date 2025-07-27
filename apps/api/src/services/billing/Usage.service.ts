@@ -1,19 +1,19 @@
-import { eq, and, sql, count } from 'drizzle-orm';
 import { generateId } from '@coderscreen/common/id';
-import { useDb } from '@/db/client';
-import { Context } from 'hono';
-import { AppContext } from '@/index';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { PlanEntity, SubscriptionEntity } from '@coderscreen/db/billing.db';
 import {
-  eventLogTable,
   EventLogEntity,
   EventType,
-  eventUsageTable,
   EventUsageEntity,
+  eventLogTable,
+  eventUsageTable,
 } from '@coderscreen/db/usage.db';
-import { getBilling, getSession } from '@/lib/session';
 import { member } from '@coderscreen/db/user.db';
-import { PlanEntity, SubscriptionEntity } from '@coderscreen/db/billing.db';
+import { and, count, eq, sql } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { Context } from 'hono';
+import { useDb } from '@/db/client';
+import { AppContext } from '@/index';
+import { getBilling, getSession } from '@/lib/session';
 
 /**
  * Simplified Usage Tracking Service
@@ -50,7 +50,7 @@ export interface TrackEventParams {
     type?: string;
   };
   amount?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UsageResult {
@@ -137,9 +137,7 @@ export class UsageService {
         try {
           result[eventType] = await this.getOrCreateUsage(eventType);
         } catch (err) {
-          // Optionally log error, fallback to default
-          // console.error(`Failed to get usage for ${eventType}:`, err);
-          // Leave the fallback value as is
+          console.error(`Failed to get usage for ${eventType}:`, err);
         }
       })
     );
@@ -256,7 +254,7 @@ export class UsageService {
   private async getCustomUsage(eventType: CustomUsageType): Promise<UsageResult> {
     const { plan: currentPlan } = await getBilling(this.ctx);
     switch (eventType) {
-      case 'team_members':
+      case 'team_members': {
         const { orgId } = getSession(this.ctx);
         const memberCount = await this.db
           .select({
@@ -266,7 +264,7 @@ export class UsageService {
           .where(eq(member.organizationId, orgId))
           .then((res) => res[0]);
 
-        const limit = currentPlan.limits['team_members'];
+        const limit = currentPlan.limits.team_members;
 
         return {
           eventType: 'team_members',
@@ -274,6 +272,7 @@ export class UsageService {
           limit,
           exceeded: memberCount.count >= limit,
         };
+      }
       default:
         throw new Error(`Unknown custom usage type: ${eventType}`);
     }

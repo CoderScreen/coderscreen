@@ -1,22 +1,17 @@
-import { AppContext } from '@/index';
-import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
-import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
-import { eq } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { YServer } from 'y-partyserver';
 import { Id } from '@coderscreen/common/id';
-import * as Y from 'yjs';
+import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
+import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
+import { eq } from 'drizzle-orm';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { YServer } from 'y-partyserver';
+import * as Y from 'yjs';
+import { AppContext } from '@/index';
 
 export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
   private db: PostgresJsDatabase | null = null;
 
   private room: RoomEntity | null = null;
-
-  constructor(ctx: DurableObjectState, env: Env) {
-    super(ctx, env);
-  }
 
   /* control how often the onSave handler
    * is called with these options */

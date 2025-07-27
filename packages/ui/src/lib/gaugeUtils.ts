@@ -139,10 +139,10 @@ export const calculatePrimaryStroke = (
     return strokePercent <= 25
       ? 'hsl(358 75% 59%)'
       : strokePercent <= 50
-      ? 'hsl(39 100% 57%)'
-      : strokePercent <= 75
-      ? 'hsl(212 100% 48%)'
-      : 'hsl(131 41% 46%)';
+        ? 'hsl(39 100% 57%)'
+        : strokePercent <= 75
+          ? 'hsl(212 100% 48%)'
+          : 'hsl(131 41% 46%)';
   } else if (typeof primary === 'string') {
     // Specific default color or custom color
     return primary;

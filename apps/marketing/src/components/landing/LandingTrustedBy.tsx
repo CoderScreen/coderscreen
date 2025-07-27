@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 const TRUSTED_COMPANIES: {
   name: string;
   logo: string;
@@ -23,9 +25,9 @@ export const LandingTrustedBy = () => {
       <h4 className='text-xl font-semibold text-muted-foreground'>Built by engineers from</h4>
 
       <div className='w-full grid grid-cols-1 lg:grid-cols-3'>
-        {TRUSTED_COMPANIES.map((company, index) => (
-          <div className='flex items-center justify-center'>
-            <img
+        {TRUSTED_COMPANIES.map((company) => (
+          <div key={company.name} className='flex items-center justify-center'>
+            <Image
               src={company.logo}
               alt={`${company.name} logo`}
               className='h-12 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity'

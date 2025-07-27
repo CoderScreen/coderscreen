@@ -1,10 +1,10 @@
+import { MarketingCTA } from '@/components/common/MarketingCTA';
+import { LandingFAQ } from '@/components/landing/LandingFAQ';
+import { LandingFeatures } from '@/components/landing/LandingFeatures';
+import { LandingPricing } from '@/components/landing/LandingPricing';
+import { LandingWorkflow } from '@/components/landing/LandingWorkflow';
 import { LandingHero } from './LandingHero';
 import { LandingUseCases } from './LandingUseCases';
-import { MarketingCTA } from '@/components/common/MarketingCTA';
-import { LandingPricing } from '@/components/landing/LandingPricing';
-import { LandingFAQ } from '@/components/landing/LandingFAQ';
-import { LandingWorkflow } from '@/components/landing/LandingWorkflow';
-import { LandingFeatures } from '@/components/landing/LandingFeatures';
 
 export const LandingPageView = () => {
   return (

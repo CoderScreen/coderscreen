@@ -1,14 +1,14 @@
-import { YServer } from 'y-partyserver';
-import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { AppContext } from '@/index';
-import postgres from 'postgres';
 import { Id } from '@coderscreen/common/id';
-import { eq } from 'drizzle-orm';
 import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
+import { eq } from 'drizzle-orm';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
-import { SandboxService } from './internal/Sandbox.service';
+import { AppContext } from '@/index';
 import { AIService, ChatMessage, User } from './internal/AI.service';
+import { SandboxService } from './internal/Sandbox.service';
 
 const KEYS = {
   trackedUsers: 'tracked-users',
@@ -69,7 +69,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     }
 
     // warm up the sandbox
-    this.createNewSandbox(this.room.language);
+    this.createNewSandbox();
 
     this.document.awareness.on(
       'change',
@@ -216,11 +216,11 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     return this.sandboxService;
   }
 
-  private createNewSandbox(language: RoomEntity['language']) {
+  private createNewSandbox() {
     const room = this.getRoom();
     const roomId = room.id;
 
-    this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId, language }));
+    this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId }));
   }
 
   // AI Chat Methods

@@ -1,6 +1,6 @@
-import { AppContext } from '@/index';
 import { Context } from 'hono';
 import { LoopsClient } from 'loops';
+import { AppContext } from '@/index';
 
 type TransactionalEmailTypes = 'verification_code' | 'org_invitation';
 type TransactionEmailParams = {
@@ -44,10 +44,9 @@ export class LoopsService {
     type: T,
     email: string,
     params: TransactionEmailPayload<T>
-  ): Promise<any> {
-    //@ts-expect-error - this is a hack to get the environment variable
+  ): Promise<void> {
     if (this.ctx.env.NODE_ENV !== 'development') {
-      return this.client.sendTransactionalEmail({
+      await this.client.sendTransactionalEmail({
         transactionalId: TRANSACTIONAL_EMAIL_IDS[type],
         email,
         dataVariables: params,

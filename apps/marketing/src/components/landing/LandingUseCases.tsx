@@ -1,12 +1,12 @@
 'use client';
+import { Card, CardDescription, CardHeader, CardTitle } from '@coderscreen/ui/card';
+import { ReactNode } from 'react';
 import {
   AssessmentVisual,
   LiveInterviewVisual,
   TakeHomeVisual,
 } from '@/components/landing/FeatureVisuals';
 import { cx } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardDescription } from '@coderscreen/ui/card';
-import { ReactNode } from 'react';
 
 interface Feature {
   title: string;

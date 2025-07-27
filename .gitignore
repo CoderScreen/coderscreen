@@ -2,7 +2,6 @@ node_modules
 .env
 .dev.vars
 
-.vscode
 .nx/installation
 .nx/cache
 .nx/workspace-data
@@ -10,7 +9,5 @@ node_modules
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
-
-wrangler.jsonc
 
 !.env.example

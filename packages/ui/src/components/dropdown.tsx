@@ -2,7 +2,6 @@
 
 'use client';
 
-import * as React from 'react';
 import * as DropdownMenuPrimitives from '@radix-ui/react-dropdown-menu';
 import {
   RiArrowRightSLine,
@@ -10,8 +9,9 @@ import {
   RiCheckLine,
   RiRadioButtonFill,
 } from '@remixicon/react';
+import * as React from 'react';
 
-import { cx } from '@/lib/utils';
+import { cx } from '../lib/utils';
 
 const DropdownMenu = DropdownMenuPrimitives.Root;
 DropdownMenu.displayName = 'DropdownMenu';
@@ -95,14 +95,7 @@ const DropdownMenuContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitives.Content>
 >(
   (
-    {
-      className,
-      sideOffset = 8,
-      collisionPadding = 8,
-      align = 'center',
-      loop = true,
-      ...props
-    },
+    { className, sideOffset = 8, collisionPadding = 8, align = 'center', loop = true, ...props },
     forwardedRef
   ) => (
     <DropdownMenuPrimitives.Portal>
@@ -163,14 +156,8 @@ const DropdownMenuItem = React.forwardRef<
     {...props}
   >
     {children}
-    {hint && (
-      <span className={cx('ml-auto pl-2 text-sm text-gray-400')}>{hint}</span>
-    )}
-    {shortcut && (
-      <span className={cx('ml-auto pl-2 text-sm text-gray-400')}>
-        {shortcut}
-      </span>
-    )}
+    {hint && <span className={cx('ml-auto pl-2 text-sm text-gray-400')}>{hint}</span>}
+    {shortcut && <span className={cx('ml-auto pl-2 text-sm text-gray-400')}>{shortcut}</span>}
   </DropdownMenuPrimitives.Item>
 ));
 DropdownMenuItem.displayName = 'DropdownMenuItem';
@@ -181,55 +168,39 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     shortcut?: string;
     hint?: string;
   }
->(
-  (
-    { className, hint, shortcut, children, checked, ...props },
-    forwardedRef
-  ) => (
-    <DropdownMenuPrimitives.CheckboxItem
-      ref={forwardedRef}
-      className={cx(
-        // base
-        'relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors sm:text-sm',
-        // text color
-        'text-gray-900',
-        // disabled
-        'data-[disabled]:pointer-events-none  data-[disabled]:text-gray-400 data-[disabled]:hover:bg-none',
-        // focus
-        'focus-visible:bg-gray-100 ',
-        // hover
-        'hover:bg-gray-100 ',
-        className
-      )}
-      checked={checked}
-      {...props}
-    >
-      <span className='absolute left-2 flex size-4 items-center justify-center'>
-        <DropdownMenuPrimitives.ItemIndicator>
-          <RiCheckLine
-            aria-hidden='true'
-            className='size-full shrink-0 text-gray-800'
-          />
-        </DropdownMenuPrimitives.ItemIndicator>
+>(({ className, hint, shortcut, children, checked, ...props }, forwardedRef) => (
+  <DropdownMenuPrimitives.CheckboxItem
+    ref={forwardedRef}
+    className={cx(
+      // base
+      'relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors sm:text-sm',
+      // text color
+      'text-gray-900',
+      // disabled
+      'data-[disabled]:pointer-events-none  data-[disabled]:text-gray-400 data-[disabled]:hover:bg-none',
+      // focus
+      'focus-visible:bg-gray-100 ',
+      // hover
+      'hover:bg-gray-100 ',
+      className
+    )}
+    checked={checked}
+    {...props}
+  >
+    <span className='absolute left-2 flex size-4 items-center justify-center'>
+      <DropdownMenuPrimitives.ItemIndicator>
+        <RiCheckLine aria-hidden='true' className='size-full shrink-0 text-gray-800' />
+      </DropdownMenuPrimitives.ItemIndicator>
+    </span>
+    {children}
+    {hint && <span className={cx('ml-auto text-sm font-normal text-gray-400')}>{hint}</span>}
+    {shortcut && (
+      <span className={cx('ml-auto text-sm font-normal tracking-widest text-gray-400')}>
+        {shortcut}
       </span>
-      {children}
-      {hint && (
-        <span className={cx('ml-auto text-sm font-normal text-gray-400')}>
-          {hint}
-        </span>
-      )}
-      {shortcut && (
-        <span
-          className={cx(
-            'ml-auto text-sm font-normal tracking-widest text-gray-400'
-          )}
-        >
-          {shortcut}
-        </span>
-      )}
-    </DropdownMenuPrimitives.CheckboxItem>
-  )
-);
+    )}
+  </DropdownMenuPrimitives.CheckboxItem>
+));
 DropdownMenuCheckboxItem.displayName = 'DropdownMenuCheckboxItem';
 
 const DropdownMenuRadioItem = React.forwardRef<
@@ -267,17 +238,9 @@ const DropdownMenuRadioItem = React.forwardRef<
       />
     </span>
     {children}
-    {hint && (
-      <span className={cx('ml-auto text-sm font-normal text-gray-400')}>
-        {hint}
-      </span>
-    )}
+    {hint && <span className={cx('ml-auto text-sm font-normal text-gray-400')}>{hint}</span>}
     {shortcut && (
-      <span
-        className={cx(
-          'ml-auto text-sm font-normal tracking-widest text-gray-400'
-        )}
-      >
+      <span className={cx('ml-auto text-sm font-normal tracking-widest text-gray-400')}>
         {shortcut}
       </span>
     )}

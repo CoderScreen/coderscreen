@@ -14,5 +14,15 @@
   "assets": {
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    {
+      "pattern": "app.coderscreen.com",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "VITE_APP_URL": "https://app.coderscreen.com",
+    "VITE_API_URL": "https://api.coderscreen.com"
   }
 }

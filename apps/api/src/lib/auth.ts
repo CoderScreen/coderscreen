@@ -1,18 +1,18 @@
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { betterAuth, BetterAuthOptions } from 'better-auth';
-import { APIError } from 'better-auth/api';
-import { AppContext } from '@/index';
-import { Context } from 'hono';
 import * as schema from '@coderscreen/db/user.db';
-import { betterAuthConfig } from '../../better-auth.config';
-import { useDb } from '@/db/client';
+import { BetterAuthOptions, betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { APIError } from 'better-auth/api';
 import { createAuthMiddleware, organization } from 'better-auth/plugins';
 import { desc, eq } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { Context } from 'hono';
+import { useDb } from '@/db/client';
+import { AppContext } from '@/index';
+import { retryable } from '@/lib/utils';
 import { BillingService } from '@/services/billing/Billing.service';
 import { UsageService } from '@/services/billing/Usage.service';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { LoopsService } from '@/services/third-party/Loops.service';
-import { retryable } from '@/lib/utils';
+import { betterAuthConfig } from '../../better-auth.config';
 
 export const useAuth: (
   ctx: Context<AppContext>
@@ -130,7 +130,7 @@ export const useAuth: (
       before: createAuthMiddleware(async (authCtx) => {
         if (
           authCtx.path === '/organization/invite-member' ||
-          authCtx.path == '/organizaiton/accept-invitation'
+          authCtx.path === '/organizaiton/accept-invitation'
         ) {
           const sessionCookieToken = await authCtx.getSignedCookie(
             authCtx.context.authCookies.sessionToken.name,
@@ -143,6 +143,7 @@ export const useAuth: (
           }
 
           const session = await getSessionManual({ token: sessionCookieToken, db });
+          // biome-ignore lint/suspicious/noExplicitAny: setting so we dont have to perform another db fetch
           ctx.set('user', {} as any);
           ctx.set('session', session);
 

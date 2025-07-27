@@ -1,15 +1,15 @@
+import { idString } from '@coderscreen/common/id';
 import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { AppContext } from '..';
-import { RoomService } from '@/services/Room.service';
-import { RoomSchema } from '@/schema/room.zod';
-import { idString } from '@coderscreen/common/id';
-import { useAppFactory } from '@/services/AppFactory';
-import { TemplateService } from '@/services/Template.service';
-import { HTTPException } from 'hono/http-exception';
 import { privatePartyKitMiddleware } from '@/middleware/partyKit.middleware';
+import { RoomSchema } from '@/schema/room.zod';
+import { useAppFactory } from '@/services/AppFactory';
+import { RoomService } from '@/services/Room.service';
+import { TemplateService } from '@/services/Template.service';
+import { AppContext } from '..';
 
 export const roomRouter = new Hono<AppContext>()
   .use('/:id/connect/*', privatePartyKitMiddleware)
@@ -229,10 +229,10 @@ export const roomRouter = new Hono<AppContext>()
         });
       }
 
-      await roomService.loadTemplate({
-        room,
-        template,
-      });
+      // await roomService.loadTemplate({
+      //   room,
+      //   template,
+      // });
 
       // return room;
     }

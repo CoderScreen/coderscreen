@@ -3,7 +3,7 @@
 import React from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-import { cx } from '@/lib/utils';
+import { cx } from '../lib/utils';
 
 const progressBarVariants = tv({
   slots: {
@@ -64,26 +64,13 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
     const safeValue = Math.min(max, Math.max(value, 0));
     const { background, bar } = progressBarVariants({ variant });
     return (
-      <div
-        ref={forwardedRef}
-        className={cx('flex w-full items-center', className)}
-        {...props}
-      >
-        <div
-          className={cx(
-            'relative flex h-2 w-full items-center rounded-full',
-            background()
-          )}
-          aria-label='progress bar'
-          aria-valuenow={value}
-          aria-valuemax={max}
-        >
+      <div ref={forwardedRef} className={cx('flex w-full items-center', className)} {...props}>
+        <div className={cx('relative flex h-2 w-full items-center rounded-full', background())}>
           <div
             className={cx(
               'h-full flex-col rounded-full',
               bar(),
-              showAnimation &&
-                'transform-gpu transition-all duration-300 ease-in-out'
+              showAnimation && 'transform-gpu transition-all duration-300 ease-in-out'
             )}
             style={{
               width: max ? `${(safeValue / max) * 100}%` : `${safeValue}%`,

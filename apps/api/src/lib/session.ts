@@ -1,8 +1,8 @@
-import { Context } from 'hono';
-import { AppContext } from '../index';
-import { BillingService } from '@/services/billing/Billing.service';
 import { PlanEntity, SubscriptionEntity } from '@coderscreen/db/billing.db';
+import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { BillingService } from '@/services/billing/Billing.service';
+import { AppContext } from '../index';
 
 export const getSession = (ctx: Context<AppContext>, options?: { noActiveOrg?: boolean }) => {
   const user = ctx.get('user');
@@ -23,6 +23,7 @@ export const getSession = (ctx: Context<AppContext>, options?: { noActiveOrg?: b
   return {
     user,
     session,
+    // biome-ignore lint/style/noNonNullAssertion: needed for option
     orgId: session.activeOrganizationId!,
   };
 };

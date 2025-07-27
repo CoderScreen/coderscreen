@@ -1,7 +1,5 @@
 'use client';
 
-import { Logo } from '@/components/common/Logo';
-import { cx } from '@/lib/utils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@coderscreen/ui/card';
 import {
   RiHomeOfficeLine,
@@ -9,8 +7,11 @@ import {
   RiShakeHandsLine,
   RiTerminalBoxLine,
 } from '@remixicon/react';
+import { animate, motion, useMotionValue, useTransform } from 'motion/react';
+import Image from 'next/image';
 import { ReactNode, useEffect, useState } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'motion/react';
+import { Logo } from '@/components/common/Logo';
+import { cx } from '@/lib/utils';
 
 const WorkflowVisual = () => {
   const [activeStage, setActiveStage] = useState(0);
@@ -140,6 +141,7 @@ const IntegrationsVisual = () => {
           version='1.1'
           className='pointer-events-none absolute inset-0 size-full'
         >
+          <title>Background circle</title>
           <circle className='stroke-black/10 stroke-1' cx='50%' cy='50%' r={radius} fill='none' />
         </svg>
 
@@ -148,6 +150,7 @@ const IntegrationsVisual = () => {
           version='1.1'
           className='pointer-events-none absolute inset-0 size-full'
         >
+          <title>Second background circle</title>
           <circle
             className='stroke-black/10 stroke-1'
             cx='50%'
@@ -184,7 +187,7 @@ const IntegrationsVisual = () => {
             }
             className='absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full bg-white shadow-sm'
           >
-            <img
+            <Image
               src={`/ats-logos/${logo.name}`}
               alt={logo.name}
               className='h-full w-full object-contain rounded-full'
@@ -208,7 +211,7 @@ const IntegrationsVisual = () => {
             }
             className='absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full bg-white shadow-sm'
           >
-            <img
+            <Image
               src={`/ats-logos/${logo.name}`}
               alt={logo.name}
               className='h-full w-full object-contain rounded-full'

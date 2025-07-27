@@ -2,10 +2,9 @@
 
 import React from 'react';
 
-import { cx, focusInput, hasErrorInput } from '@/lib/utils';
+import { cx, focusInput, hasErrorInput } from '../lib/utils';
 
-interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   hasError?: boolean;
 }
 

@@ -1,26 +1,26 @@
 'use client';
 
-import { cx } from '@/lib/utils';
-import { Button } from '@coderscreen/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@coderscreen/ui/card';
 import { Badge } from '@coderscreen/ui/badge';
+import { Button } from '@coderscreen/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@coderscreen/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '@coderscreen/ui/toggle-group';
 import {
-  RiStarLine,
-  RiTeamLine,
+  RemixiconComponentType,
+  RiArrowRightLine,
+  RiBaseStationLine,
   RiCustomerServiceLine,
   RiGlobalLine,
   RiHistoryLine,
-  RiSwap2Line,
-  RiPaletteLine,
-  RiTerminalWindowFill,
-  RiBaseStationLine,
   RiLockPasswordLine,
-  RiArrowRightLine,
-  RemixiconComponentType,
+  RiPaletteLine,
+  RiStarLine,
+  RiSwap2Line,
+  RiTeamLine,
+  RiTerminalWindowFill,
 } from '@remixicon/react';
 import { useState } from 'react';
-import { ToggleGroup, ToggleGroupItem } from '@coderscreen/ui/toggle-group';
 import { siteConfig } from '@/lib/siteConfig';
+import { cx } from '@/lib/utils';
 
 const LIMIT_MAP = {
   live_interviews: {
@@ -377,32 +377,30 @@ export const LandingPricing = () => {
                     }
                   )}
 
-                  {PLAN_FEATURE_MAP[plan.group as keyof typeof PLAN_FEATURE_MAP].map(
-                    (feature, index) => {
-                      const IconComponent = feature.icon;
-                      return (
-                        <li
-                          key={index}
-                          className={cx(
-                            'flex gap-2',
-                            feature.subText ? 'items-start' : 'items-center'
+                  {PLAN_FEATURE_MAP[plan.group as keyof typeof PLAN_FEATURE_MAP].map((feature) => {
+                    const IconComponent = feature.icon;
+                    return (
+                      <li
+                        key={feature.label}
+                        className={cx(
+                          'flex gap-2',
+                          feature.subText ? 'items-start' : 'items-center'
+                        )}
+                      >
+                        <div className='p-1'>
+                          <IconComponent className='w-4 h-4 text-muted-foreground' />
+                        </div>
+                        <div className='flex-1 flex flex-col justify-center '>
+                          <span className='text-sm text-muted-foreground'>{feature.label}</span>
+                          {feature.subText && (
+                            <span className='text-xs text-muted-foreground/70'>
+                              {feature.subText}
+                            </span>
                           )}
-                        >
-                          <div className='p-1'>
-                            <IconComponent className='w-4 h-4 text-muted-foreground' />
-                          </div>
-                          <div className='flex-1 flex flex-col justify-center '>
-                            <span className='text-sm text-muted-foreground'>{feature.label}</span>
-                            {feature.subText && (
-                              <span className='text-xs text-muted-foreground/70'>
-                                {feature.subText}
-                              </span>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    }
-                  )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </CardContent>
             </Card>

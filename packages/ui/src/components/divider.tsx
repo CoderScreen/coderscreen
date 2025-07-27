@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { cx } from '@/lib/utils';
+import { cx } from '../lib/utils';
 
 interface DividerProps extends React.ComponentPropsWithoutRef<'div'> {}
 

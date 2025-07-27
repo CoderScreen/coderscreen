@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '@coderscreen/ui/styles.css';
+@import "tailwindcss";
+@import "@coderscreen/ui/styles.css";
 
 @source '../../node_modules/@coderscreen/ui';
 

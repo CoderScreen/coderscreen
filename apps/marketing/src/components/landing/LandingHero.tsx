@@ -1,8 +1,8 @@
-import { HeroBg } from '@/components/landing/HeroBg';
-import { siteConfig } from '@/lib/siteConfig';
 import { Badge } from '@coderscreen/ui/badge';
 import { Button } from '@coderscreen/ui/button';
 import { RiGithubLine } from '@remixicon/react';
+import { HeroBg } from '@/components/landing/HeroBg';
+import { siteConfig } from '@/lib/siteConfig';
 
 export const LandingHero = () => {
   return (
