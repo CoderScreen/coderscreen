@@ -4,7 +4,7 @@
   "description": "an api for computers",
   "scripts": {
     "check": "biome check && tsc --noEmit",
-    "build": "npm run build -w @cloudflare/sandbox",
+    "build": "cd packages/sandbox && npm run build",
     "test": "echo 'No tests'",
     "postinstall": "patch-package"
   },
@@ -34,6 +34,5 @@
     "typescript": "^5.8.3",
     "wrangler": "^4.21.2"
   },
-  "private": true,
   "packageManager": "npm@11.4.2"
 }

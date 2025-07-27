@@ -24,7 +24,7 @@ export class CodeRunService {
 
     // this.ctx.executionCtx.waitUntil(roomDo.handleCodeExecutioMessage({ type: 'start' }));
 
-    const sandbox = await this.getSandbox(roomId, language);
+    const sandbox = await this.getSandbox(roomId);
     const raw = await sandbox.runCode({ language, code });
     const result = formatExecOutput(raw);
 
@@ -36,8 +36,8 @@ export class CodeRunService {
     return result;
   }
 
-  private async getSandbox(roomId: Id<'room'>, language: RoomEntity['language']) {
-    const sandboxId = getSandboxId(roomId, language);
+  private async getSandbox(roomId: Id<'room'>) {
+    const sandboxId = getSandboxId(roomId);
     const sandbox = this.ctx.env.SANDBOX.get(this.ctx.env.SANDBOX.idFromName(sandboxId));
     return sandbox;
   }

@@ -229,10 +229,10 @@ export const roomRouter = new Hono<AppContext>()
         });
       }
 
-      await roomService.loadTemplate({
-        room,
-        template,
-      });
+      // await roomService.loadTemplate({
+      //   room,
+      //   template,
+      // });
 
       // return room;
     }

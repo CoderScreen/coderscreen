@@ -1,10 +1,17 @@
 {
-  "targets": {
-    "build": {
-      "dependsOn": ["^build"]
-    },
-    "test": {
-      "dependsOn": ["build"]
-    }
-  }
+	"targets": {
+		"build": {
+			"dependsOn": [
+				{
+					"projects": ["sandbox"],
+					"target": "build",
+					"params": "ignore"
+				},
+				"^build"
+			]
+		},
+		"test": {
+			"dependsOn": ["build"]
+		}
+	}
 }
