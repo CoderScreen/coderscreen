@@ -1,0 +1,81 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "coderscreen-api",
+	"compatibility_date": "2025-06-01",
+	"main": "./src/index.ts",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_compat_populate_process_env",
+	],
+	"observability": {
+		"enabled": true,
+	},
+	"dev": {
+		"port": 8000,
+	},
+	"upload_source_maps": true,
+	"routes": [
+		{
+			"pattern": "api.coderscreen.com",
+			"custom_domain": true,
+		},
+	],
+	"vars": {
+		"NODE_ENV": "production",
+		"FE_APP_URL": "https://app.coderscreen.com",
+		"FREE_PLAN_ID": "free",
+		"BETTER_AUTH_URL": "https://api.coderscreen.com/auth",
+		"ASSETS_URL": "https://assets.coderscreen.com",
+	},
+	"containers": [
+		{
+			"max_instances": 10,
+			"name": "sandbox",
+			"class_name": "Sandbox",
+			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:production",
+			// registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:latest
+			"instance_type": "standard",
+		},
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "SANDBOX",
+				"class_name": "Sandbox",
+			},
+			{
+				"name": "Room",
+				"class_name": "PartyServer",
+			},
+			{
+				"name": "PrivateRoom",
+				"class_name": "PrivateRoomServer",
+			},
+			{
+				"name": "WHITEBOARD_DO",
+				"class_name": "WhiteboardDurableObject",
+			},
+		],
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"Sandbox",
+				"PartyServer",
+				"PrivateRoomServer",
+				"WhiteboardDurableObject",
+			],
+		},
+	],
+	"r2_buckets": [
+		{
+			"binding": "ASSETS_BUCKET",
+			"bucket_name": "coderscreen-assets",
+		},
+		{
+			"binding": "WHITEBOARD_ASSETS_BUCKET",
+			"bucket_name": "coderscreen-whiteboard",
+		},
+	],
+}

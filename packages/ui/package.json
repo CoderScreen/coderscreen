@@ -34,7 +34,9 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@remixicon/react": "^4.6.0",
+    "clsx": "^2.1.1",
     "react": "^19.1.0",
+    "tailwind-merge": "^3.0.2",
     "tailwind-variants": "^0.3.1"
   },
   "devDependencies": {
