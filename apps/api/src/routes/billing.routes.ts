@@ -3,18 +3,18 @@ import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import { AppContext } from '@/index';
-import { BillingService } from '@/services/billing/Billing.service';
+import { getSession } from '@/lib/session';
 import {
-  SubscriptionSchema,
-  PlanSchema,
   CheckoutSessionSchema,
-  PortalSessionSchema,
   CreateCheckoutSchema,
   CreatePortalSchema,
+  PlanSchema,
+  PortalSessionSchema,
+  SubscriptionSchema,
 } from '@/schema/billing.zod';
-import { getSession } from '@/lib/session';
-import { UsageService } from '@/services/billing/Usage.service';
 import { UsageResultSchema } from '@/schema/usage.zod';
+import { BillingService } from '@/services/billing/Billing.service';
+import { UsageService } from '@/services/billing/Usage.service';
 
 export const billingRouter = new Hono<AppContext>()
   // GET /billing/customer - Get customer and subscription info
@@ -84,7 +84,7 @@ export const billingRouter = new Hono<AppContext>()
     zValidator('json', CreateCheckoutSchema),
     async (ctx) => {
       const { orgId } = getSession(ctx);
-      const { priceId, successUrl, cancelUrl } = ctx.req.valid('json');
+      const { priceId, successUrl } = ctx.req.valid('json');
       const billingService = new BillingService(ctx);
 
       // Get customer by organization

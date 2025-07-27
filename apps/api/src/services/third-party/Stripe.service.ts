@@ -1,11 +1,16 @@
-import { AppContext } from '@/index';
 import { SubscriptionEntity } from '@coderscreen/db/billing.db';
 import { Context } from 'hono';
 import { Stripe } from 'stripe';
+import { AppContext } from '@/index';
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY!;
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 if (!STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not set');
+}
+
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+if (!STRIPE_WEBHOOK_SECRET) {
+  throw new Error('STRIPE_WEBHOOK_SECRET is not set');
 }
 
 /**
@@ -14,7 +19,7 @@ if (!STRIPE_SECRET_KEY) {
 export class StripeService {
   private stripe: Stripe;
 
-  constructor(private readonly ctx: Context<AppContext>) {
+  constructor(readonly ctx: Context<AppContext>) {
     this.stripe = new Stripe(STRIPE_SECRET_KEY);
   }
 
@@ -76,13 +81,8 @@ export class StripeService {
 
   async constructEvent(params: { payload: string; signature: string }) {
     const { payload, signature } = params;
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-    if (!webhookSecret) {
-      throw new Error('STRIPE_WEBHOOK_SECRET is not set');
-    }
-
-    return this.stripe.webhooks.constructEventAsync(payload, signature, webhookSecret);
+    return this.stripe.webhooks.constructEventAsync(payload, signature, STRIPE_WEBHOOK_SECRET);
   }
 
   async getLineItems(params: { sessionId: string; ctx: Context<AppContext> }) {

@@ -23,7 +23,11 @@ export const retryable = async <T>(fn: () => Promise<T>, retries = 3, delay = 10
  * @param fn - The function to execute
  * @returns The result of the function
  */
-export const withContext = async (ctx: Context, key: string, fn: () => Promise<any>) => {
+export const withContext = async <T>(
+  ctx: Context,
+  key: string,
+  fn: () => Promise<T>
+): Promise<T> => {
   const cache = await ctx.var.get(key);
   if (cache) {
     return cache;

@@ -143,6 +143,7 @@ export const useAuth: (
           }
 
           const session = await getSessionManual({ token: sessionCookieToken, db });
+          // biome-ignore lint/suspicious/noExplicitAny: setting so we dont have to perform another db fetch
           ctx.set('user', {} as any);
           ctx.set('session', session);
 

@@ -1,17 +1,15 @@
-import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
-import { useDb } from '@/db/client';
-import { Context } from 'hono';
-import { AppContext } from '@/index';
-import { PublicRoomSchema } from '@/schema/room.zod';
 import { generateId, Id } from '@coderscreen/common/id';
-
-import { eq, desc, and } from 'drizzle-orm';
+import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
+import { and, desc, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { getSession } from '@/lib/session';
-import { TemplateEntity } from '@coderscreen/db/template.db';
-import { ChatMessage, User } from '@/partykit/internal/AI.service';
-import { UsageService } from '@/services/billing/Usage.service';
+import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { useDb } from '@/db/client';
+import { AppContext } from '@/index';
+import { getSession } from '@/lib/session';
+import { ChatMessage, User } from '@/partykit/internal/AI.service';
+import { PublicRoomSchema } from '@/schema/room.zod';
+import { UsageService } from '@/services/billing/Usage.service';
 
 export class RoomService {
   private readonly db: PostgresJsDatabase;
@@ -150,13 +148,11 @@ export class RoomService {
     await roomStub.handleStatusUpdate(status);
   }
 
-  async loadTemplate(params: { room: RoomEntity; template: TemplateEntity }) {
-    const { room, template } = params;
-
+  async loadTemplate() {
+    // const { room, template } = params;
     // // Get the durable object to load new information
     // const id = this.ctx.env.ROOM_DO.idFromName(room.id);
     // const roomDo = this.ctx.env.ROOM_DO.get(id);
-
     // roomDo.handleLoadTemplate(template);
   }
 

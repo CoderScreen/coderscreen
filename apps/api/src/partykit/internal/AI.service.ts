@@ -1,4 +1,3 @@
-import { AppContext } from '@/index';
 import { generateId } from '@coderscreen/common/id';
 import { LLMMessageEntity, llmMessageTable } from '@coderscreen/db/llmMessage.db';
 import { RoomEntity } from '@coderscreen/db/room.db';
@@ -6,6 +5,7 @@ import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { OpenAI } from 'openai';
 import postgres from 'postgres';
 import * as Y from 'yjs';
+import { AppContext } from '@/index';
 import { SupportedModels } from '@/schema/ai.zod';
 
 export interface User {
@@ -42,7 +42,8 @@ export class AIService {
   private db: PostgresJsDatabase | null = null;
   private room: RoomEntity;
 
-  static SYSTEM_PROMPT = `You are an AI assistant conducting a technical interview. You are helping evaluate a candidate's coding skills and problem-solving abilities. 
+  static SYSTEM_PROMPT =
+    `You are an AI assistant conducting a technical interview. You are helping evaluate a candidate's coding skills and problem-solving abilities. 
 
 Your role is to:
 - Ask clarifying questions about the candidate's approach

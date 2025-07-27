@@ -1,19 +1,19 @@
+import { SpawnOptions } from 'node:child_process';
 import { Sandbox } from '@cloudflare/sandbox';
-import { AppContext } from '@/index';
 import { RoomEntity } from '@coderscreen/db/room.db';
-import { TypescriptRunner } from '@/containers/runners/ts.runner';
 import { CodeRunner } from '@/containers/runners/base';
-import { JavaScriptRunner } from '@/containers/runners/js.runner';
-import { PythonRunner } from '@/containers/runners/python.runner';
 import { BashRunner } from '@/containers/runners/bash.runner';
 import { CRunner } from '@/containers/runners/c.runner';
 import { CppRunner } from '@/containers/runners/cpp.runner';
 import { GoRunner } from '@/containers/runners/go.runner';
-import { RustRunner } from '@/containers/runners/rust.runner';
-import { PhpRunner } from '@/containers/runners/php.runner';
-import { RubyRunner } from '@/containers/runners/ruby.runner';
 import { JavaRunner } from '@/containers/runners/java.runner';
-import { SpawnOptions } from 'child_process';
+import { JavaScriptRunner } from '@/containers/runners/js.runner';
+import { PhpRunner } from '@/containers/runners/php.runner';
+import { PythonRunner } from '@/containers/runners/python.runner';
+import { RubyRunner } from '@/containers/runners/ruby.runner';
+import { RustRunner } from '@/containers/runners/rust.runner';
+import { TypescriptRunner } from '@/containers/runners/ts.runner';
+import { AppContext } from '@/index';
 import { ExecuteResponse } from '@/lib/sandbox';
 
 export class CustomSandbox extends Sandbox<AppContext['Bindings']> {
@@ -26,7 +26,7 @@ export class CustomSandbox extends Sandbox<AppContext['Bindings']> {
     args: string[],
     options?: { stream?: boolean; childOptions?: SpawnOptions }
   ): Promise<ExecuteResponse> {
-    let start = Date.now();
+    const start = Date.now();
     const result = await super.exec(command, args, {
       ...options,
       childOptions: {
@@ -34,7 +34,7 @@ export class CustomSandbox extends Sandbox<AppContext['Bindings']> {
         timeout: options?.childOptions?.timeout || this.FALLBACK_TIMEOUT_MS,
       },
     });
-    let end = Date.now();
+    const end = Date.now();
     const elapsedTime = end - start;
 
     if (!result) {

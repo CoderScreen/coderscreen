@@ -1,17 +1,17 @@
-import { cn } from '@/lib/utils';
 import { RoomSchema } from '@coderscreen/api/schema/room';
-import JavascriptPlain from 'devicons-react/icons/JavascriptPlain';
-import TypescriptPlain from 'devicons-react/icons/TypescriptPlain';
-import PythonPlain from 'devicons-react/icons/PythonPlain';
-import RustOriginal from 'devicons-react/icons/RustOriginal';
-import CPlusPlusPlain from 'devicons-react/icons/CPlusPlusPlain';
+import BashPlain from 'devicons-react/icons/BashPlain';
 import CPlain from 'devicons-react/icons/CPlain';
+import CplusplusPlain from 'devicons-react/icons/CplusplusPlain';
 import GoPlain from 'devicons-react/icons/GoPlain';
 import JavaPlain from 'devicons-react/icons/JavaPlain';
+import JavascriptPlain from 'devicons-react/icons/JavascriptPlain';
 import PhpPlain from 'devicons-react/icons/PhpPlain';
+import PythonPlain from 'devicons-react/icons/PythonPlain';
 import RubyPlain from 'devicons-react/icons/RubyPlain';
-import BashPlain from 'devicons-react/icons/BashPlain';
+import RustOriginal from 'devicons-react/icons/RustOriginal';
+import TypescriptPlain from 'devicons-react/icons/TypescriptPlain';
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 const BASE_ICON_STYLE = 'h-4 w-4';
 
@@ -37,7 +37,7 @@ export const LanguageIcon = ({
         // need to manually set the color to gray
         return <RustOriginal className={iconStyle} />;
       case 'c++':
-        return <CPlusPlusPlain className={iconStyle} />;
+        return <CplusplusPlain className={iconStyle} />;
       case 'c':
         return <CPlain className={iconStyle} />;
       case 'java':
@@ -55,7 +55,5 @@ export const LanguageIcon = ({
     }
   })();
 
-  return (
-    <div className='flex items-center bg-gray-100 rounded-md p-0.5'>{icon}</div>
-  );
+  return <div className='flex items-center bg-gray-100 rounded-md p-0.5'>{icon}</div>;
 };

@@ -1,14 +1,14 @@
 {
-	"compilerOptions": {
-		"target": "es2021",
-		"module": "commonjs",
-		"lib": ["es2021", "dom"],
-		"types": ["node"],
-		"strict": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-		"noEmit": true
-	},
-	"include": ["**/*.ts"]
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "commonjs",
+    "lib": ["es2021", "dom"],
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"]
 }
