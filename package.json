@@ -4,9 +4,13 @@
     "packages/*"
   ],
   "scripts": {
-    "nx:lint": "npx nx run-many --target=lint",
-    "nx:build": "npx nx run-many --target=build",
-    "build": "nx next:build && echo 'Build complete'",
+    "lint": "npx nx run-many --target=lint",
+    "build": "npx nx run-many --target=build",
+    "build:marketing": "npx nx build @coderscreen/marketing",
+    "build:web": "npx nx build @coderscreen/web",
+    "build:api": "npx nx build @coderscreen/api",
+    "deploy:web": "npx nx run @coderscreen/web:cf-deploy",
+    "deploy:api": "npx nx run @coderscreen/api:cf-deploy",
     "sandbox:build": "docker build -t sandbox-image -f ./apps/api/src/containers/images/Dockerfile ."
   },
   "devDependencies": {
