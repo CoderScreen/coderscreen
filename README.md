@@ -32,4 +32,4 @@ We use a combination of React, TypeScript, Cloudflare Workers, PostgreSQL, Drizz
 - `ui`: A [React](https://reactjs.org) Shared component library.
 - `db`: A [Drizzle ORM](https://orm.drizzle.team/) Shared database library.
 - `common`: Shared utilities and types.
-- `sandbox-sdk`: Code execution SDK for the sandbox environment.
+- `sandbox-sdk`: Code execution SDK for the sandbox environment. Fork of cloudflare's sandbox-sdk package.
