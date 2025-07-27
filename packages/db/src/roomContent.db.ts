@@ -1,8 +1,8 @@
 import { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
 import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { organization, user } from './user.db';
 import { RoomEntity, roomTable } from './room.db';
+import { organization, user } from './user.db';
 
 type TrackerUsers = {
   id: string;
@@ -16,12 +16,8 @@ export const roomContentTable = pgTable('room_contents', {
     .primaryKey()
     .$type<Id<'room'>>()
     .references(() => roomTable.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at', { mode: 'string' })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' })
-    .default(sql`now()`)
-    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).default(sql`now()`).notNull(),
   organizationId: text('organization_id')
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),

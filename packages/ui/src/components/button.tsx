@@ -1,11 +1,11 @@
 // Tremor Raw Button [v0.0.0]
 
-import React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { RemixiconComponentType, RiLoader2Fill } from '@remixicon/react';
+import React from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-import { cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '../lib/utils';
 
 const buttonVariants = tv({
   base: [

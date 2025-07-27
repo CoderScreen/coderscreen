@@ -1,9 +1,9 @@
 // Tremor Checkbox [v1.0.0]
 
-import React from 'react';
 import * as CheckboxPrimitives from '@radix-ui/react-checkbox';
+import React from 'react';
 
-import { cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '../lib/utils';
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitives.Root>,
@@ -35,10 +35,7 @@ const Checkbox = React.forwardRef<
       )}
       tremor-id='tremor-raw'
     >
-      <CheckboxPrimitives.Indicator
-        asChild
-        className='flex size-full items-center justify-center'
-      >
+      <CheckboxPrimitives.Indicator asChild className='flex size-full items-center justify-center'>
         {checked === 'indeterminate' ? (
           <svg
             aria-hidden='true'

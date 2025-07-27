@@ -7,9 +7,7 @@ type AssetStatus = 'active' | 'deleted';
 
 export const assetTable = pgTable('assets', {
   id: text('id').primaryKey().$type<Id<'asset'>>(),
-  createdAt: timestamp('created_at', { mode: 'string' })
-    .default(sql`now()`)
-    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),

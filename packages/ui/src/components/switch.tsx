@@ -1,10 +1,10 @@
 // Tremor Raw Switch [v0.0.0]
 
-import React from 'react';
 import * as SwitchPrimitives from '@radix-ui/react-switch';
+import React from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-import { cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '../lib/utils';
 
 const switchVariants = tv({
   slots: {

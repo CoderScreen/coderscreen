@@ -1,6 +1,6 @@
-import { Id } from '@coderscreen/common/id';
+import type { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
-import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { organization, user } from './user.db';
 
 type RoomLanguage =
@@ -20,12 +20,8 @@ type RoomStatus = 'active' | 'scheduled' | 'completed' | 'archived';
 export const roomTable = pgTable('rooms', {
   id: text('id').primaryKey().$type<Id<'room'>>(),
   title: text('title').notNull(),
-  createdAt: timestamp('created_at', { mode: 'string' })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' })
-    .default(sql`now()`)
-    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).default(sql`now()`).notNull(),
   language: text('language').$type<RoomLanguage>().notNull(),
   status: text('status').$type<RoomStatus>().notNull(),
   notes: text('notes').notNull().default(''),

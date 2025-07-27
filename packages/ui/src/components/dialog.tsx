@@ -1,9 +1,9 @@
 // Tremor Raw Dialog [v0.0.0]
 
-import React from 'react';
 import * as DialogPrimitives from '@radix-ui/react-dialog';
+import React from 'react';
 
-import { cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '../lib/utils';
 
 const Dialog = (props: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Root>) => {
   return <DialogPrimitives.Root {...props} />;

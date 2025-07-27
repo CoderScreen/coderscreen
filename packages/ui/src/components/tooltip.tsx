@@ -2,10 +2,10 @@
 
 'use client';
 
-import React from 'react';
 import * as TooltipPrimitives from '@radix-ui/react-tooltip';
+import React from 'react';
 
-import { cx } from '@/lib/utils';
+import { cx } from '../lib/utils';
 
 interface TooltipProps
   extends Omit<TooltipPrimitives.TooltipContentProps, 'content' | 'onClick'>,

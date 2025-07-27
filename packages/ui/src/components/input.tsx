@@ -1,10 +1,10 @@
 // Tremor Raw Input [v1.0.0]
 
-import React from 'react';
 import { RiEyeFill, RiEyeOffFill, RiSearchLine } from '@remixicon/react';
+import React from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-import { cx, focusInput, focusRing, hasErrorInput } from '@/lib/utils';
+import { cx, focusInput, focusRing, hasErrorInput } from '../lib/utils';
 
 const inputStyles = tv({
   base: [
@@ -54,14 +54,7 @@ interface InputProps
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    {
-      className,
-      inputClassName,
-      hasError,
-      enableStepper,
-      type,
-      ...props
-    }: InputProps,
+    { className, inputClassName, hasError, enableStepper, type, ...props }: InputProps,
     forwardedRef
   ) => {
     const [typeState, setTypeState] = React.useState(type);
@@ -93,17 +86,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'text-stone-400'
             )}
           >
-            <RiSearchLine
-              className='size-[1.125rem] shrink-0'
-              aria-hidden='true'
-            />
+            <RiSearchLine className='size-[1.125rem] shrink-0' aria-hidden='true' />
           </div>
         )}
         {isPassword && (
           <div
-            className={cx(
-              'absolute bottom-0 right-0 flex h-full items-center justify-center px-3'
-            )}
+            className={cx('absolute bottom-0 right-0 flex h-full items-center justify-center px-3')}
           >
             <button
               aria-label='Change password visibility'

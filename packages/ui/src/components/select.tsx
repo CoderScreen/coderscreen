@@ -1,6 +1,5 @@
 // Tremor Raw Select [v0.0.0]
 
-import React from 'react';
 import * as SelectPrimitives from '@radix-ui/react-select';
 import {
   RiArrowDownSLine,
@@ -8,8 +7,9 @@ import {
   RiCheckLine,
   RiExpandUpDownLine,
 } from '@remixicon/react';
+import React from 'react';
 
-import { cx, focusInput, hasErrorInput } from '@/lib/utils';
+import { cx, focusInput, hasErrorInput } from '../lib/utils';
 
 const Select = SelectPrimitives.Root;
 Select.displayName = 'Select';
@@ -52,12 +52,7 @@ const SelectTrigger = React.forwardRef<
   return (
     <SelectPrimitives.Trigger
       ref={forwardedRef}
-      className={cx(
-        'relative',
-        selectTriggerStyles,
-        hasError ? hasErrorInput : '',
-        className
-      )}
+      className={cx('relative', selectTriggerStyles, hasError ? hasErrorInput : '', className)}
       {...props}
     >
       <span className='truncate'>{children}</span>
@@ -85,10 +80,7 @@ const SelectScrollUpButton = React.forwardRef<
 >(({ className, ...props }, forwardedRef) => (
   <SelectPrimitives.ScrollUpButton
     ref={forwardedRef}
-    className={cx(
-      'flex cursor-default items-center justify-center py-1',
-      className
-    )}
+    className={cx('flex cursor-default items-center justify-center py-1', className)}
     {...props}
   >
     <RiArrowUpSLine className='size-3 shrink-0' aria-hidden='true' />
@@ -102,31 +94,20 @@ const SelectScrollDownButton = React.forwardRef<
 >(({ className, ...props }, forwardedRef) => (
   <SelectPrimitives.ScrollDownButton
     ref={forwardedRef}
-    className={cx(
-      'flex cursor-default items-center justify-center py-1',
-      className
-    )}
+    className={cx('flex cursor-default items-center justify-center py-1', className)}
     {...props}
   >
     <RiArrowDownSLine className='size-3 shrink-0' aria-hidden='true' />
   </SelectPrimitives.ScrollDownButton>
 ));
-SelectScrollDownButton.displayName =
-  SelectPrimitives.ScrollDownButton.displayName;
+SelectScrollDownButton.displayName = SelectPrimitives.ScrollDownButton.displayName;
 
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitives.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitives.Content>
 >(
   (
-    {
-      className,
-      position = 'popper',
-      children,
-      sideOffset = 8,
-      collisionPadding = 10,
-      ...props
-    },
+    { className, position = 'popper', children, sideOffset = 8, collisionPadding = 10, ...props },
     forwardedRef
   ) => (
     <SelectPrimitives.Portal>
@@ -216,14 +197,9 @@ const SelectItem = React.forwardRef<
       )}
       {...props}
     >
-      <SelectPrimitives.ItemText className='flex-1 truncate'>
-        {children}
-      </SelectPrimitives.ItemText>
+      <SelectPrimitives.ItemText className='flex-1 truncate'>{children}</SelectPrimitives.ItemText>
       <SelectPrimitives.ItemIndicator>
-        <RiCheckLine
-          className='size-5 shrink-0 text-stone-800'
-          aria-hidden='true'
-        />
+        <RiCheckLine className='size-5 shrink-0 text-stone-800' aria-hidden='true' />
       </SelectPrimitives.ItemIndicator>
     </SelectPrimitives.Item>
   );

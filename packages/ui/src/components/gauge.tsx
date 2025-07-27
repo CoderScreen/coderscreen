@@ -4,7 +4,8 @@
  * @credit-to https://gauge.onur.dev/
  */
 
-import React, { useEffect, useState, type CSSProperties, type SVGProps } from 'react';
+// biome-ignore lint/correctness/noUnusedImports: needed for type
+import React, { type CSSProperties, type SVGProps, useEffect, useState } from 'react';
 
 import {
   calculatePrimaryOpacity,
@@ -15,9 +16,9 @@ import {
   calculateSecondaryStroke,
   calculateSecondaryStrokeDasharray,
   calculateSecondaryTransform,
-  sizeConfig,
   type GaugeProps,
-} from '@/lib/gaugeUtils';
+  sizeConfig,
+} from '../lib/gaugeUtils';
 
 /**
  * Renders a circular gauge using SVG. Allows configuration of colors, stroke, and animations.
@@ -152,7 +153,7 @@ export function Gauge({
       style={{ userSelect: 'none' }}
       {...props}
     >
-      {/*secondary*/}
+      <title>Gauge</title>
       <circle
         {...circleProps}
         style={{

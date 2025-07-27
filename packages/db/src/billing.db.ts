@@ -1,6 +1,6 @@
-import { pgTable, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
-import { organization } from './user.db';
 import { Id } from '@coderscreen/common/id';
+import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { organization } from './user.db';
 
 export const customerTable = pgTable('customers', {
   organizationId: text('organization_id')

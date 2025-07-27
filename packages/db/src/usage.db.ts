@@ -1,6 +1,6 @@
-import { pgTable, text, timestamp, integer, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
-import { organization } from './user.db';
 import { Id } from '@coderscreen/common/id';
+import { integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { organization } from './user.db';
 
 export type EventType = 'live_interview';
 
