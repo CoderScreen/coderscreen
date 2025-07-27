@@ -10,7 +10,7 @@
     "sandbox:build": "docker build -t sandbox-image -f ./apps/api/src/containers/images/Dockerfile ."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.1.2",
+    "@biomejs/biome": "2.2.0",
     "nx": "21.3.7"
   }
 }
