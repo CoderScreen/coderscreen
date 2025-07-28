@@ -65,12 +65,6 @@ const app = new Hono<AppContext>()
       credentials: true,
     })(ctx, next);
   })
-  .use(
-    cors({
-      origin: ['https://coderscreen.com', 'http://localhost:3000', 'http://localhost:3001'],
-      credentials: true,
-    })
-  )
   .use(appFactoryMiddleware)
   .all('/auth/*', (ctx) => {
     return useAuth(ctx).handler(ctx.req.raw);

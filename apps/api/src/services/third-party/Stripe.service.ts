@@ -1,11 +1,7 @@
-import { env } from 'node:process';
 import { SubscriptionEntity } from '@coderscreen/db/billing.db';
 import { Context } from 'hono';
 import { Stripe } from 'stripe';
 import { AppContext } from '@/index';
-
-const STRIPE_SECRET_KEY = env.INFISCAL_STRIPE_SECRET_KEY;
-const STRIPE_WEBHOOK_SECRET = env.INFISCAL_STRIPE_WEBHOOK_SECRET;
 
 /**
  * Wraps Stripe API
@@ -14,7 +10,7 @@ export class StripeService {
   private stripe: Stripe;
 
   constructor(readonly ctx: Context<AppContext>) {
-    this.stripe = new Stripe(STRIPE_SECRET_KEY);
+    this.stripe = new Stripe(ctx.env.INFISCAL_STRIPE_SECRET_KEY);
   }
 
   async createCustomer(params: { name: string; email: string; metadata?: Record<string, string> }) {
@@ -76,7 +72,11 @@ export class StripeService {
   async constructEvent(params: { payload: string; signature: string }) {
     const { payload, signature } = params;
 
-    return this.stripe.webhooks.constructEventAsync(payload, signature, STRIPE_WEBHOOK_SECRET);
+    return this.stripe.webhooks.constructEventAsync(
+      payload,
+      signature,
+      this.ctx.env.INFISCAL_STRIPE_WEBHOOK_SECRET
+    );
   }
 
   async getLineItems(params: { sessionId: string; ctx: Context<AppContext> }) {

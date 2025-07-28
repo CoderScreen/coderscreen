@@ -64,7 +64,6 @@ export const BillingView = () => {
       window.location.href = checkoutSession.url;
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      toast.error('Failed to create checkout session');
     }
   };
 
