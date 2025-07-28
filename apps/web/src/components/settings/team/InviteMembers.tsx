@@ -1,7 +1,37 @@
-import { useMemo, useState } from 'react';
+import {
+  RiCheckLine,
+  RiCloseCircleLine,
+  RiCloseLine,
+  RiDeleteBinLine,
+  RiLockLine,
+  RiMore2Line,
+  RiResetRightLine,
+  RiTimeLine,
+  RiUserAddLine,
+} from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
-import { Input } from '@/components/ui/input';
+import { Invitation } from 'better-auth/plugins/organization';
+import { useMemo, useState } from 'react';
+import { z } from 'zod';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown';
+import { SmallHeader } from '@/components/ui/heading';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -10,52 +40,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  RiCloseLine,
-  RiDeleteBinLine,
-  RiMore2Line,
-  RiResetRightLine,
-  RiUserAddLine,
-  RiTimeLine,
-  RiCheckLine,
-  RiCloseCircleLine,
-  RiLockLine,
-} from '@remixicon/react';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
-import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeaderCell,
-  TableRow,
   TableRoot,
+  TableRow,
   TableSkeleton,
 } from '@/components/ui/table';
-import { getRoleBadge } from './MembersTable';
-import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogDescription,
-  DialogFooter,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { useCancelInvitation, useInvitations, useInviteMember } from '@/query/team.query';
-import { z } from 'zod';
-import { Label } from '@/components/ui/label';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
-import { Invitation } from 'better-auth/plugins/organization';
+import { MutedText } from '@/components/ui/typography';
 import { formatDatetime } from '@/lib/dateUtils';
 import { formatSlug } from '@/lib/slug';
-import { useUsage } from '@/query/billing.query';
 import { useCurrentMember } from '@/query/auth.query';
+import { useUsage } from '@/query/billing.query';
+import { useCancelInvitation, useInvitations, useInviteMember } from '@/query/team.query';
+import { getRoleBadge } from './MembersTable';
 
 const getStatusBadge = (status: string) => {
   switch (status) {

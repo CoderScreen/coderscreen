@@ -72,60 +72,51 @@ const ProgressCircle = React.forwardRef<SVGSVGElement, ProgressCircleProps>(
 
     const { background, circle } = progressCircleVariants({ variant });
     return (
-      <>
-        <div className={cx('relative')}>
-          <svg
-            ref={forwardedRef}
-            width={radius * 2}
-            height={radius * 2}
-            viewBox={`0 0 ${radius * 2} ${radius * 2}`}
-            className={cx('-rotate-90 transform', className)}
-            role='progress circle'
-            aria-label='progress bar'
-            aria-valuenow={value}
-            aria-valuemin={0}
-            aria-valuemax={max}
-            data-max={max}
-            data-value={safeValue ?? null}
-            {...props}
-          >
+      <div className={cx('relative')}>
+        <svg
+          ref={forwardedRef}
+          width={radius * 2}
+          height={radius * 2}
+          viewBox={`0 0 ${radius * 2} ${radius * 2}`}
+          className={cx('-rotate-90 transform', className)}
+          role='progressbar'
+          aria-label='progress bar'
+          aria-valuenow={safeValue}
+          aria-valuemin={0}
+          aria-valuemax={max}
+          {...props}
+        >
+          <circle
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+            strokeWidth={strokeWidth}
+            fill='transparent'
+            stroke=''
+            strokeLinecap='round'
+            className={cx('transition-colors ease-linear', background())}
+          />
+          {safeValue >= 0 ? (
             <circle
               r={normalizedRadius}
               cx={radius}
               cy={radius}
               strokeWidth={strokeWidth}
+              strokeDasharray={`${circumference} ${circumference}`}
+              strokeDashoffset={offset}
               fill='transparent'
               stroke=''
               strokeLinecap='round'
-              className={cx('transition-colors ease-linear', background())}
+              className={cx(
+                'transition-colors ease-linear',
+                circle(),
+                showAnimation && 'transform-gpu transition-all duration-300 ease-in-out'
+              )}
             />
-            {safeValue >= 0 ? (
-              <circle
-                r={normalizedRadius}
-                cx={radius}
-                cy={radius}
-                strokeWidth={strokeWidth}
-                strokeDasharray={`${circumference} ${circumference}`}
-                strokeDashoffset={offset}
-                fill='transparent'
-                stroke=''
-                strokeLinecap='round'
-                className={cx(
-                  'transition-colors ease-linear',
-                  circle(),
-                  showAnimation &&
-                    'transform-gpu transition-all duration-300 ease-in-out'
-                )}
-              />
-            ) : null}
-          </svg>
-          <div
-            className={cx('absolute inset-0 flex items-center justify-center')}
-          >
-            {children}
-          </div>
-        </div>
-      </>
+          ) : null}
+        </svg>
+        <div className={cx('absolute inset-0 flex items-center justify-center')}>{children}</div>
+      </div>
     );
   }
 );

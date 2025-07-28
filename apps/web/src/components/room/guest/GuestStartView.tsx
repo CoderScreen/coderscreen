@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { LargeHeader } from '@/components/ui/heading';
 import {
-  RiUserLine,
+  RiArchiveLine,
   RiArrowRightLine,
+  RiCheckLine,
   RiLoginBoxLine,
   RiTimeLine,
-  RiCheckLine,
-  RiArchiveLine,
+  RiUserLine,
 } from '@remixicon/react';
-import { Label } from '@/components/ui/label';
-import { Divider } from '@/components/ui/divider';
 import { Link } from '@tanstack/react-router';
-import { usePublicRoom } from '@/query/publicRoom.query';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Divider } from '@/components/ui/divider';
+import { LargeHeader } from '@/components/ui/heading';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatSlug } from '@/lib/slug';
 import { cn } from '@/lib/utils';
+import { usePublicRoom } from '@/query/publicRoom.query';
 
 interface GuestStartViewProps {
   onJoinAsGuest: (name: string, email: string) => void;

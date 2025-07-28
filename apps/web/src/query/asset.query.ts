@@ -1,5 +1,5 @@
-import { apiClient } from '@/query/client';
 import { useMutation } from '@tanstack/react-query';
+import { apiClient } from '@/query/client';
 
 export const useUploadLogo = () => {
   const mutation = useMutation({

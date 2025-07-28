@@ -1,7 +1,7 @@
+import { useMemo, useState } from 'react';
+import { filterRooms, RoomFilters } from '@/components/room-list/RoomFilters';
 import { RoomTable } from '@/components/room-list/RoomTable';
 import { useRooms } from '@/query/room.query';
-import { filterRooms, RoomFilters } from '@/components/room-list/RoomFilters';
-import { useMemo, useState } from 'react';
 
 export function RoomListView() {
   const { rooms, isLoading } = useRooms();

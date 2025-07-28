@@ -1,13 +1,13 @@
+import { RiArrowRightLine, RiGithubFill, RiGoogleFill, RiMailLine } from '@remixicon/react';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { LargeHeader } from '@/components/ui/heading';
-import { RiMailLine, RiArrowRightLine, RiGoogleFill, RiGithubFill } from '@remixicon/react';
-import { Label } from '@/components/ui/label';
 import { Divider } from '@/components/ui/divider';
-import { useGoogleSignIn, useGithubSignIn, useSignIn } from '@/query/auth.query';
-import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { LargeHeader } from '@/components/ui/heading';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useGithubSignIn, useGoogleSignIn, useSignIn } from '@/query/auth.query';
 
 export const SignInView = () => {
   const [email, setEmail] = useState('');

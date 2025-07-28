@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { LargeHeader } from '@/components/ui/heading';
 import {
-  RiUserLine,
   RiArrowRightLine,
+  RiGithubFill,
   RiGoogleFill,
   RiMailCheckLine,
-  RiGithubFill,
+  RiUserLine,
 } from '@remixicon/react';
-import { Label } from '@/components/ui/label';
-import { Divider } from '@/components/ui/divider';
-import { useGithubSignIn, useGoogleSignIn, useSignUp } from '@/query/auth.query';
 import { Link, useSearch } from '@tanstack/react-router';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Divider } from '@/components/ui/divider';
+import { LargeHeader } from '@/components/ui/heading';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { siteConfig } from '@/lib/siteConfig';
+import { useGithubSignIn, useGoogleSignIn, useSignUp } from '@/query/auth.query';
 
 export const RegisterView = () => {
   const [email, setEmail] = useState('');

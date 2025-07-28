@@ -1,5 +1,5 @@
-import { authClient } from '@/query/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { authClient } from '@/query/client';
 
 export const useUpdateUser = (options?: { hideSuccessMessage?: boolean }) => {
   const mutation = useMutation({

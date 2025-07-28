@@ -1,13 +1,13 @@
-import { StarterKit } from '@tiptap/starter-kit';
-import { useEditor, UseEditorOptions } from '@tiptap/react';
 import Collaboration from '@tiptap/extension-collaboration';
-import Placeholder from '@tiptap/extension-placeholder';
-import { useMemo } from 'react';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
-import { useSession } from '@/query/auth.query';
-import { getRandomColor } from '@/query/realtime/utils';
+import Placeholder from '@tiptap/extension-placeholder';
+import { UseEditorOptions, useEditor } from '@tiptap/react';
+import { StarterKit } from '@tiptap/starter-kit';
+import { useMemo } from 'react';
 import useYProvider from 'y-partykit/react';
 import { useCurrentRoomId } from '@/lib/params';
+import { useSession } from '@/query/auth.query';
+import { getRandomColor } from '@/query/realtime/utils';
 
 const PARTY_NAME = 'private-room';
 const API_URL = 'http://localhost:8000';

@@ -1,9 +1,8 @@
 // Tremor Raw Table [v0.0.1]
 
 import React from 'react';
-
-import { cx } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cx } from '@/lib/utils';
 
 const TableRoot = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, forwardedRef) => (
@@ -173,6 +172,7 @@ const TableSkeleton = (props: { numRows: number; numCols: number }) => {
   return (
     <>
       {Array.from({ length: props.numRows }).map((_, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: needed for table skeleton
         <TableSkeletonRow key={index} numCols={props.numCols} />
       ))}
     </>
@@ -184,6 +184,7 @@ const TableSkeletonRow = (props: { numCols: number }) => {
   return (
     <TableRow>
       {Array.from({ length: props.numCols }).map((_, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: needed for table skeleton
         <TableCell key={index}>
           <Skeleton className='h-4 w-full' />
         </TableCell>

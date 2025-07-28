@@ -1,13 +1,13 @@
-import { StarterKit } from '@tiptap/starter-kit';
-import { useEditor, UseEditorOptions } from '@tiptap/react';
 import Collaboration from '@tiptap/extension-collaboration';
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import Placeholder from '@tiptap/extension-placeholder';
+import { UseEditorOptions, useEditor } from '@tiptap/react';
+import { StarterKit } from '@tiptap/starter-kit';
 import { useMemo } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
+import { getGuest } from '@/lib/guest';
 import { useSession } from '@/query/auth.query';
 import { getRandomColor } from '@/query/realtime/utils';
-import { getGuest } from '@/lib/guest';
 
 // Shared hook for creating instruction editor
 export function useInstructionEditor() {

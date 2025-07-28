@@ -1,19 +1,19 @@
+import { RiExpandUpDownLine, RiLogoutBoxLine, RiUserLine } from '@remixicon/react';
+import { useRouter } from '@tanstack/react-router';
+import { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuIconWrapper,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useSession, useSignOut } from '@/query/auth.query';
 import { useActiveOrg } from '@/query/org.query';
-import { useMemo } from 'react';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuIconWrapper,
-} from '@/components/ui/dropdown';
-import { RiUserLine, RiLogoutBoxLine, RiExpandUpDownLine } from '@remixicon/react';
-import { useRouter } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
 
 export const SidebarProfile = () => {
   const { user, isLoading: isSessionLoading } = useSession();

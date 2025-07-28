@@ -1,38 +1,36 @@
 'use client';
 
-import { useLocation, Link } from '@tanstack/react-router';
+import {
+  RemixiconComponentType,
+  RiArrowRightSLine,
+  RiBuildingLine,
+  RiCloseLine,
+  RiCodeBoxLine,
+  RiDashboardLine,
+  RiExternalLinkLine,
+  RiFeedbackLine,
+  RiHomeOfficeLine,
+  RiListCheck3,
+  RiMenuLine,
+  RiMoneyDollarBoxLine,
+  RiQuestionAnswerLine,
+  RiSettings3Line,
+  RiTeamLine,
+  RiTerminalWindowFill,
+  RiUserStarLine,
+} from '@remixicon/react';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { cx, focusRing } from '@/lib/utils';
+import { OrgSwitcher } from '@/components/common/OrgSwitcher';
+import { SidebarProfile } from '@/components/common/SidebarProfile';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MutedText } from '@/components/ui/typography';
-import {
-  RiSettings3Line,
-  RiCodeBoxLine,
-  RiFeedbackLine,
-  RiQuestionAnswerLine,
-  RiMenuLine,
-  RiCloseLine,
-  RiTerminalWindowFill,
-  RemixiconComponentType,
-  RiListCheck3,
-  RiHomeOfficeLine,
-  RiUserStarLine,
-  RiBook3Line,
-  RiBuildingLine,
-  RiArrowRightSLine,
-  RiMoneyDollarBoxLine,
-  RiTeamLine,
-  RiExternalLinkLine,
-  RiDashboardFill,
-  RiDashboardLine,
-} from '@remixicon/react';
-import { siteConfig } from '@/lib/siteConfig';
-import { useSession } from '@/query/auth.query';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { SidebarProfile } from '@/components/common/SidebarProfile';
-import { OrgSwitcher } from '@/components/common/OrgSwitcher';
 import { Tooltip } from '@/components/ui/tooltip';
+import { MutedText } from '@/components/ui/typography';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { siteConfig } from '@/lib/siteConfig';
+import { cx, focusRing } from '@/lib/utils';
+import { useSession } from '@/query/auth.query';
 
 // Navigation configuration
 const MAIN_NAVIGATION: {
@@ -158,25 +156,23 @@ export default function Sidebar() {
   );
 }
 
-const isActive = (itemHref: string) => {
-  const location = useLocation();
-  return location.pathname === itemHref;
+const isActive = (itemHref: string, pathname: string) => {
+  return pathname === itemHref;
 };
 
-const isMenuActive = (itemHref: string) => {
-  const location = useLocation();
-  return location.pathname.startsWith(itemHref);
+const isMenuActive = (itemHref: string, pathname: string) => {
+  return pathname.startsWith(itemHref);
 };
 
-const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
-  const active = isActive(item.href);
+const renderNavItem = (item: (typeof MAIN_NAVIGATION)[number], pathname: string) => {
+  const active = isActive(item.href, pathname);
 
   if (item.isExternal) {
     return renderExternalNavItem(item);
   }
 
   if (item.children) {
-    return renderNavMenuItem(item);
+    return renderNavMenuItem(item, pathname);
   }
 
   const LinkWrapper = ({ children }: { children: React.ReactNode }) =>
@@ -241,9 +237,10 @@ const renderExternalNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
 };
 
 const renderChildNavItem = (
-  item: NonNullable<(typeof MAIN_NAVIGATION)[number]['children']>[number]
+  item: NonNullable<(typeof MAIN_NAVIGATION)[number]['children']>[number],
+  pathname: string
 ) => {
-  const active = isActive(item.href);
+  const active = isActive(item.href, pathname);
 
   return (
     <li key={item.href}>
@@ -261,8 +258,8 @@ const renderChildNavItem = (
   );
 };
 
-const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
-  const active = isMenuActive(item.href);
+const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number], pathname: string) => {
+  const active = isMenuActive(item.href, pathname);
   return (
     <li key={item.href}>
       <Link
@@ -294,7 +291,7 @@ const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
           )}
         >
           <ul className='space-y-1 ml-4 pl-2 mt-1 border-l border-gray-200'>
-            {item.children.map(renderChildNavItem)}
+            {item.children.map((child) => renderChildNavItem(child, pathname))}
           </ul>
         </div>
       )}
@@ -303,6 +300,9 @@ const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
 };
 
 const SidebarBody = () => {
+  const location = useLocation();
+  const pathname = location.pathname;
+
   return (
     <div className='flex flex-col h-full'>
       <OrgSwitcher />
@@ -312,7 +312,9 @@ const SidebarBody = () => {
       {/* Navigation */}
       <nav className='mt-4 flex-1 px-2 space-y-6 overflow-y-auto'>
         <div>
-          <ul className='space-y-1.5'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
+          <ul className='space-y-1.5'>
+            {MAIN_NAVIGATION.map((item) => renderNavItem(item, pathname))}
+          </ul>
         </div>
 
         {/* <div>
@@ -402,6 +404,7 @@ interface MobileSidebarProps {
 
 export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
   const location = useLocation();
+  const pathname = location.pathname;
   const { user, isLoading } = useSession();
 
   // Prevent body scroll when sidebar is open
@@ -426,6 +429,14 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
           isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            onClose();
+          }
+        }}
+        role='button'
+        tabIndex={0}
+        aria-label='Close sidebar'
       />
 
       {/* Sidebar */}
@@ -460,12 +471,16 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
           {/* Navigation */}
           <nav className='flex-1 px-4 space-y-6 overflow-y-auto'>
             <div>
-              <ul className='space-y-1'>{MAIN_NAVIGATION.map(renderNavItem)}</ul>
+              <ul className='space-y-1'>
+                {MAIN_NAVIGATION.map((item) => renderNavItem(item, pathname))}
+              </ul>
             </div>
 
             <div>
               <h2 className={SectionHeaderClassNames}>Account</h2>
-              <ul className='space-y-1'>{ACCOUNT_NAVIGATION.map(renderNavItem)}</ul>
+              <ul className='space-y-1'>
+                {ACCOUNT_NAVIGATION.map((item) => renderNavItem(item, pathname))}
+              </ul>
             </div>
 
             <div className='mt-auto'>

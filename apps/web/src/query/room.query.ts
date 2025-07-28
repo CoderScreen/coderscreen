@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from './client';
-import { useCurrentRoomId } from '@/lib/params';
 import { RoomSchema } from '@coderscreen/api/schema/room';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
+import { useCurrentRoomId } from '@/lib/params';
+import { apiClient } from './client';
 
 // Get all rooms
 export const useRooms = () => {

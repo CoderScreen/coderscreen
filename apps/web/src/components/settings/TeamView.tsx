@@ -1,12 +1,12 @@
-import { useActiveOrg } from '@/query/org.query';
+import { Divider } from '@/components/ui/divider';
 import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
-import { Divider } from '@/components/ui/divider';
-import { MembersTable } from './team/MembersTable';
+import { useActiveOrg } from '@/query/org.query';
 import { InviteMembers } from './team/InviteMembers';
+import { MembersTable } from './team/MembersTable';
 
 export const TeamView = () => {
-  const { org, isLoading: isOrgLoading } = useActiveOrg();
+  const { isLoading: isOrgLoading } = useActiveOrg();
 
   if (isOrgLoading) {
     return (

@@ -13,12 +13,8 @@ export function PendingView() {
           <h2 className='text-lg font-medium text-muted-foreground'>
             Loading
             <span className='inline-block animate-pulse'>.</span>
-            <span className='inline-block animate-pulse [animation-delay:0.2s]'>
-              .
-            </span>
-            <span className='inline-block animate-pulse [animation-delay:0.4s]'>
-              .
-            </span>
+            <span className='inline-block animate-pulse [animation-delay:0.2s]'>.</span>
+            <span className='inline-block animate-pulse [animation-delay:0.4s]'>.</span>
           </h2>
         </div>
       </div>

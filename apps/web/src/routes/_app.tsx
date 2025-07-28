@@ -1,7 +1,6 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import Sidebar from '@/components/common/Sidebar';
-import { Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import { PendingView } from '@/components/common/PendingView';
+import Sidebar from '@/components/common/Sidebar';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 
 export const Route = createFileRoute('/_app')({

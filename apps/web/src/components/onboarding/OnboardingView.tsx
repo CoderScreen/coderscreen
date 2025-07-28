@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { UserOnboarding } from '@/components/onboarding/UserOnboarding';
-import { OrgOnboarding } from '@/components/onboarding/OrgOnboarding';
 import { useRouter } from '@tanstack/react-router';
+import { useState } from 'react';
+import { OrgOnboarding } from '@/components/onboarding/OrgOnboarding';
+import { UserOnboarding } from '@/components/onboarding/UserOnboarding';
 import { cx } from '@/lib/utils';
 
 export const OnboardingView = () => {

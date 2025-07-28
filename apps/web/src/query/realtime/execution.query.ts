@@ -1,9 +1,9 @@
+import { RoomSchema } from '@coderscreen/api/schema/room';
+import { ExecOutputSchema } from '@coderscreen/api/schema/sandbox';
 import { useCallback, useEffect, useState } from 'react';
+import { z } from 'zod';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useRunRoomCode } from '@/query/publicRoom.query';
-import { ExecOutputSchema } from '@coderscreen/api/schema/sandbox';
-import { z } from 'zod';
-import { RoomSchema } from '@coderscreen/api/schema/room';
 
 type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
@@ -74,7 +74,7 @@ export function useCodeExecutionHistory() {
 
     const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
     executionHistory.delete(0, executionHistory.length);
-  }, [provider]);
+  }, [provider, isReadOnly]);
 
   return {
     history,

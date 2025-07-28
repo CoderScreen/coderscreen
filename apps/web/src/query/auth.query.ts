@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authClient } from './client';
 import { useNavigate } from '@tanstack/react-router';
+import { authClient } from './client';
 
 const APP_URL = import.meta.env.VITE_APP_URL;
 if (!APP_URL) {
@@ -12,7 +12,9 @@ export const useSession = () => {
   const session = authClient.useSession();
 
   return {
+    // biome-ignore lint/style/noNonNullAssertion: should be set because of our auth context
     user: session.data?.user!,
+    // biome-ignore lint/style/noNonNullAssertion: should be set because of our auth context
     session: session.data?.session!,
     isLoading: session.isPending,
     error: session.error,

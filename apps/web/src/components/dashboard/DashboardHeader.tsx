@@ -1,17 +1,17 @@
+import { RiAddLine } from '@remixicon/react';
+import { useRouter } from '@tanstack/react-router';
+import { useCallback, useEffect } from 'react';
 import { Shortcut } from '@/components/common/Shortcut';
 import { Button } from '@/components/ui/button';
 import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
 import { useCreateRoom } from '@/query/room.query';
-import { RiAddLine, RiCommandLine } from '@remixicon/react';
-import { useRouter } from '@tanstack/react-router';
-import { useEffect } from 'react';
 
 export function DashboardHeader() {
   const { createRoom, isLoading } = useCreateRoom();
   const router = useRouter();
 
-  const handleCreateRoom = async () => {
+  const handleCreateRoom = useCallback(async () => {
     const randomTitle = `Interview ${Math.random().toString(36).substring(2, 15)}`;
 
     const room = await createRoom({
@@ -21,7 +21,7 @@ export function DashboardHeader() {
     });
 
     router.navigate({ to: `/room/${room.id}` });
-  };
+  }, [createRoom, router]);
 
   // add keyboard shortcut for CMD + I for new interview
   useEffect(() => {
@@ -33,7 +33,7 @@ export function DashboardHeader() {
 
     window.addEventListener('keydown', handleKeyboardShortcut);
     return () => window.removeEventListener('keydown', handleKeyboardShortcut);
-  }, []);
+  }, [handleCreateRoom]);
 
   return (
     <div className='flex items-center justify-between py-4'>

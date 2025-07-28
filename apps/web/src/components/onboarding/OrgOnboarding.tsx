@@ -1,5 +1,9 @@
+import { RiArrowRightLine, RiQuestionMark, RiUploadLine } from '@remixicon/react';
+import { useForm } from '@tanstack/react-form';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -7,12 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RiArrowRightLine, RiQuestionMark, RiUploadLine } from '@remixicon/react';
-import { useForm } from '@tanstack/react-form';
-import { useCreateOrganization } from '@/query/org.query';
-import { useState } from 'react';
-import { slugify } from '@/lib/slug';
 import { useUploadLogo } from '@/query/asset.query';
+import { useCreateOrganization } from '@/query/org.query';
 
 interface OrgOnboardingProps {
   onComplete: () => void;
@@ -85,7 +85,7 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
           <form.Field name='logo'>
             {(_) => (
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Logo</label>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>Logo</Label>
                 <div className='flex items-center gap-4 mb-2'>
                   <div className='h-20 w-20 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden bg-white'>
                     {logoPreview ? (
@@ -187,9 +187,9 @@ export const OrgOnboarding = (props: OrgOnboardingProps) => {
           >
             {(field) => (
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
                   What's your main goal with CoderScreen?
-                </label>
+                </Label>
                 <Select value={field.state.value} onValueChange={field.handleChange}>
                   <SelectTrigger hasError={!field.state.meta.isValid} className='mb-1'>
                     <SelectValue placeholder='Select your primary goal' />

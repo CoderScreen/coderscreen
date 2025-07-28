@@ -1,10 +1,9 @@
 import { UsageResultSchema } from '@coderscreen/api/schema/usage';
-import { MutedText } from '@/components/ui/typography';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cx } from '@/lib/utils';
-import { ProgressCircle } from '@/components/ui/progresscircle';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Gauge } from '@/components/ui/gauge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MutedText } from '@/components/ui/typography';
+import { cx } from '@/lib/utils';
 
 // Common styling constant
 const CARD_WARNING_STYLES = 'bg-amber-50 border-amber-200';

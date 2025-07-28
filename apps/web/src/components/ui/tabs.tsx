@@ -1,12 +1,9 @@
-import { cx, focusRing } from '@/lib/utils';
 import * as TabsPrimitives from '@radix-ui/react-tabs';
 import React from 'react';
+import { cx, focusRing } from '@/lib/utils';
 
 const Tabs = (
-  props: Omit<
-    React.ComponentPropsWithoutRef<typeof TabsPrimitives.Root>,
-    'orientation'
-  >
+  props: Omit<React.ComponentPropsWithoutRef<typeof TabsPrimitives.Root>, 'orientation'>
 ) => {
   return <TabsPrimitives.Root {...props} />;
 };
@@ -17,8 +14,7 @@ type TabsListVariant = 'line' | 'solid';
 
 const TabsListVariantContext = React.createContext<TabsListVariant>('line');
 
-interface TabsListProps
-  extends React.ComponentPropsWithoutRef<typeof TabsPrimitives.List> {
+interface TabsListProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitives.List> {
   variant?: TabsListVariant;
 }
 
@@ -39,20 +35,17 @@ const variantStyles: Record<TabsListVariant, string> = {
   ),
 };
 
-const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitives.List>,
-  TabsListProps
->(({ className, variant = 'line', children, ...props }, forwardedRef) => (
-  <TabsPrimitives.List
-    ref={forwardedRef}
-    className={cx(variantStyles[variant], className)}
-    {...props}
-  >
-    <TabsListVariantContext.Provider value={variant}>
-      {children}
-    </TabsListVariantContext.Provider>
-  </TabsPrimitives.List>
-));
+const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitives.List>, TabsListProps>(
+  ({ className, variant = 'line', children, ...props }, forwardedRef) => (
+    <TabsPrimitives.List
+      ref={forwardedRef}
+      className={cx(variantStyles[variant], className)}
+      {...props}
+    >
+      <TabsListVariantContext.Provider value={variant}>{children}</TabsListVariantContext.Provider>
+    </TabsPrimitives.List>
+  )
+);
 
 TabsList.displayName = 'TabsList';
 

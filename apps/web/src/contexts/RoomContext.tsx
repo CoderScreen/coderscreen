@@ -1,17 +1,17 @@
+import { PublicRoomSchema, RoomSchema } from '@coderscreen/api/schema/room';
 import React, {
   createContext,
-  useContext,
   ReactNode,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
   useMemo,
+  useState,
 } from 'react';
-import { useCurrentRoomId } from '@/lib/params';
-import useYProvider from 'y-partykit/react';
 import YPartyKitProvider from 'y-partykit/provider';
+import useYProvider from 'y-partykit/react';
+import { useCurrentRoomId } from '@/lib/params';
 import { usePublicRoom } from '@/query/publicRoom.query';
-import { PublicRoomSchema, RoomSchema } from '@coderscreen/api/schema/room';
 
 interface RoomContextType {
   room: PublicRoomSchema | undefined;
@@ -45,12 +45,9 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   });
 
   // Listen to provider status events to update connection state
-  const handleStatus = useCallback(
-    ({ status }: { status: string }) => {
-      setIsConnected(status === 'connected');
-    },
-    [setIsConnected]
-  );
+  const handleStatus = useCallback(({ status }: { status: string }) => {
+    setIsConnected(status === 'connected');
+  }, []);
 
   useEffect(() => {
     setIsConnected(provider.wsconnected);
@@ -78,7 +75,7 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
       callback?.(initialStatus);
 
       // Subscribe to changes
-      const handleStatusChange = (event: any) => {
+      const handleStatusChange = (event: { target: { toString: () => string } }) => {
         const newStatus = event.target.toString() as RoomSchema['status'];
         setCurrentStatus(newStatus);
         callback?.(newStatus);
@@ -126,7 +123,7 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
       callback?.(initialStatus);
 
       // Subscribe to changes
-      const handleStatusChange = (event: any) => {
+      const handleStatusChange = (event: { target: { toString: () => string } }) => {
         const newStatus = event.target.toString() as RoomSchema['status'];
         setCurrentStatus(newStatus);
         callback?.(newStatus);

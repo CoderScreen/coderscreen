@@ -1,11 +1,11 @@
 import { useSync } from '@tldraw/sync';
-import { inlineBase64AssetStore, Tldraw, TLUserPreferences, useTldrawUser } from 'tldraw';
-import { getBookmarkPreview } from './getBookmarkPreview';
+import { useMemo, useState } from 'react';
+import { inlineBase64AssetStore, TLUserPreferences, Tldraw, useTldrawUser } from 'tldraw';
+import { getGuest } from '@/lib/guest';
 import { useCurrentRoomId } from '@/lib/params';
 import { useSession } from '@/query/auth.query';
 import { getRandomColor } from '@/query/realtime/utils';
-import { getGuest } from '@/lib/guest';
-import { useMemo, useState } from 'react';
+import { getBookmarkPreview } from './getBookmarkPreview';
 import 'tldraw/tldraw.css';
 
 // Configure the worker URL - this should match your API endpoint

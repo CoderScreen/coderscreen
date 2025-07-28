@@ -1,9 +1,8 @@
 import { RiLockLine } from '@remixicon/react';
-import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
+import { DockviewReact } from 'dockview';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
-import { DockviewReact } from 'dockview';
-import { useMemo } from 'react';
+import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
 import {
   DOCKVIEW_PANEL_IDS,
   lightDockviewTheme,

@@ -1,5 +1,7 @@
-import { authClient } from '@/query/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Invitation } from 'better-auth/plugins/organization';
+import { useSession } from '@/query/auth.query';
+import { authClient } from '@/query/client';
 
 export const useInvitations = () => {
   const query = useQuery({
@@ -39,7 +41,7 @@ export const useInviteMember = () => {
       return response.data;
     },
     onSuccess: (newInvitation) => {
-      queryClient.setQueryData(['invitations'], (oldInvitations: any[] | undefined) => [
+      queryClient.setQueryData(['invitations'], (oldInvitations: Invitation[] | undefined) => [
         ...(oldInvitations ?? []),
         newInvitation,
       ]);
@@ -70,7 +72,7 @@ export const useCancelInvitation = () => {
       return response.data;
     },
     onSuccess: (invitation) => {
-      queryClient.setQueryData(['invitations'], (oldInvitations: any[] | undefined) =>
+      queryClient.setQueryData(['invitations'], (oldInvitations: Invitation[] | undefined) =>
         oldInvitations?.filter((i) => i.id !== invitation.id)
       );
     },
@@ -87,12 +89,17 @@ export const useCancelInvitation = () => {
 };
 
 export const useRemoveMember = () => {
-  const queryClient = useQueryClient();
+  const { session } = useSession();
 
   const mutation = useMutation({
     mutationFn: async (memberId: string) => {
+      if (!session.activeOrganizationId) {
+        throw new Error('No organization ID found');
+      }
+
       const response = await authClient.organization.removeMember({
         memberIdOrEmail: memberId,
+        organizationId: session.activeOrganizationId,
       });
 
       if (response.error) {

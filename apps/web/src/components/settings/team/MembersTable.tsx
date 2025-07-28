@@ -1,48 +1,45 @@
+import {
+  RiCloseLine,
+  RiDeleteBinLine,
+  RiMore2Line,
+  RiShieldUserLine,
+  RiUserLine,
+  RiVipCrownLine,
+} from '@remixicon/react';
+import { Member } from 'better-auth/plugins/organization';
 import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { UserAvatar } from '@/components/common/UserAvatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuIconWrapper,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuIconWrapper,
 } from '@/components/ui/dropdown';
-import {
-  Dialog,
-  DialogTitle,
-  DialogHeader,
-  DialogContent,
-  DialogTrigger,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { SmallHeader } from '@/components/ui/heading';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeaderCell,
-  TableRow,
   TableRoot,
+  TableRow,
   TableSkeleton,
 } from '@/components/ui/table';
-import {
-  RiMoreLine,
-  RiUserLine,
-  RiVipCrownLine,
-  RiShieldUserLine,
-  RiDeleteBinLine,
-  RiCloseLine,
-  RiMore2Line,
-} from '@remixicon/react';
-import { useCurrentMember, useSession } from '@/query/auth.query';
 import { formatDatetime } from '@/lib/dateUtils';
+import { useCurrentMember } from '@/query/auth.query';
 import { useActiveOrg } from '@/query/org.query';
-import { UserAvatar } from '@/components/common/UserAvatar';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
-import { useUsage } from '@/query/billing.query';
 import { useRemoveMember } from '@/query/team.query';
 
 export const getRoleBadge = (role: string) => {
@@ -71,7 +68,13 @@ export const getRoleBadge = (role: string) => {
   }
 };
 
-const MemberActions = ({ member, onRemove }: { member: any; onRemove: (id: string) => void }) => {
+const MemberActions = ({
+  member,
+  onRemove,
+}: {
+  member: Member;
+  onRemove: (id: string) => void;
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

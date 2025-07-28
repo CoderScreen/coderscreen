@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "vite --port 3000",
     "start": "vite --port 3000",
+    "lint": "biome check src",
+    "lint:fix": "biome check src --write",
+    "format": "biome format src --write",
     "build": "vite build && tsc",
     "preview": "pnpm run build && vite preview --port 3000",
     "test": "vitest run",

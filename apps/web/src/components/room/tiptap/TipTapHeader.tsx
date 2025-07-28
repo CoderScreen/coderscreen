@@ -1,26 +1,25 @@
-import { Button } from '@/components/ui/button';
 import {
+  RiArrowDownSLine,
   RiBold,
-  RiItalic,
-  RiStrikethrough,
   RiCodeLine,
   RiDoubleQuotesL,
-  RiListOrdered,
-  RiListUnordered,
-  RiHeading,
   RiH1,
   RiH2,
   RiH3,
-  RiParagraph,
-  RiArrowDownSLine,
+  RiHeading,
+  RiItalic,
+  RiListOrdered,
+  RiListUnordered,
+  RiStrikethrough,
 } from '@remixicon/react';
+import { Editor } from '@tiptap/react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
-import { Editor } from '@tiptap/react';
 import { cx } from '@/lib/utils';
 
 const BUTTON_CLASSNAME = 'p-1';

@@ -1,6 +1,6 @@
 import { EditorContent } from '@tiptap/react';
-import { TipTapHeader } from './TipTapHeader';
 import { useNotesEditor } from '@/query/realtime/notes.query';
+import { TipTapHeader } from './TipTapHeader';
 
 export const NotesEditor = () => {
   const editor = useNotesEditor();
@@ -14,12 +14,16 @@ export const NotesEditor = () => {
         others in your organization.
       </div>
 
-      <div className='flex-1 min-h-0 overflow-auto' onClick={() => editor?.chain()?.focus()?.run()}>
+      <button
+        type='button'
+        className='flex-1 min-h-0 overflow-auto'
+        onClick={() => editor?.chain()?.focus()?.run()}
+      >
         <EditorContent
           editor={editor}
           className='px-2 py-4 h-full min-h-full w-full focus:outline-none focus:ring-0 focus:border-none prose prose-sm max-w-none'
         />
-      </div>
+      </button>
     </div>
   );
 };

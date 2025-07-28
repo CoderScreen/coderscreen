@@ -1,11 +1,10 @@
-import React from 'react';
-import { usePublicRoom } from '@/query/publicRoom.query';
-import { Button } from '@/components/ui/button';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { formatDatetime } from '@/lib/dateUtils';
-import { formatSlug } from '@/lib/slug';
 import { RiArrowLeftLine, RiCheckLine } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Button } from '@/components/ui/button';
+import { formatDatetime } from '@/lib/dateUtils';
+import { formatSlug } from '@/lib/slug';
+import { usePublicRoom } from '@/query/publicRoom.query';
 
 const MARKETING_URL = import.meta.env.VITE_MARKETING_URL;
 
@@ -52,32 +51,23 @@ export function GuestSummaryView() {
         <div className='bg-white rounded-lg border p-6 mb-6'>
           <div className='space-y-3 text-left'>
             <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-gray-500'>
-                Language:
-              </span>
+              <span className='text-sm font-medium text-gray-500'>Language:</span>
               <div className='flex items-center gap-1'>
                 <LanguageIcon language={publicRoom.language} />
-                <span className='text-gray-900'>
-                  {formatSlug(publicRoom.language)}
-                </span>
+                <span className='text-gray-900'>{formatSlug(publicRoom.language)}</span>
               </div>
             </div>
 
             <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-gray-500'>
-                Completed:
-              </span>
-              <p className='text-gray-900'>
-                {formatDatetime(publicRoom.updatedAt)}
-              </p>
+              <span className='text-sm font-medium text-gray-500'>Completed:</span>
+              <p className='text-gray-900'>{formatDatetime(publicRoom.updatedAt)}</p>
             </div>
           </div>
         </div>
 
         <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6'>
           <p className='text-sm text-blue-800'>
-            The interview session has been completed. Thank you for your
-            participation!
+            The interview session has been completed. Thank you for your participation!
           </p>
         </div>
 

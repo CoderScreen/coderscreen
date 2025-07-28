@@ -1,8 +1,8 @@
 import { RiUserLine } from '@remixicon/react';
 import { Tooltip } from '@/components/ui/tooltip';
-import { useActiveUsers } from '@/query/realtime/activeUsers.query';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { cx } from '@/lib/utils';
+import { useActiveUsers } from '@/query/realtime/activeUsers.query';
 import { User } from '@/query/realtime/chat.query';
 
 export const RoomFooter = () => {

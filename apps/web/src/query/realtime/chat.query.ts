@@ -1,9 +1,9 @@
+import { SupportedModels } from '@coderscreen/api/schema/ai';
 import { useCallback, useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { Guest } from '@/lib/guest';
 import { useCurrentRoomId } from '@/lib/params';
 import { apiClient } from '@/query/client';
-import { SupportedModels } from '@coderscreen/api/schema/ai';
-import { Guest } from '@/lib/guest';
 
 // Types matching AI service
 export type User = Guest;
@@ -89,38 +89,41 @@ export function useAIChat() {
       pastConversationsArray.unobserve(updatePastConversations);
       conversationIdValue.unobserve(updateConversationId);
     };
-  }, [provider, isReadOnly]);
+  }, [provider]);
 
   // Function to add the user message and the placeholder AI message to the Y.js document
-  const addMessages = (message: string, user: User) => {
-    const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
+  const addMessages = useCallback(
+    (message: string, user: User) => {
+      const messagesArray = provider.doc.getArray<ChatMessage>(KEYS.messagesKey);
 
-    const userMessage: ChatMessage & { user: User; success: true } = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: message.trim(),
-      timestamp: Date.now(),
-      isStreaming: false,
-      user: user,
-      success: true,
-      conversationId: currentConversationId,
-    };
+      const userMessage: ChatMessage & { user: User; success: true } = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: message.trim(),
+        timestamp: Date.now(),
+        isStreaming: false,
+        user: user,
+        success: true,
+        conversationId: currentConversationId,
+      };
 
-    const assistantMessage: ChatMessage & { user: null; success: true } = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: 'Thinking...',
-      timestamp: Date.now(),
-      isStreaming: true,
-      user: null,
-      success: true,
-      conversationId: currentConversationId,
-    };
+      const assistantMessage: ChatMessage & { user: null; success: true } = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'Thinking...',
+        timestamp: Date.now(),
+        isStreaming: true,
+        user: null,
+        success: true,
+        conversationId: currentConversationId,
+      };
 
-    messagesArray.push([userMessage, assistantMessage]);
+      messagesArray.push([userMessage, assistantMessage]);
 
-    return { userMessage, assistantMessage };
-  };
+      return { userMessage, assistantMessage };
+    },
+    [currentConversationId, provider.doc]
+  );
 
   // Function to update AI config
   const updateConfig = (newConfig: Partial<AIConfig>) => {
@@ -169,7 +172,7 @@ export function useAIChat() {
         },
       });
     },
-    [addMessages]
+    [addMessages, currentRoomId]
   );
 
   return {

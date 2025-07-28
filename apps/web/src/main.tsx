@@ -1,23 +1,23 @@
+import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen.ts';
 
 import './App.css';
-import reportWebVitals from './reportWebVitals.ts';
 import NotFound from '@/components/common/NotFound.tsx';
-import { TanstackQueryClient } from '@/query/client.ts';
-import { AuthContext, AuthProvider, useAuth } from '@/contexts/AuthContext.tsx';
 import { PendingView } from '@/components/common/PendingView.tsx';
+import { AuthContext, AuthProvider, useAuth } from '@/contexts/AuthContext.tsx';
+import { TanstackQueryClient } from '@/query/client.ts';
+import reportWebVitals from './reportWebVitals.ts';
 
 // Create a new router instance
 const router = createRouter({
   routeTree,
   context: {
     queryClient: TanstackQueryClient,
-    auth: undefined!, // This will be set after we wrap the app in an AuthProvider
+    auth: undefined as unknown as Promise<AuthContext>, // This will be set after we wrap the app in an AuthProvider
   },
   defaultPreload: 'intent',
   scrollRestoration: true,
@@ -47,9 +47,7 @@ function InnerApp() {
     authClient.resolve(auth);
   }, [auth, auth.isInitalLoading]);
 
-  return (
-    <RouterProvider router={router} context={{ auth: authClient.promise }} />
-  );
+  return <RouterProvider router={router} context={{ auth: authClient.promise }} />;
 }
 
 function App() {

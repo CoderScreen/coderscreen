@@ -1,13 +1,12 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useForm } from '@tanstack/react-form';
-import { useCreateOrganization } from '@/query/org.query';
-import { useUploadLogo } from '@/query/asset.query';
-import { slugify } from '@/lib/slug';
 import { RiArrowRightLine, RiQuestionMark, RiUploadLine } from '@remixicon/react';
-import { useNavigate } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useUploadLogo } from '@/query/asset.query';
+import { useCreateOrganization } from '@/query/org.query';
 
 interface CreateOrgDialogProps {
   open: boolean;
@@ -67,7 +66,7 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
           <form.Field name='logo'>
             {(_) => (
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Logo</label>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>Logo</Label>
                 <div className='flex items-center gap-4 mb-2'>
                   <div className='h-20 w-20 shrink-0 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden bg-white'>
                     {logoPreview ? (

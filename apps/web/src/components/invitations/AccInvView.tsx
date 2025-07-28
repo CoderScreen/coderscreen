@@ -1,17 +1,17 @@
-import { useAcceptInvitation, useInvitation } from '@/query/inv.query';
+import { RiCheckLine, RiMailSendLine } from '@remixicon/react';
+import { Link } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardContent,
-  CardFooter,
-  CardDescription,
 } from '@/components/ui/card';
 import { SmallHeader } from '@/components/ui/heading';
-import { Button } from '@/components/ui/button';
-import { RiCheckLine, RiMailSendLine } from '@remixicon/react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from '@tanstack/react-router';
+import { useAcceptInvitation, useInvitation } from '@/query/inv.query';
 
 export const AcceptInvitationView = () => {
   const { invitation, isLoading } = useInvitation();

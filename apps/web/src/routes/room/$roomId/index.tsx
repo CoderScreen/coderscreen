@@ -1,5 +1,5 @@
-import { RoomView } from '@/components/room/RoomView';
 import { createFileRoute } from '@tanstack/react-router';
+import { RoomView } from '@/components/room/RoomView';
 
 export const Route = createFileRoute('/room/$roomId/')({
   beforeLoad: async ({ params }) => {

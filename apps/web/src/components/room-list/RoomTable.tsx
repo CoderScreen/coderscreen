@@ -1,42 +1,40 @@
+import { RoomSchema } from '@coderscreen/api/schema/room';
+import {
+  RiAddLine,
+  RiCornerDownRightLine,
+  RiDeleteBinLine,
+  RiFileCopyLine,
+  RiLink,
+  RiMore2Line,
+  RiSearchLine,
+} from '@remixicon/react';
+import { Link, useRouter } from '@tanstack/react-router';
+import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuIconWrapper,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown';
+import { SmallHeader } from '@/components/ui/heading';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeaderCell,
-  TableRow,
   TableRoot,
+  TableRow,
   TableSkeleton,
 } from '@/components/ui/table';
-import { RoomSchema } from '@coderscreen/api/schema/room';
-import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { formatSlug } from '@/lib/slug';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuIconWrapper,
-} from '@/components/ui/dropdown';
-import {
-  RiMore2Line,
-  RiLink,
-  RiFileCopyLine,
-  RiDeleteBinLine,
-  RiCornerDownRightLine,
-  RiAddLine,
-  RiSearchLine,
-  RiRefreshLine,
-} from '@remixicon/react';
-import { Link, useRouter } from '@tanstack/react-router';
 import { Tooltip } from '@/components/ui/tooltip';
-import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
-import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
+import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
+import { formatSlug } from '@/lib/slug';
 import { useCreateRoom } from '@/query/room.query';
 
 interface RoomTableProps {

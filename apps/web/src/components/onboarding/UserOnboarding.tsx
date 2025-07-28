@@ -1,5 +1,8 @@
+import { RiArrowRightLine } from '@remixicon/react';
+import { useForm } from '@tanstack/react-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -7,19 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RiArrowRightLine } from '@remixicon/react';
-import { useForm } from '@tanstack/react-form';
-import { useUpdateUser } from '@/query/profile.query';
 import { useSession } from '@/query/auth.query';
+import { useUpdateUser } from '@/query/profile.query';
 
-const ROLE_OPTIONS = [
-  'Founder',
-  'Developer',
-  'Recruiter',
-  'Hiring Manager',
-  'Student',
-  'Other',
-];
+const ROLE_OPTIONS = ['Founder', 'Developer', 'Recruiter', 'Hiring Manager', 'Student', 'Other'];
 
 interface UserOnboardingProps {
   onComplete: () => void;
@@ -50,13 +44,11 @@ export const UserOnboarding = (props: UserOnboardingProps) => {
     <div className='min-h-screen flex flex-col justify-center items-center py-12 px-4'>
       <div className='w-full max-w-xl'>
         {/* Heading */}
-        <h1 className='text-3xl font-bold text-gray-900 mb-2'>
-          Welcome to CoderScreen
-        </h1>
+        <h1 className='text-3xl font-bold text-gray-900 mb-2'>Welcome to CoderScreen</h1>
         {/* Subheading */}
         <p className='text-gray-500 mb-8 max-w-lg'>
-          Let's get to know you better so we can provide you with a personalized
-          experience tailored to your needs.
+          Let's get to know you better so we can provide you with a personalized experience tailored
+          to your needs.
         </p>
 
         <form
@@ -72,8 +64,7 @@ export const UserOnboarding = (props: UserOnboardingProps) => {
             validators={{
               onChange: ({ value }: { value: string }) => {
                 if (!value) return 'Name is required';
-                if (value.length > 100)
-                  return 'Name must be less than 100 characters';
+                if (value.length > 100) return 'Name must be less than 100 characters';
                 return undefined;
               },
             }}
@@ -96,9 +87,7 @@ export const UserOnboarding = (props: UserOnboardingProps) => {
                   className='mb-1'
                 />
                 {field.state.meta.errors && (
-                  <p className='text-sm text-red-600'>
-                    {field.state.meta.errors.join(', ')}
-                  </p>
+                  <p className='text-sm text-red-600'>{field.state.meta.errors.join(', ')}</p>
                 )}
               </div>
             )}
@@ -116,17 +105,11 @@ export const UserOnboarding = (props: UserOnboardingProps) => {
           >
             {(field) => (
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
                   What best describes you?
-                </label>
-                <Select
-                  value={field.state.value}
-                  onValueChange={field.handleChange}
-                >
-                  <SelectTrigger
-                    hasError={!field.state.meta.isValid}
-                    className='mb-1'
-                  >
+                </Label>
+                <Select value={field.state.value} onValueChange={field.handleChange}>
+                  <SelectTrigger hasError={!field.state.meta.isValid} className='mb-1'>
                     <SelectValue placeholder='Select your role' />
                   </SelectTrigger>
                   <SelectContent>
@@ -144,9 +127,7 @@ export const UserOnboarding = (props: UserOnboardingProps) => {
                   </SelectContent>
                 </Select>
                 {field.state.meta.errors && (
-                  <p className='text-sm text-red-600'>
-                    {field.state.meta.errors.join(', ')}
-                  </p>
+                  <p className='text-sm text-red-600'>{field.state.meta.errors.join(', ')}</p>
                 )}
               </div>
             )}

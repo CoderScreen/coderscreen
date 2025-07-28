@@ -8,21 +8,13 @@ interface TextProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const BodyText = React.forwardRef<HTMLDivElement, TextProps>(
   ({ className, ...props }, forwardedRef) => (
-    <div
-      className={cx('text-base tracking-wide', className)}
-      ref={forwardedRef}
-      {...props}
-    />
+    <div className={cx('text-base tracking-wide', className)} ref={forwardedRef} {...props} />
   )
 );
 
 const MutedText = React.forwardRef<HTMLDivElement, TextProps>(
   ({ className, ...props }, forwardedRef) => (
-    <div
-      className={cx('text-sm text-muted-foreground', className)}
-      ref={forwardedRef}
-      {...props}
-    />
+    <div className={cx('text-sm text-muted-foreground', className)} ref={forwardedRef} {...props} />
   )
 );
 

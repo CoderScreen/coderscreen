@@ -1,6 +1,14 @@
+import {
+  RiArrowLeftLine,
+  RiCheckLine,
+  RiCloseLine,
+  RiCornerDownLeftLine,
+  RiEditLine,
+} from '@remixicon/react';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -9,19 +17,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  RiEditLine,
-  RiCloseLine,
-  RiCheckLine,
-  RiCornerDownLeftLine,
-  RiArrowLeftLine,
-  RiDashboardLine,
-} from '@remixicon/react';
-import { toast } from 'sonner';
-import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link, useLocation } from '@tanstack/react-router';
 import { Tooltip } from '@/components/ui/tooltip';
+import { cx } from '@/lib/utils';
+import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 
 export const HostRoomHeader = () => {
   const { room, isLoading } = useRoom();
@@ -47,7 +47,7 @@ export const HostRoomHeader = () => {
       setCopied(true);
       toast.success('Link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Failed to copy link');
     }
   };
@@ -82,7 +82,7 @@ export const HostRoomHeader = () => {
     if (room && !isEditingTitle) {
       setTitle(room.title);
     }
-  }, [room]);
+  }, [room, isEditingTitle]);
 
   return (
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -107,16 +107,18 @@ export const HostRoomHeader = () => {
           ) : isLoading ? (
             <Skeleton className='w-42 h-6' />
           ) : (
-            <span
-              className={`w-full text-lg transition-colors overflow-hidden text-ellipsis whitespace-nowrap ${
+            <button
+              type='button'
+              className={cx(
+                'w-full text-lg transition-colors overflow-hidden text-ellipsis whitespace-nowrap',
                 isReadOnly
                   ? 'text-muted-foreground cursor-default'
                   : 'cursor-pointer hover:text-muted-foreground'
-              }`}
+              )}
               onClick={() => !isReadOnly && setIsEditingTitle(true)}
             >
               {title}
-            </span>
+            </button>
           )}
         </div>
       </div>

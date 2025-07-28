@@ -1,12 +1,7 @@
-import { useForm } from '@tanstack/react-form';
-import { useSession, useSignOut } from '@/query/auth.query';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { RiCloseLine, RiDeleteBinLine, RiLogoutBoxLine, RiSaveLine } from '@remixicon/react';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
-import { useDeleteUser, useUpdateUser } from '@/query/profile.query';
-import { Divider } from '@/components/ui/divider';
+import { useForm } from '@tanstack/react-form';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { Divider } from '@/components/ui/divider';
+import { SmallHeader } from '@/components/ui/heading';
+import { Input } from '@/components/ui/input';
+import { MutedText } from '@/components/ui/typography';
+import { useSession, useSignOut } from '@/query/auth.query';
+import { useDeleteUser, useUpdateUser } from '@/query/profile.query';
 
 export const ProfileView = () => {
   const { user } = useSession();
@@ -83,7 +83,9 @@ export const ProfileView = () => {
           </form.Field>
 
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-gray-700'>Email</label>
+            <label htmlFor='email' className='text-sm font-medium text-gray-700'>
+              Email
+            </label>
             <Input id='email' placeholder='Enter your email' value={user?.email} disabled />
           </div>
 

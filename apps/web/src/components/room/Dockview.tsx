@@ -1,21 +1,20 @@
-import { DockviewTheme, IDockviewPanelHeaderProps, IDockviewPanelProps } from 'dockview';
-import { useCallback, useMemo } from 'react';
-import { cx } from '@/lib/utils';
 import {
-  RiTerminalLine,
-  RiFileTextLine,
-  RiPencilLine,
   RiChatAiLine,
   RiCodeLine,
+  RiPencilLine,
   RiSlideshowLine,
   RiStickyNoteLine,
+  RiTerminalLine,
 } from '@remixicon/react';
+import { DockviewTheme, IDockviewPanelHeaderProps, IDockviewPanelProps } from 'dockview';
+import { useMemo } from 'react';
+import { AiChatView } from '@/components/room/ai-chat/AiChatView';
+import { CodeOutput } from '@/components/room/CodeOutput';
 import { CodeEditor } from '@/components/room/editor/CodeEditor';
 import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
-import { CodeOutput } from '@/components/room/CodeOutput';
-import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
-import { AiChatView } from '@/components/room/ai-chat/AiChatView';
 import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
+import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
+import { cx } from '@/lib/utils';
 
 export const DOCKVIEW_PANEL_IDS = {
   CODE_EDITOR: 'code-editor',
@@ -56,32 +55,32 @@ export const getTabIcon = (panelId: string) => {
 export const useDockviewComponents = (isGuest: boolean) =>
   useMemo(
     () => ({
-      'code-editor': (props: IDockviewPanelProps) => (
+      'code-editor': (_: IDockviewPanelProps) => (
         <div className='h-full'>
           <CodeEditor />
         </div>
       ),
-      instructions: (props: IDockviewPanelProps) => (
+      instructions: (_: IDockviewPanelProps) => (
         <div className='h-full overflow-y-auto'>
           <InstructionEditor isGuest={isGuest} />
         </div>
       ),
-      'program-output': (props: IDockviewPanelProps) => (
+      'program-output': (_: IDockviewPanelProps) => (
         <div className='h-full overflow-y-auto'>
           <CodeOutput />
         </div>
       ),
-      whiteboard: (props: IDockviewPanelProps) => (
+      whiteboard: (_: IDockviewPanelProps) => (
         <div className='h-full overflow-y-auto'>
           <WhiteboardView />
         </div>
       ),
-      'ai-chat': (props: IDockviewPanelProps) => (
+      'ai-chat': (_: IDockviewPanelProps) => (
         <div className='h-full overflow-y-auto'>
           <AiChatView role={isGuest ? 'guest' : 'host'} />
         </div>
       ),
-      notes: (props: IDockviewPanelProps) => (
+      notes: (_: IDockviewPanelProps) => (
         <div className='h-full overflow-y-auto'>
           <NotesEditor />
         </div>

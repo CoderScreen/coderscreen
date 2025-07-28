@@ -1,9 +1,9 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { TanstackQueryClient } from '@/query/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
+import { CookiesProvider } from 'react-cookie';
 import { Toaster } from '@/components/ui/toast';
 import { AuthContext } from '@/contexts/AuthContext';
-import { CookiesProvider } from 'react-cookie';
+import { TanstackQueryClient } from '@/query/client';
 
 interface RouterContext {
   queryClient: QueryClient;

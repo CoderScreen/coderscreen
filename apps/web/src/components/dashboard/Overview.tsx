@@ -1,6 +1,6 @@
+import { RiArrowRightLine, RiSkipRightFill } from '@remixicon/react';
 import { Button } from '@/components/ui/button';
 import { SmallHeader } from '@/components/ui/heading';
-import { RiArrowRightLine, RiSkipRightFill } from '@remixicon/react';
 
 export const Overview = () => {
   // Placeholder data
@@ -28,21 +28,13 @@ export const Overview = () => {
           <div className='flex justify-between items-center'>
             <div className='space-y-2'>
               <div className='text-sm text-muted-foreground'>
-                <span className='font-medium text-primary'>
-                  {nextInterview.roomTitle}
-                </span>
+                <span className='font-medium text-primary'>{nextInterview.roomTitle}</span>
               </div>
-              <div className='text-sm text-muted-foreground'>
-                @ {nextInterview.time}
-              </div>
+              <div className='text-sm text-muted-foreground'>@ {nextInterview.time}</div>
             </div>
 
             <div>
-              <Button
-                onClick={handleJoinInterview}
-                icon={RiArrowRightLine}
-                iconPosition='right'
-              >
+              <Button onClick={handleJoinInterview} icon={RiArrowRightLine} iconPosition='right'>
                 Join Interview
               </Button>
             </div>

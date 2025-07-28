@@ -2,7 +2,7 @@
  * @credit-to https://gauge.onur.dev/
  */
 
-import React, { useEffect, useState, type CSSProperties, type SVGProps } from 'react';
+import { type CSSProperties, type SVGProps, useEffect, useState } from 'react';
 
 import {
   calculatePrimaryOpacity,
@@ -13,8 +13,8 @@ import {
   calculateSecondaryStroke,
   calculateSecondaryStrokeDasharray,
   calculateSecondaryTransform,
-  sizeConfig,
   type GaugeProps,
+  sizeConfig,
 } from '@/lib/gaugeUtils';
 
 /**
@@ -150,6 +150,7 @@ export function Gauge({
       style={{ userSelect: 'none' }}
       {...props}
     >
+      <title>Gauge</title>
       {/*secondary*/}
       <circle
         {...circleProps}

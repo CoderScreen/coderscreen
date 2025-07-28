@@ -1,9 +1,4 @@
-import {
-  AssetRecordType,
-  TLAsset,
-  TLBookmarkAsset,
-  getHashForString,
-} from 'tldraw';
+import { AssetRecordType, getHashForString, TLAsset, TLBookmarkAsset } from 'tldraw';
 
 interface UnfurlResponse {
   description?: string;

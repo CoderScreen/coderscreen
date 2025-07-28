@@ -1,13 +1,19 @@
-import ReactMarkdown from 'react-markdown';
-import { visit } from 'unist-util-visit';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { useState } from 'react';
-
-import type { ChatMessage } from '@/query/realtime/chat.query';
-import { cn } from '@/lib/utils';
 import { RiCheckLine, RiFileCopy2Line } from '@remixicon/react';
+import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { visit } from 'unist-util-visit';
+import { cn } from '@/lib/utils';
+import type { ChatMessage } from '@/query/realtime/chat.query';
 
-const CodeBlockWithCopy = ({ children, language, ...props }: any) => {
+const CodeBlockWithCopy = ({
+  children,
+  language,
+  ...props
+}: {
+  children: React.ReactNode;
+  language: string;
+}) => {
   const [copied, setCopied] = useState(false);
   const codeString = String(children).replace(/\n$/, '');
 
@@ -26,11 +32,14 @@ const CodeBlockWithCopy = ({ children, language, ...props }: any) => {
       <SyntaxHighlighter
         {...props}
         PreTag='div'
-        children={codeString}
         language={language}
         className='my-2 bg-neutral-100/50 border border-neutral-200 text-neutral-800 p-3 rounded-md overflow-x-scroll'
-      />
+      >
+        {codeString}
+      </SyntaxHighlighter>
+
       <button
+        type='button'
         onClick={handleCopy}
         className={cn(
           'absolute top-2 right-2 px-2 py-1 text-[10px] rounded-md transition-all duration-200 flex items-center gap-1',
@@ -50,14 +59,14 @@ export const Markdown = ({ message }: { message: ChatMessage }) => {
   return (
     <ReactMarkdown
       remarkPlugins={[
-        () => (tree: any) => {
-          visit(tree, 'code', (node: any) => {
+        () => (tree) => {
+          visit(tree, 'code', (node) => {
             node.lang = node.lang ?? 'plaintext';
           });
         },
       ]}
       components={{
-        code({ node, className, children, ...props }: any) {
+        code({ node, className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || '');
 
           if (match) {

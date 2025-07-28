@@ -1,10 +1,9 @@
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { betterAuth, BetterAuthOptions, User } from 'better-auth';
-import { organization } from 'better-auth/plugins';
 import * as schema from '@coderscreen/db/user.db';
-import { eq } from 'drizzle-orm';
+import { BetterAuthOptions, betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { organization } from 'better-auth/plugins';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 
 // @ts-ignore
 const {
@@ -17,11 +16,17 @@ const {
   GITHUB_CLIENT_SECRET,
 } = process.env;
 
-if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+if (
+  !DATABASE_URL ||
+  !GITHUB_CLIENT_ID ||
+  !GITHUB_CLIENT_SECRET ||
+  !GOOGLE_CLIENT_ID ||
+  !GOOGLE_CLIENT_SECRET
+) {
   throw new Error('Missing environment variables for social providers');
 }
 
-const sql = postgres(DATABASE_URL!);
+const sql = postgres(DATABASE_URL);
 const db = drizzle(sql);
 
 export const betterAuthConfig = {

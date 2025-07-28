@@ -1,6 +1,6 @@
+import { HostRoomView } from '@/components/room/host/HostRoomView';
 import { useAuth } from '@/contexts/AuthContext';
 import { GuestRoomView } from './guest/GuestRoomView';
-import { HostRoomView } from '@/components/room/host/HostRoomView';
 import 'dockview/dist/styles/dockview.css';
 import './dockview.css';
 

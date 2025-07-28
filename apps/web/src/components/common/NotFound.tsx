@@ -1,9 +1,9 @@
+import { RiArrowLeftLine, RiHome4Line } from '@remixicon/react';
+import { useRouter } from '@tanstack/react-router';
 import React from 'react';
-import { RiHome4Line, RiArrowLeftLine } from '@remixicon/react';
-import { cx } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LargeHeader } from '@/components/ui/heading';
-import { useRouter } from '@tanstack/react-router';
+import { cx } from '@/lib/utils';
 
 interface NotFoundProps {
   title?: string;
@@ -51,11 +51,7 @@ const NotFound: React.FC<NotFoundProps> = ({
       {/* Action Buttons */}
       <div className='flex flex-col gap-3 sm:flex-row sm:gap-4'>
         {showBackButton && (
-          <Button
-            variant='secondary'
-            icon={RiArrowLeftLine}
-            onClick={handleGoBack}
-          >
+          <Button variant='secondary' icon={RiArrowLeftLine} onClick={handleGoBack}>
             Go Back
           </Button>
         )}

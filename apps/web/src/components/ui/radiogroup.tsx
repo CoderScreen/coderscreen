@@ -1,7 +1,7 @@
 // Tremor RadioGroup [v0.0.2]
 
-import React from 'react';
 import * as RadioGroupPrimitives from '@radix-ui/react-radio-group';
+import React from 'react';
 
 import { cx, focusRing } from '@/lib/utils';
 

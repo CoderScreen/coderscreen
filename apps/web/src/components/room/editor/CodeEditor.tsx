@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { RiPlayFill } from '@remixicon/react';
-import { useCallback, useState, useEffect } from 'react';
+import { RoomSchema } from '@coderscreen/api/schema/room';
 import { Editor } from '@monaco-editor/react';
-import { editor } from 'monaco-editor';
+import { RiPlayFill } from '@remixicon/react';
 import * as monaco from 'monaco-editor';
-import { useCodeEditor } from '@/query/realtime/code.query';
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
+import { editor } from 'monaco-editor';
+import { useCallback, useEffect, useState } from 'react';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -15,9 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { RoomSchema } from '@coderscreen/api/schema/room';
-import { EditorSettingsDialog, type EditorSettings } from './EditorSettingsDialog';
+import { useCodeEditor } from '@/query/realtime/code.query';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
+import { type EditorSettings, EditorSettingsDialog } from './EditorSettingsDialog';
 
 const SUPPORTED_LANGUAGES: {
   value: RoomSchema['language'];
@@ -81,7 +81,10 @@ export function CodeEditor() {
     const unsubscribe = subscribeToLanguageChanges((newLanguage) => {
       // Update Monaco editor language if editor is ready
       if (editorRef) {
-        monaco.editor.setModelLanguage(editorRef.getModel()!, newLanguage);
+        const model = editorRef.getModel();
+        if (model) {
+          monaco.editor.setModelLanguage(model, newLanguage);
+        }
       }
     });
 
@@ -138,7 +141,10 @@ export function CodeEditor() {
       setLanguage(value);
 
       if (editorRef) {
-        monaco.editor.setModelLanguage(editorRef.getModel()!, value);
+        const model = editorRef.getModel();
+        if (model) {
+          monaco.editor.setModelLanguage(model, value);
+        }
       }
     },
     [editorRef, setLanguage]
@@ -161,7 +167,7 @@ export function CodeEditor() {
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <SelectItem key={lang.value} value={lang.value}>
                   <span className='flex items-center gap-1'>
-                    <LanguageIcon language={lang.value as any} />
+                    <LanguageIcon language={lang.value} />
                     {lang.label}
                   </span>
                 </SelectItem>

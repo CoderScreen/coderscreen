@@ -1,6 +1,6 @@
-import { authClient } from '@/query/client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { authClient } from '@/query/client';
 
 export const useInvitation = () => {
   const { invId } = useParams({ from: '/accept-invitation/$invId' });

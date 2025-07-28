@@ -52,11 +52,6 @@ export function useActiveUsers() {
 
       // Separate active and inactive users
       const activeUserIds = new Set(activeUsers.map((user) => user.id));
-      const activeTrackedUsers = users.filter(
-        (user) =>
-          activeUserIds.has(user.id) ||
-          activeUsers.some((activeUser) => activeUser.name === user.name)
-      );
       const inactiveTrackedUsers = users.filter(
         (user) =>
           !activeUserIds.has(user.id) &&

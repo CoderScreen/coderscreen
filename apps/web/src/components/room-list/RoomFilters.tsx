@@ -1,33 +1,33 @@
-import { useMemo } from 'react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import {
-  RiSearchLine,
-  RiFilter3Line,
-  RiCloseLine,
-  RiCodeBoxLine,
-  RiCalendarLine,
-  RiArrowUpDownLine,
-  RiTimeLine,
-  RiCheckboxCircleLine,
-  RiCodeSSlashFill,
-  RiArrowDownLine,
-} from '@remixicon/react';
 import { RoomSchema } from '@coderscreen/api/schema/room';
 import {
+  RiArrowDownLine,
+  RiArrowUpDownLine,
+  RiCalendarLine,
+  RiCheckboxCircleLine,
+  RiCloseLine,
+  RiCodeBoxLine,
+  RiCodeSSlashFill,
+  RiFilter3Line,
+  RiSearchLine,
+  RiTimeLine,
+} from '@remixicon/react';
+import { useMemo } from 'react';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSubMenu,
-  DropdownMenuSubMenuTrigger,
-  DropdownMenuSubMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSubMenu,
+  DropdownMenuSubMenuContent,
+  DropdownMenuSubMenuTrigger,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
 import { cx } from '@/lib/utils';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 export interface RoomFilters {
   search: string;
@@ -131,24 +131,15 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
   };
 
   const getLanguageLabel = (value: string) => {
-    return (
-      LANGUAGE_OPTIONS.find((option) => option.value === value)?.label ||
-      'All Languages'
-    );
+    return LANGUAGE_OPTIONS.find((option) => option.value === value)?.label || 'All Languages';
   };
 
   const getDateRangeLabel = (value: string) => {
-    return (
-      DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label ||
-      'All Time'
-    );
+    return DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label || 'All Time';
   };
 
   const getStatusLabel = (value: string) => {
-    return (
-      STATUS_OPTIONS.find((option) => option.value === value)?.label ||
-      'All Status'
-    );
+    return STATUS_OPTIONS.find((option) => option.value === value)?.label || 'All Status';
   };
 
   return (
@@ -193,15 +184,10 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
                 <DropdownMenuSubMenuContent>
                   <DropdownMenuRadioGroup
                     value={filters.status}
-                    onValueChange={(value) =>
-                      handleFilterChange('status', value)
-                    }
+                    onValueChange={(value) => handleFilterChange('status', value)}
                   >
                     {STATUS_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                      >
+                      <DropdownMenuRadioItem key={option.value} value={option.value}>
                         {option.label}
                       </DropdownMenuRadioItem>
                     ))}
@@ -218,15 +204,10 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
                 <DropdownMenuSubMenuContent>
                   <DropdownMenuRadioGroup
                     value={filters.language}
-                    onValueChange={(value) =>
-                      handleFilterChange('language', value)
-                    }
+                    onValueChange={(value) => handleFilterChange('language', value)}
                   >
                     {LANGUAGE_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                      >
+                      <DropdownMenuRadioItem key={option.value} value={option.value}>
                         {option.label}
                       </DropdownMenuRadioItem>
                     ))}
@@ -243,15 +224,10 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
                 <DropdownMenuSubMenuContent>
                   <DropdownMenuRadioGroup
                     value={filters.dateRange}
-                    onValueChange={(value) =>
-                      handleFilterChange('dateRange', value)
-                    }
+                    onValueChange={(value) => handleFilterChange('dateRange', value)}
                   >
                     {DATE_RANGE_OPTIONS.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                      >
+                      <DropdownMenuRadioItem key={option.value} value={option.value}>
                         {option.label}
                       </DropdownMenuRadioItem>
                     ))}
@@ -412,11 +388,7 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
 
         {/* Clear Filters Button (Alternative) */}
         {hasActiveFilters ? (
-          <Button
-            variant='ghost'
-            onClick={handleClearFilters}
-            icon={RiCloseLine}
-          >
+          <Button variant='ghost' onClick={handleClearFilters} icon={RiCloseLine}>
             Clear
           </Button>
         ) : null}
@@ -426,34 +398,20 @@ export function RoomFilters({ filters, onFiltersChange }: RoomFiltersProps) {
 }
 
 // Utility function to filter rooms based on the filters
-export function filterRooms(
-  rooms: RoomSchema[],
-  filters: RoomFilters
-): RoomSchema[] {
+export function filterRooms(rooms: RoomSchema[], filters: RoomFilters): RoomSchema[] {
   const filteredRooms = rooms.filter((room) => {
     // Search filter
-    if (
-      filters.search &&
-      !room.title.toLowerCase().includes(filters.search.toLowerCase())
-    ) {
+    if (filters.search && !room.title.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
 
     // Language filter
-    if (
-      filters.language &&
-      filters.language !== '*' &&
-      room.language !== filters.language
-    ) {
+    if (filters.language && filters.language !== '*' && room.language !== filters.language) {
       return false;
     }
 
     // Status filter
-    if (
-      filters.status &&
-      filters.status !== '*' &&
-      room.status !== filters.status
-    ) {
+    if (filters.status && filters.status !== '*' && room.status !== filters.status) {
       return false;
     }
 
@@ -483,8 +441,8 @@ export function filterRooms(
 
   // Sort the filtered rooms
   return filteredRooms.sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
+    let aValue: number | string;
+    let bValue: number | string;
 
     switch (filters.sortField) {
       case 'createdAt':

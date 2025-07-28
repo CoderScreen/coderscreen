@@ -1,9 +1,9 @@
-import { apiClient, authClient } from '@/query/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
-import { useSession } from '@/query/auth.query';
+import { toast } from 'sonner';
 import { slugify } from '@/lib/slug';
+import { useSession } from '@/query/auth.query';
+import { apiClient, authClient } from '@/query/client';
 
 export const useActiveOrg = () => {
   const { data, isPending, error } = authClient.useActiveOrganization();
@@ -94,9 +94,13 @@ export const useCreateOrganization = (options: { dontRedirect?: boolean } = {}) 
 
 export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
-
+  const { session } = useSession();
   const mutation = useMutation({
     mutationFn: async (params: { name: string; logo?: string }) => {
+      if (!session.activeOrganizationId) {
+        throw new Error('No organization ID found');
+      }
+
       // check if we need to upload the logo
       const logo = await (async () => {
         if (!params.logo) {
@@ -118,6 +122,7 @@ export const useUpdateOrganization = () => {
       })();
 
       const data = await authClient.organization.update({
+        organizationId: session.activeOrganizationId,
         data: {
           ...params,
           logo,

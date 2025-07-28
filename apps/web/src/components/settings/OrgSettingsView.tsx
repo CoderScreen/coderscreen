@@ -1,26 +1,25 @@
+import { RiCloseLine, RiDeleteBinLine, RiImageLine, RiSaveLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
-import { useActiveOrg, useDeleteOrganization, useUpdateOrganization } from '@/query/org.query';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { RiSaveLine, RiImageLine, RiDeleteBinLine, RiCloseLine } from '@remixicon/react';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
 import { useState } from 'react';
-import { Divider } from '@/components/ui/divider';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogTitle,
-  DialogHeader,
   DialogContent,
-  DialogTrigger,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
+import { Divider } from '@/components/ui/divider';
+import { SmallHeader } from '@/components/ui/heading';
+import { Input } from '@/components/ui/input';
+import { MutedText } from '@/components/ui/typography';
+import { useActiveOrg, useDeleteOrganization, useUpdateOrganization } from '@/query/org.query';
 
 export const OrgSettingsView = () => {
   const { org, isLoading: isOrgLoading } = useActiveOrg();
   const { updateOrganization, isLoading: isUpdatingOrg } = useUpdateOrganization();
-  const { deleteOrganization, isLoading: isDeletingOrg } = useDeleteOrganization();
   const [logoPreview, setLogoPreview] = useState<string | null>(org?.logo || null);
 
   const form = useForm({
@@ -50,10 +49,6 @@ export const OrgSettingsView = () => {
       setLogoPreview(null);
       form.setFieldValue('logo', '');
     }
-  };
-
-  const handleDeleteOrg = () => {
-    deleteOrganization();
   };
 
   if (isOrgLoading) {
@@ -100,7 +95,8 @@ export const OrgSettingsView = () => {
                 <div className='space-y-3'>
                   {/* Logo Preview */}
                   <div className='flex items-center gap-3'>
-                    <div
+                    <button
+                      type='button'
                       className='h-12 w-12 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:border-gray-300 transition-colors'
                       onClick={() => document.getElementById('logo-file')?.click()}
                     >
@@ -114,7 +110,7 @@ export const OrgSettingsView = () => {
                       ) : (
                         <RiImageLine className='h-6 w-6 text-gray-400' />
                       )}
-                    </div>
+                    </button>
                   </div>
 
                   <input

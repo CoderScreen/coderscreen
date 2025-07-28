@@ -1,11 +1,10 @@
-import React from 'react';
-import { useRoom } from '@/query/room.query';
-import { Button } from '@/components/ui/button';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { formatDatetime } from '@/lib/dateUtils';
-import { formatSlug } from '@/lib/slug';
 import { RiArrowLeftLine, RiCheckLine } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Button } from '@/components/ui/button';
+import { formatDatetime } from '@/lib/dateUtils';
+import { formatSlug } from '@/lib/slug';
+import { useRoom } from '@/query/room.query';
 
 const MARKETING_URL = import.meta.env.VITE_MARKETING_URL;
 
@@ -52,21 +51,15 @@ export function CandidateView() {
         <div className='bg-white rounded-lg border p-6 mb-6'>
           <div className='space-y-3 text-left'>
             <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-gray-500'>
-                Language:
-              </span>
+              <span className='text-sm font-medium text-gray-500'>Language:</span>
               <div className='flex items-center gap-1'>
                 <LanguageIcon language={room.language} />
-                <span className='text-gray-900'>
-                  {formatSlug(room.language)}
-                </span>
+                <span className='text-gray-900'>{formatSlug(room.language)}</span>
               </div>
             </div>
 
             <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-gray-500'>
-                Completed:
-              </span>
+              <span className='text-sm font-medium text-gray-500'>Completed:</span>
               <p className='text-gray-900'>{formatDatetime(room.updatedAt)}</p>
             </div>
           </div>
@@ -74,8 +67,7 @@ export function CandidateView() {
 
         <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6'>
           <p className='text-sm text-blue-800'>
-            Your interviewer will review your performance and provide feedback
-            soon.
+            Your interviewer will review your performance and provide feedback soon.
           </p>
         </div>
 

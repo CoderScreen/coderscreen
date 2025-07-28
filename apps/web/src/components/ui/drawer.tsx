@@ -1,16 +1,14 @@
 // Tremor Drawer [v0.0.1]
 
-import * as React from 'react';
 import * as DrawerPrimitives from '@radix-ui/react-dialog';
 import { RiCloseLine } from '@remixicon/react';
+import * as React from 'react';
 
 import { cx, focusRing } from '@/lib/utils';
 
 import { Button } from './button';
 
-const Drawer = (
-  props: React.ComponentPropsWithoutRef<typeof DrawerPrimitives.Root>
-) => {
+const Drawer = (props: React.ComponentPropsWithoutRef<typeof DrawerPrimitives.Root>) => {
   return <DrawerPrimitives.Root tremor-id='tremor-raw' {...props} />;
 };
 Drawer.displayName = 'Drawer';
@@ -19,9 +17,7 @@ const DrawerTrigger = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitives.Trigger>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitives.Trigger>
 >(({ className, ...props }, ref) => {
-  return (
-    <DrawerPrimitives.Trigger ref={ref} className={cx(className)} {...props} />
-  );
+  return <DrawerPrimitives.Trigger ref={ref} className={cx(className)} {...props} />;
 });
 DrawerTrigger.displayName = 'Drawer.Trigger';
 
@@ -29,9 +25,7 @@ const DrawerClose = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitives.Close>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitives.Close>
 >(({ className, ...props }, ref) => {
-  return (
-    <DrawerPrimitives.Close ref={ref} className={cx(className)} {...props} />
-  );
+  return <DrawerPrimitives.Close ref={ref} className={cx(className)} {...props} />;
 });
 DrawerClose.displayName = 'Drawer.Close';
 
@@ -96,30 +90,24 @@ const DrawerContent = React.forwardRef<
 
 DrawerContent.displayName = 'DrawerContent';
 
-const DrawerHeader = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<'div'>
->(({ children, className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className='flex items-start justify-between gap-x-4 border-b border-gray-200 pb-4'
-      {...props}
-    >
-      <div className={cx('mt-1 flex flex-col gap-y-1', className)}>
-        {children}
+const DrawerHeader = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'>>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className='flex items-start justify-between gap-x-4 border-b border-gray-200 pb-4'
+        {...props}
+      >
+        <div className={cx('mt-1 flex flex-col gap-y-1', className)}>{children}</div>
+        <DrawerPrimitives.Close asChild>
+          <Button variant='ghost' className='aspect-square p-1 hover:bg-gray-100 '>
+            <RiCloseLine className='size-6' aria-hidden='true' />
+          </Button>
+        </DrawerPrimitives.Close>
       </div>
-      <DrawerPrimitives.Close asChild>
-        <Button
-          variant='ghost'
-          className='aspect-square p-1 hover:bg-gray-100 '
-        >
-          <RiCloseLine className='size-6' aria-hidden='true' />
-        </Button>
-      </DrawerPrimitives.Close>
-    </div>
-  );
-});
+    );
+  }
+);
 
 DrawerHeader.displayName = 'Drawer.Header';
 
@@ -142,12 +130,11 @@ const DrawerTitle = React.forwardRef<
 
 DrawerTitle.displayName = 'DrawerTitle';
 
-const DrawerBody = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<'div'>
->(({ className, ...props }, ref) => {
-  return <div ref={ref} className={cx('flex-1 py-4', className)} {...props} />;
-});
+const DrawerBody = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'>>(
+  ({ className, ...props }, ref) => {
+    return <div ref={ref} className={cx('flex-1 py-4', className)} {...props} />;
+  }
+);
 DrawerBody.displayName = 'Drawer.Body';
 
 const DrawerDescription = React.forwardRef<
@@ -165,10 +152,7 @@ const DrawerDescription = React.forwardRef<
 
 DrawerDescription.displayName = 'DrawerDescription';
 
-const DrawerFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
+const DrawerFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cx(

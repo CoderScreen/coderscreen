@@ -1,20 +1,19 @@
-import { useState, useEffect } from 'react';
-import { GuestRoomHeader } from '@/components/room/guest/GuestRoomHeader';
-import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
-import { GuestStartView } from './GuestStartView';
-import { GuestSummaryView } from './GuestSummaryView';
-import { Guest, getGuest, setGuest } from '@/lib/guest';
-import { getRandomColor } from '@/query/realtime/utils';
-import { RoomFooter } from '@/components/room/RoomFooter';
-import { usePublicRoom } from '@/query/publicRoom.query';
 import { DockviewReact } from 'dockview';
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
+import { GuestRoomHeader } from '@/components/room/guest/GuestRoomHeader';
+import { RoomFooter } from '@/components/room/RoomFooter';
+import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
+import { Guest, getGuest, setGuest } from '@/lib/guest';
+import { usePublicRoom } from '@/query/publicRoom.query';
+import { getRandomColor } from '@/query/realtime/utils';
 import {
   DOCKVIEW_PANEL_IDS,
   lightDockviewTheme,
   useDockviewComponents,
   useTabComponents,
 } from '../Dockview';
+import { GuestStartView } from './GuestStartView';
+import { GuestSummaryView } from './GuestSummaryView';
 
 export const GuestRoomView = () => {
   const [guestInfo, setGuestInfo] = useState<Guest | null>(null);
@@ -85,13 +84,13 @@ const GuestRoomContent = () => {
     return unsubscribe;
   }, [subscribeToStatus]);
 
+  const components = useDockviewComponents(true);
+  const tabComponents = useTabComponents();
+
   // If status is completed, show summary view
   if (currentStatus === 'completed' || currentView === 'summary') {
     return <GuestSummaryView />;
   }
-
-  const components = useDockviewComponents(true);
-  const tabComponents = useTabComponents();
 
   // Show the room content
   return (

@@ -1,4 +1,12 @@
-import { useActiveOrg, useUserOrgs, useSwitchOrganization } from '@/query/org.query';
+import {
+  RiAddLine,
+  RiCheckLine,
+  RiErrorWarningLine,
+  RiExpandUpDownLine,
+  RiLoader2Line,
+} from '@remixicon/react';
+import { useState } from 'react';
+import { OrgAvatar } from '@/components/common/UserAvatar';
 import {
   Command,
   CommandEmpty,
@@ -7,19 +15,11 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  RiAddLine,
-  RiCheckLine,
-  RiErrorWarningLine,
-  RiLoader2Line,
-  RiExpandUpDownLine,
-} from '@remixicon/react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useActiveOrg, useSwitchOrganization, useUserOrgs } from '@/query/org.query';
 import { CreateOrgDialog } from '../org/CreateOrgDialog';
-import { OrgAvatar } from '@/components/common/UserAvatar';
 
 export const OrgSwitcher = () => {
   const { org, isLoading: isActiveOrgLoading } = useActiveOrg();
@@ -43,6 +43,7 @@ export const OrgSwitcher = () => {
       await switchOrganization(organizationId);
       setOpen(false);
     } catch (err) {
+      console.error(err);
       setError('Failed to switch organization');
     } finally {
       setSwitchingToOrg(null);
@@ -102,8 +103,9 @@ export const OrgSwitcher = () => {
                   <div className='animate-pulse space-y-1 py-1'>
                     {Array(4)
                       .fill(0)
-                      .map((_, i) => (
-                        <div key={i} className='px-2 py-1.5 flex items-center gap-2'>
+                      .map((_, index) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: skeletons
+                        <div key={index} className='px-2 py-1.5 flex items-center gap-2'>
                           <Skeleton className='h-5 w-5 rounded-lg' />
                           <Skeleton className='h-4 w-[80%]' />
                         </div>

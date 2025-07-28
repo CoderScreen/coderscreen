@@ -1,29 +1,29 @@
-import { Badge } from '@/components/ui/badge';
+import { PlanSchema } from '@coderscreen/api/schema/billing';
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  RiTeamLine,
-  RiArrowRightLine,
   RemixiconComponentType,
+  RiArrowRightLine,
+  RiBaseStationLine,
   RiCustomerServiceLine,
   RiGlobalLine,
   RiHistoryLine,
-  RiSwap2Line,
-  RiPaletteLine,
-  RiTerminalWindowFill,
-  RiBaseStationLine,
   RiLockPasswordLine,
+  RiPaletteLine,
+  RiSwap2Line,
+  RiTeamLine,
+  RiTerminalWindowFill,
 } from '@remixicon/react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
-import { PlanSchema } from '@coderscreen/api/schema/billing';
 
 const LIMIT_MAP = {
   live_interview: {
@@ -268,8 +268,8 @@ export const BillingPlanCard = ({
           {isCurrentPlan
             ? 'Current Plan'
             : plan.name === 'Enterprise'
-            ? 'Contact Sales'
-            : 'Select Plan'}
+              ? 'Contact Sales'
+              : 'Select Plan'}
         </Button>
       </CardHeader>
 
@@ -296,11 +296,11 @@ export const BillingPlanCard = ({
             );
           })}
 
-          {PLAN_FEATURE_MAP[group].map((feature, index) => {
+          {PLAN_FEATURE_MAP[group].map((feature) => {
             const IconComponent = feature.icon;
             return (
               <li
-                key={index}
+                key={feature.label}
                 className={cx('flex gap-2', feature.subText ? 'items-start' : 'items-center')}
               >
                 <div className='p-1'>

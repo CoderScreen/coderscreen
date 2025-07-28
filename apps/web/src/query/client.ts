@@ -1,4 +1,3 @@
-import { hc } from 'hono/client';
 import { AppRouter } from '@coderscreen/api';
 import {
   Mutation,
@@ -8,9 +7,10 @@ import {
   QueryClient,
   QueryKey,
 } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { inferAdditionalFields, organizationClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
-import { organizationClient, inferAdditionalFields } from 'better-auth/client/plugins';
+import { hc } from 'hono/client';
+import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 export const apiClient = hc<AppRouter>(API_URL, {

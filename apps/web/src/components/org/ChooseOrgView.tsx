@@ -1,20 +1,18 @@
+import { RiAddLine, RiArrowRightLine, RiBuilding2Line } from '@remixicon/react';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { OrgAvatar } from '@/components/common/UserAvatar';
+import { CreateOrgDialog } from '@/components/org/CreateOrgDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SmallHeader } from '@/components/ui/heading';
 import { MutedText } from '@/components/ui/typography';
-import { useUserOrgs, useSwitchOrganization } from '@/query/org.query';
-import { useSession } from '@/query/auth.query';
-import { CreateOrgDialog } from '@/components/org/CreateOrgDialog';
-import { RiAddLine, RiArrowRightLine, RiBuilding2Line, RiCheckLine } from '@remixicon/react';
-import { OrgAvatar } from '@/components/common/UserAvatar';
-import { useNavigate } from '@tanstack/react-router';
+import { useSwitchOrganization, useUserOrgs } from '@/query/org.query';
 
 export const ChooseOrgView = () => {
   const navigate = useNavigate();
   const { orgs, isLoading } = useUserOrgs();
   const { switchOrganization, isLoading: isSwitching } = useSwitchOrganization();
-  const { session } = useSession();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const handleSwitchOrg = async (orgId: string) => {
@@ -45,6 +43,7 @@ export const ChooseOrgView = () => {
         {isLoading ? (
           <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
             {[...Array(6)].map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: needed for skeleton loading
               <Card key={i} className='p-6 animate-pulse'>
                 <div className='flex items-center gap-3 mb-4'>
                   <div className='w-10 h-10 bg-gray-200 rounded-lg'></div>
@@ -60,7 +59,6 @@ export const ChooseOrgView = () => {
         ) : orgs && orgs.length > 0 ? (
           <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
             {orgs.map((org) => {
-              const isActive = org.id === session?.activeOrganizationId;
               return (
                 <Card key={org.id} className='p-6 hover:shadow-md transition-shadow'>
                   <div className='flex items-center gap-3 mb-4'>

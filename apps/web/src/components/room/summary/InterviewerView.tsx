@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useRoom, useUpdateRoom } from '@/query/room.query';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { SmallHeader } from '@/components/ui/heading';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { formatDatetime } from '@/lib/dateUtils';
-import { formatSlug } from '@/lib/slug';
 import { RiArrowLeftLine, RiSaveLine } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Button } from '@/components/ui/button';
+import { SmallHeader } from '@/components/ui/heading';
+import { Textarea } from '@/components/ui/textarea';
+import { formatDatetime } from '@/lib/dateUtils';
+import { formatSlug } from '@/lib/slug';
+import { useRoom, useUpdateRoom } from '@/query/room.query';
 
 export function InterviewerView() {
   const { data: room, isLoading, error } = useRoom();
@@ -77,50 +77,32 @@ export function InterviewerView() {
         <div className='bg-white rounded-lg border p-6'>
           {/* Room Details */}
           <div className='mb-6'>
-            <h3 className='text-lg font-medium text-gray-900 mb-4'>
-              Interview Details
-            </h3>
+            <h3 className='text-lg font-medium text-gray-900 mb-4'>Interview Details</h3>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4'>
               <div className='space-y-3'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-gray-500'>
-                    Title
-                  </span>
-                  <span className='text-gray-900 font-medium'>
-                    {room.title}
-                  </span>
+                  <span className='text-sm font-medium text-gray-500'>Title</span>
+                  <span className='text-gray-900 font-medium'>{room.title}</span>
                 </div>
 
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-gray-500'>
-                    Language
-                  </span>
+                  <span className='text-sm font-medium text-gray-500'>Language</span>
                   <div className='flex items-center gap-2'>
                     <LanguageIcon language={room.language} />
-                    <span className='text-gray-900'>
-                      {formatSlug(room.language)}
-                    </span>
+                    <span className='text-gray-900'>{formatSlug(room.language)}</span>
                   </div>
                 </div>
               </div>
 
               <div className='space-y-3'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-gray-500'>
-                    Created
-                  </span>
-                  <span className='text-gray-900'>
-                    {formatDatetime(room.createdAt)}
-                  </span>
+                  <span className='text-sm font-medium text-gray-500'>Created</span>
+                  <span className='text-gray-900'>{formatDatetime(room.createdAt)}</span>
                 </div>
 
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-gray-500'>
-                    Ended
-                  </span>
-                  <span className='text-gray-900'>
-                    {formatDatetime(room.updatedAt)}
-                  </span>
+                  <span className='text-sm font-medium text-gray-500'>Ended</span>
+                  <span className='text-gray-900'>{formatDatetime(room.updatedAt)}</span>
                 </div>
               </div>
             </div>
@@ -128,9 +110,7 @@ export function InterviewerView() {
 
           {/* Final Notes */}
           <div>
-            <h3 className='text-lg font-medium text-gray-900 mb-2'>
-              Final Notes
-            </h3>
+            <h3 className='text-lg font-medium text-gray-900 mb-2'>Final Notes</h3>
             <p className='text-sm text-gray-500 mb-4'>
               Add your assessment and feedback for the candidate
             </p>

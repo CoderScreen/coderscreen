@@ -4,7 +4,7 @@ import { ChooseOrgView } from '@/components/org/ChooseOrgView';
 export const Route = createFileRoute('/organizations')({
   component: RouteComponent,
   beforeLoad: async ({ context, location }) => {
-    const { user, session, isAuthenticated } = await context.auth; // Call the function
+    const { user, isAuthenticated } = await context.auth; // Call the function
 
     if (!isAuthenticated || !user) {
       throw redirect({ to: '/login', search: { callbackUrl: location.href } });

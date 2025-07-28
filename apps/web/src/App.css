@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '@coderscreen/ui/styles.css';
+@import "tailwindcss";
+@import "@coderscreen/ui/styles.css";
 
 @source '../../node_modules/@coderscreen/ui';
 /** TIPTAP */
@@ -12,7 +12,7 @@
     background: #1e1e1e;
     border-radius: 0.5rem;
     color: #fff;
-    font-family: 'JetBrainsMono', monospace;
+    font-family: "JetBrainsMono", monospace;
     margin: 1.5rem 0;
     padding: 0.75rem 1rem;
 

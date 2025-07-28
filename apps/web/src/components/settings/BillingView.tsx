@@ -1,23 +1,23 @@
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
-import { Button } from '@/components/ui/button';
+import { PlanSchema } from '@coderscreen/api/schema/billing';
+import { RiSettings3Line } from '@remixicon/react';
+import { useNavigate } from '@tanstack/react-router';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { UsageCard } from '@/components/settings/UsageCard';
 import { Badge } from '@/components/ui/badge';
-import { RiSettings3Line, RiQuestionLine } from '@remixicon/react';
+import { Button } from '@/components/ui/button';
+import { SmallHeader } from '@/components/ui/heading';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { MutedText } from '@/components/ui/typography';
+import { siteConfig } from '@/lib/siteConfig';
 import {
-  useCustomer,
-  usePlans,
+  useAllUsage,
   useCreateCheckoutSession,
   useCreatePortalSession,
-  useAllUsage,
+  useCustomer,
+  usePlans,
 } from '@/query/billing.query';
-import { toast } from 'sonner';
 import { BillingPlanCard } from './BillingPlanCard';
-import { useMemo, useState } from 'react';
-import { PlanSchema } from '@coderscreen/api/schema/billing';
-import { useNavigate } from '@tanstack/react-router';
-import { siteConfig } from '@/lib/siteConfig';
-import { UsageCard } from '@/components/settings/UsageCard';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 export const BillingView = () => {
   const navigate = useNavigate();
@@ -107,7 +107,8 @@ export const BillingView = () => {
           {isLoading
             ? // Show 4 loading usage cards
               Array.from({ length: 4 }).map((_, index) => (
-                <UsageCard key={`loading-usage-${index}`} isLoading={true} />
+                // biome-ignore lint/suspicious/noArrayIndexKey: needed for list
+                <UsageCard key={index} isLoading={true} />
               ))
             : usage &&
               Object.entries(usage).map(([key, value]) => <UsageCard key={key} usage={value} />)}
@@ -152,7 +153,8 @@ export const BillingView = () => {
           Array.from({ length: 4 }).map((_, index) => (
             <BillingPlanCard
               group='free'
-              key={`loading-plan-${index}`}
+              // biome-ignore lint/suspicious/noArrayIndexKey: needed for list
+              key={index}
               monthly={null}
               yearly={null}
               mode={billingMode}

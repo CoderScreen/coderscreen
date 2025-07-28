@@ -9,8 +9,7 @@ export const cx = (...args: ClassValue[]) => {
 export const cn = cx;
 
 // Sleep utility function
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Tremor Raw focusInput [v0.0.1]
 

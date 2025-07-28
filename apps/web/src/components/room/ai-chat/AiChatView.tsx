@@ -1,5 +1,16 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useAIChat, User } from '@/query/realtime/chat.query';
+import { SupportedModels } from '@coderscreen/api/schema/ai';
+import {
+  RemixiconComponentType,
+  RiAddLine,
+  RiAiGenerate2,
+  RiClaudeLine,
+  RiGoogleLine,
+  RiOpenaiFill,
+  RiRobotFill,
+  RiSendPlaneFill,
+} from '@remixicon/react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Markdown } from '@/components/room/ai-chat/Markdown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,23 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  RiSendPlaneFill,
-  RiRobotFill,
-  RiAddLine,
-  RiOpenaiFill,
-  RiAiGenerate2,
-  RemixiconComponentType,
-  RiGoogleLine,
-  RiClaudeLine,
-} from '@remixicon/react';
-import { getGuest } from '@/lib/guest';
-import { useSession } from '@/query/auth.query';
-import { getRandomColor } from '@/query/realtime/utils';
-import { cn } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/tooltip';
-import { Markdown } from '@/components/room/ai-chat/Markdown';
-import { SupportedModels } from '@coderscreen/api/schema/ai';
+import { getGuest } from '@/lib/guest';
+import { cn } from '@/lib/utils';
+import { useSession } from '@/query/auth.query';
+import { ChatMessage, User, useAIChat } from '@/query/realtime/chat.query';
+import { getRandomColor } from '@/query/realtime/utils';
 
 interface AiChatViewProps {
   role: 'host' | 'guest';
@@ -124,7 +124,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
     }
   };
 
-  const renderMessage = (message: any) => (
+  const renderMessage = (message: ChatMessage) => (
     <div
       key={message.id}
       className={cn('flex gap-3', message.role === 'user' ? 'justify-end' : 'justify-start')}
@@ -198,7 +198,8 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
               <>
                 {/* Past Conversations */}
                 {pastConversations.map((conversation, conversationIndex) => (
-                  <div key={`past-conversation-${conversationIndex}`}>
+                  // biome-ignore lint/suspicious/noArrayIndexKey: needed for list
+                  <div key={conversationIndex}>
                     {conversation.map((message) => renderMessage(message))}
                     <div className='my-6 border-t border-slate-200 relative'>
                       <div className='absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-slate-500 font-medium'>

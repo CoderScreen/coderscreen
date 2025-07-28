@@ -1,8 +1,8 @@
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState, useEffect, useRef } from 'react';
 import { RiArrowRightSLine, RiTerminalLine } from '@remixicon/react';
+import { useEffect, useRef, useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 
 export const CodeOutput = () => {
   const { history } = useCodeExecutionHistory();
@@ -14,7 +14,7 @@ export const CodeOutput = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
-  }, [history.length]);
+  }, []);
 
   const toggleItem = (index: number) => {
     setOpenItems((prev) => {
@@ -56,11 +56,7 @@ export const CodeOutput = () => {
           const executionNumber = idx + 1; // Latest is at the bottom
 
           return (
-            <Collapsible
-              key={data.timestamp + idx}
-              open={isOpen}
-              onOpenChange={() => toggleItem(idx)}
-            >
+            <Collapsible key={data.timestamp} open={isOpen} onOpenChange={() => toggleItem(idx)}>
               <CollapsibleTrigger className='w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between group text-gray-500 text-xs'>
                 <div className='flex items-center gap-3'>
                   <span

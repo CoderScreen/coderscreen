@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -52,9 +52,7 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
     setMobileSidebarOpen,
   };
 
-  return (
-    <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
-  );
+  return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;
 }
 
 export function useSidebar() {

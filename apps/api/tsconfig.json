@@ -25,7 +25,7 @@
 		/* Disable emitting files from a compilation. */
 		"noEmit": false,
 		/* Generate corresponding .d.ts file for each TypeScript file. */
-		"declaration": true,
+		"declaration": false,
 
 		/* Ensure that each file can be safely transpiled without relying on other imports. */
 		"isolatedModules": true,
@@ -45,5 +45,9 @@
 		}
 	},
 	"exclude": ["test"],
-	"include": ["worker-configuration.d.ts", "src/**/*.ts", "better-auth.config.ts"]
+	"include": [
+		"worker-configuration.d.ts",
+		"src/**/*.ts",
+		"better-auth.config.ts"
+	]
 }

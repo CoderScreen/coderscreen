@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { RoomSchema } from '@coderscreen/api/schema/room';
 import { editor } from 'monaco-editor';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { RoomSchema } from '@coderscreen/api/schema/room';
 
 // Shared hook for creating collaborative code editor
 export function useCodeEditor() {
