@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
-import viteReact from '@vitejs/plugin-react';
-import { tanstackRouter } from '@tanstack/router-plugin/vite';
-import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'node:path';
 import { cloudflare } from '@cloudflare/vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,10 +16,10 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
-  // test: {
-  //   globals: true,
-  //   environment: 'jsdom',
-  // },
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'unresolved'),
+    'import.meta.env.VITE_APP_URL': JSON.stringify(process.env.VITE_APP_URL || 'unresolved'),
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

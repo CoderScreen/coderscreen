@@ -1,6 +1,7 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "CoderScreen",
+  "name": "CoderScreen - Live Coding Interviews",
+  "description": "Run live coding interviews, take-home assessments, and technical evaluations in a fast, collaborative environment.",
   "icons": [
     {
       "src": "favicon.ico",
