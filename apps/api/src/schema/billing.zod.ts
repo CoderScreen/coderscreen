@@ -32,7 +32,7 @@ export const SubscriptionSchema = z.object({
 });
 
 export const PlanSchema = z.object({
-  id: idString('plan'),
+  id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
   price: z.number(),

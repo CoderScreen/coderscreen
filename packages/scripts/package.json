@@ -1,0 +1,22 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "bun run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.13.1",
+  "devDependencies": {
+    "@types/node": "^24.1.0"
+  },
+  "dependencies": {
+    "@coderscreen/common": "workspace:*",
+    "@coderscreen/db": "workspace:*",
+    "drizzle-orm": "^0.44.3",
+    "postgres": "^3.4.7"
+  }
+}

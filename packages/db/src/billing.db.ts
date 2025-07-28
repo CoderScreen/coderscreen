@@ -17,7 +17,7 @@ export const customerTable = pgTable('customers', {
 type AllUsageTypes = 'live_interview' | 'team_members';
 
 export const planTable = pgTable('plans', {
-  id: text('id').primaryKey().$type<Id<'plan'>>(),
+  id: text('id').primaryKey().$type<string>(),
   createdAt: timestamp('created_at', { mode: 'string' })
     .$defaultFn(() => new Date().toISOString())
     .notNull(),
@@ -32,6 +32,7 @@ export const planTable = pgTable('plans', {
     live_interview: 10,
     team_members: 10,
   }),
+  liveMode: boolean('live_mode').default(false).notNull(),
 });
 
 export const subscriptionTable = pgTable('subscriptions', {

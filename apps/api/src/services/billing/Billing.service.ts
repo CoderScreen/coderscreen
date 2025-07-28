@@ -134,14 +134,16 @@ export class BillingService {
       yearly: PlanEntity | null;
     }[]
   > {
+    const isLiveMode = this.ctx.env.NODE_ENV === 'production';
     const db = useDb(this.ctx);
 
     const allPlans = await db
       .select()
       .from(planTable)
-      .where(eq(planTable.isActive, true))
+      .where(and(eq(planTable.isActive, true), eq(planTable.liveMode, isLiveMode)))
       .orderBy(planTable.price);
 
+    // below needs to be refactored, just easy way for frontend without custom plans
     const newMap = new Map<
       'free' | 'starter' | 'pro' | 'scale',
       {
