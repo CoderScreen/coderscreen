@@ -16,6 +16,14 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
+  define: {
+    'import.meta.env.VITE_APP_URL': JSON.stringify(
+      process.env.VITE_APP_URL ?? 'http://localhost:3000'
+    ),
+    'import.meta.env.VITE_API_URL': JSON.stringify(
+      process.env.VITE_API_URL ?? 'http://localhost:8000'
+    ),
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
