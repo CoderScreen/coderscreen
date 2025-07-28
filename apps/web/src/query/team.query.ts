@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Invitation } from 'better-auth/plugins/organization';
+import type { Invitation } from 'better-auth/plugins/organization';
 import { useSession } from '@/query/auth.query';
 import { authClient } from '@/query/client';
 
@@ -63,7 +63,9 @@ export const useCancelInvitation = () => {
 
   const mutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const response = await authClient.organization.cancelInvitation({ invitationId });
+      const response = await authClient.organization.cancelInvitation({
+        invitationId,
+      });
 
       if (response.error) {
         throw new Error(response.error.message);

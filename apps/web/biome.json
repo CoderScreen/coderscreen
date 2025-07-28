@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["../../biome.json"],
   "files": {
-    "includes": ["src/**/*", "!src/routeTree.gen.ts"]
-  }
+    "includes": ["src/**/*.ts", "src/**/*.tsx", "!src/routeTree.gen.ts"]
+  },
+  "extends": ["../../biome.json"]
 }

@@ -1,4 +1,4 @@
-import { RoomSchema } from '@coderscreen/api/schema/room';
+import type { RoomSchema } from '@coderscreen/api/schema/room';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useCurrentRoomId } from '@/lib/params';

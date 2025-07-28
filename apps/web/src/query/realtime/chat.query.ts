@@ -1,7 +1,7 @@
-import { SupportedModels } from '@coderscreen/api/schema/ai';
+import type { SupportedModels } from '@coderscreen/api/schema/ai';
 import { useCallback, useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { Guest } from '@/lib/guest';
+import type { Guest } from '@/lib/guest';
 import { useCurrentRoomId } from '@/lib/params';
 import { apiClient } from '@/query/client';
 
