@@ -29,7 +29,7 @@ if (
 const sql = postgres(INFISCAL_DATABASE_URL);
 const db = drizzle(sql);
 
-export const betterAuthConfig = {
+export const betterAuthConfig: BetterAuthOptions = {
   appName: 'CoderScreen',
   emailAndPassword: {
     enabled: true,
@@ -56,7 +56,7 @@ export const betterAuthConfig = {
         required: true,
         input: false,
         transform: {
-          input: (value) => value === 'true',
+          input: (value: unknown) => value === 'true',
         },
       },
       persona: {

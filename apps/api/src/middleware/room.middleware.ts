@@ -47,6 +47,7 @@ export const publicRoomMiddleware = createMiddleware<AppContext>(async (ctx, nex
     });
   }
 
+  // @ts-ignore
   if (session.session.activeOrganizationId !== room.organizationId) {
     throw new HTTPException(401, {
       message: 'Unauthorized to connect to this room',

@@ -13,7 +13,9 @@ export const authMiddleware = createMiddleware<AppContext>(async (ctx, next) => 
     });
   }
 
+  // @ts-ignore since better auth type inference broke
   ctx.set('user', session.user);
+  // @ts-ignore since better auth type inference broke
   ctx.set('session', session.session);
   return next();
 });

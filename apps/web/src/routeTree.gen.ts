@@ -8,141 +8,141 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root';
-import { Route as OrganizationsRouteImport } from './routes/organizations';
-import { Route as OnboardingRouteImport } from './routes/onboarding';
-import { Route as AppRouteImport } from './routes/_app';
-import { Route as AppIndexRouteImport } from './routes/_app/index';
-import { Route as AcceptInvitationInvIdRouteImport } from './routes/accept-invitation/$invId';
-import { Route as AppRoomsRouteImport } from './routes/_app/rooms';
-import { Route as AppProfileRouteImport } from './routes/_app/profile';
-import { Route as authRegisterRouteImport } from './routes/(auth)/register';
-import { Route as authLoginRouteImport } from './routes/(auth)/login';
-import { Route as RoomRoomIdIndexRouteImport } from './routes/room/$roomId/index';
-import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index';
-import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary';
-import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team';
-import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing';
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as OrganizationsRouteImport } from './routes/organizations'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AcceptInvitationInvIdRouteImport } from './routes/accept-invitation/$invId'
+import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as authRegisterRouteImport } from './routes/(auth)/register'
+import { Route as authLoginRouteImport } from './routes/(auth)/login'
+import { Route as RoomRoomIdIndexRouteImport } from './routes/room/$roomId/index'
+import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
+import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary'
+import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
+import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing'
 
 const OrganizationsRoute = OrganizationsRouteImport.update({
   id: '/organizations',
   path: '/organizations',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
-} as any);
+} as any)
 const AcceptInvitationInvIdRoute = AcceptInvitationInvIdRouteImport.update({
   id: '/accept-invitation/$invId',
   path: '/accept-invitation/$invId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AppRoomsRoute = AppRoomsRouteImport.update({
   id: '/rooms',
   path: '/rooms',
   getParentRoute: () => AppRoute,
-} as any);
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AppRoute,
-} as any);
+} as any)
 const authRegisterRoute = authRegisterRouteImport.update({
   id: '/(auth)/register',
   path: '/register',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const authLoginRoute = authLoginRouteImport.update({
   id: '/(auth)/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RoomRoomIdIndexRoute = RoomRoomIdIndexRouteImport.update({
   id: '/room/$roomId/',
   path: '/room/$roomId/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
   getParentRoute: () => AppRoute,
-} as any);
+} as any)
 const RoomRoomIdSummaryRoute = RoomRoomIdSummaryRouteImport.update({
   id: '/room/$roomId/summary',
   path: '/room/$roomId/summary',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
   id: '/settings/team',
   path: '/settings/team',
   getParentRoute: () => AppRoute,
-} as any);
+} as any)
 const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
   id: '/settings/billing',
   path: '/settings/billing',
   getParentRoute: () => AppRoute,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/onboarding': typeof OnboardingRoute;
-  '/organizations': typeof OrganizationsRoute;
-  '/login': typeof authLoginRoute;
-  '/register': typeof authRegisterRoute;
-  '/profile': typeof AppProfileRoute;
-  '/rooms': typeof AppRoomsRoute;
-  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute;
-  '/': typeof AppIndexRoute;
-  '/settings/billing': typeof AppSettingsBillingRoute;
-  '/settings/team': typeof AppSettingsTeamRoute;
-  '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute;
-  '/settings': typeof AppSettingsIndexRoute;
-  '/room/$roomId': typeof RoomRoomIdIndexRoute;
+  '/onboarding': typeof OnboardingRoute
+  '/organizations': typeof OrganizationsRoute
+  '/login': typeof authLoginRoute
+  '/register': typeof authRegisterRoute
+  '/profile': typeof AppProfileRoute
+  '/rooms': typeof AppRoomsRoute
+  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
+  '/': typeof AppIndexRoute
+  '/settings/billing': typeof AppSettingsBillingRoute
+  '/settings/team': typeof AppSettingsTeamRoute
+  '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
+  '/settings': typeof AppSettingsIndexRoute
+  '/room/$roomId': typeof RoomRoomIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/onboarding': typeof OnboardingRoute;
-  '/organizations': typeof OrganizationsRoute;
-  '/login': typeof authLoginRoute;
-  '/register': typeof authRegisterRoute;
-  '/profile': typeof AppProfileRoute;
-  '/rooms': typeof AppRoomsRoute;
-  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute;
-  '/': typeof AppIndexRoute;
-  '/settings/billing': typeof AppSettingsBillingRoute;
-  '/settings/team': typeof AppSettingsTeamRoute;
-  '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute;
-  '/settings': typeof AppSettingsIndexRoute;
-  '/room/$roomId': typeof RoomRoomIdIndexRoute;
+  '/onboarding': typeof OnboardingRoute
+  '/organizations': typeof OrganizationsRoute
+  '/login': typeof authLoginRoute
+  '/register': typeof authRegisterRoute
+  '/profile': typeof AppProfileRoute
+  '/rooms': typeof AppRoomsRoute
+  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
+  '/': typeof AppIndexRoute
+  '/settings/billing': typeof AppSettingsBillingRoute
+  '/settings/team': typeof AppSettingsTeamRoute
+  '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
+  '/settings': typeof AppSettingsIndexRoute
+  '/room/$roomId': typeof RoomRoomIdIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  '/_app': typeof AppRouteWithChildren;
-  '/onboarding': typeof OnboardingRoute;
-  '/organizations': typeof OrganizationsRoute;
-  '/(auth)/login': typeof authLoginRoute;
-  '/(auth)/register': typeof authRegisterRoute;
-  '/_app/profile': typeof AppProfileRoute;
-  '/_app/rooms': typeof AppRoomsRoute;
-  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute;
-  '/_app/': typeof AppIndexRoute;
-  '/_app/settings/billing': typeof AppSettingsBillingRoute;
-  '/_app/settings/team': typeof AppSettingsTeamRoute;
-  '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute;
-  '/_app/settings/': typeof AppSettingsIndexRoute;
-  '/room/$roomId/': typeof RoomRoomIdIndexRoute;
+  __root__: typeof rootRouteImport
+  '/_app': typeof AppRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
+  '/organizations': typeof OrganizationsRoute
+  '/(auth)/login': typeof authLoginRoute
+  '/(auth)/register': typeof authRegisterRoute
+  '/_app/profile': typeof AppProfileRoute
+  '/_app/rooms': typeof AppRoomsRoute
+  '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/settings/billing': typeof AppSettingsBillingRoute
+  '/_app/settings/team': typeof AppSettingsTeamRoute
+  '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
+  '/_app/settings/': typeof AppSettingsIndexRoute
+  '/room/$roomId/': typeof RoomRoomIdIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/onboarding'
     | '/organizations'
@@ -156,8 +156,8 @@ export interface FileRouteTypes {
     | '/settings/team'
     | '/room/$roomId/summary'
     | '/settings'
-    | '/room/$roomId';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/room/$roomId'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/onboarding'
     | '/organizations'
@@ -171,7 +171,7 @@ export interface FileRouteTypes {
     | '/settings/team'
     | '/room/$roomId/summary'
     | '/settings'
-    | '/room/$roomId';
+    | '/room/$roomId'
   id:
     | '__root__'
     | '/_app'
@@ -187,130 +187,130 @@ export interface FileRouteTypes {
     | '/_app/settings/team'
     | '/room/$roomId/summary'
     | '/_app/settings/'
-    | '/room/$roomId/';
-  fileRoutesById: FileRoutesById;
+    | '/room/$roomId/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AppRoute: typeof AppRouteWithChildren;
-  OnboardingRoute: typeof OnboardingRoute;
-  OrganizationsRoute: typeof OrganizationsRoute;
-  authLoginRoute: typeof authLoginRoute;
-  authRegisterRoute: typeof authRegisterRoute;
-  AcceptInvitationInvIdRoute: typeof AcceptInvitationInvIdRoute;
-  RoomRoomIdSummaryRoute: typeof RoomRoomIdSummaryRoute;
-  RoomRoomIdIndexRoute: typeof RoomRoomIdIndexRoute;
+  AppRoute: typeof AppRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
+  OrganizationsRoute: typeof OrganizationsRoute
+  authLoginRoute: typeof authLoginRoute
+  authRegisterRoute: typeof authRegisterRoute
+  AcceptInvitationInvIdRoute: typeof AcceptInvitationInvIdRoute
+  RoomRoomIdSummaryRoute: typeof RoomRoomIdSummaryRoute
+  RoomRoomIdIndexRoute: typeof RoomRoomIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/organizations': {
-      id: '/organizations';
-      path: '/organizations';
-      fullPath: '/organizations';
-      preLoaderRoute: typeof OrganizationsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/organizations'
+      path: '/organizations'
+      fullPath: '/organizations'
+      preLoaderRoute: typeof OrganizationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
-      id: '/onboarding';
-      path: '/onboarding';
-      fullPath: '/onboarding';
-      preLoaderRoute: typeof OnboardingRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
-      id: '/_app';
-      path: '';
-      fullPath: '';
-      preLoaderRoute: typeof AppRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/': {
-      id: '/_app/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof AppIndexRouteImport;
-      parentRoute: typeof AppRoute;
-    };
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/accept-invitation/$invId': {
-      id: '/accept-invitation/$invId';
-      path: '/accept-invitation/$invId';
-      fullPath: '/accept-invitation/$invId';
-      preLoaderRoute: typeof AcceptInvitationInvIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/accept-invitation/$invId'
+      path: '/accept-invitation/$invId'
+      fullPath: '/accept-invitation/$invId'
+      preLoaderRoute: typeof AcceptInvitationInvIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/rooms': {
-      id: '/_app/rooms';
-      path: '/rooms';
-      fullPath: '/rooms';
-      preLoaderRoute: typeof AppRoomsRouteImport;
-      parentRoute: typeof AppRoute;
-    };
+      id: '/_app/rooms'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof AppRoomsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profile': {
-      id: '/_app/profile';
-      path: '/profile';
-      fullPath: '/profile';
-      preLoaderRoute: typeof AppProfileRouteImport;
-      parentRoute: typeof AppRoute;
-    };
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/(auth)/register': {
-      id: '/(auth)/register';
-      path: '/register';
-      fullPath: '/register';
-      preLoaderRoute: typeof authRegisterRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/(auth)/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof authRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/login': {
-      id: '/(auth)/login';
-      path: '/login';
-      fullPath: '/login';
-      preLoaderRoute: typeof authLoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/(auth)/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof authLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/room/$roomId/': {
-      id: '/room/$roomId/';
-      path: '/room/$roomId';
-      fullPath: '/room/$roomId';
-      preLoaderRoute: typeof RoomRoomIdIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/room/$roomId/'
+      path: '/room/$roomId'
+      fullPath: '/room/$roomId'
+      preLoaderRoute: typeof RoomRoomIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/settings/': {
-      id: '/_app/settings/';
-      path: '/settings';
-      fullPath: '/settings';
-      preLoaderRoute: typeof AppSettingsIndexRouteImport;
-      parentRoute: typeof AppRoute;
-    };
+      id: '/_app/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/room/$roomId/summary': {
-      id: '/room/$roomId/summary';
-      path: '/room/$roomId/summary';
-      fullPath: '/room/$roomId/summary';
-      preLoaderRoute: typeof RoomRoomIdSummaryRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/room/$roomId/summary'
+      path: '/room/$roomId/summary'
+      fullPath: '/room/$roomId/summary'
+      preLoaderRoute: typeof RoomRoomIdSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/settings/team': {
-      id: '/_app/settings/team';
-      path: '/settings/team';
-      fullPath: '/settings/team';
-      preLoaderRoute: typeof AppSettingsTeamRouteImport;
-      parentRoute: typeof AppRoute;
-    };
+      id: '/_app/settings/team'
+      path: '/settings/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings/billing': {
-      id: '/_app/settings/billing';
-      path: '/settings/billing';
-      fullPath: '/settings/billing';
-      preLoaderRoute: typeof AppSettingsBillingRouteImport;
-      parentRoute: typeof AppRoute;
-    };
+      id: '/_app/settings/billing'
+      path: '/settings/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof AppSettingsBillingRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
-  AppProfileRoute: typeof AppProfileRoute;
-  AppRoomsRoute: typeof AppRoomsRoute;
-  AppIndexRoute: typeof AppIndexRoute;
-  AppSettingsBillingRoute: typeof AppSettingsBillingRoute;
-  AppSettingsTeamRoute: typeof AppSettingsTeamRoute;
-  AppSettingsIndexRoute: typeof AppSettingsIndexRoute;
+  AppProfileRoute: typeof AppProfileRoute
+  AppRoomsRoute: typeof AppRoomsRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppSettingsBillingRoute: typeof AppSettingsBillingRoute
+  AppSettingsTeamRoute: typeof AppSettingsTeamRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -320,9 +320,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsBillingRoute: AppSettingsBillingRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
-};
+}
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren);
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
@@ -333,7 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcceptInvitationInvIdRoute: AcceptInvitationInvIdRoute,
   RoomRoomIdSummaryRoute: RoomRoomIdSummaryRoute,
   RoomRoomIdIndexRoute: RoomRoomIdIndexRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()

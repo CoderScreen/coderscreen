@@ -28,8 +28,16 @@ export interface AppContext {
     db: PostgresJsDatabase;
 
     // auth stuff
-    user: typeof auth.$Infer.Session.user | null;
-    session: typeof auth.$Infer.Session.session | null;
+    user:
+      | (typeof auth.$Infer.Session.user & {
+          isOnboarded: boolean;
+        })
+      | null;
+    session:
+      | (typeof auth.$Infer.Session.session & {
+          activeOrganizationId: string | null;
+        })
+      | null;
 
     // public stuff
     publicRoom: PublicRoomSchema | null;
