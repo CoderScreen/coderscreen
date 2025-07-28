@@ -21,8 +21,9 @@
       "custom_domain": true
     }
   ],
+  // !!need to add these to buildtime vars in cloudflare!!
   "vars": {
     "VITE_APP_URL": "https://app.coderscreen.com",
     "VITE_API_URL": "https://api.coderscreen.com"
-  }
+  },
 }
