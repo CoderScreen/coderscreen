@@ -1,17 +1,11 @@
+import { env } from 'node:process';
 import { SubscriptionEntity } from '@coderscreen/db/billing.db';
 import { Context } from 'hono';
 import { Stripe } from 'stripe';
 import { AppContext } from '@/index';
 
-const STRIPE_SECRET_KEY = process.env.INFISCAL_STRIPE_SECRET_KEY;
-if (!STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set');
-}
-
-const STRIPE_WEBHOOK_SECRET = process.env.INFISCAL_STRIPE_WEBHOOK_SECRET;
-if (!STRIPE_WEBHOOK_SECRET) {
-  throw new Error('STRIPE_WEBHOOK_SECRET is not set');
-}
+const STRIPE_SECRET_KEY = env.INFISCAL_STRIPE_SECRET_KEY;
+const STRIPE_WEBHOOK_SECRET = env.INFISCAL_STRIPE_WEBHOOK_SECRET;
 
 /**
  * Wraps Stripe API

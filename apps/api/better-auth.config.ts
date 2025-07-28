@@ -1,3 +1,4 @@
+import { env } from 'node:process';
 import * as schema from '@coderscreen/db/user.db';
 import { BetterAuthOptions, betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
@@ -14,17 +15,7 @@ const {
   INFISCAL_GOOGLE_CLIENT_SECRET,
   INFISCAL_GITHUB_CLIENT_ID,
   INFISCAL_GITHUB_CLIENT_SECRET,
-} = process.env;
-
-if (
-  !INFISCAL_DATABASE_URL ||
-  !INFISCAL_GITHUB_CLIENT_ID ||
-  !INFISCAL_GITHUB_CLIENT_SECRET ||
-  !INFISCAL_GOOGLE_CLIENT_ID ||
-  !INFISCAL_GOOGLE_CLIENT_SECRET
-) {
-  throw new Error('Missing environment variables for social providers');
-}
+} = env;
 
 const sql = postgres(INFISCAL_DATABASE_URL);
 const db = drizzle(sql);

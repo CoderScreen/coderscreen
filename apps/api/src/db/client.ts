@@ -1,13 +1,10 @@
+import { env } from 'node:process';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import postgres from 'postgres';
 import { AppContext } from '@/index';
 
-const DATABASE_URL = process.env.INFISCAL_DATABASE_URL;
-
-if (!DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set');
-}
+const DATABASE_URL = env.INFISCAL_DATABASE_URL;
 
 export const useDb = (ctx: Context<AppContext>) => {
   const storedDb: PostgresJsDatabase | undefined = ctx.get('db');
