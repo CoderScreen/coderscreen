@@ -25,8 +25,8 @@ type TransactionEmailPayload<T extends TransactionalEmailTypes> = T extends Tran
   : never;
 
 const TRANSACTIONAL_EMAIL_IDS = {
-  verification_code: 'cm0effdre00dlnm463tk8qno2',
-  org_invitation: 'cm0effdre00dlnm463tk8qno2',
+  verification_code: 'cmdnkcnps00180g0i7cb164lm',
+  org_invitation: 'cmdnko41u03vl0w0i6zmrme2g',
 } as Record<TransactionalEmailTypes, string>;
 
 export class LoopsService {
