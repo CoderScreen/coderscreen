@@ -7,26 +7,26 @@ import postgres from 'postgres';
 
 // @ts-ignore
 const {
-  DATABASE_URL,
-  BETTER_AUTH_URL,
-  BETTER_AUTH_SECRET,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GITHUB_CLIENT_ID,
-  GITHUB_CLIENT_SECRET,
+  INFISCAL_DATABASE_URL,
+  INFISCAL_BETTER_AUTH_URL,
+  INFISCAL_BETTER_AUTH_SECRET,
+  INFISCAL_GOOGLE_CLIENT_ID,
+  INFISCAL_GOOGLE_CLIENT_SECRET,
+  INFISCAL_GITHUB_CLIENT_ID,
+  INFISCAL_GITHUB_CLIENT_SECRET,
 } = process.env;
 
 if (
-  !DATABASE_URL ||
-  !GITHUB_CLIENT_ID ||
-  !GITHUB_CLIENT_SECRET ||
-  !GOOGLE_CLIENT_ID ||
-  !GOOGLE_CLIENT_SECRET
+  !INFISCAL_DATABASE_URL ||
+  !INFISCAL_GITHUB_CLIENT_ID ||
+  !INFISCAL_GITHUB_CLIENT_SECRET ||
+  !INFISCAL_GOOGLE_CLIENT_ID ||
+  !INFISCAL_GOOGLE_CLIENT_SECRET
 ) {
   throw new Error('Missing environment variables for social providers');
 }
 
-const sql = postgres(DATABASE_URL);
+const sql = postgres(INFISCAL_DATABASE_URL);
 const db = drizzle(sql);
 
 export const betterAuthConfig = {
@@ -37,12 +37,12 @@ export const betterAuthConfig = {
   },
   socialProviders: {
     github: {
-      clientId: GITHUB_CLIENT_ID,
-      clientSecret: GITHUB_CLIENT_SECRET,
+      clientId: INFISCAL_GITHUB_CLIENT_ID,
+      clientSecret: INFISCAL_GITHUB_CLIENT_SECRET,
     },
     google: {
-      clientId: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
+      clientId: INFISCAL_GOOGLE_CLIENT_ID,
+      clientSecret: INFISCAL_GOOGLE_CLIENT_SECRET,
     },
   },
   user: {
@@ -71,7 +71,7 @@ export const betterAuthConfig = {
 
 export const auth: ReturnType<typeof betterAuth<typeof betterAuthConfig>> = betterAuth({
   database: drizzleAdapter(db, { provider: 'pg', schema }),
-  baseURL: BETTER_AUTH_URL,
-  secret: BETTER_AUTH_SECRET,
+  baseURL: INFISCAL_BETTER_AUTH_URL,
+  secret: INFISCAL_BETTER_AUTH_SECRET,
   ...betterAuthConfig,
 });
