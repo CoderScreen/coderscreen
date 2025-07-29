@@ -56,10 +56,6 @@ export const roomRouter = new Hono<AppContext>()
       RoomSchema.omit({ id: true, createdAt: true, updatedAt: true, status: true })
     ),
     async (ctx) => {
-      throw new HTTPException(400, {
-        message: 'Room creation is not available yet',
-      });
-
       const roomService = new RoomService(ctx);
       const body = ctx.req.valid('json');
 
