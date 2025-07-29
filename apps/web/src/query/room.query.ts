@@ -2,6 +2,7 @@ import type { RoomSchema } from '@coderscreen/api/schema/room';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useCurrentRoomId } from '@/lib/params';
+import { throwApiError } from '@/query/error.query';
 import { apiClient } from './client';
 
 // Get all rooms
@@ -63,8 +64,7 @@ export const useCreateRoom = () => {
       });
 
       if (!response.ok) {
-        const textResponse = await response.text();
-        throw new Error(textResponse.length > 0 ? textResponse : 'Failed to create room');
+        await throwApiError(response);
       }
 
       return response.json();

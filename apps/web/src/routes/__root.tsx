@@ -16,7 +16,18 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       <QueryClientProvider client={TanstackQueryClient}>
         <CookiesProvider>
           <Outlet />
-          <Toaster richColors />
+          <Toaster
+            richColors
+            icons={{
+              error: null,
+            }}
+            toastOptions={{
+              classNames: {
+                toast: '!w-full',
+                content: '!w-full',
+              },
+            }}
+          />
           {/* <TanStackRouterDevtools /> */}
         </CookiesProvider>
       </QueryClientProvider>

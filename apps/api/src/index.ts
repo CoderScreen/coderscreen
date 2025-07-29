@@ -69,7 +69,7 @@ const app = new Hono<AppContext>()
   .all('/auth/*', (ctx) => {
     return useAuth(ctx).handler(ctx.req.raw);
   })
-  .use('*', except(['/webhook', '/rooms/:roomId/public'], authMiddleware))
+  .use('*', except(['/webhook', '/rooms/:roomId/public', '/openapi'], authMiddleware))
   .route('/webhook', webhookRouter)
   .route('/rooms/:roomId/public', publicRoomRouter)
   .route('/assets', assetRouter)
@@ -77,12 +77,35 @@ const app = new Hono<AppContext>()
   .route('/rooms', roomRouter)
   .route('/billing', billingRouter)
   .onError((err, ctx) => {
+    const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
+
     if (err instanceof HTTPException) {
-      return ctx.text(err.message, err.status);
+      return ctx.json(
+        {
+          id: cfRayId,
+          timestamp: new Date().toISOString(),
+          message: err.message,
+        },
+        err.status
+      );
     } else if (err instanceof Error) {
-      return ctx.text(err.message, 500);
+      return ctx.json(
+        {
+          id: cfRayId,
+          timestamp: new Date().toISOString(),
+          message: err.message,
+        },
+        500
+      );
     } else {
-      return ctx.text('Internal server error', 500);
+      return ctx.json(
+        {
+          id: cfRayId,
+          timestamp: new Date().toISOString(),
+          message: 'Unknown server error',
+        },
+        500
+      );
     }
   });
 

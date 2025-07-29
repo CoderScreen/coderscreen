@@ -11,6 +11,7 @@ import { inferAdditionalFields, organizationClient } from 'better-auth/client/pl
 import { createAuthClient } from 'better-auth/react';
 import { hc } from 'hono/client';
 import { toast } from 'sonner';
+import { handleApiError } from '@/query/error.query';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 export const apiClient = hc<AppRouter>(API_URL, {
@@ -27,9 +28,7 @@ export const TanstackQueryClient = new QueryClient({
       }
     },
     onError: (error: unknown, query: Query<unknown, unknown, unknown, QueryKey>): void => {
-      if (error instanceof Error) {
-        toast.error(`${query.meta?.ERROR_MESSAGE ?? 'Something went wrong!'}: ${error.message}`);
-      }
+      handleApiError(error, query.meta?.ERROR_MESSAGE as string);
       throw error;
     },
   }),
@@ -40,9 +39,7 @@ export const TanstackQueryClient = new QueryClient({
       _context: unknown,
       mutation: Mutation<unknown, unknown, unknown, unknown>
     ): void => {
-      if (error instanceof Error) {
-        toast.error(`${mutation.meta?.ERROR_MESSAGE ?? 'Something went wrong!'}: ${error.message}`);
-      }
+      handleApiError(error, mutation.meta?.ERROR_MESSAGE as string);
       throw error;
     },
     onSuccess: (

@@ -4,7 +4,7 @@ import { authClient } from './client';
 
 const APP_URL = import.meta.env.VITE_APP_URL;
 if (!APP_URL) {
-  throw new Error(`VITE_APP_URL is not set, env: ${JSON.stringify(import.meta.env, null, 2)}`);
+  throw new Error('VITE_APP_URL is not set');
 }
 
 // Get current user session
