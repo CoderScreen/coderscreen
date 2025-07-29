@@ -1,8 +1,7 @@
 import { PlanSchema } from '@coderscreen/api/schema/billing';
 import { RiSettings3Line } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { UsageCard } from '@/components/settings/UsageCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,15 +21,11 @@ import { BillingPlanCard } from './BillingPlanCard';
 export const BillingView = () => {
   const navigate = useNavigate();
   const { customer } = useCustomer();
-  const { plans: allPlans, isLoading: isLoadingPlans } = usePlans();
+  const { plans, isLoading: isLoadingPlans } = usePlans();
   const { createCheckoutSession, isLoading: isCreatingCheckout } = useCreateCheckoutSession();
   const { createPortalSession, isLoading: isCreatingPortal } = useCreatePortalSession();
   const { usage, isLoading } = useAllUsage();
   const [billingMode, setBillingMode] = useState<'monthly' | 'yearly'>('yearly');
-
-  const plans = useMemo(() => {
-    return allPlans?.filter((plan) => plan.monthly?.price !== 0) ?? [];
-  }, [allPlans]);
 
   // Get current plan from customer subscription
   const currentPlan = customer?.plan;
@@ -77,7 +72,6 @@ export const BillingView = () => {
       window.location.href = portalSession.url;
     } catch (error) {
       console.error('Error creating portal session:', error);
-      toast.error('Failed to open billing portal');
     }
   };
 
@@ -162,7 +156,7 @@ export const BillingView = () => {
           ))
         ) : (
           <>
-            {plans.map((plan, index) => (
+            {plans?.map((plan) => (
               <BillingPlanCard
                 group={plan.group}
                 key={plan.monthly?.id || plan.yearly?.id}
@@ -172,7 +166,7 @@ export const BillingView = () => {
                 currentPlanId={currentPlan?.id}
                 onUpgrade={handleUpgrade}
                 isCreatingCheckout={isCreatingCheckout}
-                isPopular={index === Math.floor(plans.length / 2)}
+                isPopular={plan.group === 'scale'}
               />
             ))}
 

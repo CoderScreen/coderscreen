@@ -1,4 +1,4 @@
-import { RiArrowRightLine, RiGithubFill, RiGoogleFill, RiMailLine } from '@remixicon/react';
+import { RiArrowRightLine, RiGithubFill, RiGoogleFill } from '@remixicon/react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -37,8 +37,8 @@ export const SignInView = () => {
       <div className='w-full max-w-md'>
         <Card className='shadow-lg border-gray-200 relative'>
           <CardHeader className='text-center pb-4'>
-            <div className='w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4'>
-              <RiMailLine className='text-white size-6' />
+            <div className='mb-4 flex items-center justify-center'>
+              <img src='/logo.png' alt='logo' className='w-12 h-12 rounded-lg' />
             </div>
             <LargeHeader className='text-gray-900 mb-2'>Welcome back</LargeHeader>
             <p className='text-gray-600'>Sign in to your account to continue</p>

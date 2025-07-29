@@ -10,7 +10,10 @@ import { useSession } from '@/query/auth.query';
 import { getRandomColor } from '@/query/realtime/utils';
 
 const PARTY_NAME = 'private-room';
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error('VITE_API_URL is not set');
+}
 
 // Shared hook for creating notes editor
 export function useNotesEditor() {

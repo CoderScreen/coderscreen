@@ -129,7 +129,7 @@ export class BillingService {
 
   async getPlans(): Promise<
     {
-      group: 'free' | 'starter' | 'pro' | 'scale';
+      group: 'free' | 'starter' | 'scale';
       monthly: PlanEntity | null;
       yearly: PlanEntity | null;
     }[]
@@ -145,28 +145,28 @@ export class BillingService {
 
     // below needs to be refactored, just easy way for frontend without custom plans
     const newMap = new Map<
-      'free' | 'starter' | 'pro' | 'scale',
+      'free' | 'starter' | 'scale',
       {
-        group: 'free' | 'starter' | 'pro' | 'scale';
+        group: 'free' | 'starter' | 'scale';
         monthly: PlanEntity | null;
         yearly: PlanEntity | null;
       }
     >();
 
     allPlans.forEach((plan) => {
-      const cur = newMap.get(plan.group as 'free' | 'starter' | 'pro' | 'scale') || {
+      const cur = newMap.get(plan.group as 'free' | 'starter' | 'scale') || {
         monthly: null,
         yearly: null,
       };
       if (plan.interval === 'monthly') {
-        newMap.set(plan.group as 'free' | 'starter' | 'pro' | 'scale', {
-          group: plan.group as 'free' | 'starter' | 'pro' | 'scale',
+        newMap.set(plan.group as 'free' | 'starter' | 'scale', {
+          group: plan.group as 'free' | 'starter' | 'scale',
           monthly: plan,
           yearly: cur.yearly,
         });
       } else {
-        newMap.set(plan.group as 'free' | 'starter' | 'pro' | 'scale', {
-          group: plan.group as 'free' | 'starter' | 'pro' | 'scale',
+        newMap.set(plan.group as 'free' | 'starter' | 'scale', {
+          group: plan.group as 'free' | 'starter' | 'scale',
           monthly: cur.monthly,
           yearly: plan,
         });

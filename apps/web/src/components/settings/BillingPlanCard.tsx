@@ -8,6 +8,7 @@ import {
   RiHistoryLine,
   RiLockPasswordLine,
   RiPaletteLine,
+  RiStarLine,
   RiSwap2Line,
   RiTeamLine,
   RiTerminalWindowFill,
@@ -45,15 +46,23 @@ const LIMIT_MAP = {
   }
 >;
 
+// Feature mapping for each plan
 const PLAN_FEATURE_MAP: Record<
-  'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
+  'free' | 'starter' | 'scale' | 'enterprise',
   Array<{
     icon: RemixiconComponentType;
     label: string;
     subText?: string;
   }>
 > = {
-  free: [],
+  free: [
+    {
+      icon: RiHistoryLine,
+      label: 'Interview Playback',
+      subText: `Replay interviews to review every step of a candidate's coding process`,
+    },
+    { icon: RiCustomerServiceLine, label: 'Community Support' },
+  ],
   starter: [
     {
       icon: RiHistoryLine,
@@ -70,25 +79,10 @@ const PLAN_FEATURE_MAP: Record<
       label: 'API Access',
       subText: 'Access to our API for custom integrations',
     },
-    { icon: RiCustomerServiceLine, label: 'Basic Support' },
-  ],
-  pro: [
     {
-      icon: RiHistoryLine,
-      label: 'Interview Playback',
-      subText: `Replay interviews to review every step of a candidate's coding process`,
+      icon: RiCustomerServiceLine,
+      label: 'Basic Support',
     },
-    {
-      icon: RiGlobalLine,
-      label: 'Advanced Interviews',
-      subText: 'Multi-file & framework support. (React, Next.js, etc.)',
-    },
-    {
-      icon: RiBaseStationLine,
-      label: 'API Access',
-      subText: 'Access to our API for custom integrations',
-    },
-    { icon: RiCustomerServiceLine, label: 'Priority Support' },
   ],
   scale: [
     {
@@ -149,7 +143,7 @@ const PLAN_FEATURE_MAP: Record<
     },
     {
       icon: RiLockPasswordLine,
-      label: 'SSO Login',
+      label: 'Single Sign-On (SSO)',
     },
     {
       icon: RiCustomerServiceLine,
@@ -169,7 +163,7 @@ export const BillingPlanCard = ({
   isCreatingCheckout = false,
   isLoading = false,
 }: {
-  group: 'free' | 'starter' | 'pro' | 'scale' | 'enterprise';
+  group: 'free' | 'starter' | 'scale' | 'enterprise';
   monthly: PlanSchema | null;
   yearly: PlanSchema | null;
   mode: PlanSchema['interval'];
@@ -213,7 +207,7 @@ export const BillingPlanCard = ({
   const isCurrentPlan = currentPlanId === plan?.id;
 
   // If no plan is available or is free plan, don't render anything
-  if (!plan || plan.price === 0) {
+  if (!plan) {
     return null;
   }
 
@@ -222,12 +216,15 @@ export const BillingPlanCard = ({
       key={plan.id}
       className={cx(
         'relative transition-all duration-200 flex flex-col',
-        isPopular ? 'ring-2 ring-primary shadow-lg' : '',
-        isCurrentPlan ? 'ring-1 ring-green-300 bg-green-50/50 border-green-100' : ''
+        isPopular ? 'ring-2 ring-primary shadow-lg' : ''
+        // isCurrentPlan ? 'bg-green-500/10 border-green-500/20' : ''
       )}
     >
       {isPopular && (
-        <Badge className='absolute top-4 right-4 bg-primary text-white'>Most Popular</Badge>
+        <Badge className='absolute top-4 right-4 bg-primary text-white'>
+          <RiStarLine className='w-3 h-3' />
+          Most Popular
+        </Badge>
       )}
 
       <CardHeader>
@@ -245,7 +242,7 @@ export const BillingPlanCard = ({
           {plan.price > 0 && plan.name !== 'Enterprise' ? (
             <>
               <span className='text-sm font-normal text-muted-foreground ml-1'>
-                per {plan.interval}
+                per {plan.interval === 'monthly' ? 'month' : 'year'}
               </span>
               {isYearly && (
                 <Badge className='ml-2' variant='success'>
@@ -257,7 +254,10 @@ export const BillingPlanCard = ({
         </div>
 
         <Button
-          className='my-4'
+          className={cx(
+            'my-4',
+            isCurrentPlan ? 'disabled:text-primary/50 disabled:border-primary/50' : ''
+          )}
           variant={isPopular ? 'primary' : 'secondary'}
           icon={RiArrowRightLine}
           iconPosition='right'

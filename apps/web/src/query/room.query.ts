@@ -1,6 +1,5 @@
 import type { RoomSchema } from '@coderscreen/api/schema/room';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from '@tanstack/react-router';
 import { useCurrentRoomId } from '@/lib/params';
 import { throwApiError } from '@/query/error.query';
 import { apiClient } from './client';
@@ -163,7 +162,6 @@ export const useRoomCodeResult = () => {
 };
 
 export const useEndRoom = () => {
-  const router = useRouter();
   const currentRoomId = useCurrentRoomId();
   const queryClient = useQueryClient();
   const mutation = useMutation({
@@ -178,10 +176,6 @@ export const useEndRoom = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms', currentRoomId] });
-      router.navigate({
-        to: '/room/$roomId/summary',
-        params: { roomId: currentRoomId },
-      });
     },
     meta: {
       SUCCESS_MESSAGE: 'Room ended successfully',
