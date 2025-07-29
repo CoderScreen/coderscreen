@@ -9,7 +9,10 @@ import { getBookmarkPreview } from './getBookmarkPreview';
 import 'tldraw/tldraw.css';
 
 // Configure the worker URL - this should match your API endpoint
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error('VITE_API_URL is not set');
+}
 
 export const WhiteboardView = () => {
   const roomId = useCurrentRoomId();

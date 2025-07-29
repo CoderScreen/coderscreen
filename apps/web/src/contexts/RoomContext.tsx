@@ -29,7 +29,10 @@ interface RoomProviderProps {
 }
 
 const PARTY_NAME = 'room';
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error('VITE_API_URL is not set');
+}
 
 export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();

@@ -1,10 +1,4 @@
-import {
-  RiArrowRightLine,
-  RiGithubFill,
-  RiGoogleFill,
-  RiMailCheckLine,
-  RiUserLine,
-} from '@remixicon/react';
+import { RiArrowRightLine, RiGithubFill, RiGoogleFill, RiMailCheckLine } from '@remixicon/react';
 import { Link, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -83,8 +77,8 @@ export const RegisterView = () => {
       <div className='w-full max-w-md'>
         <Card className='shadow-lg border-gray-200'>
           <CardHeader className='text-center pb-4'>
-            <div className='w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4'>
-              <RiUserLine className='text-white size-6' />
+            <div className='mb-4 flex items-center justify-center'>
+              <img src='/logo.png' alt='logo' className='w-12 h-12 rounded-lg' />
             </div>
             <LargeHeader className='text-gray-900 mb-2'>Create account</LargeHeader>
             <p className='text-gray-600'>Sign up to get started with your account</p>

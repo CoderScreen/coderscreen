@@ -11,6 +11,8 @@
     "build:api": "npx nx build @coderscreen/api",
     "deploy:web": "npx nx run @coderscreen/web:cf-deploy",
     "deploy:api": "npx nx run @coderscreen/api:cf-deploy",
+    "deploy:branch:web": "npx nx run @coderscreen/web:cf-deploy:branch",
+    "deploy:branch:api": "npx nx run @coderscreen/api:cf-deploy:branch",
     "sandbox:build": "docker build -t sandbox-image -f ./apps/api/src/containers/images/Dockerfile ."
   },
   "devDependencies": {

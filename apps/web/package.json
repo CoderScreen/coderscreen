@@ -13,7 +13,8 @@
     "test": "vitest run",
     "cf-types": "wrangler types",
     "cf-dev": "wrangler dev",
-    "cf-deploy": "wrangler deploy"
+    "cf-deploy": "wrangler deploy",
+    "cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.7.5",

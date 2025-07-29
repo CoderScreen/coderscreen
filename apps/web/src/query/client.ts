@@ -13,7 +13,11 @@ import { hc } from 'hono/client';
 import { toast } from 'sonner';
 import { handleApiError } from '@/query/error.query';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error('VITE_API_URL is not set');
+}
+
 export const apiClient = hc<AppRouter>(API_URL, {
   init: {
     credentials: 'include',
