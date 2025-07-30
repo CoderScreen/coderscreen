@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   description:
     'CoderScreen is a fast, collaborative coding interview platform for teams that care about developer experience. Run live interviews, take-homes, and technical assessments with ease.',
   metadataBase: new URL('https://coderscreen.com'),
+  alternates: {
+    canonical: 'https://coderscreen.com',
+  },
   openGraph: {
     title: 'CoderScreen - Fast, Modern Technical Interviews',
     description:
@@ -36,25 +39,53 @@ export const metadata: Metadata = {
       },
     ],
     type: 'website',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CoderScreen',
+    title: 'CoderScreen - Technical Interview Platform',
     description:
       'Collaborative coding interviews that feel like real development. Try CoderScreen for free.',
     images: ['https://coderscreen.com/og-image.png'],
+    creator: '@coderscreen',
   },
   keywords: [
-    'technical interviews',
-    'coding interview platform',
-    'developer hiring',
-    'collaborative code editor',
-    'live coding',
-    'take-home assessments',
-    'AI coding assistant',
-    'interview playback',
     'CoderScreen',
+    'coding interview',
+    'technical interview',
+    'developer assessment',
+    'coding assessment',
+    'live coding interview',
+    'take-home coding test',
+    'collaborative code editor',
+    'AI interview assistant',
+    'whiteboard interview',
+    'interview playback',
+    'developer hiring platform',
+    'remote interview tool',
+    'code review',
+    'technical hiring',
+    'engineering interview',
+    'programming interview',
+    'coding test platform',
+    'developer skills assessment',
+    'team interview platform',
+    'coder screen',
   ],
+  authors: [{ name: 'CoderScreen Team' }],
+  creator: 'CoderScreen',
+  publisher: 'CoderScreen',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
