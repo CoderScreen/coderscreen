@@ -1,15 +1,11 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:alpine AS builder
+FROM oven/bun:1.0-alpine AS builder
 
 # Install build dependencies and languages
 RUN apk add --no-cache \
     # Build tools
     build-base \
-    gcc \
-    g++ \
-    musl-dev \
-    linux-headers \
     git \
     curl \
     wget \
@@ -22,8 +18,6 @@ RUN apk add --no-cache \
     # Node.js
     nodejs \
     npm \
-    # Go (install from official binary)
-    # openjdk11 \
     # Ruby
     ruby \
     ruby-dev \
@@ -34,14 +28,14 @@ RUN apk add --no-cache \
     zlib-dev \
     freetype-dev
 
-# Install Go from official binary
+# Install Go from official binary (AMD64)
 RUN wget -q https://go.dev/dl/go1.23.0.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz && \
     rm go1.23.0.linux-amd64.tar.gz
 ENV PATH="/usr/local/go/bin:$PATH"
 
-# Install Java
-RUN apk add --no-cache openjdk11
+# Install Java (OpenJDK 17)
+RUN apk add --no-cache openjdk17-jdk
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -51,17 +45,17 @@ RUN rustup default stable
 # Install uv for Python packages
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install Python packages
-RUN uv pip install --system --break-system-packages --no-cache \
-    # Core data science
-    numpy pandas matplotlib seaborn scipy scikit-learn \
-    # ML frameworks
-    torch transformers \
-    # Utilities
-    requests beautifulsoup4 jupyter \
-    # File processing
-    pillow openpyxl PyPDF2 python-docx && \
-    # Cleanup Python
+# Install Python packages with size optimization
+RUN uv pip install --system --break-system-packages \
+    # Core data science (minimal set)
+    numpy pandas scipy \
+    # ML frameworks (CPU-only, smaller versions)
+    torch --index-url https://download.pytorch.org/whl/cpu \
+    # Utilities (essential only)
+    requests \
+    # File processing (essential only)
+    pillow && \
+    # Cleanup Python cache
     find /usr -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
     find /usr -type f -name "*.pyc" -delete
 
@@ -72,32 +66,26 @@ RUN npm install -g \
     @types/node && \
     npm cache clean --force
 
-# Install Ruby gems
-RUN gem install \
-    bundler \
-    --no-document
+# Install Ruby gems (minimal set)
+RUN gem install bundler --no-document
 
-# Install Go packages (only standard library needed for code execution)
+# Install Go packages (minimal)
 RUN go install golang.org/x/tools/cmd/goimports@latest
 
-FROM oven/bun:alpine AS runtime
+FROM oven/bun:1.0-alpine AS runtime
 
 # Install minimal runtime dependencies
 RUN apk add --no-cache \
     # Build tools (needed for Go compilation)
     build-base \
-    gcc \
-    g++ \
-    musl-dev \
-    linux-headers \
     git \
     # Languages
     python3 \
     py3-pip \
+    python3-dev \
     nodejs \
     npm \
-    # go \
-    openjdk11 \
+    openjdk17-jdk \
     ruby \
     php \
     # Runtime libraries
@@ -107,8 +95,24 @@ RUN apk add --no-cache \
     zlib \
     freetype
 
+# Install uv for Python packages in runtime stage
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Install Python packages directly in runtime stage (minimal set)
+RUN uv pip install --system --break-system-packages \
+    # Core data science (minimal set)
+    numpy pandas scipy \
+    # ML frameworks (CPU-only, smaller versions)
+    torch --index-url https://download.pytorch.org/whl/cpu \
+    # Utilities (essential only)
+    requests \
+    # File processing (essential only)
+    pillow && \
+    # Cleanup Python cache
+    find /usr -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
+    find /usr -type f -name "*.pyc" -delete
+
 # Copy language installations
-COPY --from=builder /usr/lib/python3.12/site-packages /usr/lib/python3.12/site-packages
 COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /usr/lib/ruby/gems /usr/lib/ruby/gems
@@ -119,17 +123,18 @@ COPY --from=builder /root/.rustup /root/.rustup
 COPY --from=builder /usr/local/go /usr/local/go
 
 # Set environment variables
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 ENV GOPATH=/root/go
 ENV PATH=$PATH:$GOPATH/bin:/root/.cargo/bin:/usr/local/go/bin
 ENV RUSTUP_HOME=/root/.rustup
 ENV CARGO_HOME=/root/.cargo
+ENV PYTHONPATH=/usr/local/lib/python3.12/site-packages:/usr/lib/python3.12/site-packages
 
 # Initialize Rust toolchain in runtime stage
 RUN /root/.cargo/bin/rustup default stable
 
 # Final cleanup
-RUN rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+RUN apk cache clean && rm -rf /tmp/* /var/tmp/*
 
 WORKDIR /app
 

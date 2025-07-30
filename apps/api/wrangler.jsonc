@@ -28,7 +28,7 @@
 	},
 	"containers": [
 		{
-			"max_instances": 10,
+			"max_instances": 2,
 			"name": "sandbox",
 			"class_name": "Sandbox",
 			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:production",

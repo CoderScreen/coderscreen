@@ -7,4 +7,5 @@ export const ExecOutputSchema = z.object({
   stderr: z.string(),
   exitCode: z.number(),
   elapsedTime: z.number(),
+  compileTime: z.number().optional(),
 });

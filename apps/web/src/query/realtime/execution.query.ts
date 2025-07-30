@@ -20,7 +20,9 @@ export function useCodeExecutionHistory() {
 
     const updateHistory = () => {
       const historyArray = executionHistory.toArray();
-      setHistory(historyArray);
+
+      // user facing history should be in reverse order
+      setHistory([...historyArray].reverse());
     };
 
     // Set initial history
@@ -55,7 +57,8 @@ export function useCodeExecutionHistory() {
           stdout: '',
           stderr: error instanceof Error ? error.message : 'Unknown error occurred',
           exitCode: 1,
-          elapsedTime: 0,
+          elapsedTime: -1,
+          compileTime: undefined,
         };
 
         // Add error to main doc

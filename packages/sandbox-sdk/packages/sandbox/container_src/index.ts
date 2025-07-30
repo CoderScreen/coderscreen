@@ -1,4 +1,4 @@
-import { spawn, SpawnOptions } from 'node:child_process';
+import { SpawnOptions, spawn } from 'node:child_process';
 import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { serve } from 'bun';
@@ -187,13 +187,11 @@ const server = serve({
 
         case '/api/session/list':
           if (req.method === 'GET') {
-            const sessionList = Array.from(sessions.values()).map(
-              (session) => ({
-                createdAt: session.createdAt.toISOString(),
-                hasActiveProcess: !!session.activeProcess,
-                sessionId: session.sessionId,
-              })
-            );
+            const sessionList = Array.from(sessions.values()).map((session) => ({
+              createdAt: session.createdAt.toISOString(),
+              hasActiveProcess: !!session.activeProcess,
+              sessionId: session.sessionId,
+            }));
 
             return new Response(
               JSON.stringify({
@@ -364,10 +362,7 @@ const server = serve({
           });
       }
     } catch (error) {
-      console.error(
-        `[Container] Error handling ${req.method} ${pathname}:`,
-        error
-      );
+      console.error(`[Container] Error handling ${req.method} ${pathname}:`, error);
       return new Response(
         JSON.stringify({
           error: 'Internal server error',
@@ -411,19 +406,10 @@ async function handleExecuteRequest(
     }
 
     // Basic safety check - prevent dangerous commands
-    const dangerousCommands = [
-      'rm',
-      'rmdir',
-      'del',
-      'format',
-      'shutdown',
-      'reboot',
-    ];
+    const dangerousCommands = ['rm', 'rmdir', 'del', 'format', 'shutdown', 'reboot'];
     const lowerCommand = command.toLowerCase();
 
-    if (
-      dangerousCommands.some((dangerous) => lowerCommand.includes(dangerous))
-    ) {
+    if (dangerousCommands.some((dangerous) => lowerCommand.includes(dangerous))) {
       return new Response(
         JSON.stringify({
           error: 'Dangerous command not allowed',
@@ -501,19 +487,10 @@ async function handleStreamingExecuteRequest(
     }
 
     // Basic safety check - prevent dangerous commands
-    const dangerousCommands = [
-      'rm',
-      'rmdir',
-      'del',
-      'format',
-      'shutdown',
-      'reboot',
-    ];
+    const dangerousCommands = ['rm', 'rmdir', 'del', 'format', 'shutdown', 'reboot'];
     const lowerCommand = command.toLowerCase();
 
-    if (
-      dangerousCommands.some((dangerous) => lowerCommand.includes(dangerous))
-    ) {
+    if (dangerousCommands.some((dangerous) => lowerCommand.includes(dangerous))) {
       return new Response(
         JSON.stringify({
           error: 'Dangerous command not allowed',
@@ -528,9 +505,7 @@ async function handleStreamingExecuteRequest(
       );
     }
 
-    console.log(
-      `[Server] Executing streaming command: ${command} ${args.join(' ')}`
-    );
+    console.log(`[Server] Executing streaming command: ${command} ${args.join(' ')}`);
 
     const stream = new ReadableStream({
       start(controller) {
@@ -602,9 +577,7 @@ async function handleStreamingExecuteRequest(
             session.activeProcess = null;
           }
 
-          console.log(
-            `[Server] Command completed: ${command}, Exit code: ${code}`
-          );
+          console.log(`[Server] Command completed: ${command}, Exit code: ${code}`);
 
           // Send command completion event
           controller.enqueue(
@@ -698,8 +671,7 @@ async function handleGitCheckoutRequest(
     }
 
     // Validate repository URL format
-    const urlPattern =
-      /^(https?:\/\/|git@|ssh:\/\/).*\.git$|^https?:\/\/.*\/.*$/;
+    const urlPattern = /^(https?:\/\/|git@|ssh:\/\/).*\.git$|^https?:\/\/.*\/.*$/;
     if (!urlPattern.test(repoUrl)) {
       return new Response(
         JSON.stringify({
@@ -717,19 +689,11 @@ async function handleGitCheckoutRequest(
 
     // Generate target directory if not provided
     const checkoutDir =
-      targetDir ||
-      `repo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      targetDir || `repo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log(
-      `[Server] Checking out repository: ${repoUrl} to ${checkoutDir}`
-    );
+    console.log(`[Server] Checking out repository: ${repoUrl} to ${checkoutDir}`);
 
-    const result = await executeGitCheckout(
-      repoUrl,
-      branch,
-      checkoutDir,
-      sessionId
-    );
+    const result = await executeGitCheckout(repoUrl, branch, checkoutDir, sessionId);
 
     return new Response(
       JSON.stringify({
@@ -791,8 +755,7 @@ async function handleStreamingGitCheckoutRequest(
     }
 
     // Validate repository URL format
-    const urlPattern =
-      /^(https?:\/\/|git@|ssh:\/\/).*\.git$|^https?:\/\/.*\/.*$/;
+    const urlPattern = /^(https?:\/\/|git@|ssh:\/\/).*\.git$|^https?:\/\/.*\/.*$/;
     if (!urlPattern.test(repoUrl)) {
       return new Response(
         JSON.stringify({
@@ -810,23 +773,16 @@ async function handleStreamingGitCheckoutRequest(
 
     // Generate target directory if not provided
     const checkoutDir =
-      targetDir ||
-      `repo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      targetDir || `repo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log(
-      `[Server] Checking out repository: ${repoUrl} to ${checkoutDir}`
-    );
+    console.log(`[Server] Checking out repository: ${repoUrl} to ${checkoutDir}`);
 
     const stream = new ReadableStream({
       start(controller) {
-        const child = spawn(
-          'git',
-          ['clone', '-b', branch, repoUrl, checkoutDir],
-          {
-            shell: true,
-            stdio: ['pipe', 'pipe', 'pipe'],
-          }
-        );
+        const child = spawn('git', ['clone', '-b', branch, repoUrl, checkoutDir], {
+          shell: true,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
 
         // Store the process reference for cleanup if sessionId is provided
         if (sessionId && sessions.has(sessionId)) {
@@ -890,9 +846,7 @@ async function handleStreamingGitCheckoutRequest(
             session.activeProcess = null;
           }
 
-          console.log(
-            `[Server] Command completed: git clone, Exit code: ${code}`
-          );
+          console.log(`[Server] Command completed: git clone, Exit code: ${code}`);
 
           // Send command completion event
           controller.enqueue(
@@ -945,10 +899,7 @@ async function handleStreamingGitCheckoutRequest(
       },
     });
   } catch (error) {
-    console.error(
-      '[Server] Error in handleStreamingGitCheckoutRequest:',
-      error
-    );
+    console.error('[Server] Error in handleStreamingGitCheckoutRequest:', error);
     return new Response(
       JSON.stringify({
         error: 'Failed to checkout repository',
@@ -1019,9 +970,7 @@ async function handleMkdirRequest(
       );
     }
 
-    console.log(
-      `[Server] Creating directory: ${path} (recursive: ${recursive})`
-    );
+    console.log(`[Server] Creating directory: ${path} (recursive: ${recursive})`);
 
     const result = await executeMkdir(path, recursive, sessionId);
 
@@ -1114,9 +1063,7 @@ async function handleStreamingMkdirRequest(
       );
     }
 
-    console.log(
-      `[Server] Creating directory: ${path} (recursive: ${recursive})`
-    );
+    console.log(`[Server] Creating directory: ${path} (recursive: ${recursive})`);
 
     const stream = new ReadableStream({
       start(controller) {
@@ -1312,9 +1259,7 @@ async function handleWriteFileRequest(
       );
     }
 
-    console.log(
-      `[Server] Writing file: ${path} (content length: ${content.length})`
-    );
+    console.log(`[Server] Writing file: ${path} (content length: ${content.length})`);
 
     const result = await executeWriteFile(path, content, encoding, sessionId);
 
@@ -1404,9 +1349,7 @@ async function handleStreamingWriteFileRequest(
       );
     }
 
-    console.log(
-      `[Server] Writing file (streaming): ${path} (content length: ${content.length})`
-    );
+    console.log(`[Server] Writing file (streaming): ${path} (content length: ${content.length})`);
 
     const stream = new ReadableStream({
       start(controller) {
@@ -1465,8 +1408,7 @@ async function handleStreamingWriteFileRequest(
             controller.enqueue(
               new TextEncoder().encode(
                 `data: ${JSON.stringify({
-                  error:
-                    error instanceof Error ? error.message : 'Unknown error',
+                  error: error instanceof Error ? error.message : 'Unknown error',
                   path,
                   type: 'error',
                 })}\n\n`
@@ -1694,8 +1636,7 @@ async function handleStreamingReadFileRequest(
             controller.enqueue(
               new TextEncoder().encode(
                 `data: ${JSON.stringify({
-                  error:
-                    error instanceof Error ? error.message : 'Unknown error',
+                  error: error instanceof Error ? error.message : 'Unknown error',
                   path,
                   type: 'error',
                 })}\n\n`
@@ -1919,8 +1860,7 @@ async function handleStreamingDeleteFileRequest(
             controller.enqueue(
               new TextEncoder().encode(
                 `data: ${JSON.stringify({
-                  error:
-                    error instanceof Error ? error.message : 'Unknown error',
+                  error: error instanceof Error ? error.message : 'Unknown error',
                   path,
                   type: 'error',
                 })}\n\n`
@@ -2013,11 +1953,7 @@ async function handleRenameFileRequest(
       /\.\./, // Path traversal attempts
     ];
 
-    if (
-      dangerousPatterns.some(
-        (pattern) => pattern.test(oldPath) || pattern.test(newPath)
-      )
-    ) {
+    if (dangerousPatterns.some((pattern) => pattern.test(oldPath) || pattern.test(newPath))) {
       return new Response(
         JSON.stringify({
           error: 'Dangerous path not allowed',
@@ -2123,11 +2059,7 @@ async function handleStreamingRenameFileRequest(
       /\.\./, // Path traversal attempts
     ];
 
-    if (
-      dangerousPatterns.some(
-        (pattern) => pattern.test(oldPath) || pattern.test(newPath)
-      )
-    ) {
+    if (dangerousPatterns.some((pattern) => pattern.test(oldPath) || pattern.test(newPath))) {
       return new Response(
         JSON.stringify({
           error: 'Dangerous path not allowed',
@@ -2163,9 +2095,7 @@ async function handleStreamingRenameFileRequest(
             // Rename the file
             await executeRenameFile(oldPath, newPath, sessionId);
 
-            console.log(
-              `[Server] File renamed successfully: ${oldPath} -> ${newPath}`
-            );
+            console.log(`[Server] File renamed successfully: ${oldPath} -> ${newPath}`);
 
             // Send command completion event
             controller.enqueue(
@@ -2182,16 +2112,12 @@ async function handleStreamingRenameFileRequest(
 
             controller.close();
           } catch (error) {
-            console.error(
-              `[Server] Error renaming file: ${oldPath} -> ${newPath}`,
-              error
-            );
+            console.error(`[Server] Error renaming file: ${oldPath} -> ${newPath}`, error);
 
             controller.enqueue(
               new TextEncoder().encode(
                 `data: ${JSON.stringify({
-                  error:
-                    error instanceof Error ? error.message : 'Unknown error',
+                  error: error instanceof Error ? error.message : 'Unknown error',
                   newPath,
                   oldPath,
                   type: 'error',
@@ -2286,9 +2212,7 @@ async function handleMoveFileRequest(
     ];
 
     if (
-      dangerousPatterns.some(
-        (pattern) => pattern.test(sourcePath) || pattern.test(destinationPath)
-      )
+      dangerousPatterns.some((pattern) => pattern.test(sourcePath) || pattern.test(destinationPath))
     ) {
       return new Response(
         JSON.stringify({
@@ -2306,11 +2230,7 @@ async function handleMoveFileRequest(
 
     console.log(`[Server] Moving file: ${sourcePath} -> ${destinationPath}`);
 
-    const result = await executeMoveFile(
-      sourcePath,
-      destinationPath,
-      sessionId
-    );
+    const result = await executeMoveFile(sourcePath, destinationPath, sessionId);
 
     return new Response(
       JSON.stringify({
@@ -2400,9 +2320,7 @@ async function handleStreamingMoveFileRequest(
     ];
 
     if (
-      dangerousPatterns.some(
-        (pattern) => pattern.test(sourcePath) || pattern.test(destinationPath)
-      )
+      dangerousPatterns.some((pattern) => pattern.test(sourcePath) || pattern.test(destinationPath))
     ) {
       return new Response(
         JSON.stringify({
@@ -2418,9 +2336,7 @@ async function handleStreamingMoveFileRequest(
       );
     }
 
-    console.log(
-      `[Server] Moving file (streaming): ${sourcePath} -> ${destinationPath}`
-    );
+    console.log(`[Server] Moving file (streaming): ${sourcePath} -> ${destinationPath}`);
 
     const stream = new ReadableStream({
       start(controller) {
@@ -2441,9 +2357,7 @@ async function handleStreamingMoveFileRequest(
             // Move the file
             await executeMoveFile(sourcePath, destinationPath, sessionId);
 
-            console.log(
-              `[Server] File moved successfully: ${sourcePath} -> ${destinationPath}`
-            );
+            console.log(`[Server] File moved successfully: ${sourcePath} -> ${destinationPath}`);
 
             // Send command completion event
             controller.enqueue(
@@ -2460,17 +2374,13 @@ async function handleStreamingMoveFileRequest(
 
             controller.close();
           } catch (error) {
-            console.error(
-              `[Server] Error moving file: ${sourcePath} -> ${destinationPath}`,
-              error
-            );
+            console.error(`[Server] Error moving file: ${sourcePath} -> ${destinationPath}`, error);
 
             controller.enqueue(
               new TextEncoder().encode(
                 `data: ${JSON.stringify({
                   destinationPath,
-                  error:
-                    error instanceof Error ? error.message : 'Unknown error',
+                  error: error instanceof Error ? error.message : 'Unknown error',
                   sourcePath,
                   type: 'error',
                 })}\n\n`
@@ -2596,14 +2506,10 @@ function executeGitCheckout(
 }> {
   return new Promise((resolve, reject) => {
     // First, clone the repository
-    const cloneChild = spawn(
-      'git',
-      ['clone', '-b', branch, repoUrl, targetDir],
-      {
-        shell: true,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      }
-    );
+    const cloneChild = spawn('git', ['clone', '-b', branch, repoUrl, targetDir], {
+      shell: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     // Store the process reference for cleanup if sessionId is provided
     if (sessionId && sessions.has(sessionId)) {
@@ -2630,9 +2536,7 @@ function executeGitCheckout(
       }
 
       if (code === 0) {
-        console.log(
-          `[Server] Repository cloned successfully: ${repoUrl} to ${targetDir}`
-        );
+        console.log(`[Server] Repository cloned successfully: ${repoUrl} to ${targetDir}`);
         resolve({
           exitCode: code || 0,
           stderr,
@@ -2640,9 +2544,7 @@ function executeGitCheckout(
           success: true,
         });
       } else {
-        console.error(
-          `[Server] Failed to clone repository: ${repoUrl}, Exit code: ${code}`
-        );
+        console.error(`[Server] Failed to clone repository: ${repoUrl}, Exit code: ${code}`);
         resolve({
           exitCode: code || 1,
           stderr,
@@ -2715,9 +2617,7 @@ function executeMkdir(
           success: true,
         });
       } else {
-        console.error(
-          `[Server] Failed to create directory: ${path}, Exit code: ${code}`
-        );
+        console.error(`[Server] Failed to create directory: ${path}, Exit code: ${code}`);
         resolve({
           exitCode: code || 1,
           stderr,
@@ -2847,18 +2747,13 @@ function executeRenameFile(
         // Rename the file
         await rename(oldPath, newPath);
 
-        console.log(
-          `[Server] File renamed successfully: ${oldPath} -> ${newPath}`
-        );
+        console.log(`[Server] File renamed successfully: ${oldPath} -> ${newPath}`);
         resolve({
           exitCode: 0,
           success: true,
         });
       } catch (error) {
-        console.error(
-          `[Server] Error renaming file: ${oldPath} -> ${newPath}`,
-          error
-        );
+        console.error(`[Server] Error renaming file: ${oldPath} -> ${newPath}`, error);
         reject(error);
       }
     })();
@@ -2879,18 +2774,13 @@ function executeMoveFile(
         // Move the file
         await rename(sourcePath, destinationPath);
 
-        console.log(
-          `[Server] File moved successfully: ${sourcePath} -> ${destinationPath}`
-        );
+        console.log(`[Server] File moved successfully: ${sourcePath} -> ${destinationPath}`);
         resolve({
           exitCode: 0,
           success: true,
         });
       } catch (error) {
-        console.error(
-          `[Server] Error moving file: ${sourcePath} -> ${destinationPath}`,
-          error
-        );
+        console.error(`[Server] Error moving file: ${sourcePath} -> ${destinationPath}`, error);
         reject(error);
       }
     })();
@@ -2904,9 +2794,7 @@ console.log(`   GET  /api/session/list - List all sessions`);
 console.log(`   POST /api/execute - Execute a command (non-streaming)`);
 console.log(`   POST /api/execute/stream - Execute a command (streaming)`);
 console.log(`   POST /api/git/checkout - Checkout a git repository`);
-console.log(
-  `   POST /api/git/checkout/stream - Checkout a git repository (streaming)`
-);
+console.log(`   POST /api/git/checkout/stream - Checkout a git repository (streaming)`);
 console.log(`   POST /api/mkdir - Create a directory`);
 console.log(`   POST /api/mkdir/stream - Create a directory (streaming)`);
 console.log(`   POST /api/write - Write a file`);

@@ -1,6 +1,7 @@
-import { RiArrowRightSLine, RiTerminalLine } from '@remixicon/react';
+import { RiArrowRightSLine, RiHammerLine, RiPlayLine, RiTerminalLine } from '@remixicon/react';
 import { useEffect, useRef, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 
@@ -48,7 +49,7 @@ export const CodeOutput = () => {
   return (
     <div className='h-full w-full bg-white text-gray-800 font-mono'>
       <div ref={scrollContainerRef} className='h-full overflow-auto'>
-        {history.reverse().map((data, idx) => {
+        {history.map((data, idx) => {
           const hasOutput = data.stdout && data.stdout.trim() !== '';
           const hasError = data.stderr && data.stderr.trim() !== '';
           // if never opened or has been opened
@@ -56,7 +57,11 @@ export const CodeOutput = () => {
           const executionNumber = idx + 1; // Latest is at the bottom
 
           return (
-            <Collapsible key={data.timestamp} open={isOpen} onOpenChange={() => toggleItem(idx)}>
+            <Collapsible
+              key={`${data.timestamp}-${idx}`}
+              open={isOpen}
+              onOpenChange={() => toggleItem(idx)}
+            >
               <CollapsibleTrigger className='w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between group text-gray-500 text-xs'>
                 <div className='flex items-center gap-3'>
                   <span
@@ -75,7 +80,22 @@ export const CodeOutput = () => {
                   </div>
                 </div>
                 <div className='flex items-center gap-2'>
-                  <span className='text-gray-400'>{data.elapsedTime}ms</span>
+                  {data.compileTime && (
+                    <Tooltip content='Compilation time'>
+                      <span className='text-gray-400 flex items-center gap-0.5'>
+                        <RiHammerLine className='size-3' />
+                        {data.compileTime}ms
+                      </span>
+                    </Tooltip>
+                  )}
+                  {data.elapsedTime >= 0 && (
+                    <Tooltip content='Execution time'>
+                      <span className='text-gray-400 flex items-center gap-0.5'>
+                        <RiPlayLine className='size-3' />
+                        {data.elapsedTime}ms
+                      </span>
+                    </Tooltip>
+                  )}
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>

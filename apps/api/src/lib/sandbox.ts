@@ -14,6 +14,8 @@ export interface ExecuteResponse {
   args: string[];
   timestamp: string;
   elapsedTime: number;
+  // only needed for compiled languages
+  compileTime?: number;
 }
 
 export interface FormattedOutput {
@@ -23,6 +25,7 @@ export interface FormattedOutput {
   stderr: string;
   exitCode: number;
   elapsedTime: number;
+  compileTime?: number;
 }
 
 export const formatExecOutput = (output: ExecuteResponse): FormattedOutput => {
@@ -33,7 +36,8 @@ export const formatExecOutput = (output: ExecuteResponse): FormattedOutput => {
       stdout: '',
       stderr: 'No output from execution',
       exitCode: 0,
-      elapsedTime: 0,
+      elapsedTime: -1, // -1 means no execution was done
+      compileTime: undefined,
     };
   }
 
@@ -44,5 +48,6 @@ export const formatExecOutput = (output: ExecuteResponse): FormattedOutput => {
     stderr: output.stderr,
     exitCode: output.exitCode,
     elapsedTime: output.elapsedTime,
+    compileTime: output.compileTime,
   };
 };
