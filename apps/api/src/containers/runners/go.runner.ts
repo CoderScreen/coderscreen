@@ -11,9 +11,18 @@ export class GoRunner extends CodeRunner {
   }
 
   async executeInternal(): Promise<ExecuteResponse> {
-    const result = await this.sandbox.exec('go', ['run', this.sourceFilePath]);
+    const compileResult = await this.sandbox.exec('go build', [this.sourceFilePath]);
 
-    return result;
+    if (!compileResult.success) {
+      return compileResult;
+    }
+
+    const result = await this.sandbox.exec(`./${this.sourceFilePath.replace('.go', '')}`, []);
+
+    return {
+      ...result,
+      compileTime: compileResult.elapsedTime,
+    };
   }
 
   async cleanup() {

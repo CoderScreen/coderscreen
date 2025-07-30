@@ -27,7 +27,10 @@ export class RustRunner extends CodeRunner {
     // If compilation succeeded, run the executable
     const runResult = await this.sandbox.exec(`./${this.executablePath}`, []);
 
-    return runResult;
+    return {
+      ...runResult,
+      compileTime: compileResult.elapsedTime,
+    };
   }
 
   async cleanup() {

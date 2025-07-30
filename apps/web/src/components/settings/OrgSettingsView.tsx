@@ -1,6 +1,6 @@
 import { RiCloseLine, RiDeleteBinLine, RiImageLine, RiSaveLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,7 +20,7 @@ import { useActiveOrg, useDeleteOrganization, useUpdateOrganization } from '@/qu
 export const OrgSettingsView = () => {
   const { org, isLoading: isOrgLoading } = useActiveOrg();
   const { updateOrganization, isLoading: isUpdatingOrg } = useUpdateOrganization();
-  const [logoPreview, setLogoPreview] = useState<string | null>(org?.logo || null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(org?.logo ?? null);
 
   const form = useForm({
     defaultValues: {
@@ -35,6 +35,10 @@ export const OrgSettingsView = () => {
       });
     },
   });
+
+  useEffect(() => {
+    setLogoPreview(org?.logo ?? null);
+  }, [org?.logo]);
 
   const handleLogoFileChange = (file: File | null) => {
     if (file) {

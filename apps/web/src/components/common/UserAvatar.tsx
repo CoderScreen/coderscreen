@@ -11,7 +11,9 @@ export const UserAvatar = ({
       {user.image ? (
         <img src={user.image} alt={user.name} className='w-full h-full rounded-lg' />
       ) : (
-        <span className='text-white text-sm font-medium'>{user.name.charAt(0).toUpperCase()}</span>
+        <span className='h-full w-full text-white text-sm font-medium rounded-lg'>
+          {user.name.charAt(0).toUpperCase()}
+        </span>
       )}
     </div>
   );
@@ -30,7 +32,7 @@ export const OrgAvatar = ({
       {org.logo ? (
         <img src={org.logo} alt={org.name} className='w-full h-full rounded-lg' />
       ) : (
-        <span className='text-white text-sm font-medium bg-primary'>
+        <span className='text-white text-sm font-medium h-full w-full bg-primary rounded-lg'>
           {org.name.charAt(0).toUpperCase()}
         </span>
       )}

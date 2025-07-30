@@ -56,13 +56,14 @@ export const useCreateOrganization = (options: { dontRedirect?: boolean } = {}) 
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: async (params: { name: string; goal?: string }) => {
+    mutationFn: async (params: { name: string; goal?: string; logo?: string }) => {
       const data = await authClient.organization.create({
         name: params.name,
         slug: `${session.userId}-${slugify(params.name)}`,
         metadata: {
           goal: params.goal ?? '',
         },
+        logo: params.logo,
       });
 
       return data;

@@ -5,7 +5,7 @@ import { Editor } from '@monaco-editor/react';
 import { RiPlayFill } from '@remixicon/react';
 import * as monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { Button } from '@/components/ui/button';
 import {
@@ -154,6 +154,15 @@ export function CodeEditor() {
     setEditorSettings(newSettings);
   }, []);
 
+  const monacoLanguage = useMemo(() => {
+    switch (language) {
+      case 'c++':
+        return 'cpp';
+      default:
+        return language;
+    }
+  }, [language]);
+
   return (
     <div className='h-full w-full bg-white text-gray-900 relative flex flex-col'>
       {/* Menu Bar */}
@@ -195,7 +204,7 @@ export function CodeEditor() {
       <div className='relative grow-1'>
         <Editor
           onMount={handleOnMount}
-          language={language}
+          language={monacoLanguage}
           theme={editorSettings.theme}
           className='pr-2'
           height='100%'

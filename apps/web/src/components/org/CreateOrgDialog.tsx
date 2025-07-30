@@ -32,6 +32,7 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
   });
 
   const handleLogoFileChange = async (file: File | null) => {
+    console.log('file', file);
     if (file) {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -39,6 +40,7 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
         setLogoPreview(result);
 
         const asset = await uploadLogo(result);
+        console.log('asset', asset);
         form.setFieldValue('logo', asset.url);
       };
       reader.readAsDataURL(file);
@@ -91,7 +93,7 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
                       type='button'
                       variant='secondary'
                       className='mb-1'
-                      onClick={() => document.getElementById('logo-file')?.click()}
+                      onClick={() => document.getElementById('dialog-logo-file')?.click()}
                       isLoading={isUploadingLogo}
                       icon={RiUploadLine}
                     >
@@ -99,7 +101,7 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
                     </Button>
                     <input
                       type='file'
-                      id='logo-file'
+                      id='dialog-logo-file'
                       accept='image/*'
                       max={8 * 1024 * 1024}
                       className='hidden'

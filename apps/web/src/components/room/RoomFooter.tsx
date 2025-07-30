@@ -83,10 +83,7 @@ export const RoomFooter = () => {
                         </div>
                         <div className='space-y-1'>
                           {activeUsers.map((user) => (
-                            <div
-                              key={user.id}
-                              className='flex items-center gap-2 rounded hover:bg-muted/50'
-                            >
+                            <div key={user.id} className='flex items-center gap-2'>
                               <UserAvatar user={user} />
                               <div className='flex-1 min-w-0'>
                                 <span className='text-sm font-medium truncate'>{user.name}</span>
@@ -106,10 +103,7 @@ export const RoomFooter = () => {
                         </div>
                         <div className='space-y-1 max-h-32 overflow-y-auto'>
                           {inactiveUsers.map((user) => (
-                            <div
-                              key={user.id}
-                              className='flex items-center gap-2 rounded hover:bg-muted/50'
-                            >
+                            <div key={user.id} className='flex items-center gap-2'>
                               <UserAvatar user={user} />
                               <div className='flex-1 min-w-0'>
                                 <span className='text-sm font-medium truncate'>{user.name}</span>
