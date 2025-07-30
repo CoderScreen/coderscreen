@@ -5,7 +5,7 @@ import {
   RiCornerDownLeftLine,
   RiEditLine,
 } from '@remixicon/react';
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -38,11 +38,14 @@ export const HostRoomHeader = () => {
 
   // Check if room is in read-only mode (completed)
   const isReadOnly = room?.status === 'completed';
-  const location = useLocation();
 
   const handleCopyLink = async () => {
+    if (!room) {
+      return;
+    }
+
     try {
-      const shareLink = location.href;
+      const shareLink = `${window.location.origin}/room/${room.id}`;
       await navigator.clipboard.writeText(shareLink);
       setCopied(true);
       toast.success('Link copied to clipboard!');
