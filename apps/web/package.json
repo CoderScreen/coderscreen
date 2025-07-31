@@ -19,6 +19,8 @@
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.7.5",
     "@coderscreen/ui": "workspace:^",
+    "@codesandbox/sandpack-client": "^2.19.8",
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.1.4",
