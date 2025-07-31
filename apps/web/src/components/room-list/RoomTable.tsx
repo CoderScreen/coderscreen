@@ -11,6 +11,7 @@ import {
 import { Link, useRouter } from '@tanstack/react-router';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Shortcut } from '@/components/common/Shortcut';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -187,7 +188,7 @@ const EmptyTable = ({ noRooms }: { noRooms: boolean }) => {
             <EmptyStateIcon icon={RiAddLine} />
             <SmallHeader className='mt-4'>No interviews yet</SmallHeader>
             <MutedText>
-              There is nothing here to view right now, please add new interview data to get started.
+              You don't have any interviews yet. Create a new interview to get started.
             </MutedText>
             <Button
               variant='primary'
@@ -197,6 +198,7 @@ const EmptyTable = ({ noRooms }: { noRooms: boolean }) => {
               isLoading={isLoading}
             >
               New interview
+              <Shortcut _key='C' />
             </Button>
           </div>
         </TableCell>

@@ -26,7 +26,7 @@ export function DashboardHeader() {
   // add keyboard shortcut for CMD + I for new interview
   useEffect(() => {
     const handleKeyboardShortcut = async (event: KeyboardEvent) => {
-      if (event.metaKey && event.key.toLowerCase() === 'i') {
+      if (event.key.toLowerCase() === 'c') {
         await handleCreateRoom();
       }
     };
@@ -45,7 +45,7 @@ export function DashboardHeader() {
       <div className='flex items-center gap-2'>
         <Button icon={RiAddLine} onClick={handleCreateRoom} isLoading={isLoading}>
           <span>New Interview</span>
-          <Shortcut cmd _key='I' />
+          <Shortcut _key='C' />
         </Button>
       </div>
     </div>
