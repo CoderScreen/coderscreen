@@ -1,204 +1,209 @@
-import { EditorState } from "@codemirror/state";
-import { basicSetup, EditorView } from "codemirror";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { yCollab } from "y-codemirror.next";
-import * as Y from "yjs";
-import { useRoomContext } from "@/contexts/RoomContext";
+import { EditorState } from '@codemirror/state';
+import { RoomSchema } from '@coderscreen/api/schema/room';
+import { basicSetup, EditorView } from 'codemirror';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { yCollab } from 'y-codemirror.next';
+import * as Y from 'yjs';
+import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
+import { useRoomContext } from '@/contexts/RoomContext';
 
-// Track editor views and bindings per file
-interface FileBinding {
-	state: EditorState;
-}
+export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElement | null>) {
+  const { provider } = useRoomContext();
+  const [selectedFile, _setSelectedFile] = useState<string | undefined>(undefined);
 
-// Shared hook for creating collaborative multi-file code editor
-export function useMultiFileCodeEditor(
-	elementRef: React.RefObject<HTMLDivElement | null>,
-) {
-	const { provider, isReadOnly } = useRoomContext();
-	const fileBindingsRef = useRef<Record<string, FileBinding>>({});
-	const [selectedFile, _setSelectedFile] = useState<string | undefined>(
-		undefined,
-	);
+  const editorViewRef = useRef<EditorView>(null);
 
-	const editorViewRef = useRef<EditorView>(null);
+  const fileMap = provider.doc.getMap<string>('files');
+  const files = Array.from(fileMap.keys());
 
-	const fileMap = provider.doc.getMap<string>("files");
-	const files = Array.from(fileMap.keys());
+  const getOrCreateView = useCallback(
+    (initialState: EditorState) => {
+      const viewRef = editorViewRef.current;
+      if (viewRef) return viewRef;
 
-	const getOrCreateView = useCallback(
-		(initialState: EditorState) => {
-			const viewRef = editorViewRef.current;
-			if (viewRef) return viewRef;
+      if (!elementRef.current) return;
 
-			if (!elementRef.current) return;
+      const view = new EditorView({
+        state: initialState,
+        parent: elementRef.current,
+      });
 
-			const view = new EditorView({
-				state: initialState,
-				parent: elementRef.current,
-			});
+      editorViewRef.current = view;
+      return view;
+    },
+    [elementRef]
+  );
 
-			editorViewRef.current = view;
-			return view;
-		},
-		[elementRef],
-	);
+  // Create or get Y.Text for a specific file
+  const getOrCreateEditorState = useCallback(
+    (filePath: string) => {
+      const ytext = provider.doc.getText(`file:${filePath}`);
+      const undoManager = new Y.UndoManager(ytext);
 
-	// Create or get Y.Text for a specific file
-	const getOrCreateEditorState = useCallback(
-		(filePath: string) => {
-			const ytext = provider.doc.getText(`file:${filePath}`);
-			const undoManager = new Y.UndoManager(ytext);
+      const state = EditorState.create({
+        doc: ytext.toString(),
+        extensions: [basicSetup, yCollab(ytext, null, { undoManager })],
+      });
 
-			const state = EditorState.create({
-				doc: ytext.toString(),
-				extensions: [basicSetup, yCollab(ytext, null, { undoManager })],
-			});
+      return state;
+    },
+    [provider]
+  );
 
-			return state;
-		},
-		[provider],
-	);
+  const switchToFile = useCallback(
+    (filePath: string) => {
+      const state = getOrCreateEditorState(filePath);
 
-	const switchToFile = useCallback(
-		(filePath: string) => {
-			const state = getOrCreateEditorState(filePath);
+      const view = getOrCreateView(state);
+      view?.setState(state);
+    },
+    [getOrCreateEditorState, getOrCreateView]
+  );
 
-			const view = getOrCreateView(state);
-			view?.setState(state);
-		},
-		[getOrCreateEditorState, getOrCreateView],
-	);
+  // Create a new file
+  const createFile = useCallback(
+    (filePath: string, content?: string) => {
+      const ytext = provider.doc.getText(`file:${filePath}`);
+      ytext.insert(0, content ?? '');
+    },
+    [provider]
+  );
 
-	// Get file content
-	const getFileContent = useCallback(
-		(filePath: string): string => {
-			const ytext = provider.doc.getText(`file:${filePath}`);
-			return ytext.toString();
-		},
-		[provider],
-	);
+  // Delete a file
+  const deleteFile = useCallback(
+    (filePath: string) => {
+      const ytext = provider.doc.getText(`file:${filePath}`);
+      ytext.delete(0, ytext.length);
+    },
+    [provider]
+  );
 
-	// Create a new file
-	const createFile = useCallback(
-		(filePath: string, initialContent: string = "") => {
-			const ytext = provider.doc.getText(`file:${filePath}`);
-			ytext.insert(0, initialContent);
-		},
-		[provider],
-	);
+  // Rename a file
+  const renameFile = useCallback(
+    (oldPath: string, newPath: string) => {
+      const oldYText = provider.doc.getText(`file:${oldPath}`);
+      const newYText = provider.doc.getText(`file:${newPath}`);
 
-	// Delete a file
-	const deleteFile = useCallback(
-		(filePath: string) => {
-			const ytext = provider.doc.getText(`file:${filePath}`);
-			ytext.delete(0, ytext.length);
-		},
-		[provider],
-	);
+      // Copy content from old to new
+      const content = oldYText.toString();
+      newYText.insert(0, content);
 
-	// Rename a file
-	const renameFile = useCallback(
-		(oldPath: string, newPath: string) => {
-			const oldYText = provider.doc.getText(`file:${oldPath}`);
-			const newYText = provider.doc.getText(`file:${newPath}`);
+      // Clear old content
+      oldYText.delete(0, oldYText.length);
+    },
+    [provider]
+  );
 
-			// Copy content from old to new
-			const content = oldYText.toString();
-			newYText.insert(0, content);
+  const handleWorkspaceReset = useCallback(
+    (language: RoomSchema['language']) => {
+      // this function should go through all files and delete them.
+      // then create the new files with the new language
 
-			// Clear old content
-			oldYText.delete(0, oldYText.length);
-		},
-		[provider],
-	);
+      provider.doc.transact(() => {
+        const fileMap = provider.doc.getMap<string>('files');
+        fileMap.forEach((_, key) => {
+          deleteFile(key);
+        });
+        fileMap.clear();
 
-	// #########################################################
-	// CLEANUP FUNCTIONS
-	// #########################################################
+        const template = getWorkspaceTemplate(language);
+        template.forEach((file) => {
+          createFile(file.path, file.code);
+          fileMap.set(file.path, file.code);
+        });
+      });
+    },
+    [createFile, deleteFile, provider.doc]
+  );
 
-	useEffect(() => {
-		return () => {
-			editorViewRef.current?.destroy();
-		};
-	}, []);
+  // #########################################################
+  // CLEANUP FUNCTIONS
+  // #########################################################
 
-	const setSelectedFile = useCallback(
-		(filePath: string) => {
-			_setSelectedFile(filePath);
-			switchToFile(filePath);
-		},
-		[switchToFile],
-	);
+  useEffect(() => {
+    return () => {
+      editorViewRef.current?.destroy();
+    };
+  }, []);
 
-	const focusEditor = useCallback(() => {
-		editorViewRef.current?.focus();
-	}, []);
+  const setSelectedFile = useCallback(
+    (filePath: string) => {
+      _setSelectedFile(filePath);
+      switchToFile(filePath);
+    },
+    [switchToFile]
+  );
 
-	return {
-		createFile,
-		deleteFile,
-		renameFile,
-		getFileContent,
-		selectedFile,
-		setSelectedFile,
-		files,
-		focusEditor,
-	};
+  const focusEditor = useCallback(() => {
+    editorViewRef.current?.focus();
+  }, []);
+
+  return {
+    createFile,
+    deleteFile,
+    renameFile,
+    handleWorkspaceReset,
+    selectedFile,
+    setSelectedFile,
+    files,
+    focusEditor,
+    editorVisible: !!editorViewRef.current,
+  };
 }
 
 // Helper function to determine language from file path
 function getLanguageFromPath(filePath: string): string {
-	const ext = filePath.split(".").pop()?.toLowerCase();
+  const ext = filePath.split('.').pop()?.toLowerCase();
 
-	switch (ext) {
-		case "js":
-		case "jsx":
-			return "javascript";
-		case "ts":
-		case "tsx":
-			return "typescript";
-		case "html":
-			return "html";
-		case "css":
-			return "css";
-		case "json":
-			return "json";
-		case "py":
-			return "python";
-		case "java":
-			return "java";
-		case "cpp":
-		case "cc":
-		case "cxx":
-			return "cpp";
-		case "c":
-			return "c";
-		case "php":
-			return "php";
-		case "rb":
-			return "ruby";
-		case "go":
-			return "go";
-		case "rs":
-			return "rust";
-		case "swift":
-			return "swift";
-		case "kt":
-			return "kotlin";
-		case "scala":
-			return "scala";
-		case "r":
-			return "r";
-		case "sql":
-			return "sql";
-		case "md":
-			return "markdown";
-		case "xml":
-			return "xml";
-		case "yaml":
-		case "yml":
-			return "yaml";
-		default:
-			return "plaintext";
-	}
+  switch (ext) {
+    case 'js':
+    case 'jsx':
+      return 'javascript';
+    case 'ts':
+    case 'tsx':
+      return 'typescript';
+    case 'html':
+      return 'html';
+    case 'css':
+      return 'css';
+    case 'json':
+      return 'json';
+    case 'py':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'cpp':
+    case 'cc':
+    case 'cxx':
+      return 'cpp';
+    case 'c':
+      return 'c';
+    case 'php':
+      return 'php';
+    case 'rb':
+      return 'ruby';
+    case 'go':
+      return 'go';
+    case 'rs':
+      return 'rust';
+    case 'swift':
+      return 'swift';
+    case 'kt':
+      return 'kotlin';
+    case 'scala':
+      return 'scala';
+    case 'r':
+      return 'r';
+    case 'sql':
+      return 'sql';
+    case 'md':
+      return 'markdown';
+    case 'xml':
+      return 'xml';
+    case 'yaml':
+    case 'yml':
+      return 'yaml';
+    default:
+      return 'plaintext';
+  }
 }

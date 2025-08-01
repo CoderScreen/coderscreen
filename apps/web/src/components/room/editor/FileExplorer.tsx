@@ -3,10 +3,11 @@
 import type { RoomSchema } from '@coderscreen/api/schema/room';
 import {
   RiAddLine,
+  RiFileLine,
   RiFileTextLine,
   RiFolderFill,
   RiFolderOpenFill,
-  RiMoreLine,
+  RiMore2Line,
 } from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
@@ -26,7 +27,7 @@ interface FileNode {
 }
 
 interface FileExplorerProps {
-  files?: FileNode[];
+  files: FileNode[];
   selectedFile?: string;
   onFileSelect?: (file: FileNode) => void;
   onFileCreate?: (path: string, type: 'file' | 'folder') => void;
@@ -35,62 +36,12 @@ interface FileExplorerProps {
   className?: string;
 }
 
-// Mock data for demonstration - matches React framework template
-const MOCK_FILES: FileNode[] = [
-  {
-    id: '1',
-    name: 'src',
-    type: 'folder',
-    path: '/src',
-    isExpanded: true,
-    children: [
-      {
-        id: '2',
-        name: 'index.js',
-        type: 'file',
-        path: '/src/index.js',
-        language: 'javascript',
-      },
-      {
-        id: '3',
-        name: 'App.js',
-        type: 'file',
-        path: '/src/App.js',
-        language: 'javascript',
-      },
-    ],
-  },
-  {
-    id: '4',
-    name: 'public',
-    type: 'folder',
-    path: '/public',
-    isExpanded: false,
-    children: [
-      {
-        id: '5',
-        name: 'index.html',
-        type: 'file',
-        path: '/public/index.html',
-        language: 'javascript',
-      },
-    ],
-  },
-  {
-    id: '6',
-    name: 'package.json',
-    type: 'file',
-    path: '/package.json',
-    language: 'javascript',
-  },
-];
-
 const FileIcon = ({ file }: { file: FileNode }) => {
   if (file.type === 'folder') {
     return file.isExpanded ? (
-      <RiFolderOpenFill className='h-4 w-4 text-yellow-500' />
+      <RiFolderOpenFill className='h-4 w-4 text-blue-500' />
     ) : (
-      <RiFolderFill className='h-4 w-4 text-yellow-500' />
+      <RiFolderFill className='h-4 w-4 text-blue-500' />
     );
   }
 
@@ -99,7 +50,7 @@ const FileIcon = ({ file }: { file: FileNode }) => {
     return <LanguageIcon language={file.language} className='h-4 w-4' />;
   }
 
-  return <RiFileTextLine className='h-4 w-4 text-gray-400' />;
+  return <RiFileLine className='h-4 w-4 text-gray-500' />;
 };
 
 const FileTreeItem = ({
@@ -130,11 +81,12 @@ const FileTreeItem = ({
       <button
         type='button'
         className={cn(
-          'flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded transition-colors w-full text-left',
-          isSelected && 'bg-blue-50 text-blue-700',
-          level > 0 && 'ml-4'
+          'flex items-center gap-2 w-full text-left p-1 text-xs text-muted-foreground group',
+          'hover:bg-white rounded-md',
+          isSelected && 'text-black',
+          level > 0 && 'ml-2'
         )}
-        style={{ paddingLeft: `${level * 16 + 8}px` }}
+        style={{ paddingLeft: `${level * 16 + 12}px` }}
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -143,12 +95,20 @@ const FileTreeItem = ({
           }
         }}
       >
-        <FileIcon file={file} />
-        <span className='truncate flex-1'>{file.name}</span>
+        <div className='flex-shrink-0'>
+          <FileIcon file={file} />
+        </div>
+        <span className='truncate flex-1 flex items-center justify-between'>
+          <span>{file.name}</span>
+
+          <Button variant='icon' className='h-5 w-5 group-hover:flex hidden'>
+            <RiMore2Line className='h-3 w-3' />
+          </Button>
+        </span>
       </button>
 
       {file.type === 'folder' && file.isExpanded && file.children && (
-        <div>
+        <div className='mt-1'>
           {file.children.map((child) => (
             <FileTreeItem
               key={child.id}
@@ -166,7 +126,7 @@ const FileTreeItem = ({
 };
 
 export const FileExplorer = ({
-  files = MOCK_FILES,
+  files,
   selectedFile,
   onFileSelect,
   onFileCreate,
@@ -205,47 +165,71 @@ export const FileExplorer = ({
   const processedFiles = toggleExpandedFolders(files);
 
   return (
-    <div className={cn('h-full flex flex-col bg-gray-50 border-r border-gray-200', className)}>
+    <div className={cn('h-full flex flex-col bg-gray-50 border-r', className)}>
       {/* Header */}
-      <div className='flex items-center justify-between p-3 border-b border-gray-200 bg-white'>
-        <h3 className='text-sm font-medium text-gray-900'>Files</h3>
-        <div className='flex items-center gap-1'>
-          <Tooltip triggerAsChild content='New file'>
-            <Button
-              variant='ghost'
-              className='h-6 w-6 p-0'
-              onClick={() => onFileCreate?.('/new-file.txt', 'file')}
-            >
-              <RiAddLine className='h-3 w-3' />
-            </Button>
-          </Tooltip>
-          <Tooltip triggerAsChild content='More options'>
-            <Button variant='ghost' className='h-6 w-6 p-0'>
-              <RiMoreLine className='h-3 w-3' />
-            </Button>
-          </Tooltip>
-        </div>
+      <div className='flex items-center justify-between p-2'>
+        <h3 className='text-xs text-muted-foreground'>Files</h3>
+        <Button variant='icon' className='h-6 w-6 p-0 hover:bg-gray-200'>
+          <RiMore2Line className='h-3 w-3' />
+        </Button>
       </div>
 
       {/* File Tree */}
-      <div className='flex-1 overflow-y-auto p-2'>
-        {processedFiles.map((file) => (
-          <FileTreeItem
-            key={file.id}
-            file={file}
-            selectedFile={selectedFile}
-            onFileSelect={onFileSelect}
-            onToggleExpand={handleToggleExpand}
-          />
-        ))}
-      </div>
-
-      {/* Footer with file count */}
-      <div className='p-2 border-t border-gray-200 bg-white'>
-        <div className='text-xs text-gray-500'>
-          {files.length} {files.length === 1 ? 'item' : 'items'}
-        </div>
+      <div className='flex-1 overflow-y-auto py-2'>
+        {processedFiles.length === 0 ? (
+          <div className='px-4 py-8 text-center'>
+            <div className='text-gray-400 text-sm'>No files</div>
+          </div>
+        ) : (
+          processedFiles.map((file) => (
+            <FileTreeItem
+              key={file.id}
+              file={file}
+              selectedFile={selectedFile}
+              onFileSelect={onFileSelect}
+              onToggleExpand={handleToggleExpand}
+            />
+          ))
+        )}
       </div>
     </div>
   );
+};
+
+export const getLanguageFromPath = (path: string): string | null => {
+  const ext = path.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'js':
+      return 'javascript';
+    case 'ts':
+      return 'typescript';
+    case 'jsx':
+      return 'javascript';
+    case 'tsx':
+      return 'typescript';
+    case 'html':
+      return 'html';
+    case 'css':
+      return 'css';
+    case 'json':
+      return 'json';
+    case 'py':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'cpp':
+      return 'c++';
+    case 'c':
+      return 'c';
+    case 'php':
+      return 'php';
+    case 'rb':
+      return 'ruby';
+    case 'go':
+      return 'go';
+    case 'rs':
+      return 'rust';
+    default:
+      return null;
+  }
 };
