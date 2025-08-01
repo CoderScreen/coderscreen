@@ -91,9 +91,14 @@ export const HostRoomHeader = () => {
     <div className='flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
       {/* Room Title Section */}
       <div className='flex items-center'>
-        <Tooltip content='Back to Home'>
+        <Tooltip triggerAsChild content='Back to Home'>
           <Link to='/'>
-            <Button variant='icon' icon={RiArrowLeftLine} className='text-muted-foreground' />
+            <Button
+              asChild
+              variant='icon'
+              icon={RiArrowLeftLine}
+              className='text-muted-foreground'
+            />
           </Link>
         </Tooltip>
 

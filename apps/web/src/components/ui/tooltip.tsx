@@ -65,6 +65,7 @@ const Tooltip = React.forwardRef<React.ElementRef<typeof TooltipPrimitives.Conte
               sideOffset={sideOffset}
               align='center'
               className={cx(
+                'z-[305]',
                 // base
                 'max-w-60 select-none rounded-md px-2.5 py-1.5 text-sm leading-5 shadow-md',
                 // text color
