@@ -7,14 +7,136 @@ import * as Y from 'yjs';
 import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
 
+export interface FileNode {
+  id: string;
+  path: string;
+  name: string;
+  type: 'file' | 'folder';
+  language?: RoomSchema['language'];
+  isExpanded?: boolean;
+  children?: FileNode[];
+}
+
+// Helper function to get language from file path
+const getLanguageFromPath = (path: string): RoomSchema['language'] | null => {
+  const ext = path.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'js':
+      return 'javascript';
+    case 'ts':
+      return 'typescript';
+    case 'jsx':
+      return 'javascript';
+    case 'tsx':
+      return 'typescript';
+    case 'py':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'cpp':
+      return 'c++';
+    case 'c':
+      return 'c';
+    case 'php':
+      return 'php';
+    case 'rb':
+      return 'ruby';
+    case 'go':
+      return 'go';
+    case 'rs':
+      return 'rust';
+    case 'sh':
+      return 'bash';
+    default:
+      return null;
+  }
+};
+
+// Helper function to create a FileNode from a path
+const createFileNode = (path: string, type: 'file' | 'folder' = 'file'): FileNode => {
+  const name = path.split('/').pop() || path;
+  const language = type === 'file' ? getLanguageFromPath(path) || undefined : undefined;
+
+  return {
+    id: path, // Use path as id for uniqueness
+    path,
+    name,
+    type,
+    language,
+    isExpanded: false,
+    children: type === 'folder' ? [] : undefined,
+  };
+};
+
+// Helper function to build file tree from flat paths
+const buildFileTree = (paths: string[]): FileNode[] => {
+  const fileMap = new Map<string, FileNode>();
+  const rootNodes: FileNode[] = [];
+
+  // Create all nodes first
+  paths.forEach((path) => {
+    // remove / prefix
+    const parts = path.startsWith('/') ? path.split('/').slice(1) : path.split('/');
+
+    console.log('parts for path', path, parts);
+
+    // Handle files with folder structure
+    let currentPath = '';
+
+    // Create folder nodes for all parts except the last one
+    for (let i = 0; i < parts.length - 1; i++) {
+      currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+
+      if (!fileMap.has(currentPath)) {
+        const node = createFileNode(currentPath, 'folder');
+        fileMap.set(currentPath, node);
+
+        if (i === 0) {
+          rootNodes.push(node);
+        } else {
+          const parentPath = parts.slice(0, i).join('/');
+          const parent = fileMap.get(parentPath);
+          if (parent && parent.children) {
+            parent.children.push(node);
+          }
+        }
+      }
+    }
+
+    // Create the file node (last part)
+    const filePath = path;
+    console.log('filePath', filePath);
+    if (!fileMap.has(filePath)) {
+      const node = createFileNode(filePath, 'file');
+      fileMap.set(filePath, node);
+
+      const parentPath = parts.slice(0, -1).join('/');
+      const parent = fileMap.get(parentPath);
+      if (parent && parent.children) {
+        parent.children.push(node);
+      } else if (parts.length === 1) {
+        // If this is a root-level file (no parent directory), add it to rootNodes
+        rootNodes.push(node);
+      }
+    }
+  });
+
+  return rootNodes;
+};
+
 export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElement | null>) {
   const { provider } = useRoomContext();
   const [selectedFile, _setSelectedFile] = useState<string | undefined>(undefined);
 
   const editorViewRef = useRef<EditorView>(null);
 
+  // Get files from the provider and convert to FileNode tree
   const fileMap = provider.doc.getMap<string>('files');
-  const files = Array.from(fileMap.keys());
+  console.log('fileMap in useMultiFileCodeEditor', fileMap);
+  const filePaths = Array.from(fileMap.keys());
+  const files = buildFileTree(filePaths);
+
+  console.log('files in useMultiFileCodeEditor', files);
 
   const getOrCreateView = useCallback(
     (initialState: EditorState) => {
@@ -65,6 +187,12 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     (filePath: string, content?: string) => {
       const ytext = provider.doc.getText(`file:${filePath}`);
       ytext.insert(0, content ?? '');
+
+      // Add to file map
+      const fileMap = provider.doc.getMap<string>('files');
+      fileMap.set(filePath, content ?? '');
+
+      console.log('added file to fileMap', filePath, content?.slice(0, 10));
     },
     [provider]
   );
@@ -74,6 +202,10 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     (filePath: string) => {
       const ytext = provider.doc.getText(`file:${filePath}`);
       ytext.delete(0, ytext.length);
+
+      // Remove from file map
+      const fileMap = provider.doc.getMap<string>('files');
+      fileMap.delete(filePath);
     },
     [provider]
   );
@@ -90,6 +222,14 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       // Clear old content
       oldYText.delete(0, oldYText.length);
+
+      // Update file map
+      const fileMap = provider.doc.getMap<string>('files');
+      const contentToMove = fileMap.get(oldPath);
+      if (contentToMove !== undefined) {
+        fileMap.set(newPath, contentToMove);
+        fileMap.delete(oldPath);
+      }
     },
     [provider]
   );
@@ -99,6 +239,8 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       // this function should go through all files and delete them.
       // then create the new files with the new language
 
+      console.log('handleWorkspaceReset', language);
+
       provider.doc.transact(() => {
         const fileMap = provider.doc.getMap<string>('files');
         fileMap.forEach((_, key) => {
@@ -107,9 +249,14 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
         fileMap.clear();
 
         const template = getWorkspaceTemplate(language);
+
         template.forEach((file) => {
+          if (file.isFolder) {
+            // no-op for now for folders
+            return;
+          }
+
           createFile(file.path, file.code);
-          fileMap.set(file.path, file.code);
         });
       });
     },
@@ -149,61 +296,4 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     focusEditor,
     editorVisible: !!editorViewRef.current,
   };
-}
-
-// Helper function to determine language from file path
-function getLanguageFromPath(filePath: string): string {
-  const ext = filePath.split('.').pop()?.toLowerCase();
-
-  switch (ext) {
-    case 'js':
-    case 'jsx':
-      return 'javascript';
-    case 'ts':
-    case 'tsx':
-      return 'typescript';
-    case 'html':
-      return 'html';
-    case 'css':
-      return 'css';
-    case 'json':
-      return 'json';
-    case 'py':
-      return 'python';
-    case 'java':
-      return 'java';
-    case 'cpp':
-    case 'cc':
-    case 'cxx':
-      return 'cpp';
-    case 'c':
-      return 'c';
-    case 'php':
-      return 'php';
-    case 'rb':
-      return 'ruby';
-    case 'go':
-      return 'go';
-    case 'rs':
-      return 'rust';
-    case 'swift':
-      return 'swift';
-    case 'kt':
-      return 'kotlin';
-    case 'scala':
-      return 'scala';
-    case 'r':
-      return 'r';
-    case 'sql':
-      return 'sql';
-    case 'md':
-      return 'markdown';
-    case 'xml':
-      return 'xml';
-    case 'yaml':
-    case 'yml':
-      return 'yaml';
-    default:
-      return 'plaintext';
-  }
 }

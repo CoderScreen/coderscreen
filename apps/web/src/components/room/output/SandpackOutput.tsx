@@ -1,8 +1,7 @@
 'use client';
 
-import type { ClientOptions, SandboxSetup } from '@codesandbox/sandpack-client';
-import { RiDeleteBin6Line, RiProhibitedLine, RiResetRightLine } from '@remixicon/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { RiProhibitedLine, RiResetRightLine, RiTerminalLine } from '@remixicon/react';
+import { useEffect, useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -20,11 +19,13 @@ export const SandpackOutput = () => {
 
     const loadClient = async () => {
       if (!iframeRef.current) return;
+
+      console.log('loading client');
       await initializeSandpackClient(iframeRef.current);
     };
 
     loadClient();
-  }, [initializeSandpackClient]);
+  }, []);
 
   // Determine loading state based on client status
   const getLoadingState = () => {
@@ -110,7 +111,10 @@ const SandpackConsole = () => {
   return (
     <div className='border-t border-gray-200 flex flex-col h-full'>
       <div className='flex items-center justify-between p-2 border-b border-gray-200'>
-        <h3 className='text-sm font-medium text-gray-700'>Console</h3>
+        <h3 className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+          <RiTerminalLine className='w-4 h-4' />
+          Console
+        </h3>
         <Button variant='icon' onClick={resetConsole}>
           <RiProhibitedLine className='w-3 h-3' />
         </Button>

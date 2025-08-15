@@ -5,14 +5,18 @@ import * as Y from 'yjs';
 export const REACT_FRAMEWORK_TEMPLATE: SandboxSetup = {
   files: {
     '/package.json': {
-      code: JSON.stringify({
-        name: 'basic-react-app',
-        main: 'src/index.js',
-        dependencies: {
-          react: 'latest',
-          'react-dom': 'latest',
+      code: JSON.stringify(
+        {
+          name: 'basic-react-app',
+          main: 'src/index.js',
+          dependencies: {
+            react: 'latest',
+            'react-dom': 'latest',
+          },
         },
-      }),
+        null,
+        2
+      ),
     },
     '/public/index.html': {
       code: `<!DOCTYPE html>
@@ -54,7 +58,6 @@ export default function App() {
 `,
     },
   },
-  template: 'create-react-app',
 };
 
 export const getFrameworkTemplate = (framework: RoomSchema['language']) => {

@@ -1,30 +1,11 @@
 'use client';
 
-import type { RoomSchema } from '@coderscreen/api/schema/room';
-import {
-  RiAddLine,
-  RiFileLine,
-  RiFileTextLine,
-  RiFolderFill,
-  RiFolderOpenFill,
-  RiMore2Line,
-} from '@remixicon/react';
+import { RiFileLine, RiFolderFill, RiFolderOpenFill, RiMore2Line } from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { Button } from '@/components/ui/button';
-import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-
-// File system types
-interface FileNode {
-  id: string;
-  name: string;
-  type: 'file' | 'folder';
-  path: string;
-  language?: RoomSchema['language'];
-  children?: FileNode[];
-  isExpanded?: boolean;
-}
+import { FileNode } from '@/query/realtime/multiFileCode.query';
 
 interface FileExplorerProps {
   files: FileNode[];
@@ -101,9 +82,9 @@ const FileTreeItem = ({
         <span className='truncate flex-1 flex items-center justify-between'>
           <span>{file.name}</span>
 
-          <Button variant='icon' className='h-5 w-5 group-hover:flex hidden'>
+          <span className='h-4 w-4 group-hover:flex hidden'>
             <RiMore2Line className='h-3 w-3' />
-          </Button>
+          </span>
         </span>
       </button>
 
@@ -129,9 +110,6 @@ export const FileExplorer = ({
   files,
   selectedFile,
   onFileSelect,
-  onFileCreate,
-  onFileDelete,
-  onFileRename,
   className,
 }: FileExplorerProps) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -194,42 +172,4 @@ export const FileExplorer = ({
       </div>
     </div>
   );
-};
-
-export const getLanguageFromPath = (path: string): string | null => {
-  const ext = path.split('.').pop()?.toLowerCase();
-  switch (ext) {
-    case 'js':
-      return 'javascript';
-    case 'ts':
-      return 'typescript';
-    case 'jsx':
-      return 'javascript';
-    case 'tsx':
-      return 'typescript';
-    case 'html':
-      return 'html';
-    case 'css':
-      return 'css';
-    case 'json':
-      return 'json';
-    case 'py':
-      return 'python';
-    case 'java':
-      return 'java';
-    case 'cpp':
-      return 'c++';
-    case 'c':
-      return 'c';
-    case 'php':
-      return 'php';
-    case 'rb':
-      return 'ruby';
-    case 'go':
-      return 'go';
-    case 'rs':
-      return 'rust';
-    default:
-      return null;
-  }
 };

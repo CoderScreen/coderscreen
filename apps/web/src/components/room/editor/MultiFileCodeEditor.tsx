@@ -13,12 +13,11 @@
 // import { ruby } from '@codemirror/lang-ruby';
 // import { rust } from '@codemirror/lang-rust';
 // import { typescript } from '@codemirror/lang-typescript';
-import { RoomSchema } from '@coderscreen/api/schema/room';
 import { useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { EditorHeader } from '@/components/room/editor/EditorHeader';
 import { useMultiFileCodeEditor } from '@/query/realtime/multiFileCode.query';
-import { FileExplorer, getLanguageFromPath } from './FileExplorer';
+import { FileExplorer } from './FileExplorer';
 
 interface MultiFileCodeEditorProps {
   className?: string;
@@ -40,13 +39,7 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
           {/* File Explorer */}
           <Panel defaultSize={20} minSize={15} maxSize={590}>
             <FileExplorer
-              files={files.map((file) => ({
-                id: file,
-                name: file,
-                type: 'file',
-                path: file,
-                language: getLanguageFromPath(file),
-              }))}
+              files={files}
               selectedFile={selectedFile}
               onFileSelect={(file) => setSelectedFile(file.path)}
             />
