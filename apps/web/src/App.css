@@ -102,6 +102,11 @@
   margin-top: 5px;
 }
 
+/* CODEMIRROR */
+.ͼ1.cm-focused {
+  outline: none;
+}
+
 /* Cursor selection background */
 .yRemoteSelection {
   opacity: 0.5;

@@ -1,11 +1,26 @@
+import { indentWithTab } from '@codemirror/commands';
+import { javascript } from '@codemirror/lang-javascript';
 import { EditorState } from '@codemirror/state';
-import { RoomSchema } from '@coderscreen/api/schema/room';
+import { keymap } from '@codemirror/view';
+import type { RoomSchema } from '@coderscreen/api/schema/room';
 import { basicSetup, EditorView } from 'codemirror';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { yCollab } from 'y-codemirror.next';
 import * as Y from 'yjs';
 import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
+// import { cpp } from '@codemirror/lang-cpp';
+// import { css } from '@codemirror/lang-css';
+// import { go } from '@codemirror/lang-go';
+// import { html } from '@codemirror/lang-html';
+// import { java } from '@codemirror/lang-java';
+// import { json } from '@codemirror/lang-json';
+// import { markdown } from '@codemirror/lang-markdown';
+// import { php } from '@codemirror/lang-php';
+// import { python } from '@codemirror/lang-python';
+// import { ruby } from '@codemirror/lang-ruby';
+// import { rust } from '@codemirror/lang-rust';
+// import { typescript } from '@codemirror/lang-typescript';
 
 export interface FileNode {
   id: string;
@@ -77,9 +92,6 @@ const buildFileTree = (paths: string[]): FileNode[] => {
   paths.forEach((path) => {
     // remove / prefix
     const parts = path.startsWith('/') ? path.split('/').slice(1) : path.split('/');
-
-    console.log('parts for path', path, parts);
-
     // Handle files with folder structure
     let currentPath = '';
 
@@ -96,7 +108,7 @@ const buildFileTree = (paths: string[]): FileNode[] => {
         } else {
           const parentPath = parts.slice(0, i).join('/');
           const parent = fileMap.get(parentPath);
-          if (parent && parent.children) {
+          if (parent?.children) {
             parent.children.push(node);
           }
         }
@@ -112,13 +124,20 @@ const buildFileTree = (paths: string[]): FileNode[] => {
 
       const parentPath = parts.slice(0, -1).join('/');
       const parent = fileMap.get(parentPath);
-      if (parent && parent.children) {
+      if (parent?.children) {
         parent.children.push(node);
       } else if (parts.length === 1) {
         // If this is a root-level file (no parent directory), add it to rootNodes
         rootNodes.push(node);
       }
     }
+  });
+
+  // sort the root nodes by folders first then files and alphabetically
+  rootNodes.sort((a, b) => {
+    if (a.type === 'folder' && b.type === 'file') return -1;
+    if (a.type === 'file' && b.type === 'folder') return 1;
+    return a.name.localeCompare(b.name);
   });
 
   return rootNodes;
@@ -164,7 +183,15 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       const state = EditorState.create({
         doc: ytext.toString(),
-        extensions: [basicSetup, yCollab(ytext, null, { undoManager })],
+        extensions: [
+          basicSetup,
+          yCollab(ytext, null, { undoManager }),
+          keymap.of([indentWithTab]),
+          javascript({
+            jsx: true,
+            typescript: true,
+          }),
+        ],
       });
 
       return state;

@@ -1,18 +1,5 @@
 'use client';
 
-// import { cpp } from '@codemirror/lang-cpp';
-// import { css } from '@codemirror/lang-css';
-// import { go } from '@codemirror/lang-go';
-// import { html } from '@codemirror/lang-html';
-// import { java } from '@codemirror/lang-java';
-// import { javascript } from '@codemirror/lang-javascript';
-// import { json } from '@codemirror/lang-json';
-// import { markdown } from '@codemirror/lang-markdown';
-// import { php } from '@codemirror/lang-php';
-// import { python } from '@codemirror/lang-python';
-// import { ruby } from '@codemirror/lang-ruby';
-// import { rust } from '@codemirror/lang-rust';
-// import { typescript } from '@codemirror/lang-typescript';
 import { useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { EditorHeader } from '@/components/room/editor/EditorHeader';

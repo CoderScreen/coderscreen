@@ -213,14 +213,11 @@ const buildFilesToSandpackSetup = (doc: Y.Doc): SandboxSetup => {
   const files = doc.getMap<string>('files');
 
   // iterate over the files and build the sandbox setup
-
   const newSetup: SandboxSetup = {
     files: {},
   };
 
   files.forEach((_, key) => {
-    console.log('file.forEach', key);
-
     const codeValue = doc.getText(`file:${key}`).toJSON();
     newSetup.files[key] = {
       code: codeValue,
