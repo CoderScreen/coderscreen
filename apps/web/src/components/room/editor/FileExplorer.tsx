@@ -1,28 +1,42 @@
 'use client';
 
-import { RiFileLine, RiFolderFill, RiFolderOpenFill, RiMore2Line } from '@remixicon/react';
+import {
+  RiDeleteBinLine,
+  RiFileAddLine,
+  RiFileLine,
+  RiFolderAddLine,
+  RiFolderFill,
+  RiFolderOpenFill,
+  RiMore2Line,
+} from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown';
 import { cn } from '@/lib/utils';
 import { FileNode } from '@/query/realtime/multiFileCode.query';
+import { AddFileInput } from './multi-file/AddFileInput';
 
 interface FileExplorerProps {
   files: FileNode[];
   selectedFile?: string;
-  onFileSelect?: (file: FileNode) => void;
-  onFileCreate?: (path: string, type: 'file' | 'folder') => void;
-  onFileDelete?: (path: string) => void;
-  onFileRename?: (oldPath: string, newPath: string) => void;
+  onFileSelect: (file: FileNode) => void;
+  onFileCreate: (path: string, type: 'file' | 'folder') => void;
+  onFileDelete: (path: string) => void;
+  onFileRename: (oldPath: string, newPath: string) => void;
   className?: string;
 }
 
 const FileIcon = ({ file }: { file: FileNode }) => {
   if (file.type === 'folder') {
     return file.isExpanded ? (
-      <RiFolderOpenFill className='h-4 w-4 text-blue-500' />
+      <RiFolderOpenFill className='h-4 w-4 text-yellow-500' />
     ) : (
-      <RiFolderFill className='h-4 w-4 text-blue-500' />
+      <RiFolderFill className='h-4 w-4 text-yellow-500' />
     );
   }
 
@@ -38,22 +52,35 @@ const FileTreeItem = ({
   file,
   level = 0,
   selectedFile,
+  focusedFile,
+  addingFilePath,
   onFileSelect,
   onToggleExpand,
+  onConfirmFile,
+  onCancelFile,
 }: {
   file: FileNode;
   level?: number;
   selectedFile?: string;
-  onFileSelect?: (file: FileNode) => void;
-  onToggleExpand?: (file: FileNode) => void;
+  focusedFile?: FileNode | null;
+  addingFilePath?: string | null;
+  onFileSelect: (file: FileNode) => void;
+  onToggleExpand: (file: FileNode) => void;
+  onConfirmFile: (fileName: string) => void;
+  onCancelFile: () => void;
 }) => {
   const isSelected = selectedFile === file.path;
+  const isFocused = focusedFile?.path === file.path;
+
+  if (file.type === 'folder') {
+    console.log('folder.path', file.path, 'addingFilePath', addingFilePath);
+  }
 
   const handleClick = useCallback(() => {
     if (file.type === 'folder') {
-      onToggleExpand?.(file);
+      onToggleExpand(file);
     } else {
-      onFileSelect?.(file);
+      onFileSelect(file);
     }
   }, [file, onFileSelect, onToggleExpand]);
 
@@ -63,11 +90,10 @@ const FileTreeItem = ({
         type='button'
         className={cn(
           'flex items-center gap-2 w-full text-left p-1 text-xs text-muted-foreground group',
-          'hover:bg-white rounded-md',
+          'hover:bg-white rounded relative',
           isSelected && 'text-black',
-          level > 0 && 'ml-2'
+          isFocused && !addingFilePath && 'ring-2 ring-blue-500/50 ring-offset-1 z-20'
         )}
-        style={{ paddingLeft: `${level * 16 + 12}px` }}
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -82,24 +108,46 @@ const FileTreeItem = ({
         <span className='truncate flex-1 flex items-center justify-between'>
           <span>{file.name}</span>
 
-          <span className='h-4 w-4 group-hover:flex hidden'>
-            <RiMore2Line className='h-3 w-3' />
-          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <RiMore2Line className='h-3 w-3' />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem className='flex items-center gap-2 text-muted-foreground'>
+                <RiDeleteBinLine className='h-3 w-3 text-red-500' />
+                <span className='text-xs'>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </span>
       </button>
 
       {file.type === 'folder' && file.isExpanded && file.children && (
-        <div className='mt-1'>
+        <div className='mt-1 border-l border-gray-300 ml-2 pl-2'>
           {file.children.map((child) => (
             <FileTreeItem
               key={child.id}
               file={child}
               level={level + 1}
               selectedFile={selectedFile}
+              focusedFile={focusedFile}
+              addingFilePath={addingFilePath}
               onFileSelect={onFileSelect}
               onToggleExpand={onToggleExpand}
+              onConfirmFile={onConfirmFile}
+              onCancelFile={onCancelFile}
             />
           ))}
+
+          {addingFilePath === file.path && (
+            <div className='mt-1'>
+              <AddFileInput
+                onConfirm={onConfirmFile}
+                onCancel={onCancelFile}
+                placeholder='Enter file name...'
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -110,12 +158,18 @@ export const FileExplorer = ({
   files,
   selectedFile,
   onFileSelect,
+  onFileCreate,
   className,
 }: FileExplorerProps) => {
+  const [focusedFile, setFocusedFile] = useState<FileNode | null>(null);
+  const [addingFilePath, setAddingFilePath] = useState<string | null>(null);
+
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const handleToggleExpand = useCallback(
     (file: FileNode) => {
+      console.log('toggleExpand', file.path);
+      setFocusedFile(file);
       if (file.type === 'folder') {
         const newExpanded = new Set(expandedFolders);
         if (newExpanded.has(file.path)) {
@@ -128,6 +182,40 @@ export const FileExplorer = ({
     },
     [expandedFolders]
   );
+
+  const handleFileSelect = useCallback(
+    (file: FileNode) => {
+      setFocusedFile(file);
+      onFileSelect?.(file);
+    },
+    [onFileSelect]
+  );
+
+  const handleClickNewFile = useCallback((file: FileNode | null) => {
+    if (!file) return;
+
+    if (file.type === 'file') {
+      const dirPath = file.path.split('/').slice(0, -1).join('/');
+      setAddingFilePath(dirPath);
+    } else {
+      setAddingFilePath(file.path);
+    }
+  }, []);
+
+  const handleConfirmFile = useCallback(
+    (fileName: string) => {
+      if (addingFilePath !== null && onFileCreate) {
+        const fullPath = addingFilePath ? `${addingFilePath}/${fileName}` : fileName;
+        onFileCreate(fullPath, 'file');
+      }
+      setAddingFilePath(null);
+    },
+    [addingFilePath, onFileCreate]
+  );
+
+  const handleCancelFile = useCallback(() => {
+    setAddingFilePath(null);
+  }, []);
 
   const toggleExpandedFolders = useCallback(
     (files: FileNode[]): FileNode[] => {
@@ -143,17 +231,33 @@ export const FileExplorer = ({
   const processedFiles = toggleExpandedFolders(files);
 
   return (
-    <div className={cn('h-full flex flex-col bg-gray-50 border-r', className)}>
+    <div className={cn('h-full flex flex-col bg-gray-50 border-r px-1', className)}>
       {/* Header */}
       <div className='flex items-center justify-between p-2'>
         <h3 className='text-xs text-muted-foreground'>Files</h3>
-        <Button variant='icon' className='h-6 w-6 p-0 hover:bg-gray-200'>
-          <RiMore2Line className='h-3 w-3' />
-        </Button>
+        <span className='text-xs text-muted-foreground'>adding: {addingFilePath ?? 'null'}</span>
+        <DropdownMenu>
+          <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
+            <RiMore2Line className='h-3 w-3' />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DropdownMenuItem
+              className='flex items-center gap-2 text-muted-foreground'
+              onClick={() => handleClickNewFile(focusedFile)}
+            >
+              <RiFileAddLine className='h-3 w-3' />
+              <span className='text-xs'>New File</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className='flex items-center gap-2 text-muted-foreground'>
+              <RiFolderAddLine className='h-3 w-3' />
+              <span className='text-xs'>New Folder</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* File Tree */}
-      <div className='flex-1 overflow-y-auto py-2'>
+      <div className='flex-1 overflow-y-auto py-2 px-1'>
         {processedFiles.length === 0 ? (
           <div className='px-4 py-8 text-center'>
             <div className='text-gray-400 text-sm'>No files</div>
@@ -164,8 +268,12 @@ export const FileExplorer = ({
               key={file.id}
               file={file}
               selectedFile={selectedFile}
-              onFileSelect={onFileSelect}
+              focusedFile={focusedFile}
+              addingFilePath={addingFilePath}
+              onFileSelect={handleFileSelect}
               onToggleExpand={handleToggleExpand}
+              onConfirmFile={handleConfirmFile}
+              onCancelFile={handleCancelFile}
             />
           ))
         )}

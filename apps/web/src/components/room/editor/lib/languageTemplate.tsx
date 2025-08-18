@@ -9,14 +9,21 @@ type WorkspaceTemplate = {
 export const REACT_WORKSPACE_TEMPLATE: WorkspaceTemplate = [
   {
     path: '/package.json',
-    code: JSON.stringify({
-      name: 'react-workspace',
-      main: 'src/index.js',
-      dependencies: {
-        react: 'latest',
-        'react-dom': 'latest',
+    code: JSON.stringify(
+      {
+        name: 'react-workspace',
+        main: 'src/index.tsx',
+        dependencies: {
+          react: 'latest',
+          'react-dom': 'latest',
+          '@types/react': 'latest',
+          '@types/react-dom': 'latest',
+          typescript: 'latest',
+        },
       },
-    }),
+      null,
+      2
+    ),
   },
   {
     path: '/public',
@@ -44,30 +51,44 @@ export const REACT_WORKSPACE_TEMPLATE: WorkspaceTemplate = [
     code: '',
   },
   {
-    path: '/src/index.js',
+    path: '/src/index.tsx',
     code: `import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 
-const root = createRoot(document.getElementById("root"));
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Failed to find the root element");
+
+const root = createRoot(rootElement);
 root.render(<App />);
 `,
   },
   {
-    path: '/src/App.js',
+    path: '/src/App.tsx',
     code: `import React from "react";
+import Header from "./components/Header";
+import "./styles/main.css";
 
-export default function App() {
+const App: React.FC = () => {
+  const handleClick = (): void => {
+    console.log("Hello from workspace!");
+  };
+
   return (
-    <div>
-      <h1>React Workspace</h1>
-      <p>This is a React workspace template.</p>
-      <button onClick={() => console.log("Hello from workspace!")}>
-        Click me to log
-      </button>
+    <div className="container">
+      <Header />
+      <main>
+        <h1>React Workspace</h1>
+        <p>This is a React workspace template.</p>
+        <button onClick={handleClick}>
+          Click me to log
+        </button>
+      </main>
     </div>
   );
-}
+};
+
+export default App;
 `,
   },
   {
@@ -76,16 +97,18 @@ export default function App() {
     code: '',
   },
   {
-    path: '/src/components/Header.js',
+    path: '/src/components/Header.tsx',
     code: `import React from "react";
 
-export default function Header() {
+const Header: React.FC = () => {
   return (
     <header style={{ padding: '1rem', backgroundColor: '#f0f0f0' }}>
       <h2>Workspace Header</h2>
     </header>
   );
-}
+};
+
+export default Header;
 `,
   },
   {
@@ -112,10 +135,55 @@ export default function Header() {
 `,
   },
   {
+    path: '/tsconfig.json',
+    code: JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          module: 'ESNext',
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          allowImportingTsExtensions: true,
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'react-jsx',
+          strict: true,
+          noUnusedLocals: true,
+          noUnusedParameters: true,
+          noFallthroughCasesInSwitch: true,
+        },
+        include: ['src'],
+        references: [{ path: './tsconfig.node.json' }],
+      },
+      null,
+      2
+    ),
+  },
+  {
+    path: '/tsconfig.node.json',
+    code: JSON.stringify(
+      {
+        compilerOptions: {
+          composite: true,
+          skipLibCheck: true,
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          allowSyntheticDefaultImports: true,
+        },
+        include: ['vite.config.ts'],
+      },
+      null,
+      2
+    ),
+  },
+  {
     path: '/README.md',
-    code: `# React Workspace
+    code: `# React TypeScript Workspace
 
-This is a React workspace template with a basic file structure.
+This is a React workspace template with TypeScript and a basic file structure.
 
 ## Structure
 
@@ -126,7 +194,7 @@ This is a React workspace template with a basic file structure.
 
 ## Getting Started
 
-The app is already set up and ready to run!
+The app is already set up and ready to run with TypeScript support!
 `,
   },
 ];

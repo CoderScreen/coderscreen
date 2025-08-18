@@ -33,7 +33,7 @@ export interface FileNode {
 }
 
 // Helper function to get language from file path
-const getLanguageFromPath = (path: string): RoomSchema['language'] | null => {
+export const getLanguageFromPath = (path: string): RoomSchema['language'] | null => {
   const ext = path.split('.').pop()?.toLowerCase();
   switch (ext) {
     case 'js':
@@ -117,7 +117,6 @@ const buildFileTree = (paths: string[]): FileNode[] => {
 
     // Create the file node (last part)
     const filePath = path;
-    console.log('filePath', filePath);
     if (!fileMap.has(filePath)) {
       const node = createFileNode(filePath, 'file');
       fileMap.set(filePath, node);
@@ -133,12 +132,29 @@ const buildFileTree = (paths: string[]): FileNode[] => {
     }
   });
 
-  // sort the root nodes by folders first then files and alphabetically
-  rootNodes.sort((a, b) => {
-    if (a.type === 'folder' && b.type === 'file') return -1;
-    if (a.type === 'file' && b.type === 'folder') return 1;
-    return a.name.localeCompare(b.name);
-  });
+  // Sort function for folders first, then files, then alphabetically
+  const sortNodes = (nodes: FileNode[]) => {
+    nodes.sort((a, b) => {
+      if (a.type === 'folder' && b.type === 'file') return -1;
+      if (a.type === 'file' && b.type === 'folder') return 1;
+      return a.name.localeCompare(b.name);
+    });
+  };
+
+  // Sort root nodes
+  sortNodes(rootNodes);
+
+  // Sort children recursively
+  const sortChildrenRecursively = (nodes: FileNode[]) => {
+    nodes.forEach((node) => {
+      if (node.children && node.children.length > 0) {
+        sortNodes(node.children);
+        sortChildrenRecursively(node.children);
+      }
+    });
+  };
+
+  sortChildrenRecursively(rootNodes);
 
   return rootNodes;
 };
@@ -151,11 +167,8 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
   // Get files from the provider and convert to FileNode tree
   const fileMap = provider.doc.getMap<string>('files');
-  console.log('fileMap in useMultiFileCodeEditor', fileMap);
   const filePaths = Array.from(fileMap.keys());
   const files = buildFileTree(filePaths);
-
-  console.log('files in useMultiFileCodeEditor', files);
 
   const getOrCreateView = useCallback(
     (initialState: EditorState) => {
@@ -218,8 +231,6 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       // Add to file map
       const fileMap = provider.doc.getMap<string>('files');
       fileMap.set(filePath, content ?? '');
-
-      console.log('added file to fileMap', filePath, content?.slice(0, 10));
     },
     [provider]
   );

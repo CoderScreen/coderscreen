@@ -1,5 +1,4 @@
 import type { RoomSchema } from '@coderscreen/api/schema/room';
-import { RiBracesFill } from '@remixicon/react';
 import BashPlain from 'devicons-react/icons/BashPlain';
 import CPlain from 'devicons-react/icons/CPlain';
 import CplusplusPlain from 'devicons-react/icons/CplusplusPlain';
@@ -19,7 +18,7 @@ import VueOriginal from 'devicons-react/icons/VuejsOriginal';
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
-const BASE_ICON_STYLE = 'h-4 w-4';
+const BASE_ICON_STYLE = '';
 
 export const LanguageIcon = ({
   language,
@@ -66,14 +65,10 @@ export const LanguageIcon = ({
         return <SveltePlain className={iconStyle} />;
       case 'solidjs':
         return <SolidjsPlain className={iconStyle} />;
-      case 'json':
-        return (
-          <div className={cn(iconStyle, 'font-bold text-center text-yellow-500')}>{'{ }'}</div>
-        );
       default:
         return <div className={cn(iconStyle, 'bg-gray-200')} />;
     }
   })();
 
-  return <div className='flex items-center bg-gray-100 rounded-md p-0.5'>{icon}</div>;
+  return <div className='flex items-center bg-gray-100 rounded-md p-0.5 h-4 w-4'>{icon}</div>;
 };
