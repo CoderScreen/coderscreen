@@ -161,14 +161,11 @@ const buildFileTree = (paths: string[]): FileNode[] => {
 
 export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElement | null>) {
   const { provider } = useRoomContext();
+
+  const [files, setFiles] = useState<FileNode[]>([]);
   const [selectedFile, _setSelectedFile] = useState<string | undefined>(undefined);
 
   const editorViewRef = useRef<EditorView>(null);
-
-  // Get files from the provider and convert to FileNode tree
-  const fileMap = provider.doc.getMap<string>('files');
-  const filePaths = Array.from(fileMap.keys());
-  const files = buildFileTree(filePaths);
 
   const getOrCreateView = useCallback(
     (initialState: EditorState) => {
@@ -306,10 +303,19 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // #########################################################
 
   useEffect(() => {
+    // subscribe to filemap changes
+    // Get files from the provider and convert to FileNode tree
+    const fileMap = provider.doc.getMap<string>('files');
+
+    fileMap.observe(() => {
+      const filePaths = Array.from(fileMap.keys());
+      setFiles(buildFileTree(filePaths));
+    });
+
     return () => {
       editorViewRef.current?.destroy();
     };
-  }, []);
+  }, [provider]);
 
   const setSelectedFile = useCallback(
     (filePath: string) => {

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dropdown';
 import { cn } from '@/lib/utils';
 import { FileNode } from '@/query/realtime/multiFileCode.query';
-import { AddFileInput } from './multi-file/AddFileInput';
+import { AddItemInput } from './multi-file/AddItemInput';
 
 interface FileExplorerProps {
   files: FileNode[];
@@ -53,28 +53,26 @@ const FileTreeItem = ({
   level = 0,
   selectedFile,
   focusedFile,
-  addingFilePath,
+  addingItem,
   onFileSelect,
   onToggleExpand,
   onConfirmFile,
   onCancelFile,
+  onNewFile,
 }: {
   file: FileNode;
   level?: number;
   selectedFile?: string;
   focusedFile?: FileNode | null;
-  addingFilePath?: string | null;
+  addingItem?: { path: string; isFolder: boolean } | null;
   onFileSelect: (file: FileNode) => void;
   onToggleExpand: (file: FileNode) => void;
   onConfirmFile: (fileName: string) => void;
   onCancelFile: () => void;
+  onNewFile: (file: FileNode, isFolder: boolean) => void;
 }) => {
   const isSelected = selectedFile === file.path;
   const isFocused = focusedFile?.path === file.path;
-
-  if (file.type === 'folder') {
-    console.log('folder.path', file.path, 'addingFilePath', addingFilePath);
-  }
 
   const handleClick = useCallback(() => {
     if (file.type === 'folder') {
@@ -86,41 +84,62 @@ const FileTreeItem = ({
 
   return (
     <div>
-      <button
-        type='button'
+      <div
         className={cn(
           'flex items-center gap-2 w-full text-left p-1 text-xs text-muted-foreground group',
           'hover:bg-white rounded relative',
           isSelected && 'text-black',
-          isFocused && !addingFilePath && 'ring-2 ring-blue-500/50 ring-offset-1 z-20'
+          isFocused && 'ring-2 ring-blue-500/50 ring-offset-1 z-20'
         )}
-        onClick={handleClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
       >
-        <div className='flex-shrink-0'>
-          <FileIcon file={file} />
-        </div>
-        <span className='truncate flex-1 flex items-center justify-between'>
-          <span>{file.name}</span>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <RiMore2Line className='h-3 w-3' />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem className='flex items-center gap-2 text-muted-foreground'>
-                <RiDeleteBinLine className='h-3 w-3 text-red-500' />
-                <span className='text-xs'>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <span
+          role='button'
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
+          className='flex items-center gap-2 flex-1'
+        >
+          <div className='flex-shrink-0'>
+            <FileIcon file={file} />
+          </div>
+          <div>{file.name}</div>
         </span>
-      </button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <RiMore2Line className='shrink-0 h-3 w-3 cursor-pointer' />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DropdownMenuItem
+              className='flex items-center gap-2 text-muted-foreground'
+              onClick={() => onNewFile(file, false)}
+            >
+              <RiFileAddLine className='h-3 w-3' />
+              <span className='text-xs'>New File</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className='flex items-center gap-2 text-muted-foreground'
+              onClick={() => onNewFile(file, true)}
+            >
+              <RiFolderAddLine className='h-3 w-3' />
+              <span className='text-xs'>New Folder</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className='flex items-center gap-2 text-muted-foreground'>
+              <RiDeleteBinLine className='h-3 w-3 text-red-500' />
+              <span className='text-xs'>Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {file.type === 'folder' && file.isExpanded && file.children && (
         <div className='mt-1 border-l border-gray-300 ml-2 pl-2'>
@@ -131,20 +150,22 @@ const FileTreeItem = ({
               level={level + 1}
               selectedFile={selectedFile}
               focusedFile={focusedFile}
-              addingFilePath={addingFilePath}
+              addingItem={addingItem}
               onFileSelect={onFileSelect}
               onToggleExpand={onToggleExpand}
               onConfirmFile={onConfirmFile}
               onCancelFile={onCancelFile}
+              onNewFile={onNewFile}
             />
           ))}
 
-          {addingFilePath === file.path && (
+          {addingItem?.path === file.path && (
             <div className='mt-1'>
-              <AddFileInput
+              <AddItemInput
+                isFolder={addingItem.isFolder}
                 onConfirm={onConfirmFile}
                 onCancel={onCancelFile}
-                placeholder='Enter file name...'
+                placeholder={`Enter ${addingItem.isFolder ? 'folder' : 'file'} name...`}
               />
             </div>
           )}
@@ -162,7 +183,10 @@ export const FileExplorer = ({
   className,
 }: FileExplorerProps) => {
   const [focusedFile, setFocusedFile] = useState<FileNode | null>(null);
-  const [addingFilePath, setAddingFilePath] = useState<string | null>(null);
+  const [addingItem, setAddingItem] = useState<{
+    path: string;
+    isFolder: boolean;
+  } | null>(null);
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
@@ -191,30 +215,51 @@ export const FileExplorer = ({
     [onFileSelect]
   );
 
-  const handleClickNewFile = useCallback((file: FileNode | null) => {
-    if (!file) return;
+  const handleClickNewFile = useCallback(
+    (file: FileNode | null, isFolder: boolean) => {
+      if (!file) return;
 
-    if (file.type === 'file') {
-      const dirPath = file.path.split('/').slice(0, -1).join('/');
-      setAddingFilePath(dirPath);
-    } else {
-      setAddingFilePath(file.path);
-    }
-  }, []);
+      // Ensure the folder is expanded when adding a new file/folder
+      if (file.type === 'folder') {
+        const newExpanded = new Set(expandedFolders);
+        newExpanded.add(file.path);
+        setExpandedFolders(newExpanded);
+        setAddingItem({
+          path: file.path,
+          isFolder,
+        });
+      } else {
+        const rawDirPath = file.path.split('/').slice(0, -1).join('/');
+        const dirPath = rawDirPath.startsWith('/') ? rawDirPath.substring(1) : rawDirPath;
+
+        // Also expand the parent directory
+        if (dirPath) {
+          const newExpanded = new Set(expandedFolders);
+          newExpanded.add(dirPath);
+          setExpandedFolders(newExpanded);
+        }
+        setAddingItem({
+          path: dirPath,
+          isFolder,
+        });
+      }
+    },
+    [expandedFolders]
+  );
 
   const handleConfirmFile = useCallback(
     (fileName: string) => {
-      if (addingFilePath !== null && onFileCreate) {
-        const fullPath = addingFilePath ? `${addingFilePath}/${fileName}` : fileName;
+      if (addingItem !== null && onFileCreate) {
+        const fullPath = addingItem ? `${addingItem.path}/${fileName}` : fileName;
         onFileCreate(fullPath, 'file');
       }
-      setAddingFilePath(null);
+      setAddingItem(null);
     },
-    [addingFilePath, onFileCreate]
+    [addingItem, onFileCreate]
   );
 
   const handleCancelFile = useCallback(() => {
-    setAddingFilePath(null);
+    setAddingItem(null);
   }, []);
 
   const toggleExpandedFolders = useCallback(
@@ -233,9 +278,11 @@ export const FileExplorer = ({
   return (
     <div className={cn('h-full flex flex-col bg-gray-50 border-r px-1', className)}>
       {/* Header */}
-      <div className='flex items-center justify-between p-2'>
+      <div className='flex items-center justify-between pt-2 px-2'>
         <h3 className='text-xs text-muted-foreground'>Files</h3>
-        <span className='text-xs text-muted-foreground'>adding: {addingFilePath ?? 'null'}</span>
+        <span className='text-xs text-muted-foreground'>
+          adding: {addingItem ? JSON.stringify(addingItem) : 'null'}
+        </span>
         <DropdownMenu>
           <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
             <RiMore2Line className='h-3 w-3' />
@@ -243,12 +290,15 @@ export const FileExplorer = ({
           <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
             <DropdownMenuItem
               className='flex items-center gap-2 text-muted-foreground'
-              onClick={() => handleClickNewFile(focusedFile)}
+              onClick={() => handleClickNewFile(focusedFile, false)}
             >
               <RiFileAddLine className='h-3 w-3' />
               <span className='text-xs'>New File</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className='flex items-center gap-2 text-muted-foreground'>
+            <DropdownMenuItem
+              className='flex items-center gap-2 text-muted-foreground'
+              onClick={() => handleClickNewFile(focusedFile, true)}
+            >
               <RiFolderAddLine className='h-3 w-3' />
               <span className='text-xs'>New Folder</span>
             </DropdownMenuItem>
@@ -269,11 +319,12 @@ export const FileExplorer = ({
               file={file}
               selectedFile={selectedFile}
               focusedFile={focusedFile}
-              addingFilePath={addingFilePath}
+              addingItem={addingItem}
               onFileSelect={handleFileSelect}
               onToggleExpand={handleToggleExpand}
               onConfirmFile={handleConfirmFile}
               onCancelFile={handleCancelFile}
+              onNewFile={handleClickNewFile}
             />
           ))
         )}
