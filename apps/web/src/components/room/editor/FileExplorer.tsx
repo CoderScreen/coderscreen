@@ -18,20 +18,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
 import { cn } from '@/lib/utils';
-import { FileNode } from '@/query/realtime/multiFileCode.query';
+import { FsNode } from '@/query/realtime/multiFileCode.query';
 import { AddItemInput } from './multi-file/AddItemInput';
 
 interface FileExplorerProps {
-  files: FileNode[];
+  files: FsNode[];
   selectedFile?: string;
-  onFileSelect: (file: FileNode) => void;
-  onFileCreate: (path: string, type: 'file' | 'folder') => void;
-  onFileDelete: (path: string) => void;
-  onFileRename: (oldPath: string, newPath: string) => void;
+  onFileSelect: (file: FsNode) => void;
+  onFileCreate: (path: string) => void;
+  onFolderCreate: (path: string) => void;
+  checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
   className?: string;
 }
 
-const FileIcon = ({ file }: { file: FileNode }) => {
+const FileIcon = ({ file }: { file: FsNode }) => {
   if (file.type === 'folder') {
     return file.isExpanded ? (
       <RiFolderOpenFill className='h-4 w-4 text-yellow-500' />
@@ -59,17 +59,19 @@ const FileTreeItem = ({
   onConfirmFile,
   onCancelFile,
   onNewFile,
+  checkIfPathExists,
 }: {
-  file: FileNode;
+  file: FsNode;
   level?: number;
   selectedFile?: string;
-  focusedFile?: FileNode | null;
+  focusedFile?: FsNode | null;
   addingItem?: { path: string; isFolder: boolean } | null;
-  onFileSelect: (file: FileNode) => void;
-  onToggleExpand: (file: FileNode) => void;
-  onConfirmFile: (fileName: string) => void;
+  onFileSelect: (file: FsNode) => void;
+  onToggleExpand: (file: FsNode) => void;
+  onConfirmFile: (fileName: string, isFolder: boolean) => void;
   onCancelFile: () => void;
-  onNewFile: (file: FileNode, isFolder: boolean) => void;
+  onNewFile: (file: FsNode, isFolder: boolean) => void;
+  checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
 }) => {
   const isSelected = selectedFile === file.path;
   const isFocused = focusedFile?.path === file.path;
@@ -156,6 +158,7 @@ const FileTreeItem = ({
               onConfirmFile={onConfirmFile}
               onCancelFile={onCancelFile}
               onNewFile={onNewFile}
+              checkIfPathExists={checkIfPathExists}
             />
           ))}
 
@@ -163,9 +166,11 @@ const FileTreeItem = ({
             <div className='mt-1'>
               <AddItemInput
                 isFolder={addingItem.isFolder}
-                onConfirm={onConfirmFile}
+                onConfirm={(fileName) => onConfirmFile(fileName, addingItem.isFolder)}
                 onCancel={onCancelFile}
                 placeholder={`Enter ${addingItem.isFolder ? 'folder' : 'file'} name...`}
+                checkIfPathExists={checkIfPathExists}
+                parentPath={file.path}
               />
             </div>
           )}
@@ -180,9 +185,11 @@ export const FileExplorer = ({
   selectedFile,
   onFileSelect,
   onFileCreate,
+  onFolderCreate,
+  checkIfPathExists,
   className,
 }: FileExplorerProps) => {
-  const [focusedFile, setFocusedFile] = useState<FileNode | null>(null);
+  const [focusedFile, setFocusedFile] = useState<FsNode | null>(null);
   const [addingItem, setAddingItem] = useState<{
     path: string;
     isFolder: boolean;
@@ -191,7 +198,7 @@ export const FileExplorer = ({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const handleToggleExpand = useCallback(
-    (file: FileNode) => {
+    (file: FsNode) => {
       console.log('toggleExpand', file.path);
       setFocusedFile(file);
       if (file.type === 'folder') {
@@ -208,7 +215,7 @@ export const FileExplorer = ({
   );
 
   const handleFileSelect = useCallback(
-    (file: FileNode) => {
+    (file: FsNode) => {
       setFocusedFile(file);
       onFileSelect?.(file);
     },
@@ -216,7 +223,7 @@ export const FileExplorer = ({
   );
 
   const handleClickNewFile = useCallback(
-    (file: FileNode | null, isFolder: boolean) => {
+    (file: FsNode | null, isFolder: boolean) => {
       if (!file) return;
 
       // Ensure the folder is expanded when adding a new file/folder
@@ -248,14 +255,19 @@ export const FileExplorer = ({
   );
 
   const handleConfirmFile = useCallback(
-    (fileName: string) => {
-      if (addingItem !== null && onFileCreate) {
+    (fileName: string, isFolder: boolean) => {
+      if (addingItem !== null) {
         const fullPath = addingItem ? `${addingItem.path}/${fileName}` : fileName;
-        onFileCreate(fullPath, 'file');
+
+        if (isFolder) {
+          onFolderCreate(fullPath);
+        } else {
+          onFileCreate(fullPath);
+        }
       }
       setAddingItem(null);
     },
-    [addingItem, onFileCreate]
+    [addingItem, onFileCreate, onFolderCreate]
   );
 
   const handleCancelFile = useCallback(() => {
@@ -263,7 +275,7 @@ export const FileExplorer = ({
   }, []);
 
   const toggleExpandedFolders = useCallback(
-    (files: FileNode[]): FileNode[] => {
+    (files: FsNode[]): FsNode[] => {
       return files.map((file) => ({
         ...file,
         isExpanded: expandedFolders.has(file.path),
@@ -325,6 +337,7 @@ export const FileExplorer = ({
               onConfirmFile={handleConfirmFile}
               onCancelFile={handleCancelFile}
               onNewFile={handleClickNewFile}
+              checkIfPathExists={checkIfPathExists}
             />
           ))
         )}

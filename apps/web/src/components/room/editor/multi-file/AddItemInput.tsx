@@ -9,6 +9,8 @@ interface AddFileInputProps {
   isFolder: boolean;
   onConfirm: (fileName: string) => void;
   onCancel: () => void;
+  checkIfPathExists: (fileName: string, type: 'file' | 'folder') => boolean;
+  parentPath?: string;
   placeholder?: string;
   className?: string;
 }
@@ -25,11 +27,27 @@ export const AddItemInput = ({
   isFolder,
   onConfirm,
   onCancel,
+  checkIfPathExists,
+  parentPath = '',
   placeholder = 'Enter file name...',
   className,
 }: AddFileInputProps) => {
   const [fileName, setFileName] = useState('');
+  const [disabled, setDisabled] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if path exists and update disabled state
+  useEffect(() => {
+    if (fileName.trim()) {
+      const fullPath = parentPath ? `${parentPath}/${fileName.trim()}` : fileName.trim();
+      const pathExists = checkIfPathExists(fullPath, isFolder ? 'folder' : 'file');
+
+      setDisabled(pathExists);
+    } else {
+      setDisabled(false);
+    }
+  }, [fileName, parentPath, isFolder, checkIfPathExists]);
 
   // Ensure focus when component mounts
   useEffect(() => {
@@ -44,10 +62,10 @@ export const AddItemInput = ({
   }, []);
 
   const handleConfirm = useCallback(() => {
-    if (fileName.trim()) {
+    if (fileName.trim() && !disabled) {
       onConfirm(fileName.trim());
     }
-  }, [fileName, onConfirm]);
+  }, [fileName, onConfirm, disabled]);
 
   const handleCancel = useCallback(() => {
     setFileName('');
@@ -76,6 +94,7 @@ export const AddItemInput = ({
         'hover:bg-white rounded relative',
         'border border-stone-300 focus:outline-none',
         'focus-within:ring-1 focus-within:ring-primary/70 z-20',
+        disabled && 'opacity-50 border-red-300 bg-red-50',
         className
       )}
     >
@@ -95,6 +114,7 @@ export const AddItemInput = ({
         placeholder={placeholder}
         className='flex-1 border-none text-xs outline-none '
       />
+      {disabled && <span className='text-xs text-red-500 shrink-0'>Already exists</span>}
     </div>
   );
 };

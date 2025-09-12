@@ -16,11 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { isFramework, isLanguage } from '@/lib/sandpack/languageUtils';
+import { isLanguage } from '@/lib/sandpack/languageUtils';
 import { useCodeEditor } from '@/query/realtime/code.query';
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 import { type EditorSettings, EditorSettingsDialog } from './EditorSettingsDialog';
-import { FileExplorer } from './FileExplorer';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },

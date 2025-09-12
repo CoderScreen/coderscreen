@@ -9,6 +9,17 @@ import { yCollab } from 'y-codemirror.next';
 import * as Y from 'yjs';
 import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
+import {
+  addItemToParent,
+  createFileEntry,
+  createFolderEntry,
+  FS_MAP_KEY,
+  FSEntry,
+  getFileKey,
+  getParentPath,
+  removeItemFromParent,
+  renameItemInParent,
+} from '@/query/realtime/multi-file/docUtils';
 // import { cpp } from '@codemirror/lang-cpp';
 // import { css } from '@codemirror/lang-css';
 // import { go } from '@codemirror/lang-go';
@@ -22,14 +33,14 @@ import { useRoomContext } from '@/contexts/RoomContext';
 // import { rust } from '@codemirror/lang-rust';
 // import { typescript } from '@codemirror/lang-typescript';
 
-export interface FileNode {
+export interface FsNode {
   id: string;
   path: string;
   name: string;
   type: 'file' | 'folder';
   language?: RoomSchema['language'];
   isExpanded?: boolean;
-  children?: FileNode[];
+  children?: FsNode[];
 }
 
 // Helper function to get language from file path
@@ -67,8 +78,8 @@ export const getLanguageFromPath = (path: string): RoomSchema['language'] | null
   }
 };
 
-// Helper function to create a FileNode from a path
-const createFileNode = (path: string, type: 'file' | 'folder' = 'file'): FileNode => {
+// Helper function to create a FsNode from a path
+const createFsNode = (path: string, type: 'file' | 'folder' = 'file'): FsNode => {
   const name = path.split('/').pop() || path;
   const language = type === 'file' ? getLanguageFromPath(path) || undefined : undefined;
 
@@ -83,57 +94,38 @@ const createFileNode = (path: string, type: 'file' | 'folder' = 'file'): FileNod
   };
 };
 
-// Helper function to build file tree from flat paths
-const buildFileTree = (paths: string[]): FileNode[] => {
-  const fileMap = new Map<string, FileNode>();
-  const rootNodes: FileNode[] = [];
+// Helper function to build file tree from fs map
+const buildFileTree = (fsMap: Y.Map<FSEntry>): FsNode[] => {
+  const nodeMap = new Map<string, FsNode>();
+  const rootNodes: FsNode[] = [];
 
-  // Create all nodes first
-  paths.forEach((path) => {
-    // remove / prefix
-    const parts = path.startsWith('/') ? path.split('/').slice(1) : path.split('/');
-    // Handle files with folder structure
-    let currentPath = '';
+  // First pass: Create all nodes from fs map entries
+  fsMap.forEach((entry, path) => {
+    const node = createFsNode(path, entry.type);
+    nodeMap.set(path, node);
+  });
 
-    // Create folder nodes for all parts except the last one
-    for (let i = 0; i < parts.length - 1; i++) {
-      currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+  // Second pass: Build parent-child relationships
+  fsMap.forEach((_entry, path) => {
+    const node = nodeMap.get(path);
+    if (!node) return;
 
-      if (!fileMap.has(currentPath)) {
-        const node = createFileNode(currentPath, 'folder');
-        fileMap.set(currentPath, node);
+    const parentPath = getParentPath(path);
 
-        if (i === 0) {
-          rootNodes.push(node);
-        } else {
-          const parentPath = parts.slice(0, i).join('/');
-          const parent = fileMap.get(parentPath);
-          if (parent?.children) {
-            parent.children.push(node);
-          }
-        }
-      }
-    }
-
-    // Create the file node (last part)
-    const filePath = path;
-    if (!fileMap.has(filePath)) {
-      const node = createFileNode(filePath, 'file');
-      fileMap.set(filePath, node);
-
-      const parentPath = parts.slice(0, -1).join('/');
-      const parent = fileMap.get(parentPath);
+    if (parentPath && nodeMap.has(parentPath)) {
+      // Add to parent's children
+      const parent = nodeMap.get(parentPath);
       if (parent?.children) {
         parent.children.push(node);
-      } else if (parts.length === 1) {
-        // If this is a root-level file (no parent directory), add it to rootNodes
-        rootNodes.push(node);
       }
+    } else {
+      // This is a root-level node
+      rootNodes.push(node);
     }
   });
 
   // Sort function for folders first, then files, then alphabetically
-  const sortNodes = (nodes: FileNode[]) => {
+  const sortNodes = (nodes: FsNode[]) => {
     nodes.sort((a, b) => {
       if (a.type === 'folder' && b.type === 'file') return -1;
       if (a.type === 'file' && b.type === 'folder') return 1;
@@ -145,7 +137,7 @@ const buildFileTree = (paths: string[]): FileNode[] => {
   sortNodes(rootNodes);
 
   // Sort children recursively
-  const sortChildrenRecursively = (nodes: FileNode[]) => {
+  const sortChildrenRecursively = (nodes: FsNode[]) => {
     nodes.forEach((node) => {
       if (node.children && node.children.length > 0) {
         sortNodes(node.children);
@@ -162,7 +154,7 @@ const buildFileTree = (paths: string[]): FileNode[] => {
 export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElement | null>) {
   const { provider } = useRoomContext();
 
-  const [files, setFiles] = useState<FileNode[]>([]);
+  const [files, setFiles] = useState<FsNode[]>([]);
   const [selectedFile, _setSelectedFile] = useState<string | undefined>(undefined);
 
   const editorViewRef = useRef<EditorView>(null);
@@ -188,7 +180,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // Create or get Y.Text for a specific file
   const getOrCreateEditorState = useCallback(
     (filePath: string) => {
-      const ytext = provider.doc.getText(`file:${filePath}`);
+      const ytext = provider.doc.getText(getFileKey(filePath));
       const undoManager = new Y.UndoManager(ytext);
 
       const state = EditorState.create({
@@ -222,12 +214,15 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // Create a new file
   const createFile = useCallback(
     (filePath: string, content?: string) => {
-      const ytext = provider.doc.getText(`file:${filePath}`);
+      const ytext = provider.doc.getText(getFileKey(filePath));
       ytext.insert(0, content ?? '');
 
-      // Add to file map
-      const fileMap = provider.doc.getMap<string>('files');
-      fileMap.set(filePath, content ?? '');
+      // Add to fs map (content is stored in Y.Text, not in fs map)
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      fsMap.set(filePath, createFileEntry());
+
+      // Add to parent folder if it exists
+      addItemToParent(fsMap, filePath, 'file');
     },
     [provider]
   );
@@ -235,12 +230,15 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // Delete a file
   const deleteFile = useCallback(
     (filePath: string) => {
-      const ytext = provider.doc.getText(`file:${filePath}`);
+      const ytext = provider.doc.getText(getFileKey(filePath));
       ytext.delete(0, ytext.length);
 
-      // Remove from file map
-      const fileMap = provider.doc.getMap<string>('files');
-      fileMap.delete(filePath);
+      // Remove from fs map
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      fsMap.delete(filePath);
+
+      // Remove from parent folder
+      removeItemFromParent(fsMap, filePath);
     },
     [provider]
   );
@@ -248,8 +246,8 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // Rename a file
   const renameFile = useCallback(
     (oldPath: string, newPath: string) => {
-      const oldYText = provider.doc.getText(`file:${oldPath}`);
-      const newYText = provider.doc.getText(`file:${newPath}`);
+      const oldYText = provider.doc.getText(getFileKey(oldPath));
+      const newYText = provider.doc.getText(getFileKey(newPath));
 
       // Copy content from old to new
       const content = oldYText.toString();
@@ -258,12 +256,56 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       // Clear old content
       oldYText.delete(0, oldYText.length);
 
-      // Update file map
-      const fileMap = provider.doc.getMap<string>('files');
-      const contentToMove = fileMap.get(oldPath);
-      if (contentToMove !== undefined) {
-        fileMap.set(newPath, contentToMove);
-        fileMap.delete(oldPath);
+      // Update fs map
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      const entryToMove = fsMap.get(oldPath);
+      if (entryToMove !== undefined) {
+        fsMap.set(newPath, entryToMove);
+        fsMap.delete(oldPath);
+
+        // Update parent folder references
+        renameItemInParent(fsMap, oldPath, newPath);
+      }
+    },
+    [provider]
+  );
+
+  const createFolder = useCallback(
+    (folderPath: string) => {
+      // Add to fs map with empty children list
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      fsMap.set(folderPath, createFolderEntry());
+
+      // add item to parent children list
+      addItemToParent(fsMap, folderPath, 'folder');
+    },
+    [provider]
+  );
+
+  const deleteFolder = useCallback(
+    (folderPath: string) => {
+      // Remove from fs map
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      fsMap.delete(folderPath);
+
+      // remove item from parent children list
+      removeItemFromParent(fsMap, folderPath);
+    },
+    [provider]
+  );
+
+  const renameFolder = useCallback(
+    (oldPath: string, newPath: string) => {
+      // rename item in fs map
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      const entryToMove = fsMap.get(oldPath);
+
+      if (entryToMove !== undefined) {
+        fsMap.set(newPath, entryToMove);
+        fsMap.delete(oldPath);
+
+        // rename item in parent children list
+        renameItemInParent(fsMap, oldPath, newPath);
       }
     },
     [provider]
@@ -273,29 +315,32 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     (language: RoomSchema['language']) => {
       // this function should go through all files and delete them.
       // then create the new files with the new language
-
-      console.log('handleWorkspaceReset', language);
-
       provider.doc.transact(() => {
-        const fileMap = provider.doc.getMap<string>('files');
-        fileMap.forEach((_, key) => {
-          deleteFile(key);
+        const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+
+        // Clear all existing entries
+        fsMap.forEach((_, key) => {
+          const entry = fsMap.get(key);
+          if (entry?.type === 'file') {
+            deleteFile(key);
+          } else if (entry?.type === 'folder') {
+            deleteFolder(key);
+          }
         });
-        fileMap.clear();
+        fsMap.clear();
 
         const template = getWorkspaceTemplate(language);
 
         template.forEach((file) => {
           if (file.isFolder) {
-            // no-op for now for folders
-            return;
+            createFolder(file.path);
+          } else {
+            createFile(file.path, file.code);
           }
-
-          createFile(file.path, file.code);
         });
       });
     },
-    [createFile, deleteFile, provider.doc]
+    [createFile, createFolder, deleteFile, deleteFolder, provider.doc]
   );
 
   // #########################################################
@@ -303,13 +348,12 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // #########################################################
 
   useEffect(() => {
-    // subscribe to filemap changes
-    // Get files from the provider and convert to FileNode tree
-    const fileMap = provider.doc.getMap<string>('files');
+    // subscribe to fs map changes
+    // Get files from the provider and convert to FsNode tree
+    const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
 
-    fileMap.observe(() => {
-      const filePaths = Array.from(fileMap.keys());
-      setFiles(buildFileTree(filePaths));
+    fsMap.observe(() => {
+      setFiles(buildFileTree(fsMap));
     });
 
     return () => {
@@ -329,15 +373,30 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     editorViewRef.current?.focus();
   }, []);
 
+  // Check if a path exists in the file system
+  const checkIfPathExists = useCallback(
+    (path: string, type: 'file' | 'folder'): boolean => {
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      const item = fsMap.get(path);
+
+      return item?.type === type;
+    },
+    [provider]
+  );
+
   return {
     createFile,
     deleteFile,
     renameFile,
+    createFolder,
+    deleteFolder,
+    renameFolder,
     handleWorkspaceReset,
     selectedFile,
     setSelectedFile,
     files,
     focusEditor,
     editorVisible: !!editorViewRef.current,
+    checkIfPathExists,
   };
 }

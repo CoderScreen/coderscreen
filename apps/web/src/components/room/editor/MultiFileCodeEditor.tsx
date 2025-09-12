@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { EditorHeader } from '@/components/room/editor/EditorHeader';
 import { useMultiFileCodeEditor } from '@/query/realtime/multiFileCode.query';
@@ -21,30 +21,9 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
     editorVisible,
     handleWorkspaceReset,
     createFile,
-    deleteFile,
-    renameFile,
+    createFolder,
+    checkIfPathExists,
   } = useMultiFileCodeEditor(elementRef);
-
-  const handleFileCreate = useCallback(
-    (path: string) => {
-      createFile(path);
-    },
-    [createFile]
-  );
-
-  const handleFileDelete = useCallback(
-    (path: string) => {
-      deleteFile(path);
-    },
-    [deleteFile]
-  );
-
-  const handleFileRename = useCallback(
-    (oldPath: string, newPath: string) => {
-      renameFile(oldPath, newPath);
-    },
-    [renameFile]
-  );
 
   return (
     <div className={`h-full flex flex-col ${className}`}>
@@ -59,9 +38,9 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
               files={files}
               selectedFile={selectedFile}
               onFileSelect={(file) => setSelectedFile(file.path)}
-              onFileCreate={handleFileCreate}
-              onFileDelete={handleFileDelete}
-              onFileRename={handleFileRename}
+              onFileCreate={createFile}
+              onFolderCreate={createFolder}
+              checkIfPathExists={checkIfPathExists}
             />
           </Panel>
 
