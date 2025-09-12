@@ -23,6 +23,8 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
     createFile,
     createFolder,
     deleteFile,
+    renameFile,
+    renameFolder,
     checkIfPathExists,
   } = useMultiFileCodeEditor(elementRef);
 
@@ -42,6 +44,8 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
               onFileCreate={createFile}
               onFolderCreate={createFolder}
               onFileDelete={deleteFile}
+              onFileRename={renameFile}
+              onFolderRename={renameFolder}
               checkIfPathExists={checkIfPathExists}
             />
           </Panel>

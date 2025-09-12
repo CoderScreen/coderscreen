@@ -2,6 +2,7 @@
 
 import {
   RiDeleteBinLine,
+  RiEditLine,
   RiFileAddLine,
   RiFileLine,
   RiFolderAddLine,
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { FsNode } from '@/query/realtime/multiFileCode.query';
 import { AddItemInput } from './multi-file/AddItemInput';
 import { DeleteFileDialog } from './multi-file/DeleteFileDialog';
+import { RenameItemInput } from './multi-file/RenameItemInput';
 
 interface FileExplorerProps {
   files: FsNode[];
@@ -29,6 +31,8 @@ interface FileExplorerProps {
   onFileCreate: (path: string) => void;
   onFolderCreate: (path: string) => void;
   onFileDelete: (path: string) => void;
+  onFileRename: (oldPath: string, newPath: string) => void;
+  onFolderRename: (oldPath: string, newPath: string) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
   className?: string;
 }
@@ -56,12 +60,16 @@ const FileTreeItem = ({
   selectedFile,
   focusedFile,
   addingItem,
+  renamingItem,
   onFileSelect,
   onToggleExpand,
   onConfirmFile,
   onCancelFile,
   onNewFile,
   onDeleteFile,
+  onRenameFile,
+  onCancelRename,
+  onConfirmRename,
   checkIfPathExists,
 }: {
   file: FsNode;
@@ -69,12 +77,16 @@ const FileTreeItem = ({
   selectedFile?: string;
   focusedFile?: FsNode | null;
   addingItem?: { path: string; isFolder: boolean } | null;
+  renamingItem?: FsNode | null;
   onFileSelect: (file: FsNode) => void;
   onToggleExpand: (file: FsNode) => void;
   onConfirmFile: (fileName: string, isFolder: boolean) => void;
   onCancelFile: () => void;
   onNewFile: (file: FsNode, isFolder: boolean) => void;
   onDeleteFile: (file: FsNode) => void;
+  onRenameFile: (file: FsNode) => void;
+  onCancelRename: () => void;
+  onConfirmRename: (file: FsNode, newName: string) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
 }) => {
   const isSelected = selectedFile === file.path;
@@ -88,67 +100,87 @@ const FileTreeItem = ({
     }
   }, [file, onFileSelect, onToggleExpand]);
 
+  const isRenaming = renamingItem?.path === file.path;
+
   return (
     <div>
-      <div
-        className={cn(
-          'flex items-center gap-2 w-full text-left p-1 text-xs text-muted-foreground group',
-          'hover:bg-white rounded relative',
-          isSelected && 'text-black',
-          isFocused && 'ring-2 ring-blue-500/50 ring-offset-1 z-20'
-        )}
-      >
-        <span
-          role='button'
-          tabIndex={0}
-          onClick={handleClick}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleClick();
-            }
-          }}
-          className='flex items-center gap-2 flex-1'
+      {isRenaming ? (
+        <RenameItemInput
+          isFolder={file.type === 'folder'}
+          currentName={file.name}
+          onConfirm={(newName) => onConfirmRename(file, newName)}
+          onCancel={onCancelRename}
+          checkIfPathExists={checkIfPathExists}
+          parentPath={file.path.split('/').slice(0, -1).join('/')}
+        />
+      ) : (
+        <div
+          className={cn(
+            'flex items-center gap-2 w-full text-left p-1 text-xs text-muted-foreground group',
+            'hover:bg-white rounded relative',
+            isSelected && 'text-black',
+            isFocused && 'ring-2 ring-blue-500/50 ring-offset-1 z-20'
+          )}
         >
-          <div className='flex-shrink-0'>
-            <FileIcon file={file} />
-          </div>
-          <div>{file.name}</div>
-        </span>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            onClick={(e) => {
-              e.stopPropagation();
+          <span
+            role='button'
+            tabIndex={0}
+            onClick={handleClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+              }
             }}
+            className='flex items-center gap-2 flex-1'
           >
-            <RiMore2Line className='shrink-0 h-3 w-3 cursor-pointer' />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem
-              className='flex items-center gap-2 text-muted-foreground'
-              onClick={() => onNewFile(file, false)}
+            <div className='flex-shrink-0'>
+              <FileIcon file={file} />
+            </div>
+            <div>{file.name}</div>
+          </span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
-              <RiFileAddLine className='h-3 w-3' />
-              <span className='text-xs'>New File</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className='flex items-center gap-2 text-muted-foreground'
-              onClick={() => onNewFile(file, true)}
-            >
-              <RiFolderAddLine className='h-3 w-3' />
-              <span className='text-xs'>New Folder</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className='flex items-center gap-2 text-muted-foreground'
-              onClick={() => onDeleteFile(file)}
-            >
-              <RiDeleteBinLine className='h-3 w-3 text-red-500' />
-              <span className='text-xs'>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+              <RiMore2Line className='shrink-0 h-3 w-3 cursor-pointer' />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+              <DropdownMenuItem
+                className='flex items-center gap-2 text-muted-foreground'
+                onClick={() => onNewFile(file, false)}
+              >
+                <RiFileAddLine className='h-3 w-3' />
+                <span className='text-xs'>New File</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='flex items-center gap-2 text-muted-foreground'
+                onClick={() => onNewFile(file, true)}
+              >
+                <RiFolderAddLine className='h-3 w-3' />
+                <span className='text-xs'>New Folder</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='flex items-center gap-2 text-muted-foreground'
+                onClick={() => onRenameFile(file)}
+              >
+                <RiEditLine className='h-3 w-3' />
+                <span className='text-xs'>Rename</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='flex items-center gap-2 text-muted-foreground'
+                onClick={() => onDeleteFile(file)}
+              >
+                <RiDeleteBinLine className='h-3 w-3 text-red-500' />
+                <span className='text-xs'>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       {file.type === 'folder' && file.isExpanded && file.children && (
         <div className='mt-1 border-l border-gray-300 ml-2 pl-2'>
@@ -160,12 +192,16 @@ const FileTreeItem = ({
               selectedFile={selectedFile}
               focusedFile={focusedFile}
               addingItem={addingItem}
+              renamingItem={renamingItem}
               onFileSelect={onFileSelect}
               onToggleExpand={onToggleExpand}
               onConfirmFile={onConfirmFile}
               onCancelFile={onCancelFile}
               onNewFile={onNewFile}
               onDeleteFile={onDeleteFile}
+              onRenameFile={onRenameFile}
+              onCancelRename={onCancelRename}
+              onConfirmRename={onConfirmRename}
               checkIfPathExists={checkIfPathExists}
             />
           ))}
@@ -195,6 +231,8 @@ export const FileExplorer = ({
   onFileCreate,
   onFolderCreate,
   onFileDelete,
+  onFileRename,
+  onFolderRename,
   checkIfPathExists,
   className,
 }: FileExplorerProps) => {
@@ -203,6 +241,7 @@ export const FileExplorer = ({
     path: string;
     isFolder: boolean;
   } | null>(null);
+  const [renamingItem, setRenamingItem] = useState<FsNode | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<FsNode | null>(null);
 
@@ -309,6 +348,31 @@ export const FileExplorer = ({
     }
   }, [fileToDelete, onFileDelete]);
 
+  const handleRenameFile = useCallback((file: FsNode) => {
+    setRenamingItem(file);
+  }, []);
+
+  const handleCancelRename = useCallback(() => {
+    setRenamingItem(null);
+  }, []);
+
+  const handleConfirmRename = useCallback(
+    (file: FsNode, newName: string) => {
+      if (newName.trim() && newName.trim() !== file.name) {
+        const parentPath = file.path.split('/').slice(0, -1).join('/');
+        const newPath = parentPath ? `${parentPath}/${newName.trim()}` : newName.trim();
+
+        if (file.type === 'folder') {
+          onFolderRename(file.path, newPath);
+        } else {
+          onFileRename(file.path, newPath);
+        }
+      }
+      setRenamingItem(null);
+    },
+    [onFileRename, onFolderRename]
+  );
+
   const toggleExpandedFolders = useCallback(
     (files: FsNode[]): FsNode[] => {
       return files.map((file) => ({
@@ -330,6 +394,10 @@ export const FileExplorer = ({
         <span className='text-xs text-muted-foreground'>
           adding: {addingItem ? JSON.stringify(addingItem) : 'null'}
         </span>
+
+        <button type='button' onClick={() => console.log(processedFiles)}>
+          print processedFiles
+        </button>
         <DropdownMenu>
           <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
             <RiMore2Line className='h-3 w-3' />
@@ -368,12 +436,16 @@ export const FileExplorer = ({
                 selectedFile={selectedFile}
                 focusedFile={focusedFile}
                 addingItem={addingItem}
+                renamingItem={renamingItem}
                 onFileSelect={handleFileSelect}
                 onToggleExpand={handleToggleExpand}
                 onConfirmFile={handleConfirmFile}
                 onCancelFile={handleCancelFile}
                 onNewFile={handleClickNewFile}
                 onDeleteFile={handleDeleteFile}
+                onRenameFile={handleRenameFile}
+                onCancelRename={handleCancelRename}
+                onConfirmRename={handleConfirmRename}
                 checkIfPathExists={checkIfPathExists}
               />
             ))}
