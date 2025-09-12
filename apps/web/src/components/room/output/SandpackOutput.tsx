@@ -11,7 +11,7 @@ export const SandpackOutput = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { sandpackClient, sandpackLoading, initializeSandpackClient } = useSandpackContext();
 
-  // Initialize client once when component mounts
+  // biome-ignore lint/correctness/useExhaustiveDependencies: we only want to init once
   useEffect(() => {
     if (!iframeRef.current) {
       return;
@@ -20,7 +20,6 @@ export const SandpackOutput = () => {
     const loadClient = async () => {
       if (!iframeRef.current) return;
 
-      console.log('loading client');
       await initializeSandpackClient(iframeRef.current);
     };
 
@@ -37,6 +36,16 @@ export const SandpackOutput = () => {
 
   return (
     <div className='h-full w-full bg-white flex flex-col relative'>
+      <button
+        onClick={() => {
+          // print out all the files in the sandbox
+          console.log(sandpackClient?.sandboxSetup.files);
+        }}
+        type='button'
+      >
+        Refresh
+      </button>
+
       {sandpackLoading && (
         <div className='flex items-center justify-center h-full'>
           <div className='text-center'>

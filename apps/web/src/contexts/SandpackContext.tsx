@@ -17,6 +17,15 @@ import {
 } from 'react';
 import type * as Y from 'yjs';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { debounce } from '@/lib/debounce';
+
+// FSEntry interface to match the one in docUtils
+interface FSEntry {
+  type: 'file' | 'folder';
+  name: string;
+  parentId: string | null;
+  children?: string[];
+}
 
 // Constants for console functionality
 const CLEAR_LOG = { id: 'clear', method: 'clear', data: [] };
@@ -77,30 +86,35 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
     []
   );
 
-  // Update the sandpack client every 2 seconds
+  // Update the sandpack client when files change
   useEffect(() => {
     if (!sandpackClient) return;
 
     const updateSandpackClient = () => {
       const updatedContent = buildFilesToSandpackSetup(provider.doc);
       console.log('updating sandboxClient with', updatedContent);
-
-      const updatedAppJs = provider.doc.getText('file:/src/App.js');
-      console.log('updatedAppJs inside updateSandpackClient', updatedAppJs.toJSON());
-
       sandpackClient.updateSandbox(updatedContent);
     };
 
-    const appJSFile = provider.doc.getText('file:/src/App.js');
-    console.log('appJSFile', appJSFile.toJSON());
+    // Debounce the update function to prevent excessive calls
+    const debouncedUpdate = debounce(updateSandpackClient, 300);
 
-    appJSFile.observe((event) => {
-      console.log('appJSFile observed', event);
-      updateSandpackClient();
-    });
+    // Observe the file change counter
+    const fileChangeCounter = provider.doc.getMap('__fileChangeCounter');
+
+    const handleFileChangeCounter = (event: Y.YMapEvent<unknown>) => {
+      // Only update when the value changes
+      if (event.changes.keys.has('value')) {
+        console.log('file change counter updated, updating sandpack client');
+        debouncedUpdate();
+      }
+    };
+
+    // Observe the file change counter
+    fileChangeCounter.observe(handleFileChangeCounter);
 
     return () => {
-      appJSFile.unobserve(updateSandpackClient);
+      fileChangeCounter.unobserve(handleFileChangeCounter);
     };
   }, [provider.doc, sandpackClient]);
 
@@ -210,27 +224,48 @@ export const useSandpackContext = () => {
 // Helper functions
 // #########################################################
 const buildFilesToSandpackSetup = (doc: Y.Doc): SandboxSetup => {
-  const files = doc.getMap<string>('files');
-
-  // iterate over the files and build the sandbox setup
+  const fsMap = doc.getMap<FSEntry>('fs');
   const newSetup: SandboxSetup = {
     files: {},
   };
 
-  files.forEach((_, key) => {
-    const codeValue = doc.getText(`file:${key}`).toJSON();
-    newSetup.files[key] = {
-      code: codeValue,
-    };
+  // Helper function to get path from ID
+  const getPathFromId = (itemId: string): string => {
+    const entry = fsMap.get(itemId);
+    if (!entry) return '';
+
+    if (!entry.parentId) {
+      return entry.name;
+    }
+
+    const parentPath = getPathFromId(entry.parentId);
+    return parentPath ? `${parentPath}/${entry.name}` : entry.name;
+  };
+
+  // Iterate over all file entries and build the sandbox setup
+  fsMap.forEach((entry, id) => {
+    if (entry.type === 'file') {
+      const filePath = getPathFromId(id);
+      const codeValue = doc.getText(`file:${id}`).toJSON();
+      newSetup.files[filePath] = {
+        code: codeValue,
+      };
+    }
   });
 
-  // get dependencies and devDependecies from package.json
-  const packageContent =
-    files.get('/package.json') ??
-    JSON.stringify({
-      dependencies: {},
-      devDependencies: {},
-    });
+  // Get dependencies and devDependencies from package.json
+  const packageJsonPath = '/package.json';
+  const packageJsonId = findFileIdByPath(fsMap, packageJsonPath);
+
+  let packageContent = JSON.stringify({
+    dependencies: {},
+    devDependencies: {},
+  });
+
+  if (packageJsonId) {
+    const packageJsonText = doc.getText(`file:${packageJsonId}`);
+    packageContent = packageJsonText.toString();
+  }
 
   console.log('packageJSONContent', packageContent);
   const packageJson: {
@@ -242,4 +277,62 @@ const buildFilesToSandpackSetup = (doc: Y.Doc): SandboxSetup => {
   newSetup.devDependencies = packageJson.devDependencies;
 
   return newSetup;
+};
+
+// Helper function to find file ID by path
+const findFileIdByPath = (fsMap: Y.Map<FSEntry>, path: string): string | null => {
+  if (!path) return null;
+
+  const pathParts = path.split('/').filter((part) => part.length > 0);
+  if (pathParts.length === 0) return null;
+
+  // Find root items (items with no parent)
+  const rootItems: string[] = [];
+  fsMap.forEach((entry, id) => {
+    if (!entry.parentId) {
+      rootItems.push(id);
+    }
+  });
+
+  // Walk down the tree following the path
+  let currentId: string | null = null;
+  let currentEntry: FSEntry | null = null;
+
+  for (let i = 0; i < pathParts.length; i++) {
+    const part = pathParts[i];
+
+    if (i === 0) {
+      // Look for root item
+      for (const rootId of rootItems) {
+        const entry = fsMap.get(rootId);
+        if (entry && entry.name === part) {
+          currentId = rootId;
+          currentEntry = entry;
+          break;
+        }
+      }
+    } else {
+      // Look for child item
+      if (!currentEntry || currentEntry.type !== 'folder' || !currentEntry.children) {
+        return null;
+      }
+
+      let found = false;
+      for (const childId of currentEntry.children) {
+        const childEntry = fsMap.get(childId);
+        if (childEntry && childEntry.name === part) {
+          currentId = childId;
+          currentEntry = childEntry;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        return null;
+      }
+    }
+  }
+
+  return currentId && currentEntry ? currentId : null;
 };

@@ -12,6 +12,7 @@ import {
 } from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -145,24 +146,29 @@ const FileTreeItem = ({
               onClick={(e) => {
                 e.stopPropagation();
               }}
+              className='opacity-0 group-hover:opacity-100 transition-opacity'
             >
-              <RiMore2Line className='shrink-0 h-3 w-3 cursor-pointer' />
+              <RiMore2Line className='shrink-0 h-3.5 w-3.5 cursor-pointer' />
             </DropdownMenuTrigger>
             <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-              <DropdownMenuItem
-                className='flex items-center gap-2 text-muted-foreground'
-                onClick={() => onNewFile(file, false)}
-              >
-                <RiFileAddLine className='h-3 w-3' />
-                <span className='text-xs'>New File</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className='flex items-center gap-2 text-muted-foreground'
-                onClick={() => onNewFile(file, true)}
-              >
-                <RiFolderAddLine className='h-3 w-3' />
-                <span className='text-xs'>New Folder</span>
-              </DropdownMenuItem>
+              {file.type === 'folder' && (
+                <>
+                  <DropdownMenuItem
+                    className='flex items-center gap-2 text-muted-foreground'
+                    onClick={() => onNewFile(file, false)}
+                  >
+                    <RiFileAddLine className='h-3 w-3' />
+                    <span className='text-xs'>New File</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className='flex items-center gap-2 text-muted-foreground'
+                    onClick={() => onNewFile(file, true)}
+                  >
+                    <RiFolderAddLine className='h-3 w-3' />
+                    <span className='text-xs'>New Folder</span>
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuItem
                 className='flex items-center gap-2 text-muted-foreground'
                 onClick={() => onRenameFile(file)}
@@ -390,6 +396,11 @@ export const FileExplorer = ({
       {/* Header */}
       <div className='flex items-center justify-between pt-2 px-2'>
         <h3 className='text-xs text-muted-foreground'>Files</h3>
+
+        <Button type='button' variant='secondary' onClick={() => console.log(processedFiles)}>
+          print files
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
             <RiMore2Line className='h-3 w-3' />

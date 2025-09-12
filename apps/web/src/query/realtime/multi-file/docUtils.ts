@@ -4,6 +4,15 @@ import * as Y from 'yjs';
 export const FS_MAP_KEY = 'fs';
 export const getFileKey = (fileId: string) => `file:${fileId}`;
 
+export const FILE_CHANGE_COUNTER_KEY = '__fileChangeCounter';
+
+// Utility function to increment the file change counter
+export const incrementFileChangeCounter = (doc: Y.Doc) => {
+  const counterMap = doc.getMap(FILE_CHANGE_COUNTER_KEY);
+  const currentValue = (counterMap.get('value') as number) || 0;
+  counterMap.set('value', currentValue + 1);
+};
+
 // Generate a unique ID for files and folders
 export const generateId = (): string => {
   return `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -108,7 +117,8 @@ export const checkPathExists = (
 export const addItemToParentById = (
   fsMap: Y.Map<FSEntry>,
   itemId: string,
-  parentId: string | null
+  parentId: string | null,
+  doc: Y.Doc
 ) => {
   if (!parentId) return; // Root item, no parent to update
 
@@ -118,12 +128,13 @@ export const addItemToParentById = (
     if (!children.includes(itemId)) {
       children.push(itemId);
       fsMap.set(parentId, { ...parentEntry, children });
+      incrementFileChangeCounter(doc);
     }
   }
 };
 
 // Remove an item from its parent's children list
-export const removeItemFromParentById = (fsMap: Y.Map<FSEntry>, itemId: string) => {
+export const removeItemFromParentById = (fsMap: Y.Map<FSEntry>, itemId: string, doc: Y.Doc) => {
   const entry = fsMap.get(itemId);
   if (!entry?.parentId) {
     return; // Root item, no parent to update
@@ -133,16 +144,23 @@ export const removeItemFromParentById = (fsMap: Y.Map<FSEntry>, itemId: string) 
   if (parentEntry && parentEntry.type === 'folder') {
     const children = (parentEntry.children || []).filter((child) => child !== itemId);
     fsMap.set(entry.parentId, { ...parentEntry, children });
+    incrementFileChangeCounter(doc);
   }
 };
 
 // Rename an item (only updates the item itself)
-export const renameItemById = (fsMap: Y.Map<FSEntry>, itemId: string, newName: string) => {
+export const renameItemById = (
+  fsMap: Y.Map<FSEntry>,
+  itemId: string,
+  newName: string,
+  doc: Y.Doc
+) => {
   const entry = fsMap.get(itemId);
   if (!entry) return;
 
   // Update the entry with new name
   fsMap.set(itemId, { ...entry, name: newName });
+  incrementFileChangeCounter(doc);
 };
 
 // Get all children of a folder recursively

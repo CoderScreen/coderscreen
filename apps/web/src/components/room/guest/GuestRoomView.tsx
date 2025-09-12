@@ -121,11 +121,13 @@ const GuestRoomContent = () => {
             });
 
             // Add other panels as tabs in a second panel
+
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.INSTRUCTIONS,
-              component: 'instructions',
-              title: 'Instructions',
+              id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
+              component: 'code-output',
+              title: 'Code Output',
               tabComponent: 'tab',
+              renderer: 'always',
               position: {
                 direction: 'right',
                 referencePanel: 'code-editor',
@@ -133,10 +135,11 @@ const GuestRoomContent = () => {
             });
 
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
-              component: 'code-output',
-              title: 'Code Output',
+              id: DOCKVIEW_PANEL_IDS.INSTRUCTIONS,
+              component: 'instructions',
+              title: 'Instructions',
               tabComponent: 'tab',
+              inactive: true,
             });
 
             api.addPanel({
@@ -144,6 +147,7 @@ const GuestRoomContent = () => {
               component: 'whiteboard',
               title: 'Whiteboard',
               tabComponent: 'tab',
+              inactive: true,
             });
 
             api.addPanel({
@@ -151,6 +155,7 @@ const GuestRoomContent = () => {
               component: 'ai-chat',
               title: 'AI Chat',
               tabComponent: 'tab',
+              inactive: true,
             });
           }}
         />

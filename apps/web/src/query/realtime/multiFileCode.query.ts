@@ -180,6 +180,16 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       const undoManager = new Y.UndoManager(ytext);
 
+      // Set up observer for text changes to increment counter
+      const handleTextChange = () => {
+        const counterMap = provider.doc.getMap('__fileChangeCounter');
+        const currentValue = (counterMap.get('value') as number) || 0;
+        counterMap.set('value', currentValue + 1);
+      };
+
+      // Observe text changes
+      ytext.observe(handleTextChange);
+
       const state = EditorState.create({
         doc: ytext.toString(),
         extensions: [
@@ -229,7 +239,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       // Add to parent folder if it exists
       if (parentId) {
-        addItemToParentById(fsMap, fileId, parentId);
+        addItemToParentById(fsMap, fileId, parentId, provider.doc);
       }
 
       // Create Y.Text for file content
@@ -257,7 +267,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       fsMap.delete(fileId);
 
       // Remove from parent folder
-      removeItemFromParentById(fsMap, fileId);
+      removeItemFromParentById(fsMap, fileId, provider.doc);
     },
     [provider]
   );
@@ -276,7 +286,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       const newName = newPath.split('/').pop() || '';
 
       // Update the file entry
-      renameItemById(fsMap, fileId, newName);
+      renameItemById(fsMap, fileId, newName, provider.doc);
     },
     [provider]
   );
@@ -301,7 +311,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       // Add to parent folder if it exists
       if (parentId) {
-        addItemToParentById(fsMap, folderId, parentId);
+        addItemToParentById(fsMap, folderId, parentId, provider.doc);
       }
     },
     [provider]
@@ -320,7 +330,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       fsMap.delete(folderId);
 
       // Remove from parent folder
-      removeItemFromParentById(fsMap, folderId);
+      removeItemFromParentById(fsMap, folderId, provider.doc);
     },
     [provider]
   );
@@ -338,7 +348,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       const newName = newPath.split('/').pop() || '';
 
       // Update the folder entry
-      renameItemById(fsMap, folderId, newName);
+      renameItemById(fsMap, folderId, newName, provider.doc);
     },
     [provider]
   );
@@ -369,6 +379,11 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
             createFile(file.path, file.code);
           }
         });
+
+        // Increment counter for workspace reset
+        const counterMap = provider.doc.getMap('__fileChangeCounter');
+        const currentValue = (counterMap.get('value') as number) || 0;
+        counterMap.set('value', currentValue + 1);
       });
     },
     [createFile, createFolder, provider.doc]
