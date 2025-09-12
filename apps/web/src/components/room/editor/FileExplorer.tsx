@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { FsNode } from '@/query/realtime/multiFileCode.query';
 import { AddItemInput } from './multi-file/AddItemInput';
+import { DeleteFileDialog } from './multi-file/DeleteFileDialog';
 
 interface FileExplorerProps {
   files: FsNode[];
@@ -27,6 +28,7 @@ interface FileExplorerProps {
   onFileSelect: (file: FsNode) => void;
   onFileCreate: (path: string) => void;
   onFolderCreate: (path: string) => void;
+  onFileDelete: (path: string) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
   className?: string;
 }
@@ -59,6 +61,7 @@ const FileTreeItem = ({
   onConfirmFile,
   onCancelFile,
   onNewFile,
+  onDeleteFile,
   checkIfPathExists,
 }: {
   file: FsNode;
@@ -71,6 +74,7 @@ const FileTreeItem = ({
   onConfirmFile: (fileName: string, isFolder: boolean) => void;
   onCancelFile: () => void;
   onNewFile: (file: FsNode, isFolder: boolean) => void;
+  onDeleteFile: (file: FsNode) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
 }) => {
   const isSelected = selectedFile === file.path;
@@ -135,7 +139,10 @@ const FileTreeItem = ({
               <RiFolderAddLine className='h-3 w-3' />
               <span className='text-xs'>New Folder</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className='flex items-center gap-2 text-muted-foreground'>
+            <DropdownMenuItem
+              className='flex items-center gap-2 text-muted-foreground'
+              onClick={() => onDeleteFile(file)}
+            >
               <RiDeleteBinLine className='h-3 w-3 text-red-500' />
               <span className='text-xs'>Delete</span>
             </DropdownMenuItem>
@@ -158,6 +165,7 @@ const FileTreeItem = ({
               onConfirmFile={onConfirmFile}
               onCancelFile={onCancelFile}
               onNewFile={onNewFile}
+              onDeleteFile={onDeleteFile}
               checkIfPathExists={checkIfPathExists}
             />
           ))}
@@ -186,6 +194,7 @@ export const FileExplorer = ({
   onFileSelect,
   onFileCreate,
   onFolderCreate,
+  onFileDelete,
   checkIfPathExists,
   className,
 }: FileExplorerProps) => {
@@ -194,6 +203,8 @@ export const FileExplorer = ({
     path: string;
     isFolder: boolean;
   } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<FsNode | null>(null);
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
@@ -222,9 +233,20 @@ export const FileExplorer = ({
     [onFileSelect]
   );
 
+  const handleDeselectFile = useCallback(() => {
+    setFocusedFile(null);
+  }, []);
+
   const handleClickNewFile = useCallback(
     (file: FsNode | null, isFolder: boolean) => {
-      if (!file) return;
+      if (!file) {
+        setAddingItem({
+          path: '/',
+          isFolder,
+        });
+
+        return;
+      }
 
       // Ensure the folder is expanded when adding a new file/folder
       if (file.type === 'folder') {
@@ -274,6 +296,19 @@ export const FileExplorer = ({
     setAddingItem(null);
   }, []);
 
+  const handleDeleteFile = useCallback((file: FsNode) => {
+    setFileToDelete(file);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (fileToDelete) {
+      onFileDelete(fileToDelete.path);
+      setDeleteDialogOpen(false);
+      setFileToDelete(null);
+    }
+  }, [fileToDelete, onFileDelete]);
+
   const toggleExpandedFolders = useCallback(
     (files: FsNode[]): FsNode[] => {
       return files.map((file) => ({
@@ -319,29 +354,62 @@ export const FileExplorer = ({
       </div>
 
       {/* File Tree */}
-      <div className='flex-1 overflow-y-auto py-2 px-1'>
+      <div className='overflow-y-auto py-2 px-1'>
         {processedFiles.length === 0 ? (
           <div className='px-4 py-8 text-center'>
             <div className='text-gray-400 text-sm'>No files</div>
           </div>
         ) : (
-          processedFiles.map((file) => (
-            <FileTreeItem
-              key={file.id}
-              file={file}
-              selectedFile={selectedFile}
-              focusedFile={focusedFile}
-              addingItem={addingItem}
-              onFileSelect={handleFileSelect}
-              onToggleExpand={handleToggleExpand}
-              onConfirmFile={handleConfirmFile}
-              onCancelFile={handleCancelFile}
-              onNewFile={handleClickNewFile}
-              checkIfPathExists={checkIfPathExists}
-            />
-          ))
+          <>
+            {processedFiles.map((file) => (
+              <FileTreeItem
+                key={file.id}
+                file={file}
+                selectedFile={selectedFile}
+                focusedFile={focusedFile}
+                addingItem={addingItem}
+                onFileSelect={handleFileSelect}
+                onToggleExpand={handleToggleExpand}
+                onConfirmFile={handleConfirmFile}
+                onCancelFile={handleCancelFile}
+                onNewFile={handleClickNewFile}
+                onDeleteFile={handleDeleteFile}
+                checkIfPathExists={checkIfPathExists}
+              />
+            ))}
+            {addingItem?.path === '/' && (
+              <AddItemInput
+                isFolder={addingItem.isFolder}
+                parentPath=''
+                onConfirm={(fileName) => handleConfirmFile(fileName, addingItem.isFolder)}
+                onCancel={handleCancelFile}
+                placeholder={`Enter ${addingItem.isFolder ? 'folder' : 'file'} name...`}
+                checkIfPathExists={checkIfPathExists}
+              />
+            )}
+          </>
         )}
       </div>
+
+      <div
+        className='flex-1'
+        onClick={handleDeselectFile}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleDeselectFile();
+          }
+        }}
+        role='button'
+        tabIndex={0}
+        aria-label='Deselect active file'
+      />
+
+      <DeleteFileDialog
+        file={fileToDelete}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDelete={handleConfirmDelete}
+      />
     </div>
   );
 };

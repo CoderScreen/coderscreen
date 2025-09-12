@@ -28,7 +28,7 @@ export const AddItemInput = ({
   onConfirm,
   onCancel,
   checkIfPathExists,
-  parentPath = '',
+  parentPath,
   placeholder = 'Enter file name...',
   className,
 }: AddFileInputProps) => {
@@ -40,7 +40,8 @@ export const AddItemInput = ({
   // Check if path exists and update disabled state
   useEffect(() => {
     if (fileName.trim()) {
-      const fullPath = parentPath ? `${parentPath}/${fileName.trim()}` : fileName.trim();
+      // if parent path is '', just add prefix of /
+      const fullPath = `${parentPath}/${fileName.trim()}`;
       const pathExists = checkIfPathExists(fullPath, isFolder ? 'folder' : 'file');
 
       setDisabled(pathExists);
@@ -62,6 +63,10 @@ export const AddItemInput = ({
   }, []);
 
   const handleConfirm = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
     if (fileName.trim() && !disabled) {
       onConfirm(fileName.trim());
     }
@@ -82,6 +87,16 @@ export const AddItemInput = ({
     },
     [handleConfirm, handleCancel]
   );
+
+  const handleBlur = useCallback(() => {
+    if (!fileName.trim()) {
+      // If no text, close without submitting
+      handleCancel();
+    } else {
+      // If text was entered, try to submit
+      handleConfirm();
+    }
+  }, [fileName, handleCancel, handleConfirm]);
 
   const language = useMemo(() => {
     return getLanguageFromPath(fileName);
@@ -111,10 +126,10 @@ export const AddItemInput = ({
         value={fileName}
         onChange={(e) => setFileName(e.target.value)}
         onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
         placeholder={placeholder}
         className='flex-1 border-none text-xs outline-none '
       />
-      {disabled && <span className='text-xs text-red-500 shrink-0'>Already exists</span>}
     </div>
   );
 };

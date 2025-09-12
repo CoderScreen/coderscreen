@@ -376,8 +376,11 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // Check if a path exists in the file system
   const checkIfPathExists = useCallback(
     (path: string, type: 'file' | 'folder'): boolean => {
+      console.log('total-map-keys', Array.from(provider.doc.getMap<FSEntry>(FS_MAP_KEY).keys()));
       const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
       const item = fsMap.get(path);
+
+      console.log('checkIfPathExists', path, type, item);
 
       return item?.type === type;
     },
