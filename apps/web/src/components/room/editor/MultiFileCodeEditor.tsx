@@ -40,7 +40,7 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
             <FileExplorer
               files={files}
               selectedFile={selectedFile}
-              onFileSelect={(file) => setSelectedFile(file.path)}
+              onFileSelect={(file) => setSelectedFile(file.id)}
               onFileCreate={createFile}
               onFolderCreate={createFolder}
               onFileDelete={deleteFile}

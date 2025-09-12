@@ -32,7 +32,6 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
   });
 
   const handleLogoFileChange = async (file: File | null) => {
-    console.log('file', file);
     if (file) {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -40,7 +39,6 @@ export const CreateOrgDialog = (props: CreateOrgDialogProps) => {
         setLogoPreview(result);
 
         const asset = await uploadLogo(result);
-        console.log('asset', asset);
         form.setFieldValue('logo', asset.url);
       };
       reader.readAsDataURL(file);

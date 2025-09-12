@@ -26,7 +26,7 @@ import { RenameItemInput } from './multi-file/RenameItemInput';
 
 interface FileExplorerProps {
   files: FsNode[];
-  selectedFile?: string;
+  selectedFile?: string; // Now expects file ID instead of path
   onFileSelect: (file: FsNode) => void;
   onFileCreate: (path: string) => void;
   onFolderCreate: (path: string) => void;
@@ -89,8 +89,8 @@ const FileTreeItem = ({
   onConfirmRename: (file: FsNode, newName: string) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
 }) => {
-  const isSelected = selectedFile === file.path;
-  const isFocused = focusedFile?.path === file.path;
+  const isSelected = selectedFile === file.id;
+  const isFocused = focusedFile?.id === file.id;
 
   const handleClick = useCallback(() => {
     if (file.type === 'folder') {
@@ -100,7 +100,7 @@ const FileTreeItem = ({
     }
   }, [file, onFileSelect, onToggleExpand]);
 
-  const isRenaming = renamingItem?.path === file.path;
+  const isRenaming = renamingItem?.id === file.id;
 
   return (
     <div>
@@ -249,14 +249,13 @@ export const FileExplorer = ({
 
   const handleToggleExpand = useCallback(
     (file: FsNode) => {
-      console.log('toggleExpand', file.path);
       setFocusedFile(file);
       if (file.type === 'folder') {
         const newExpanded = new Set(expandedFolders);
-        if (newExpanded.has(file.path)) {
-          newExpanded.delete(file.path);
+        if (newExpanded.has(file.id)) {
+          newExpanded.delete(file.id);
         } else {
-          newExpanded.add(file.path);
+          newExpanded.add(file.id);
         }
         setExpandedFolders(newExpanded);
       }
@@ -377,7 +376,7 @@ export const FileExplorer = ({
     (files: FsNode[]): FsNode[] => {
       return files.map((file) => ({
         ...file,
-        isExpanded: expandedFolders.has(file.path),
+        isExpanded: expandedFolders.has(file.id),
         children: file.children ? toggleExpandedFolders(file.children) : undefined,
       }));
     },
@@ -391,13 +390,6 @@ export const FileExplorer = ({
       {/* Header */}
       <div className='flex items-center justify-between pt-2 px-2'>
         <h3 className='text-xs text-muted-foreground'>Files</h3>
-        <span className='text-xs text-muted-foreground'>
-          adding: {addingItem ? JSON.stringify(addingItem) : 'null'}
-        </span>
-
-        <button type='button' onClick={() => console.log(processedFiles)}>
-          print processedFiles
-        </button>
         <DropdownMenu>
           <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
             <RiMore2Line className='h-3 w-3' />

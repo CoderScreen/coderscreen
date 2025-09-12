@@ -1,4 +1,3 @@
-import type { RoomSchema } from '@coderscreen/api/schema/room';
 import BashPlain from 'devicons-react/icons/BashPlain';
 import CPlain from 'devicons-react/icons/CPlain';
 import CplusplusPlain from 'devicons-react/icons/CplusplusPlain';
@@ -20,13 +19,7 @@ import { cn } from '@/lib/utils';
 
 const BASE_ICON_STYLE = '';
 
-export const LanguageIcon = ({
-  language,
-  className,
-}: {
-  language: RoomSchema['language'];
-  className?: string;
-}) => {
+export const LanguageIcon = ({ language, className }: { language: string; className?: string }) => {
   const iconStyle = useMemo(() => cn(BASE_ICON_STYLE, className), [className]);
 
   // anything that is not plain or line needs to be manually set to gray through opacity
