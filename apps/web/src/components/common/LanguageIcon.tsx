@@ -1,9 +1,12 @@
 import BashPlain from 'devicons-react/icons/BashPlain';
 import CPlain from 'devicons-react/icons/CPlain';
 import CplusplusPlain from 'devicons-react/icons/CplusplusPlain';
+import Css3Plain from 'devicons-react/icons/Css3Plain';
 import GoPlain from 'devicons-react/icons/GoPlain';
+import Html5Plain from 'devicons-react/icons/Html5Plain';
 import JavaPlain from 'devicons-react/icons/JavaPlain';
 import JavascriptOriginal from 'devicons-react/icons/JavascriptOriginal';
+import MarkdownOriginal from 'devicons-react/icons/MarkdownOriginal';
 import NextjsPlain from 'devicons-react/icons/NextjsPlain';
 import PhpPlain from 'devicons-react/icons/PhpPlain';
 import PythonPlain from 'devicons-react/icons/PythonPlain';
@@ -15,11 +18,18 @@ import SveltePlain from 'devicons-react/icons/SveltePlain';
 import TypescriptPlain from 'devicons-react/icons/TypescriptPlain';
 import VueOriginal from 'devicons-react/icons/VuejsOriginal';
 import { useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, cx } from '@/lib/utils';
+import type { FileType } from '@/query/realtime/multiFileCode.query';
 
 const BASE_ICON_STYLE = '';
 
-export const LanguageIcon = ({ language, className }: { language: string; className?: string }) => {
+export const LanguageIcon = ({
+  language,
+  className,
+}: {
+  language: string | FileType;
+  className?: string;
+}) => {
   const iconStyle = useMemo(() => cn(BASE_ICON_STYLE, className), [className]);
 
   // anything that is not plain or line needs to be manually set to gray through opacity
@@ -58,6 +68,20 @@ export const LanguageIcon = ({ language, className }: { language: string; classN
         return <SveltePlain className={iconStyle} />;
       case 'solidjs':
         return <SolidjsPlain className={iconStyle} />;
+      case 'css':
+        return <Css3Plain className={iconStyle} />;
+      case 'html':
+        return <Html5Plain className={iconStyle} />;
+      case 'json':
+        return <div className={cx(iconStyle, 'text-amber-600')}>{`{ }`}</div>;
+      case 'markdown':
+        return <MarkdownOriginal className={iconStyle} />;
+      case 'jsx':
+        return <ReactPlain className={iconStyle} />; // JSX uses React icon
+      case 'tsx':
+        return <TypescriptPlain className={iconStyle} />; // TSX uses TypeScript icon
+      case 'unknown':
+        return <div className={cn(iconStyle, 'bg-gray-200')} />;
       default:
         return <div className={cn(iconStyle, 'bg-gray-200')} />;
     }

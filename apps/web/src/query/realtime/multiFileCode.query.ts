@@ -19,11 +19,36 @@ import {
   findItemByPath,
   generateId,
   getFileKey,
-  getLanguageFromName,
   getPathFromId,
   removeItemFromParentById,
   renameItemById,
 } from '@/query/realtime/multi-file/docUtils';
+
+// File type system for individual files (separate from room language)
+export type FileType =
+  | 'javascript'
+  | 'typescript'
+  | 'python'
+  | 'rust'
+  | 'c++'
+  | 'c'
+  | 'java'
+  | 'go'
+  | 'php'
+  | 'ruby'
+  | 'bash'
+  | 'react'
+  | 'vue'
+  | 'nextjs'
+  | 'svelte'
+  | 'solidjs'
+  | 'css'
+  | 'html'
+  | 'json'
+  | 'markdown'
+  | 'jsx'
+  | 'tsx'
+  | 'unknown';
 
 export interface FsNode {
   id: string; // Stable ID (e.g., "id_1234567890_abc123")
@@ -36,12 +61,12 @@ export interface FsNode {
 
   // optional prop
   children?: FsNode[];
-  language?: string;
+  fileType?: FileType;
   isExpanded?: boolean;
 }
 
-// Helper function to get language from file path
-export const getLanguageFromPath = (path: string): RoomSchema['language'] | null => {
+// Helper function to get file type from file path
+export const getFileTypeFromPath = (path: string): FileType => {
   const ext = path.split('.').pop()?.toLowerCase();
   switch (ext) {
     case 'js':
@@ -49,9 +74,11 @@ export const getLanguageFromPath = (path: string): RoomSchema['language'] | null
     case 'ts':
       return 'typescript';
     case 'jsx':
-      return 'javascript';
+      return 'jsx';
     case 'tsx':
-      return 'typescript';
+      return 'tsx';
+    case 'vue':
+      return 'vue';
     case 'py':
       return 'python';
     case 'java':
@@ -70,22 +97,34 @@ export const getLanguageFromPath = (path: string): RoomSchema['language'] | null
       return 'rust';
     case 'sh':
       return 'bash';
+    case 'css':
+      return 'css';
+    case 'html':
+    case 'htm':
+      return 'html';
+    case 'json':
+      return 'json';
+    case 'md':
+    case 'markdown':
+      return 'markdown';
+    case 'svelte':
+      return 'svelte';
     default:
-      return null;
+      return 'unknown';
   }
 };
 
 // Helper function to create a FsNode from an entry and ID
 const createFsNode = (entry: FSEntry, id: string, fsMap: Y.Map<FSEntry>): FsNode => {
   const path = getPathFromId(fsMap, id);
-  const language = entry.type === 'file' ? getLanguageFromName(entry.name) : undefined;
+  const fileType = entry.type === 'file' ? getFileTypeFromPath(entry.name) : undefined;
 
   return {
     id,
     name: entry.name,
     type: entry.type,
     parentId: entry.parentId,
-    language,
+    fileType,
     isExpanded: false,
     children: entry.type === 'folder' ? [] : undefined,
     path,

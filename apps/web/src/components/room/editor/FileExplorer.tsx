@@ -12,7 +12,6 @@ import {
 } from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,9 +46,9 @@ const FileIcon = ({ file }: { file: FsNode }) => {
     );
   }
 
-  // For files, use language icon if available
-  if (file.language) {
-    return <LanguageIcon language={file.language} className='h-4 w-4' />;
+  // For files, use file type icon if available
+  if (file.fileType) {
+    return <LanguageIcon language={file.fileType} className='h-4 w-4' />;
   }
 
   return <RiFileLine className='h-4 w-4 text-gray-500' />;
@@ -396,10 +395,6 @@ export const FileExplorer = ({
       {/* Header */}
       <div className='flex items-center justify-between pt-2 px-2'>
         <h3 className='text-xs text-muted-foreground'>Files</h3>
-
-        <Button type='button' variant='secondary' onClick={() => console.log(processedFiles)}>
-          print files
-        </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>

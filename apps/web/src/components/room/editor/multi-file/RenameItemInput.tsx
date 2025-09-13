@@ -1,9 +1,8 @@
-import { RoomSchema } from '@coderscreen/api/schema/room';
 import { RiFileLine, RiFolderLine } from '@remixicon/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { cn } from '@/lib/utils';
-import { getLanguageFromPath } from '@/query/realtime/multiFileCode.query';
+import { type FileType, getFileTypeFromPath } from '@/query/realtime/multiFileCode.query';
 
 interface RenameItemInputProps {
   isFolder: boolean;
@@ -15,9 +14,9 @@ interface RenameItemInputProps {
   className?: string;
 }
 
-const FileIcon = ({ language }: { language: RoomSchema['language'] | null }) => {
-  if (language) {
-    return <LanguageIcon language={language} />;
+const FileIcon = ({ fileType }: { fileType: FileType | null }) => {
+  if (fileType) {
+    return <LanguageIcon language={fileType} />;
   }
 
   return <RiFileLine className='h-4 w-4 text-gray-500 shrink-0' />;
@@ -103,7 +102,7 @@ export const RenameItemInput = ({
     }
   }, [newName, handleCancel, handleConfirm, currentName]);
 
-  const language = getLanguageFromPath(newName);
+  const language = getFileTypeFromPath(newName);
 
   return (
     <div
@@ -119,7 +118,7 @@ export const RenameItemInput = ({
       {isFolder ? (
         <RiFolderLine className='h-4 w-4 text-gray-500' />
       ) : (
-        <FileIcon language={language} />
+        <FileIcon fileType={language} />
       )}
 
       <input

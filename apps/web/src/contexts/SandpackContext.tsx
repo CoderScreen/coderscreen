@@ -50,6 +50,7 @@ interface SandpackContextType {
   // Sandpack client related
   sandpackClient: SandpackClient | null;
   sandpackLoading: boolean;
+  isDocumentReady: boolean;
   initializeSandpackClient: (iframe: HTMLIFrameElement) => Promise<void>;
   // Console related
   logs: SandpackConsoleData[];
@@ -74,6 +75,7 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
   // Sandpack client state
   const [sandpackClient, setSandpackClient] = useState<SandpackClient | null>(null);
   const [sandpackLoading, setSandpackLoading] = useState(false);
+  const [isDocumentReady, setIsDocumentReady] = useState(false);
 
   // Console state
   const [logs, setLogs] = useState<SandpackConsoleData[]>([]);
@@ -85,6 +87,36 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
     }),
     []
   );
+
+  // Simple document ready check
+  useEffect(() => {
+    if (!provider) return;
+
+    const checkDocumentReady = () => {
+      // Document is ready when provider is connected and synced
+      if (provider.wsconnected && provider.synced) {
+        console.log('Document is ready for Sandpack initialization');
+        setIsDocumentReady(true);
+      } else {
+        setIsDocumentReady(false);
+      }
+    };
+
+    // Check immediately
+    checkDocumentReady();
+
+    // Listen for connection and sync events
+    const handleStatus = () => checkDocumentReady();
+    const handleSynced = () => checkDocumentReady();
+
+    provider.on('status', handleStatus);
+    provider.on('synced', handleSynced);
+
+    return () => {
+      provider.off('status', handleStatus);
+      provider.off('synced', handleSynced);
+    };
+  }, [provider]);
 
   // Update the sandpack client when files change
   useEffect(() => {
@@ -169,6 +201,9 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
     async (iframe: HTMLIFrameElement, doc: Y.Doc) => {
       console.log('initializing sandpack client');
       try {
+        const builtFiles = buildFilesToSandpackSetup(doc);
+        console.log('builtFiles for init', builtFiles);
+
         setSandpackLoading(true);
         const client = await loadSandpackClient(
           iframe,
@@ -201,6 +236,7 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
       value={{
         sandpackClient,
         sandpackLoading,
+        isDocumentReady,
         initializeSandpackClient: (iframe: HTMLIFrameElement) =>
           initializeSandpackClient(iframe, provider.doc),
         logs,
@@ -224,9 +260,25 @@ export const useSandpackContext = () => {
 // Helper functions
 // #########################################################
 const buildFilesToSandpackSetup = (doc: Y.Doc): SandboxSetup => {
+  const language = doc.getText('language').toJSON();
+
+  const templateFromLanguage: SandboxSetup['template'] = (() => {
+    switch (language) {
+      case 'react':
+        return 'create-react-app';
+      case 'vue':
+        return 'vue-cli';
+      case 'svelte':
+        return 'svelte';
+      default:
+        return undefined;
+    }
+  })();
+
   const fsMap = doc.getMap<FSEntry>('fs');
   const newSetup: SandboxSetup = {
     files: {},
+    template: templateFromLanguage,
   };
 
   // Helper function to get path from ID

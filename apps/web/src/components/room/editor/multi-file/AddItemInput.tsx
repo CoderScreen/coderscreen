@@ -1,9 +1,8 @@
-import { RoomSchema } from '@coderscreen/api/schema/room';
 import { RiFileLine, RiFolderLine } from '@remixicon/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { cn } from '@/lib/utils';
-import { getLanguageFromPath } from '@/query/realtime/multiFileCode.query';
+import { type FileType, getFileTypeFromPath } from '@/query/realtime/multiFileCode.query';
 
 interface AddFileInputProps {
   isFolder: boolean;
@@ -15,9 +14,9 @@ interface AddFileInputProps {
   className?: string;
 }
 
-const FileIcon = ({ language }: { language: RoomSchema['language'] | null }) => {
-  if (language) {
-    return <LanguageIcon language={language} />;
+const FileIcon = ({ fileType }: { fileType: FileType | null }) => {
+  if (fileType) {
+    return <LanguageIcon language={fileType} />;
   }
 
   return <RiFileLine className='h-4 w-4 text-gray-500 shrink-0' />;
@@ -99,7 +98,7 @@ export const AddItemInput = ({
   }, [fileName, handleCancel, handleConfirm]);
 
   const language = useMemo(() => {
-    return getLanguageFromPath(fileName);
+    return getFileTypeFromPath(fileName);
   }, [fileName]);
 
   return (
@@ -116,7 +115,7 @@ export const AddItemInput = ({
       {isFolder ? (
         <RiFolderLine className='h-4 w-4 text-gray-500' />
       ) : (
-        <FileIcon language={language} />
+        <FileIcon fileType={language} />
       )}
 
       <input
