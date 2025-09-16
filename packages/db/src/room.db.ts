@@ -14,7 +14,10 @@ type RoomLanguage =
   | 'java'
   | 'go'
   | 'php'
-  | 'ruby';
+  | 'ruby'
+  | 'react'
+  | 'vue'
+  | 'svelte';
 type RoomStatus = 'active' | 'scheduled' | 'completed' | 'archived';
 
 export const roomTable = pgTable('rooms', {

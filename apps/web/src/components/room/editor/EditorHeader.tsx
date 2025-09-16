@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { useMultiFileCodeEditor } from '@/query/realtime/multiFileCode.query';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -41,10 +40,7 @@ const SUPPORTED_LANGUAGES = [
 const SUPPORTED_WEB_FRAMEWORKS = [
   { value: 'react', label: 'React' },
   { value: 'vue', label: 'Vue' },
-  { value: 'nextjs', label: 'Next.js' },
   { value: 'svelte', label: 'Svelte' },
-  { value: 'remixjs', label: 'Remix.js' },
-  { value: 'solidjs', label: 'Solid.js' },
 ] satisfies {
   value: RoomSchema['language'];
   label: string;

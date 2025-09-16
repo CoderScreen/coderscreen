@@ -1,126 +1,57 @@
-import { RiArrowRightSLine, RiHammerLine, RiPlayLine, RiTerminalLine } from '@remixicon/react';
-import { useEffect, useRef, useState } from 'react';
+import { RoomSchema } from '@coderscreen/api/schema/room';
+import { useEffect, useState } from 'react';
+import { shouldUseSandpackOutput } from '@/components/room/editor/lib/utils';
 import { SandpackOutput } from '@/components/room/output/SandpackOutput';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tooltip } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
+import { SingleFileOutput } from '@/components/room/output/SingleFileOutput';
+import { useRoomContext } from '@/contexts/RoomContext';
 
 export const CodeOutput = () => {
-  return <SandpackOutput />;
-};
+  const { provider } = useRoomContext();
+  const [language, setLanguage] = useState<RoomSchema['language'] | undefined>(undefined);
 
-export const _CodeOutput = () => {
-  const { history } = useCodeExecutionHistory();
-  const [openItems, setOpenItems] = useState<Map<number, boolean>>(new Map());
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom when new items are added
+  // Subscribe to language changes
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  }, []);
+    if (!provider) return;
 
-  const toggleItem = (index: number) => {
-    setOpenItems((prev) => {
-      const newOpen = new Map(prev);
-      const val = newOpen.get(index);
-      newOpen.set(index, val === undefined ? false : !val);
-      return newOpen;
+    const subscribeToLanguageChanges = (callback: (language: RoomSchema['language']) => void) => {
+      if (!provider) return () => {};
+
+      const ymap = provider.doc.getText('language');
+      const observer = () => {
+        const language = ymap.toJSON();
+        callback(language as RoomSchema['language']);
+      };
+
+      ymap.observe(observer);
+      return () => ymap.unobserve(observer);
+    };
+
+    const unsubscribe = subscribeToLanguageChanges((newLanguage) => {
+      setLanguage(newLanguage);
     });
-  };
 
-  if (!history.length) {
+    return unsubscribe;
+  }, [provider]);
+
+  // Show loading state while language is being determined
+  if (!language) {
     return (
-      <div className='h-full w-full bg-white text-gray-800 font-mono'>
-        <div className='p-6 h-full overflow-auto'>
-          <div className='flex items-center justify-center h-full'>
-            <div className='text-center max-w-sm'>
-              <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4'>
-                <RiTerminalLine className='text-gray-400 size-6' />
-              </div>
-              <h3 className='text-sm font-medium text-gray-900 mb-2'>No output yet</h3>
-              <p className='text-sm text-gray-500 leading-relaxed'>
-                Run your code to see the execution results and output here
-              </p>
-            </div>
+      <div className='h-full w-full bg-white flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='relative mx-auto mb-2'>
+            <div className='h-8 w-8 rounded-full border-4 border-gray-200'></div>
+            <div className='absolute inset-0 h-8 w-8 animate-spin rounded-full border-4 border-transparent border-t-blue-500'></div>
           </div>
+          <p className='text-sm text-gray-500'>Loading...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className='h-full w-full bg-white text-gray-800 font-mono'>
-      <div ref={scrollContainerRef} className='h-full overflow-auto'>
-        {history.map((data, idx) => {
-          const hasOutput = data.stdout && data.stdout.trim() !== '';
-          const hasError = data.stderr && data.stderr.trim() !== '';
-          // if never opened or has been opened
-          const isOpen = !openItems.has(idx) || openItems.get(idx) === true;
-          const executionNumber = idx + 1; // Latest is at the bottom
+  // Conditionally render based on language type
+  if (shouldUseSandpackOutput(language)) {
+    return <SandpackOutput />;
+  }
 
-          return (
-            <Collapsible
-              key={`${data.timestamp}-${idx}`}
-              open={isOpen}
-              onOpenChange={() => toggleItem(idx)}
-            >
-              <CollapsibleTrigger className='w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between group text-gray-500 text-xs'>
-                <div className='flex items-center gap-3'>
-                  <span
-                    className={cn(
-                      'transform transition-transform duration-200',
-                      isOpen ? 'rotate-90' : 'rotate-0'
-                    )}
-                  >
-                    <RiArrowRightSLine />
-                  </span>
-                  <div className='flex items-center gap-2'>
-                    <span className='text-gray-600'>Execution #{executionNumber}</span>
-                    <span className='text-gray-400'>
-                      {new Date(data.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
-                <div className='flex items-center gap-2'>
-                  {data.compileTime && (
-                    <Tooltip content='Compilation time'>
-                      <span className='text-gray-400 flex items-center gap-0.5'>
-                        <RiHammerLine className='size-3' />
-                        {data.compileTime}ms
-                      </span>
-                    </Tooltip>
-                  )}
-                  {data.elapsedTime >= 0 && (
-                    <Tooltip content='Execution time'>
-                      <span className='text-gray-400 flex items-center gap-0.5'>
-                        <RiPlayLine className='size-3' />
-                        {data.elapsedTime}ms
-                      </span>
-                    </Tooltip>
-                  )}
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className='px-4 pb-2 space-y-1'>
-                  {hasOutput && (
-                    <pre className='text-sm text-gray-800 font-mono whitespace-pre-wrap break-words leading-relaxed'>
-                      {data.stdout}
-                    </pre>
-                  )}
-                  {hasError && (
-                    <pre className='text-sm text-red-600 font-mono whitespace-pre-wrap break-words leading-relaxed'>
-                      Error: {data.stderr}
-                    </pre>
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
-      </div>
-    </div>
-  );
+  return <SingleFileOutput />;
 };
