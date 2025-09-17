@@ -84,8 +84,10 @@ export class CustomSandbox extends Sandbox<AppContext['Bindings']> {
       }
     })();
 
+    console.log('runner', runner);
     await runner.setup();
     const result = await runner.execute();
+    console.log('result', result);
     this.ctx.waitUntil(runner.cleanup());
 
     return result;

@@ -6,11 +6,11 @@ import {
   RiStickyNoteLine,
   RiTerminalLine,
 } from '@remixicon/react';
-import { DockviewTheme, IDockviewPanelHeaderProps, IDockviewPanelProps } from 'dockview';
+import type { DockviewTheme, IDockviewPanelHeaderProps, IDockviewPanelProps } from 'dockview';
 import { useMemo } from 'react';
 import { AiChatView } from '@/components/room/ai-chat/AiChatView';
-import { CodeOutput } from '@/components/room/CodeOutput';
-import { CodeEditor } from '@/components/room/editor/CodeEditor';
+import { EditorView } from '@/components/room/editor/EditorView';
+import { CodeOutput } from '@/components/room/output/CodeOutput';
 import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
 import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
 import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
@@ -19,7 +19,7 @@ import { cx } from '@/lib/utils';
 export const DOCKVIEW_PANEL_IDS = {
   CODE_EDITOR: 'code-editor',
   INSTRUCTIONS: 'instructions',
-  PROGRAM_OUTPUT: 'program-output',
+  CODE_OUTPUT: 'code-output',
   WHITEBOARD: 'whiteboard',
   AI_CHAT: 'ai-chat',
   NOTES: 'notes',
@@ -38,7 +38,7 @@ export const getTabIcon = (panelId: string) => {
       return <RiCodeLine className='size-4' />;
     case DOCKVIEW_PANEL_IDS.INSTRUCTIONS:
       return <RiPencilLine className='size-4' />;
-    case DOCKVIEW_PANEL_IDS.PROGRAM_OUTPUT:
+    case DOCKVIEW_PANEL_IDS.CODE_OUTPUT:
       return <RiTerminalLine className='size-4' />;
     case DOCKVIEW_PANEL_IDS.WHITEBOARD:
       return <RiSlideshowLine className='size-4' />;
@@ -57,7 +57,9 @@ export const useDockviewComponents = (isGuest: boolean) =>
     () => ({
       'code-editor': (_: IDockviewPanelProps) => (
         <div className='h-full'>
-          <CodeEditor />
+          {/* <CodeEditor /> */}
+          {/* <MultiFileCodeEditor /> */}
+          <EditorView />
         </div>
       ),
       instructions: (_: IDockviewPanelProps) => (
@@ -65,7 +67,7 @@ export const useDockviewComponents = (isGuest: boolean) =>
           <InstructionEditor isGuest={isGuest} />
         </div>
       ),
-      'program-output': (_: IDockviewPanelProps) => (
+      'code-output': (_: IDockviewPanelProps) => (
         <div className='h-full overflow-y-auto'>
           <CodeOutput />
         </div>

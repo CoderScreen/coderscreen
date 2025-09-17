@@ -1,11 +1,16 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "root": true,
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
       "style": {
         "useImportType": "off"
+      },
+      "a11y": {
+        "useSemanticElements": "off"
+
       }
     }
   },

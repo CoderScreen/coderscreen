@@ -42,7 +42,6 @@ export const BillingView = () => {
   };
 
   const handleUpgrade = async (plan: PlanSchema) => {
-    console.log('plan', plan);
     if (plan.id === 'p_enterprise') {
       await navigate({ to: siteConfig.externalRoutes.contactSales });
       return;

@@ -59,12 +59,6 @@ RUN uv pip install --system --break-system-packages \
     find /usr -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
     find /usr -type f -name "*.pyc" -delete
 
-# Install Node.js global packages
-RUN npm install -g \
-    typescript \
-    ts-node \
-    @types/node && \
-    npm cache clean --force
 
 # Install Ruby gems (minimal set)
 RUN gem install bundler --no-document
@@ -112,9 +106,14 @@ RUN uv pip install --system --break-system-packages \
     find /usr -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
     find /usr -type f -name "*.pyc" -delete
 
+# Install Node.js global packages in runtime stage
+RUN npm install -g \
+    typescript \
+    ts-node \
+    @types/node && \
+    npm cache clean --force
+
 # Copy language installations
-COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /usr/lib/ruby/gems /usr/lib/ruby/gems
 COPY --from=builder /usr/local/bin/bundle* /usr/local/bin/
 COPY --from=builder /root/go /root/go

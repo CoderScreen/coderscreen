@@ -13,6 +13,11 @@ export const RoomLanguageSchema = z.enum([
   'go',
   'php',
   'ruby',
+
+  // web frameworks
+  'react',
+  'vue',
+  'svelte',
 ]);
 
 export const RoomSchema = z.object({

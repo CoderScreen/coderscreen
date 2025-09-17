@@ -14,16 +14,22 @@ export const NotesEditor = () => {
         others in your organization.
       </div>
 
-      <button
-        type='button'
+      <div
+        role='button'
+        tabIndex={0}
         className='flex-1 min-h-0 overflow-auto'
         onClick={() => editor?.chain()?.focus()?.run()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            editor?.chain()?.focus()?.run();
+          }
+        }}
       >
         <EditorContent
           editor={editor}
           className='px-2 py-4 h-full min-h-full w-full focus:outline-none focus:ring-0 focus:border-none prose prose-sm max-w-none'
         />
-      </button>
+      </div>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { DockviewReact } from 'dockview';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
+import { SandpackProvider } from '@/contexts/SandpackContext';
 import {
   DOCKVIEW_PANEL_IDS,
   lightDockviewTheme,
@@ -13,7 +14,9 @@ import {
 export const HostRoomView = () => {
   return (
     <RoomProvider>
-      <HostRoomContent />
+      <SandpackProvider>
+        <HostRoomContent />
+      </SandpackProvider>
     </RoomProvider>
   );
 };
@@ -56,10 +59,11 @@ const HostRoomContent = () => {
 
             // Add other panels as tabs in a second panel
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.INSTRUCTIONS,
-              component: 'instructions',
-              title: 'Instructions',
+              id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
+              component: 'code-output',
+              title: 'Code Output',
               tabComponent: 'tab',
+              renderer: 'always',
               position: {
                 direction: 'right',
                 referencePanel: 'code-editor',
@@ -67,10 +71,11 @@ const HostRoomContent = () => {
             });
 
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.PROGRAM_OUTPUT,
-              component: 'program-output',
-              title: 'Program Output',
+              id: DOCKVIEW_PANEL_IDS.INSTRUCTIONS,
+              component: 'instructions',
+              title: 'Instructions',
               tabComponent: 'tab',
+              inactive: true,
             });
 
             api.addPanel({
@@ -78,6 +83,7 @@ const HostRoomContent = () => {
               component: 'whiteboard',
               title: 'Whiteboard',
               tabComponent: 'tab',
+              inactive: true,
             });
 
             api.addPanel({
@@ -85,6 +91,7 @@ const HostRoomContent = () => {
               component: 'ai-chat',
               title: 'AI Chat',
               tabComponent: 'tab',
+              inactive: true,
             });
 
             api.addPanel({
@@ -92,6 +99,7 @@ const HostRoomContent = () => {
               component: 'notes',
               title: 'Notes',
               tabComponent: 'tab',
+              inactive: true,
             });
           }}
         />

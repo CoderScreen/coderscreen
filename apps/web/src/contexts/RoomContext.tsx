@@ -20,6 +20,8 @@ interface RoomContextType {
   provider: YPartyKitProvider;
   subscribeToStatus: (callback?: (status: string) => void) => () => void;
   currentStatus: RoomSchema['status'] | undefined;
+  currentLanguage: RoomSchema['language'] | undefined;
+  setLanguage: (language: RoomSchema['language']) => void;
 }
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -38,6 +40,9 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const currentRoomId = useCurrentRoomId();
   const [isConnected, setIsConnected] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<RoomSchema['status'] | undefined>(undefined);
+  const [currentLanguage, setCurrentLanguage] = useState<RoomSchema['language'] | undefined>(
+    undefined
+  );
 
   const { publicRoom } = usePublicRoom();
 
@@ -92,12 +97,45 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
       };
     };
 
-    // Subscribe to status field changes
-    const unsubscribe = subscribeToStatus();
+    // Subscribe to language field changes in the y.js document
+    const subscribeToLanguage = () => {
+      if (!provider.doc) {
+        console.warn('Provider document not available');
+        return () => {};
+      }
+
+      const languageField = provider.doc.getText('language');
+      if (!languageField) {
+        console.warn('Language field not found in document');
+        return () => {};
+      }
+
+      // Set initial language
+      const initialLanguage = languageField.toString() as RoomSchema['language'];
+      setCurrentLanguage(initialLanguage);
+
+      // Subscribe to changes
+      const handleLanguageChange = (event: { target: { toString: () => string } }) => {
+        const newLanguage = event.target.toString() as RoomSchema['language'];
+        setCurrentLanguage(newLanguage);
+      };
+
+      languageField.observe(handleLanguageChange);
+
+      // Return unsubscribe function
+      return () => {
+        languageField.unobserve(handleLanguageChange);
+      };
+    };
+
+    // Subscribe to both status and language field changes
+    const unsubscribeStatus = subscribeToStatus();
+    const unsubscribeLanguage = subscribeToLanguage();
 
     return () => {
       provider.off('status', handleStatus);
-      unsubscribe();
+      unsubscribeStatus();
+      unsubscribeLanguage();
     };
   }, [provider, handleStatus]);
 
@@ -142,6 +180,21 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
     [provider.doc]
   );
 
+  // Set language in the Yjs document
+  const setLanguage = useCallback(
+    (language: RoomSchema['language']) => {
+      if (!provider) return;
+
+      const languageField = provider.doc.getText('language');
+
+      provider.doc.transact(() => {
+        languageField.delete(0, languageField.length);
+        languageField.insert(0, language);
+      });
+    },
+    [provider]
+  );
+
   return (
     <RoomContext.Provider
       value={{
@@ -151,6 +204,8 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
         provider,
         subscribeToStatus,
         currentStatus,
+        currentLanguage,
+        setLanguage,
       }}
     >
       {children}

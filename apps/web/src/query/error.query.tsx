@@ -41,7 +41,13 @@ export const handleApiError = (error: unknown, rawTitle?: string) => {
     <div className='flex flex-col w-full'>
       <div className='w-full flex justify-between items-center gap-2'>
         <h4 className='font-semibold text-sm leading-tight'>{title}</h4>
-        <Tooltip content='Copy error details' popoverTarget='body' showArrow className='z-[500]'>
+        <Tooltip
+          triggerAsChild
+          content='Copy error details'
+          popoverTarget='body'
+          showArrow
+          className='z-[500]'
+        >
           <Button
             variant='icon'
             className='h-6 w-6 p-0 hover:bg-red-400/10'
