@@ -6,12 +6,18 @@ export class TypescriptRunner extends CodeRunner {
 
   async setup() {
     // Create a temp file
+    const start = Date.now();
     await this.sandbox.writeFile(this.tmpFilePath, this.code);
+    console.log('setup.time', Date.now() - start);
     return;
   }
 
   async executeInternal(): Promise<ExecuteResponse> {
-    const result = await this.sandbox.exec('ts-node', [this.tmpFilePath]);
+    const start = Date.now();
+    const result = await this.sandbox.exec('bun run', [this.tmpFilePath]);
+
+    console.log('result', result);
+    console.log('executeInternal.time', Date.now() - start);
 
     return result;
   }

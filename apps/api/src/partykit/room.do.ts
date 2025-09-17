@@ -7,11 +7,126 @@ import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
+import { getWorkspaceTemplate } from '@/lib/templates/languageTemplate';
 import { AIService, ChatMessage, User } from './internal/AI.service';
 import { SandboxService } from './internal/Sandbox.service';
 
 const KEYS = {
   trackedUsers: 'tracked-users',
+};
+
+// File system constants
+const FS_MAP_KEY = 'fs';
+const FILE_CHANGE_COUNTER_KEY = '__fileChangeCounter';
+
+// Helper function to generate unique ID for files and folders
+const generateId = (): string => {
+  return `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// Helper function to get file key for Y.Text
+const getFileKey = (fileId: string) => `file:${fileId}`;
+
+// File system entry interface
+interface FSEntry {
+  type: 'file' | 'folder';
+  name: string;
+  parentId: string | null;
+  children?: string[];
+}
+
+// Helper function to create a file entry
+const createFileEntry = (name: string, parentId: string | null): FSEntry => ({
+  type: 'file',
+  name,
+  parentId,
+});
+
+// Helper function to create a folder entry
+const createFolderEntry = (
+  name: string,
+  parentId: string | null,
+  children: string[] = []
+): FSEntry => ({
+  type: 'folder',
+  name,
+  parentId,
+  children,
+});
+
+// Helper function to find an item by path
+const findItemByPath = (
+  fsMap: Y.Map<FSEntry>,
+  path: string
+): { id: string; entry: FSEntry } | null => {
+  if (!path) return null;
+
+  const pathParts = path.split('/').filter((part) => part.length > 0);
+  if (pathParts.length === 0) return null;
+
+  // Find root items (items with no parent)
+  const rootItems: string[] = [];
+  fsMap.forEach((entry, id) => {
+    if (!entry.parentId) {
+      rootItems.push(id);
+    }
+  });
+
+  // Walk down the tree following the path
+  let currentId: string | null = null;
+  let currentEntry: FSEntry | null = null;
+
+  for (let i = 0; i < pathParts.length; i++) {
+    const part = pathParts[i];
+
+    if (i === 0) {
+      // Look for root item
+      for (const rootId of rootItems) {
+        const entry = fsMap.get(rootId);
+        if (entry && entry.name === part) {
+          currentId = rootId;
+          currentEntry = entry;
+          break;
+        }
+      }
+    } else {
+      // Look for child item
+      if (!currentEntry || currentEntry.type !== 'folder' || !currentEntry.children) {
+        return null;
+      }
+
+      let found = false;
+      for (const childId of currentEntry.children) {
+        const childEntry = fsMap.get(childId);
+        if (childEntry && childEntry.name === part) {
+          currentId = childId;
+          currentEntry = childEntry;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        return null;
+      }
+    }
+  }
+
+  return currentId && currentEntry ? { id: currentId, entry: currentEntry } : null;
+};
+
+// Helper function to add an item to its parent's children list
+const addItemToParentById = (fsMap: Y.Map<FSEntry>, itemId: string, parentId: string | null) => {
+  if (!parentId) return; // Root item, no parent to update
+
+  const parentEntry = fsMap.get(parentId);
+  if (parentEntry && parentEntry.type === 'folder') {
+    const children = parentEntry.children || [];
+    if (!children.includes(itemId)) {
+      children.push(itemId);
+      fsMap.set(parentId, { ...parentEntry, children });
+    }
+  }
 };
 
 export class RoomServer extends YServer<AppContext['Bindings']> {
@@ -93,6 +208,8 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
      * need to set default values for:
      * - language
      * - status
+     * - file system map
+     * - file content
      * rest will be created by user
      */
     const room = this.getRoom();
@@ -103,10 +220,87 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     langValue.insert(0, room.language);
     statusValue.insert(0, room.status);
 
+    // Initialize file system
+    this.initializeFileSystem(room.language);
+
     // services init themselves
     this.aiService?.initialize();
 
     this.ctx.storage.put('initialized', true);
+  }
+
+  private initializeFileSystem(language: RoomEntity['language']) {
+    // Get the file system map
+    const fsMap = this.document.getMap<FSEntry>(FS_MAP_KEY);
+
+    // Clear any existing entries
+    fsMap.clear();
+
+    // Initialize file change counter
+    const counterMap = this.document.getMap(FILE_CHANGE_COUNTER_KEY);
+    counterMap.set('value', 0);
+
+    // Get workspace template for the language
+    const template = getWorkspaceTemplate(language);
+
+    // Create file and folder entries from template
+    template.forEach((file) => {
+      if (file.isFolder) {
+        this.createFolder(file.path);
+      } else {
+        this.createFile(file.path, file.code);
+      }
+    });
+  }
+
+  private createFolder(path: string) {
+    const fsMap = this.document.getMap<FSEntry>(FS_MAP_KEY);
+
+    // Generate unique ID for the folder
+    const folderId = generateId();
+
+    // Parse the path to get name and parent
+    const pathParts = path.split('/');
+    const folderName = pathParts.pop() || '';
+    const parentPath = pathParts.join('/');
+    const parentResult = parentPath ? findItemByPath(fsMap, parentPath) : null;
+    const parentId = parentResult?.entry.type === 'folder' ? parentResult.id : null;
+
+    // Create folder entry
+    const folderEntry = createFolderEntry(folderName, parentId);
+    fsMap.set(folderId, folderEntry);
+
+    // Add to parent folder if it exists
+    if (parentId) {
+      addItemToParentById(fsMap, folderId, parentId);
+    }
+  }
+
+  private createFile(path: string, content: string) {
+    const fsMap = this.document.getMap<FSEntry>(FS_MAP_KEY);
+
+    // Generate unique ID for the file
+    const fileId = generateId();
+
+    // Parse the path to get name and parent
+    const pathParts = path.split('/');
+    const fileName = pathParts.pop() || '';
+    const parentPath = pathParts.join('/');
+    const parentResult = parentPath ? findItemByPath(fsMap, parentPath) : null;
+    const parentId = parentResult?.entry.type === 'folder' ? parentResult.id : null;
+
+    // Create file entry
+    const fileEntry = createFileEntry(fileName, parentId);
+    fsMap.set(fileId, fileEntry);
+
+    // Add to parent folder if it exists
+    if (parentId) {
+      addItemToParentById(fsMap, fileId, parentId);
+    }
+
+    // Create Y.Text for file content
+    const ytext = this.document.getText(getFileKey(fileId));
+    ytext.insert(0, content);
   }
 
   async onSave() {
