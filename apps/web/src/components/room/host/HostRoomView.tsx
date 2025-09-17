@@ -41,7 +41,7 @@ const HostRoomContent = () => {
         </div>
       )}
 
-      <div className='flex-1 min-h-0 bg-red-500'>
+      <div className='flex-1 min-h-0'>
         <DockviewReact
           theme={lightDockviewTheme}
           components={components}

@@ -25,10 +25,8 @@ export class CodeRunService {
     // this.ctx.executionCtx.waitUntil(roomDo.handleCodeExecutioMessage({ type: 'start' }));
 
     const sandbox = await this.getSandbox(roomId);
-    console.log('sandbox', sandbox);
 
     try {
-      console.log('running code');
       const raw = await sandbox.runCode({ language, code });
 
       const result = formatExecOutput(raw);
