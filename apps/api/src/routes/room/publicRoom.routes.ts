@@ -81,6 +81,7 @@ export const publicRoomRouter = new Hono<AppContext>()
 
       const codeRunService = new CodeRunService(ctx);
 
+      console.log('running code', code, language);
       const result = await codeRunService.runCode({ roomId, code, language });
 
       return ctx.json(result);

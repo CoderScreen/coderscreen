@@ -190,24 +190,38 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   const { provider } = useRoomContext();
 
   const [files, setFiles] = useState<FsNode[]>([]);
-  const [selectedFile, _setSelectedFile] = useState<string | undefined>(undefined);
+  const [selectedFile, _setSelectedFile] = useState<string | undefined>();
 
   const editorViewRef = useRef<EditorView>(null);
 
   const getOrCreateView = useCallback(
     (initialState: EditorState) => {
       const viewRef = editorViewRef.current;
-      if (viewRef) return viewRef;
+      if (viewRef) {
+        return viewRef;
+      }
 
-      if (!elementRef.current) return;
+      if (!elementRef.current) {
+        return;
+      }
 
-      const view = new EditorView({
-        state: initialState,
-        parent: elementRef.current,
-      });
+      // Additional check to ensure the element is actually in the DOM
+      if (!elementRef.current.isConnected) {
+        return;
+      }
 
-      editorViewRef.current = view;
-      return view;
+      try {
+        const view = new EditorView({
+          state: initialState,
+          parent: elementRef.current,
+        });
+
+        editorViewRef.current = view;
+        return view;
+      } catch (error) {
+        console.error('Failed to create CodeMirror view:', error);
+        return;
+      }
     },
     [elementRef]
   );
@@ -252,7 +266,12 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       const state = getOrCreateEditorState(fileId);
 
       const view = getOrCreateView(state);
-      view?.setState(state);
+
+      if (view) {
+        view.setState(state);
+      } else {
+        console.warn('Failed to create or get view for file:', fileId);
+      }
     },
     [getOrCreateEditorState, getOrCreateView]
   );
@@ -437,10 +456,14 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     // Get files from the provider and convert to FsNode tree
     const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
 
+    // first initialize the files
+    setFiles(buildFileTree(fsMap));
+
     const updateFiles = () => {
       setFiles(buildFileTree(fsMap));
     };
 
+    // then subscribe to changes
     fsMap.observe(updateFiles);
 
     return () => {

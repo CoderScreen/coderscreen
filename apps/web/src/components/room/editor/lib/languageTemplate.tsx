@@ -33,7 +33,7 @@ export const getWorkspaceTemplate = (workspaceType: RoomSchema['language']): Wor
     case 'svelte':
       return SVELTE_WORKSPACE_TEMPLATE;
     default:
-      return [];
+      return getSingleFileTemplate(workspaceType);
   }
 };
 
@@ -64,4 +64,16 @@ export const getSingleFileTemplate = (language: RoomSchema['language']): Workspa
     default:
       return [];
   }
+};
+
+// Helper function to get the main file name from a single file template
+export const getSingleFileTemplateFileName = (language: RoomSchema['language']): string => {
+  const template = getSingleFileTemplate(language);
+  if (template.length === 0) {
+    return '';
+  }
+
+  // Get the first file from the template and extract just the filename
+  const filePath = template[0].path;
+  return filePath.split('/').pop() ?? '';
 };

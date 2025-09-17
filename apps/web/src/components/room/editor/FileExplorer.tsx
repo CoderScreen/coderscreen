@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
 import { cn } from '@/lib/utils';
-import { FsNode } from '@/query/realtime/multiFileCode.query';
+import { FsNode } from '@/query/realtime/editor.query';
 import { AddItemInput } from './multi-file/AddItemInput';
 import { DeleteFileDialog } from './multi-file/DeleteFileDialog';
 import { RenameItemInput } from './multi-file/RenameItemInput';

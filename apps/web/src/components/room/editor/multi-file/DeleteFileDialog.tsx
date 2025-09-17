@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FsNode } from '@/query/realtime/multiFileCode.query';
+import { FsNode } from '@/query/realtime/editor.query';
 
 interface DeleteFileDialogProps {
   file: FsNode | null;

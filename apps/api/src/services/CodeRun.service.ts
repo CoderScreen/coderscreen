@@ -25,15 +25,36 @@ export class CodeRunService {
     // this.ctx.executionCtx.waitUntil(roomDo.handleCodeExecutioMessage({ type: 'start' }));
 
     const sandbox = await this.getSandbox(roomId);
-    const raw = await sandbox.runCode({ language, code });
-    const result = formatExecOutput(raw);
+    console.log('sandbox', sandbox);
 
-    // // Broadcast execution complete
-    // this.ctx.executionCtx.waitUntil(
-    // 	roomDo.handleCodeExecutioMessage({ type: 'complete', output: result?.stdout || result?.stderr || 'No output from execution' }),
-    // );
+    try {
+      console.log('running code');
+      const raw = await sandbox.runCode({ language, code });
 
-    return result;
+      const result = formatExecOutput(raw);
+      return result;
+    } catch (error) {
+      console.error('error', error);
+      return {
+        success: false,
+        timestamp: new Date().toISOString(),
+        stdout: '',
+        stderr: 'Error running code',
+        exitCode: 1,
+        elapsedTime: -1,
+        compileTime: undefined,
+      };
+    }
+
+    // throw new Error('test');
+    // console.log('result', result);
+
+    // // // Broadcast execution complete
+    // // this.ctx.executionCtx.waitUntil(
+    // // 	roomDo.handleCodeExecutioMessage({ type: 'complete', output: result?.stdout || result?.stderr || 'No output from execution' }),
+    // // );
+
+    // return result;
   }
 
   private async getSandbox(roomId: Id<'room'>) {

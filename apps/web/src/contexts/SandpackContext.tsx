@@ -95,7 +95,6 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
     const checkDocumentReady = () => {
       // Document is ready when provider is connected and synced
       if (provider.wsconnected && provider.synced) {
-        console.log('Document is ready for Sandpack initialization');
         setIsDocumentReady(true);
       } else {
         setIsDocumentReady(false);
@@ -124,7 +123,6 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
 
     const updateSandpackClient = () => {
       const updatedContent = buildFilesToSandpackSetup(provider.doc);
-      console.log('updating sandboxClient with', updatedContent);
       sandpackClient.updateSandbox(updatedContent);
     };
 
@@ -137,7 +135,6 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
     const handleFileChangeCounter = (event: Y.YMapEvent<unknown>) => {
       // Only update when the value changes
       if (event.changes.keys.has('value')) {
-        console.log('file change counter updated, updating sandpack client');
         debouncedUpdate();
       }
     };
@@ -199,11 +196,7 @@ export const SandpackProvider: React.FC<SandpackProviderProps> = ({ children }) 
   // Initialize Sandpack client function
   const initializeSandpackClient = useCallback(
     async (iframe: HTMLIFrameElement, doc: Y.Doc) => {
-      console.log('initializing sandpack client');
       try {
-        const builtFiles = buildFilesToSandpackSetup(doc);
-        console.log('builtFiles for init', builtFiles);
-
         setSandpackLoading(true);
         const client = await loadSandpackClient(
           iframe,
@@ -319,7 +312,6 @@ const buildFilesToSandpackSetup = (doc: Y.Doc): SandboxSetup => {
     packageContent = packageJsonText.toString();
   }
 
-  console.log('packageJSONContent', packageContent);
   const packageJson: {
     dependencies: { [key: string]: string };
     devDependencies: { [key: string]: string };
@@ -332,7 +324,7 @@ const buildFilesToSandpackSetup = (doc: Y.Doc): SandboxSetup => {
 };
 
 // Helper function to find file ID by path
-const findFileIdByPath = (fsMap: Y.Map<FSEntry>, path: string): string | null => {
+export const findFileIdByPath = (fsMap: Y.Map<FSEntry>, path: string): string | null => {
   if (!path) return null;
 
   const pathParts = path.split('/').filter((part) => part.length > 0);

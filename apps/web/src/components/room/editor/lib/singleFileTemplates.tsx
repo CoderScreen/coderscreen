@@ -1,3 +1,4 @@
+import { RoomSchema } from '@coderscreen/api/schema/room';
 import { WorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
 
 // TypeScript single file template
@@ -125,9 +126,9 @@ int main() {
 // Java single file template
 export const JAVA_SINGLE_FILE_TEMPLATE: WorkspaceTemplate = [
   {
-    path: '/Main.java',
+    path: '/Solution.java',
     code: `// Java Hello World
-public class Main {
+public class Solution {
     public static String greet(String name) {
         return "Hello, " + name + "!";
     }

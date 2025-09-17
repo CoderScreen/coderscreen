@@ -1,6 +1,6 @@
 import { RoomSchema } from '@coderscreen/api/schema/room';
-import { RiArrowRightLine, RiCloseLine } from '@remixicon/react';
-import { useCallback, useEffect, useState } from 'react';
+import { RiArrowRightLine, RiCloseLine, RiPlayLine } from '@remixicon/react';
+import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -51,53 +52,23 @@ interface EditorHeaderProps {
 }
 
 export const EditorHeader = ({ handleWorkspaceReset }: EditorHeaderProps) => {
-  const { provider, isReadOnly } = useRoomContext();
+  const { currentLanguage, setLanguage, isReadOnly } = useRoomContext();
+  const { executeCode, isLoading } = useCodeExecutionHistory();
 
-  const [language, setLanguageState] = useState<RoomSchema['language']>('javascript');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<RoomSchema['language'] | null>(null);
-
-  // Check if language switch requires confirmation
-  const requiresConfirmation = useCallback(
-    (fromLang: RoomSchema['language'], toLang: RoomSchema['language']) => {
-      // No confirmation needed for js->ts or c->c++
-      if (
-        (fromLang === 'javascript' && toLang === 'typescript') ||
-        (fromLang === 'c' && toLang === 'c++')
-      ) {
-        return false;
-      }
-      return true;
-    },
-    []
-  );
-
-  // Set the shared language in Yjs document
-  const setLanguage = useCallback(
-    (language: RoomSchema['language']) => {
-      if (!provider) return;
-
-      const ytext = provider.doc.getText('language');
-
-      provider.doc.transact(() => {
-        ytext.delete(0, ytext.length);
-        ytext.insert(0, language);
-      });
-    },
-    [provider]
-  );
 
   // Handle language change with confirmation
   const handleLanguageChange = useCallback(
     (newLanguage: RoomSchema['language']) => {
-      if (requiresConfirmation(language, newLanguage)) {
+      if (currentLanguage !== newLanguage) {
         setPendingLanguage(newLanguage);
         setShowConfirmDialog(true);
       } else {
         setLanguage(newLanguage);
       }
     },
-    [language, requiresConfirmation, setLanguage]
+    [currentLanguage, setLanguage]
   );
 
   // Confirm language change
@@ -118,40 +89,12 @@ export const EditorHeader = ({ handleWorkspaceReset }: EditorHeaderProps) => {
     setShowConfirmDialog(false);
   }, []);
 
-  // Subscribe to language changes
-  const subscribeToLanguageChanges = useCallback(
-    (callback: (language: RoomSchema['language']) => void) => {
-      if (!provider) return () => {};
-
-      const ymap = provider.doc.getText('language');
-      const observer = () => {
-        const language = ymap.toJSON();
-        callback(language as RoomSchema['language']);
-      };
-
-      ymap.observe(observer);
-      return () => ymap.unobserve(observer);
-    },
-    [provider]
-  );
-
-  // Subscribe to language changes and update local state
-  useEffect(() => {
-    if (!provider) return;
-
-    const unsubscribe = subscribeToLanguageChanges((newLanguage) => {
-      setLanguageState(newLanguage);
-    });
-
-    return unsubscribe;
-  }, [provider, subscribeToLanguageChanges]);
-
   return (
     <>
       <div className='flex items-center justify-between border-b p-2 py-1'>
         <div className='flex items-center gap-2'>
           <Select
-            value={language}
+            value={currentLanguage || 'javascript'}
             onValueChange={(value) => handleLanguageChange(value as RoomSchema['language'])}
             disabled={isReadOnly}
           >
@@ -187,6 +130,10 @@ export const EditorHeader = ({ handleWorkspaceReset }: EditorHeaderProps) => {
             </SelectContent>
           </Select>
         </div>
+
+        <Button icon={RiPlayLine} onClick={executeCode} isLoading={isLoading}>
+          Run Code
+        </Button>
       </div>
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

@@ -2,7 +2,7 @@ import { RiFileLine, RiFolderLine } from '@remixicon/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { cn } from '@/lib/utils';
-import { type FileType, getFileTypeFromPath } from '@/query/realtime/multiFileCode.query';
+import { type FileType, getFileTypeFromPath } from '@/query/realtime/editor.query';
 
 interface RenameItemInputProps {
   isFolder: boolean;

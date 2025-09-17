@@ -19,7 +19,7 @@ import TypescriptPlain from 'devicons-react/icons/TypescriptPlain';
 import VueOriginal from 'devicons-react/icons/VuejsOriginal';
 import { useMemo } from 'react';
 import { cn, cx } from '@/lib/utils';
-import type { FileType } from '@/query/realtime/multiFileCode.query';
+import type { FileType } from '@/query/realtime/editor.query';
 
 const BASE_ICON_STYLE = '';
 

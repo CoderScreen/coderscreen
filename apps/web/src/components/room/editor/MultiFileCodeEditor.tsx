@@ -2,8 +2,8 @@
 
 import { useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { EditorHeader } from '@/components/room/editor/EditorHeader';
-import { useMultiFileCodeEditor } from '@/query/realtime/multiFileCode.query';
+import { useMultiFileCodeEditor } from '@/query/realtime/editor.query';
+import { EditorHeader } from './EditorHeader';
 import { FileExplorer } from './FileExplorer';
 
 interface MultiFileCodeEditorProps {

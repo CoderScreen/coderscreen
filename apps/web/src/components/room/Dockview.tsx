@@ -9,8 +9,7 @@ import {
 import type { DockviewTheme, IDockviewPanelHeaderProps, IDockviewPanelProps } from 'dockview';
 import { useMemo } from 'react';
 import { AiChatView } from '@/components/room/ai-chat/AiChatView';
-import { CodeEditor } from '@/components/room/editor/CodeEditor';
-import { MultiFileCodeEditor } from '@/components/room/editor/MultiFileCodeEditor';
+import { EditorView } from '@/components/room/editor/EditorView';
 import { CodeOutput } from '@/components/room/output/CodeOutput';
 import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
 import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
@@ -59,7 +58,8 @@ export const useDockviewComponents = (isGuest: boolean) =>
       'code-editor': (_: IDockviewPanelProps) => (
         <div className='h-full'>
           {/* <CodeEditor /> */}
-          <MultiFileCodeEditor />
+          {/* <MultiFileCodeEditor /> */}
+          <EditorView />
         </div>
       ),
       instructions: (_: IDockviewPanelProps) => (

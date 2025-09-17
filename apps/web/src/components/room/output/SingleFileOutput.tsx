@@ -81,7 +81,7 @@ export const SingleFileOutput = () => {
                 </div>
                 <div className='flex items-center gap-2'>
                   {data.compileTime && (
-                    <Tooltip content='Compilation time'>
+                    <Tooltip content='Compilation time' triggerAsChild>
                       <span className='text-gray-400 flex items-center gap-0.5'>
                         <RiHammerLine className='size-3' />
                         {data.compileTime}ms
@@ -89,7 +89,7 @@ export const SingleFileOutput = () => {
                     </Tooltip>
                   )}
                   {data.elapsedTime >= 0 && (
-                    <Tooltip content='Execution time'>
+                    <Tooltip content='Execution time' triggerAsChild>
                       <span className='text-gray-400 flex items-center gap-0.5'>
                         <RiPlayLine className='size-3' />
                         {data.elapsedTime}ms

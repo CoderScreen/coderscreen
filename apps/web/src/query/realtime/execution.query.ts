@@ -2,8 +2,11 @@ import { RoomSchema } from '@coderscreen/api/schema/room';
 import { ExecOutputSchema } from '@coderscreen/api/schema/sandbox';
 import { useCallback, useEffect, useState } from 'react';
 import { z } from 'zod';
+import { getSingleFileTemplateFileName } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { findFileIdByPath } from '@/contexts/SandpackContext';
 import { useRunRoomCode } from '@/query/publicRoom.query';
+import { FS_MAP_KEY, FSEntry, getFileKey } from '@/query/realtime/multi-file/docUtils';
 
 type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
@@ -37,39 +40,48 @@ export function useCodeExecutionHistory() {
   }, [provider, isReadOnly]);
 
   // Run code and store result in history
-  const executeCode = useCallback(
-    async (code: string, language: RoomSchema['language']) => {
-      if (!provider || isReadOnly) {
-        return;
+  const executeCode = useCallback(async () => {
+    if (!provider || isReadOnly) {
+      return;
+    }
+
+    try {
+      const language = provider.doc.getText('language').toJSON() as RoomSchema['language'];
+      const filePath = getSingleFileTemplateFileName(language);
+
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      const fileId = findFileIdByPath(fsMap, filePath);
+
+      if (!fileId) {
+        throw new Error('File not found');
       }
 
-      try {
-        const result = await runRoomCode({ code, language });
-        // Add to main doc
-        const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
-        executionHistory.push([result]);
+      const code = provider.doc.getText(getFileKey(fileId)).toJSON() as string;
 
-        return result;
-      } catch (error) {
-        const errorResult: ExecOutput = {
-          success: false,
-          timestamp: new Date().toISOString(),
-          stdout: '',
-          stderr: error instanceof Error ? error.message : 'Unknown error occurred',
-          exitCode: 1,
-          elapsedTime: -1,
-          compileTime: undefined,
-        };
+      const result = await runRoomCode({ code, language });
+      // Add to main doc
+      const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
+      executionHistory.push([result]);
 
-        // Add error to main doc
-        const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
-        executionHistory.push([errorResult]);
+      return result;
+    } catch (error) {
+      const errorResult: ExecOutput = {
+        success: false,
+        timestamp: new Date().toISOString(),
+        stdout: '',
+        stderr: error instanceof Error ? error.message : 'Unknown error occurred',
+        exitCode: 1,
+        elapsedTime: -1,
+        compileTime: undefined,
+      };
 
-        throw error;
-      }
-    },
-    [runRoomCode, provider, isReadOnly]
-  );
+      // Add error to main doc
+      const executionHistory = provider.doc.getArray<ExecOutput>('executionHistory');
+      executionHistory.push([errorResult]);
+
+      throw error;
+    }
+  }, [runRoomCode, provider, isReadOnly]);
 
   // Clear history from main doc
   const clearHistory = useCallback(() => {
