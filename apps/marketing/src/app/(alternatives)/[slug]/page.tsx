@@ -9,13 +9,15 @@ export function generateStaticParams() {
 }
 
 interface AlternativeCompetitorPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 }
 
-export default function AlternativeCompetitorPage({ params }: AlternativeCompetitorPageProps) {
-  const competitor = competitorData[params.slug];
+export default async function AlternativeCompetitorPage({
+  params,
+}: AlternativeCompetitorPageProps) {
+  const { slug } = await params;
+
+  const competitor = competitorData[slug];
   if (!competitor) {
     notFound();
   }
