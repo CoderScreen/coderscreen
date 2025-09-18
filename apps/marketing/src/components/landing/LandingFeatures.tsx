@@ -88,6 +88,8 @@ export const LandingFeatures = () => {
               src={selectedFeature.image}
               alt={selectedFeature.imageAlt}
               className='w-full h-full object-contain border border-border/50 rounded-xl'
+              height={1000}
+              width={1000}
             />
           </div>
         </div>

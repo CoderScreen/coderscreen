@@ -16,7 +16,7 @@ export const MarketingFooter: React.FC = () => {
   return (
     <footer className='bg-white text-gray-700 border-t border-border/50'>
       <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
-        <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
+        <div className='grid grid-cols-1 md:grid-cols-5 gap-8'>
           {/* Company Info */}
           <div className='col-span-1 md:col-span-3'>
             <div className='flex items-center mb-4'>
@@ -90,6 +90,45 @@ export const MarketingFooter: React.FC = () => {
                   className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
                 >
                   Book Demo
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Comparison Links */}
+          <div>
+            <h4 className='text-lg font-semibold mb-4 text-gray-900'>Alternatives</h4>
+            <ul className='space-y-2'>
+              <li>
+                <a
+                  href='/coderpad-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs CoderPad
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/hackerrank-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs HackerRank
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/codesignal-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs CodeSignal
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/coderbyte-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs Coderbyte
                 </a>
               </li>
             </ul>

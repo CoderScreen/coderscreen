@@ -191,6 +191,8 @@ const IntegrationsVisual = () => {
               src={`/ats-logos/${logo.name}`}
               alt={logo.name}
               className='h-full w-full object-contain rounded-full'
+              height={1000}
+              width={1000}
             />
           </div>
         );
@@ -215,6 +217,8 @@ const IntegrationsVisual = () => {
               src={`/ats-logos/${logo.name}`}
               alt={logo.name}
               className='h-full w-full object-contain rounded-full'
+              height={1000}
+              width={1000}
             />
           </div>
         );
