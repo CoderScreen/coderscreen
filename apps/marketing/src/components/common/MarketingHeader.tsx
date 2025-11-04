@@ -54,6 +54,12 @@ export const MarketingHeader = () => {
             >
               Pricing
             </button>
+            <Link
+              href='/blog'
+              className='text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors cursor-pointer'
+            >
+              Blog
+            </Link>
             <button
               onClick={() => scrollToSection('faq')}
               className='text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors cursor-pointer'
@@ -125,6 +131,12 @@ export const MarketingHeader = () => {
               >
                 Pricing
               </button>
+              <Link
+                href='/blog'
+                className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'
+              >
+                Blog
+              </Link>
               <button
                 onClick={() => scrollToSection('faq')}
                 className='text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left'

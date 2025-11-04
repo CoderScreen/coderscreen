@@ -78,6 +78,14 @@ export const MarketingFooter: React.FC = () => {
               </li>
               <li>
                 <a
+                  href='/blog'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  Blog
+                </a>
+              </li>
+              <li>
+                <a
                   href={siteConfig.external.getStarted}
                   className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
                 >
