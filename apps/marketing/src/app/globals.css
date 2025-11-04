@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@coderscreen/ui/styles.css";
+@plugin "@tailwindcss/typography";
 
 @source '../../node_modules/@coderscreen/ui';
 

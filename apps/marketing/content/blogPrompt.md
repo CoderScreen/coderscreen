@@ -1,0 +1,1 @@
+help me write a blog post in @apps/marketing/content/blog/, but write a blog post about the latest round of Amazon layoffs and other tech layoffs. Use web search to find relavent links and resources, and make sure to link them, as well as creating internal links to pages on @apps/marketing/. Make the blog post about 2000 words, and make sure to only find relavent information
