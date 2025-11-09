@@ -1,6 +1,20 @@
 import type { MDXComponents } from 'mdx/types';
 import Link from 'next/link';
 
+const YoutubeEmbed = ({ videoId }: { videoId: string }) => {
+  return (
+    <div className='aspect-video my-8'>
+      <iframe
+        className='aspect-video w-full rounded-lg'
+        src={`https://www.youtube.com/embed/${videoId}`}
+        title='YouTube Video Player'
+        allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+        allowFullScreen
+      ></iframe>
+    </div>
+  );
+};
+
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     h1: ({ children }) => (
@@ -51,6 +65,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     td: ({ children }) => (
       <td className='px-4 py-2 text-sm text-gray-700 border-t border-gray-200'>{children}</td>
     ),
+    YoutubeEmbed,
     ...components,
   };
 }

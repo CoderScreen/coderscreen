@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://coderscreen.com/sitemap.xml 

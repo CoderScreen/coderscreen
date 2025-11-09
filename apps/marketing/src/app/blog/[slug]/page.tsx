@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import rehypeHighlight from 'rehype-highlight';
@@ -145,7 +146,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           Back to Blog
         </Link>
 
-        <header className='mb-12'>
+        <header className='mb-8'>
           <h1 className='text-5xl font-bold text-gray-900 mb-4'>{post.title}</h1>
           <div className='flex items-center gap-4 text-gray-600'>
             <time dateTime={post.date}>{dayjs(post.date).format('MMMM D, YYYY')}</time>
@@ -169,6 +170,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           )}
         </header>
+
+        {post.image && (
+          <div className='mb-12 overflow-hidden rounded-lg'>
+            <Image
+              src={post.image}
+              alt={post.title}
+              width={1200}
+              height={630}
+              className='w-full h-auto object-cover'
+              priority
+            />
+          </div>
+        )}
 
         <div className='prose prose-lg max-w-none'>
           <MDXRemote
