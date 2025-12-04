@@ -1,7 +1,4 @@
-import { RiCloseLine, RiDeleteBinLine, RiImageLine, RiSaveLine } from '@remixicon/react';
-import { useForm } from '@tanstack/react-form';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,11 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Divider } from '@/components/ui/divider';
-import { SmallHeader } from '@/components/ui/heading';
-import { Input } from '@/components/ui/input';
-import { MutedText } from '@/components/ui/typography';
+} from '@coderscreen/ui/dialog';
+import { Divider } from '@coderscreen/ui/divider';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { Input } from '@coderscreen/ui/input';
+import { MutedText } from '@coderscreen/ui/typography';
+import { RiCloseLine, RiDeleteBinLine, RiImageLine, RiSaveLine } from '@remixicon/react';
+import { useForm } from '@tanstack/react-form';
+import { useEffect, useState } from 'react';
 import { useActiveOrg, useDeleteOrganization, useUpdateOrganization } from '@/query/org.query';
 
 export const OrgSettingsView = () => {

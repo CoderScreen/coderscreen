@@ -1,7 +1,4 @@
-import { RiCloseLine, RiDeleteBinLine, RiLogoutBoxLine, RiSaveLine } from '@remixicon/react';
-import { useForm } from '@tanstack/react-form';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,11 +6,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Divider } from '@/components/ui/divider';
-import { SmallHeader } from '@/components/ui/heading';
-import { Input } from '@/components/ui/input';
-import { MutedText } from '@/components/ui/typography';
+} from '@coderscreen/ui/dialog';
+import { Divider } from '@coderscreen/ui/divider';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { Input } from '@coderscreen/ui/input';
+import { MutedText } from '@coderscreen/ui/typography';
+import { RiCloseLine, RiDeleteBinLine, RiLogoutBoxLine, RiSaveLine } from '@remixicon/react';
+import { useForm } from '@tanstack/react-form';
+import { useState } from 'react';
 import { useSession, useSignOut } from '@/query/auth.query';
 import { useDeleteUser, useUpdateUser } from '@/query/profile.query';
 

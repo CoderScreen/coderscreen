@@ -1,7 +1,4 @@
-import { RiExpandUpDownLine, RiLogoutBoxLine, RiUserLine } from '@remixicon/react';
-import { useRouter } from '@tanstack/react-router';
-import { useMemo } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,8 +6,11 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '@coderscreen/ui/dropdown';
+import { Skeleton } from '@coderscreen/ui/skeleton';
+import { RiExpandUpDownLine, RiLogoutBoxLine, RiUserLine } from '@remixicon/react';
+import { useRouter } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useSession, useSignOut } from '@/query/auth.query';
 import { useActiveOrg } from '@/query/org.query';

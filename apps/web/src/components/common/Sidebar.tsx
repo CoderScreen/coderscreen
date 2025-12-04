@@ -1,5 +1,9 @@
 'use client';
 
+import { Button } from '@coderscreen/ui/button';
+import { Skeleton } from '@coderscreen/ui/skeleton';
+import { Tooltip } from '@coderscreen/ui/tooltip';
+import { MutedText } from '@coderscreen/ui/typography';
 import {
   RemixiconComponentType,
   RiArrowRightSLine,
@@ -23,10 +27,6 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { OrgSwitcher } from '@/components/common/OrgSwitcher';
 import { SidebarProfile } from '@/components/common/SidebarProfile';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
-import { MutedText } from '@/components/ui/typography';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { siteConfig } from '@/lib/siteConfig';
 import { cx, focusRing } from '@/lib/utils';

@@ -1,12 +1,12 @@
+import { Button } from '@coderscreen/ui/button';
+import { Card, CardContent, CardHeader } from '@coderscreen/ui/card';
+import { Divider } from '@coderscreen/ui/divider';
+import { LargeHeader } from '@coderscreen/ui/heading';
+import { Input } from '@coderscreen/ui/input';
+import { Label } from '@coderscreen/ui/label';
 import { RiArrowRightLine, RiGithubFill, RiGoogleFill } from '@remixicon/react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Divider } from '@/components/ui/divider';
-import { LargeHeader } from '@/components/ui/heading';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useGithubSignIn, useGoogleSignIn, useSignIn } from '@/query/auth.query';
 
 export const SignInView = () => {

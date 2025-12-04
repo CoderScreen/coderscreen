@@ -1,10 +1,10 @@
+import { Button } from '@coderscreen/ui/button';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { MutedText } from '@coderscreen/ui/typography';
 import { RiAddLine } from '@remixicon/react';
 import { useRouter } from '@tanstack/react-router';
 import { useCallback, useEffect } from 'react';
 import { Shortcut } from '@/components/common/Shortcut';
-import { Button } from '@/components/ui/button';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
 import { useCreateRoom } from '@/query/room.query';
 
 export function DashboardHeader() {

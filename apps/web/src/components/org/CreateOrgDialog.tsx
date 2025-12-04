@@ -1,10 +1,10 @@
+import { Button } from '@coderscreen/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@coderscreen/ui/dialog';
+import { Input } from '@coderscreen/ui/input';
+import { Label } from '@coderscreen/ui/label';
 import { RiArrowRightLine, RiQuestionMark, RiUploadLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useUploadLogo } from '@/query/asset.query';
 import { useCreateOrganization } from '@/query/org.query';
 

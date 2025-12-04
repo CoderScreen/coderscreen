@@ -5,7 +5,7 @@ import { RemixiconComponentType, RiLoader2Fill } from '@remixicon/react';
 import React from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-import { cx, focusRing } from '@/lib/utils';
+import { cx, focusRing } from '../lib/utils';
 
 const buttonVariants = tv({
   base: [
@@ -26,7 +26,7 @@ const buttonVariants = tv({
         // background color
         'bg-primary',
         // hover color
-        'hover:bg-primary/70',
+        'hover:bg-red-400',
         // disabled
         'disabled:bg-primary/50 disabled:text-neutral-200',
       ],

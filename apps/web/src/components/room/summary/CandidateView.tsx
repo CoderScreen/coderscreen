@@ -1,7 +1,7 @@
+import { Button } from '@coderscreen/ui/button';
 import { RiArrowLeftLine, RiCheckLine } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { Button } from '@/components/ui/button';
 import { formatDatetime } from '@/lib/dateUtils';
 import { formatSlug } from '@/lib/slug';
 import { useRoom } from '@/query/room.query';

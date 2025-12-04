@@ -1,4 +1,26 @@
 import { RoomSchema } from '@coderscreen/api/schema/room';
+import { Badge } from '@coderscreen/ui/badge';
+import { Button } from '@coderscreen/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuIconWrapper,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@coderscreen/ui/dropdown';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRoot,
+  TableRow,
+  TableSkeleton,
+} from '@coderscreen/ui/table';
+import { Tooltip } from '@coderscreen/ui/tooltip';
+import { MutedText } from '@coderscreen/ui/typography';
 import {
   RiAddLine,
   RiCornerDownRightLine,
@@ -9,34 +31,13 @@ import {
   RiSearchLine,
 } from '@remixicon/react';
 import { Link, useRouter } from '@tanstack/react-router';
+import { toast } from 'sonner';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { Shortcut } from '@/components/common/Shortcut';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuIconWrapper,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
-import { SmallHeader } from '@/components/ui/heading';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRoot,
-  TableRow,
-  TableSkeleton,
-} from '@/components/ui/table';
-import { Tooltip } from '@/components/ui/tooltip';
-import { MutedText } from '@/components/ui/typography';
 import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
 import { formatSlug } from '@/lib/slug';
-import { useCreateRoom } from '@/query/room.query';
+import { useCreateRoom, useDeleteRoom } from '@/query/room.query';
 
 interface RoomTableProps {
   rooms: RoomSchema[];
@@ -60,10 +61,13 @@ const StatusBadge = ({ status }: { status: RoomSchema['status'] }) => {
 };
 
 const RowActions = ({ room }: { room: RoomSchema }) => {
+  const { deleteRoom } = useDeleteRoom();
+
   const handleCopyLink = () => {
     const roomUrl = `${window.location.origin}/room/${room.id}`;
     navigator.clipboard.writeText(roomUrl);
-    // You might want to add a toast notification here
+
+    toast.success('Room link copied to clipboard');
   };
 
   const handleDuplicateRoom = () => {
@@ -71,9 +75,8 @@ const RowActions = ({ room }: { room: RoomSchema }) => {
     console.log('Duplicate room:', room.id);
   };
 
-  const handleDeleteRoom = () => {
-    // TODO: Implement delete room functionality
-    console.log('Delete room:', room.id);
+  const handleDeleteRoom = async () => {
+    await deleteRoom(room.id);
   };
 
   return (

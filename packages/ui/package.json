@@ -35,6 +35,7 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@remixicon/react": "^4.6.0",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "react": "^19.1.0",
     "tailwind-merge": "^3.0.2",
     "tailwind-variants": "^0.3.1"
@@ -47,6 +48,7 @@
   },
   "exports": {
     "./styles.css": "./src/styles.css",
+    "./theme.css": "./src/theme.css",
     "./accordion": "./src/components/accordion.tsx",
     "./areachart": "./src/components/areachart.tsx",
     "./badge": "./src/components/badge.tsx",

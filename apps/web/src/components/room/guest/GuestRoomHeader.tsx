@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@coderscreen/ui/skeleton';
 import { usePublicRoom } from '@/query/publicRoom.query';
 
 export const GuestRoomHeader = () => {

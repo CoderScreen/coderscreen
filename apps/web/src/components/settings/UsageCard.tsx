@@ -1,8 +1,8 @@
 import { UsageResultSchema } from '@coderscreen/api/schema/usage';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Gauge } from '@/components/ui/gauge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { MutedText } from '@/components/ui/typography';
+import { Card, CardContent, CardHeader } from '@coderscreen/ui/card';
+import { Gauge } from '@coderscreen/ui/gauge';
+import { Skeleton } from '@coderscreen/ui/skeleton';
+import { MutedText } from '@coderscreen/ui/typography';
 import { cx } from '@/lib/utils';
 
 // Common styling constant

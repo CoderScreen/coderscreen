@@ -1,6 +1,12 @@
 'use client';
 
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@coderscreen/ui/dropdown';
+import {
   RiDeleteBinLine,
   RiEditLine,
   RiFileAddLine,
@@ -12,12 +18,6 @@ import {
 } from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
 import { cn } from '@/lib/utils';
 import { FsNode } from '@/query/realtime/editor.query';
 import { AddItemInput } from './multi-file/AddItemInput';

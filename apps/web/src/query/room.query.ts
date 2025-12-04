@@ -125,7 +125,7 @@ export const useUpdateRoom = () => {
 export const useDeleteRoom = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await apiClient.rooms[':id'].$delete({
         param: { id },
@@ -146,6 +146,12 @@ export const useDeleteRoom = () => {
       ERROR_MESSAGE: 'Failed to delete room',
     },
   });
+
+  return {
+    deleteRoom: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
 };
 
 export const useRoomCodeResult = () => {

@@ -1,15 +1,15 @@
-import { RiArrowRightLine } from '@remixicon/react';
-import { useForm } from '@tanstack/react-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@coderscreen/ui/button';
+import { Input } from '@coderscreen/ui/input';
+import { Label } from '@coderscreen/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@coderscreen/ui/select';
+import { RiArrowRightLine } from '@remixicon/react';
+import { useForm } from '@tanstack/react-form';
 import { useSession } from '@/query/auth.query';
 import { useUpdateUser } from '@/query/profile.query';
 

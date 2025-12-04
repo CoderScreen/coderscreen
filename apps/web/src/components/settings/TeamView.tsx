@@ -1,6 +1,6 @@
-import { Divider } from '@/components/ui/divider';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
+import { Divider } from '@coderscreen/ui/divider';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { MutedText } from '@coderscreen/ui/typography';
 import { useActiveOrg } from '@/query/org.query';
 import { InviteMembers } from './team/InviteMembers';
 import { MembersTable } from './team/MembersTable';

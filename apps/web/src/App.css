@@ -1,7 +1,8 @@
-@import "tailwindcss";
 @import "@coderscreen/ui/styles.css";
 
-@source '../../node_modules/@coderscreen/ui';
+/* Tell Tailwind to scan the UI package for classes when building */
+@source '../../../packages/ui/src/**/*.{ts,tsx}';
+
 /** TIPTAP */
 .ProseMirror:focus {
   outline: none;

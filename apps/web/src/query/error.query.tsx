@@ -1,8 +1,8 @@
+import { Button } from '@coderscreen/ui/button';
+import { Tooltip } from '@coderscreen/ui/tooltip';
 import { RiFileCopyLine } from '@remixicon/react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Button } from '../components/ui/button';
-import { Tooltip } from '../components/ui/tooltip';
 
 const apiErrorSchema = z.object({
   id: z.string(),

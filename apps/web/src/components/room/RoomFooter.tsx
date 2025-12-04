@@ -1,5 +1,5 @@
+import { Tooltip } from '@coderscreen/ui/tooltip';
 import { RiUserLine } from '@remixicon/react';
-import { Tooltip } from '@/components/ui/tooltip';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { cx } from '@/lib/utils';
 import { useActiveUsers } from '@/query/realtime/activeUsers.query';

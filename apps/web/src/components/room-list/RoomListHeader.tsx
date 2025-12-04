@@ -1,4 +1,4 @@
-import { SmallHeader } from '@/components/ui/heading';
+import { SmallHeader } from '@coderscreen/ui/heading';
 
 export function RoomListHeader() {
   return (

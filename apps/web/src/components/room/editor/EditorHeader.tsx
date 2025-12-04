@@ -1,8 +1,5 @@
 import { RoomSchema } from '@coderscreen/api/schema/room';
-import { RiArrowRightLine, RiCloseLine, RiPlayLine } from '@remixicon/react';
-import { useCallback, useState } from 'react';
-import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,14 +7,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@coderscreen/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@coderscreen/ui/select';
+import { RiArrowRightLine, RiCloseLine, RiPlayLine } from '@remixicon/react';
+import { useCallback, useState } from 'react';
+import { LanguageIcon } from '@/components/common/LanguageIcon';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 

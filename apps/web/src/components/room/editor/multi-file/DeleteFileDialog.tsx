@@ -1,5 +1,4 @@
-import { RiCloseLine, RiDeleteBinLine } from '@remixicon/react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,7 +6,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@coderscreen/ui/dialog';
+import { RiCloseLine, RiDeleteBinLine } from '@remixicon/react';
 import { FsNode } from '@/query/realtime/editor.query';
 
 interface DeleteFileDialogProps {

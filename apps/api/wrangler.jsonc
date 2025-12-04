@@ -9,6 +9,7 @@
 	],
 	"observability": {
 		"enabled": true,
+		// "traces": true,
 	},
 	"dev": {
 		"port": 8000,

@@ -1,8 +1,8 @@
+import { Button } from '@coderscreen/ui/button';
+import { LargeHeader } from '@coderscreen/ui/heading';
 import { RiArrowLeftLine, RiHome4Line } from '@remixicon/react';
 import { useRouter } from '@tanstack/react-router';
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { LargeHeader } from '@/components/ui/heading';
 import { cx } from '@/lib/utils';
 
 interface NotFoundProps {

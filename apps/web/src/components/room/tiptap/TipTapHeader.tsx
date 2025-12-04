@@ -1,3 +1,10 @@
+import { Button } from '@coderscreen/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@coderscreen/ui/dropdown';
 import {
   RiArrowDownSLine,
   RiBold,
@@ -13,13 +20,6 @@ import {
   RiStrikethrough,
 } from '@remixicon/react';
 import { Editor } from '@tiptap/react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
 import { cx } from '@/lib/utils';
 
 const BUTTON_CLASSNAME = 'p-1';

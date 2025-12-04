@@ -11,7 +11,7 @@ import {
 } from '@remixicon/react';
 import * as React from 'react';
 
-import { cx } from '../lib/utils';
+import { cx } from '@/lib/utils';
 
 const DropdownMenu = DropdownMenuPrimitives.Root;
 DropdownMenu.displayName = 'DropdownMenu';
@@ -220,9 +220,9 @@ const DropdownMenuRadioItem = React.forwardRef<
       // disabled
       'data-[disabled]:pointer-events-none  data-[disabled]:text-gray-400 data-[disabled]:hover:bg-none',
       // focus
-      'focus-visible:bg-gray-100 ',
+      'focus-visible:bg-gray-100',
       // hover
-      'hover:bg-gray-100 ',
+      'hover:bg-gray-100',
       className
     )}
     {...props}

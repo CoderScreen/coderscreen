@@ -1,3 +1,15 @@
+import { Button } from '@coderscreen/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@coderscreen/ui/dialog';
+import { Input } from '@coderscreen/ui/input';
+import { Skeleton } from '@coderscreen/ui/skeleton';
+import { Tooltip } from '@coderscreen/ui/tooltip';
 import {
   RiArrowLeftLine,
   RiCheckLine,
@@ -8,18 +20,6 @@ import {
 import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
 import { cx } from '@/lib/utils';
 import { useEndRoom, useRoom, useUpdateRoom } from '@/query/room.query';
 

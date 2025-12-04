@@ -1,7 +1,7 @@
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@coderscreen/ui/collapsible';
+import { Tooltip } from '@coderscreen/ui/tooltip';
 import { RiArrowRightSLine, RiHammerLine, RiPlayLine, RiTerminalLine } from '@remixicon/react';
 import { useEffect, useRef, useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
 

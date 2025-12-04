@@ -1,10 +1,10 @@
+import { Button } from '@coderscreen/ui/button';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { Textarea } from '@coderscreen/ui/textarea';
 import { RiArrowLeftLine, RiSaveLine } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
-import { Button } from '@/components/ui/button';
-import { SmallHeader } from '@/components/ui/heading';
-import { Textarea } from '@/components/ui/textarea';
 import { formatDatetime } from '@/lib/dateUtils';
 import { formatSlug } from '@/lib/slug';
 import { useRoom, useUpdateRoom } from '@/query/room.query';

@@ -1,4 +1,15 @@
 import { PlanSchema } from '@coderscreen/api/schema/billing';
+import { Badge } from '@coderscreen/ui/badge';
+import { Button } from '@coderscreen/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@coderscreen/ui/card';
+import { Skeleton } from '@coderscreen/ui/skeleton';
 import {
   RemixiconComponentType,
   RiArrowRightLine,
@@ -13,17 +24,6 @@ import {
   RiTeamLine,
   RiTerminalWindowFill,
 } from '@remixicon/react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cx } from '@/lib/utils';
 
 const LIMIT_MAP = {

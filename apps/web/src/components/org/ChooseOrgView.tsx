@@ -1,12 +1,12 @@
+import { Button } from '@coderscreen/ui/button';
+import { Card } from '@coderscreen/ui/card';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { MutedText } from '@coderscreen/ui/typography';
 import { RiAddLine, RiArrowRightLine, RiBuilding2Line } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { OrgAvatar } from '@/components/common/UserAvatar';
 import { CreateOrgDialog } from '@/components/org/CreateOrgDialog';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { SmallHeader } from '@/components/ui/heading';
-import { MutedText } from '@/components/ui/typography';
 import { useSwitchOrganization, useUserOrgs } from '@/query/org.query';
 
 export const ChooseOrgView = () => {

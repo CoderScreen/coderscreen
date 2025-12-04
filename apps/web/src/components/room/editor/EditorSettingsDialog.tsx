@@ -1,8 +1,6 @@
 'use client';
 
-import { RiSettings3Line } from '@remixicon/react';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -11,18 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Divider } from '@/components/ui/divider';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@coderscreen/ui/dialog';
+import { Divider } from '@coderscreen/ui/divider';
+import { Input } from '@coderscreen/ui/input';
+import { Label } from '@coderscreen/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+} from '@coderscreen/ui/select';
+import { Switch } from '@coderscreen/ui/switch';
+import { RiSettings3Line } from '@remixicon/react';
+import { useEffect, useState } from 'react';
 
 export interface EditorSettings {
   fontSize: number;

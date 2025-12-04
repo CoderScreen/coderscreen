@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@coderscreen/ui/button';
+import { Tooltip } from '@coderscreen/ui/tooltip';
 import {
   RiErrorWarningLine,
   RiProhibitedLine,
@@ -9,8 +11,6 @@ import {
 } from '@remixicon/react';
 import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Button } from '@/components/ui/button';
-import { Tooltip } from '@/components/ui/tooltip';
 import { useSandpackContext } from '@/contexts/SandpackContext';
 
 export const SandpackOutput = () => {

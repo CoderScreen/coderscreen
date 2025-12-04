@@ -1,6 +1,4 @@
-import { RiCheckLine, RiMailSendLine } from '@remixicon/react';
-import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
+import { Button } from '@coderscreen/ui/button';
 import {
   Card,
   CardContent,
@@ -8,9 +6,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { SmallHeader } from '@/components/ui/heading';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '@coderscreen/ui/card';
+import { SmallHeader } from '@coderscreen/ui/heading';
+import { Skeleton } from '@coderscreen/ui/skeleton';
+import { RiCheckLine, RiMailSendLine } from '@remixicon/react';
+import { Link } from '@tanstack/react-router';
 import { useAcceptInvitation, useInvitation } from '@/query/inv.query';
 
 export const AcceptInvitationView = () => {

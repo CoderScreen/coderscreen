@@ -1,6 +1,6 @@
+import { Button } from '@coderscreen/ui/button';
+import { SmallHeader } from '@coderscreen/ui/heading';
 import { RiArrowRightLine, RiSkipRightFill } from '@remixicon/react';
-import { Button } from '@/components/ui/button';
-import { SmallHeader } from '@/components/ui/heading';
 
 export const Overview = () => {
   // Placeholder data
