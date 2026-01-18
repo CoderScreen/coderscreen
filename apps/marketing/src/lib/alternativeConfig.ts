@@ -5,14 +5,33 @@ export interface FeatureComparison {
   isCoreFeature?: boolean;
 }
 
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 export interface CompetitorData {
   name: string;
   displayName: string;
+  slug: string;
   hero: {
     title: string;
     subtitle: string;
     description: string;
   };
+  seo: {
+    title: string;
+    description: string;
+    keywords: string[];
+  };
+  whySwitch: {
+    title: string;
+    reasons: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
+  faq: FAQItem[];
   comparison: {
     features: FeatureComparison[];
   };
@@ -33,12 +52,89 @@ export const competitorData: Record<string, CompetitorData> = {
   'coderpad-alternative': {
     name: 'coderpad',
     displayName: 'CoderPad',
+    slug: 'coderpad-alternative',
     hero: {
       title: 'The open-source CoderPad alternative',
       subtitle: 'A modern, open-source platform for technical interviews',
       description:
         'CoderScreen is the open-source alternative to CoderPad, offering transparency, customization, and community-driven development for technical interviews.',
     },
+    seo: {
+      title: 'CoderPad Alternative - Open Source Technical Interview Platform | CoderScreen',
+      description:
+        'Looking for a CoderPad alternative? CoderScreen offers live coding interviews, collaborative whiteboard, AI integration, and transparent pricing. Free plan available.',
+      keywords: [
+        'coderpad alternative',
+        'coderpad free alternative',
+        'coderpad competitors',
+        'coderpad vs coderscreen',
+        'open source coderpad',
+        'coding interview platform',
+        'live coding interview tool',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams switch from CoderPad to CoderScreen',
+      reasons: [
+        {
+          title: 'Open Source & Transparent',
+          description:
+            'Unlike CoderPad, CoderScreen is fully open source. Inspect the code, contribute features, and never worry about vendor lock-in.',
+        },
+        {
+          title: 'Modern Developer Experience',
+          description:
+            'Built with the latest technologies, CoderScreen offers a faster, more intuitive interface that candidates and interviewers love.',
+        },
+        {
+          title: 'Collaborative Whiteboard Included',
+          description:
+            'System design interviews are first-class citizens. Our built-in whiteboard supports real-time collaboration without extra cost.',
+        },
+        {
+          title: 'AI-Powered Insights',
+          description:
+            'Get AI-assisted candidate evaluation and interview summaries to make better hiring decisions faster.',
+        },
+        {
+          title: 'Better Value',
+          description:
+            'Get more interviews per month, advanced features, and priority support at a fraction of CoderPad pricing.',
+        },
+        {
+          title: 'Interview Playback',
+          description:
+            'Review every keystroke and decision with full interview playback. Share recordings with your team for collaborative evaluation.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'Can I migrate my questions from CoderPad to CoderScreen?',
+        answer:
+          'Yes! You can easily import your existing coding challenges and questions into CoderScreen. Our support team can help you migrate your question library.',
+      },
+      {
+        question: 'Does CoderScreen support the same programming languages as CoderPad?',
+        answer:
+          'CoderScreen supports TypeScript, Python, JavaScript, Go, Rust, Java, C, C++, PHP, Ruby, Bash, and more. We continuously add new languages based on community feedback.',
+      },
+      {
+        question: 'Is there a free plan available?',
+        answer:
+          'Yes! Our Basic tier includes core features and up to 3 interviews per month at no cost. No credit card required to get started.',
+      },
+      {
+        question: 'How does CoderScreen pricing compare to CoderPad?',
+        answer:
+          'CoderScreen offers significantly more interviews per month at lower price points. Our Starter plan at $50/month includes 20 interviews, while CoderPad charges $100/month for just 5 interviews.',
+      },
+      {
+        question: 'Can I use CoderScreen for system design interviews?',
+        answer:
+          'Absolutely! Unlike CoderPad, CoderScreen includes a collaborative whiteboard specifically designed for system design interviews at no extra cost.',
+      },
+    ],
     comparison: {
       features: [
         { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
@@ -121,12 +217,89 @@ export const competitorData: Record<string, CompetitorData> = {
   'hackerrank-alternative': {
     name: 'hackerrank',
     displayName: 'HackerRank',
+    slug: 'hackerrank-alternative',
     hero: {
       title: 'The open-source HackerRank alternative',
       subtitle: 'An open-source platform for comprehensive technical interviews',
       description:
         'CoderScreen is the open-source alternative to HackerRank, providing transparency, customization, and community-driven development for technical interviews.',
     },
+    seo: {
+      title: 'HackerRank Alternative - Modern Technical Interview Platform | CoderScreen',
+      description:
+        'Looking for a HackerRank alternative? CoderScreen offers live coding interviews, real-time collaboration, interview playback, and better pricing. Try free today.',
+      keywords: [
+        'hackerrank alternative',
+        'hackerrank competitors',
+        'hackerrank vs coderscreen',
+        'better than hackerrank',
+        'coding assessment platform',
+        'technical screening tool',
+        'developer assessment',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams switch from HackerRank to CoderScreen',
+      reasons: [
+        {
+          title: 'Live Collaboration Focus',
+          description:
+            'While HackerRank focuses on automated assessments, CoderScreen prioritizes real-time collaboration between interviewers and candidates.',
+        },
+        {
+          title: 'Interview Recording & Playback',
+          description:
+            'Record and replay every interview session. Review candidate thought processes and share with your hiring team.',
+        },
+        {
+          title: 'No Per-Attempt Pricing',
+          description:
+            'HackerRank charges $20 per additional attempt. CoderScreen offers predictable monthly pricing with generous interview limits.',
+        },
+        {
+          title: 'Open Source Transparency',
+          description:
+            'See exactly how the platform works. Contribute features, report issues, and never worry about opaque algorithms.',
+        },
+        {
+          title: 'Built-in Whiteboard',
+          description:
+            'Conduct system design interviews with our collaborative whiteboard. No need for separate tools or screen sharing.',
+        },
+        {
+          title: 'Modern Tech Stack',
+          description:
+            'Built with React, TypeScript, and modern tooling. Candidates experience a familiar, responsive development environment.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'How is CoderScreen different from HackerRank?',
+        answer:
+          'CoderScreen focuses on live, collaborative interviews while HackerRank emphasizes automated assessments. CoderScreen includes features like real-time collaboration, interview playback, and collaborative whiteboard that HackerRank lacks.',
+      },
+      {
+        question: 'Does CoderScreen have a question library like HackerRank?',
+        answer:
+          'Yes! CoderScreen includes a Question Library where you can create, organize, and reuse interview questions. You can also import questions from other platforms.',
+      },
+      {
+        question: 'Can I run automated coding assessments with CoderScreen?',
+        answer:
+          'CoderScreen supports both live interviews and take-home assessments with automated test case validation. You get the best of both worlds.',
+      },
+      {
+        question: 'What about plagiarism detection?',
+        answer:
+          'CoderScreen includes code similarity checking and interview playback so you can verify candidate work is original by reviewing their problem-solving process.',
+      },
+      {
+        question: 'Is CoderScreen suitable for high-volume hiring?',
+        answer:
+          'Absolutely! Our Scale plan supports 200 interviews per month with unlimited team members, ATS integrations, and dedicated support.',
+      },
+    ],
     comparison: {
       features: [
         { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
@@ -205,12 +378,89 @@ export const competitorData: Record<string, CompetitorData> = {
   'codesignal-alternative': {
     name: 'codesignal',
     displayName: 'CodeSignal',
+    slug: 'codesignal-alternative',
     hero: {
       title: 'The open-source CodeSignal alternative',
       subtitle: 'An open-source platform for transparent technical assessments',
       description:
         'CoderScreen is the open-source alternative to CodeSignal, offering full transparency, customization, and community-driven development for technical assessments.',
     },
+    seo: {
+      title: 'CodeSignal Alternative - Transparent Technical Assessments | CoderScreen',
+      description:
+        'Looking for a CodeSignal alternative with transparent pricing? CoderScreen offers live interviews, system design tools, and open-source transparency. No sales calls required.',
+      keywords: [
+        'codesignal alternative',
+        'codesignal competitors',
+        'codesignal vs coderscreen',
+        'codesignal pricing',
+        'technical assessment platform',
+        'coding skills assessment',
+        'developer screening',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams choose CoderScreen over CodeSignal',
+      reasons: [
+        {
+          title: 'Transparent Pricing',
+          description:
+            'No sales calls required. See our pricing upfront and start immediately. CodeSignal requires enterprise contracts with hidden costs.',
+        },
+        {
+          title: 'Live Interview Support',
+          description:
+            'CodeSignal focuses on automated assessments. CoderScreen excels at live, collaborative technical interviews.',
+        },
+        {
+          title: 'Real-time Collaboration',
+          description:
+            'Watch candidates code in real-time, provide hints, and collaborate on solutions. True pair programming experience.',
+        },
+        {
+          title: 'Open Source',
+          description:
+            'Full transparency into how the platform works. No black-box algorithms or opaque scoring systems.',
+        },
+        {
+          title: 'Flexible Problem Solving',
+          description:
+            'Create custom challenges tailored to your tech stack. Not limited to standardized question banks.',
+        },
+        {
+          title: 'System Design Ready',
+          description:
+            'Built-in whiteboard for architecture discussions. Evaluate senior candidates on real-world design problems.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'What is CodeSignal pricing?',
+        answer:
+          'CodeSignal requires enterprise contracts and sales calls to get pricing. CoderScreen offers transparent pricing starting with a free tier, $50/month Starter, and $350/month Scale plans.',
+      },
+      {
+        question: 'Does CoderScreen offer standardized assessments like CodeSignal?',
+        answer:
+          'CoderScreen focuses on customizable interviews rather than standardized tests. You can create your own question library tailored to your specific tech stack and requirements.',
+      },
+      {
+        question: 'Can I use CoderScreen for pre-screening candidates?',
+        answer:
+          'Yes! CoderScreen supports both live interviews and asynchronous take-home assessments with automated test case validation for pre-screening.',
+      },
+      {
+        question: 'How does CoderScreen handle candidate evaluation?',
+        answer:
+          'CoderScreen provides AI-powered insights, interview playback, and structured evaluation tools. Review the complete problem-solving process, not just the final answer.',
+      },
+      {
+        question: 'Is CoderScreen suitable for enterprise teams?',
+        answer:
+          'Yes! Our Scale plan includes unlimited team members, ATS integrations, custom branding, SSO, and dedicated support for enterprise needs.',
+      },
+    ],
     comparison: {
       features: [
         { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
@@ -263,12 +513,89 @@ export const competitorData: Record<string, CompetitorData> = {
   'coderbyte-alternative': {
     name: 'coderbyte',
     displayName: 'Coderbyte',
+    slug: 'coderbyte-alternative',
     hero: {
       title: 'The open-source Coderbyte alternative',
       subtitle: 'An open-source platform for transparent coding challenges',
       description:
         'CoderScreen is the open-source alternative to Coderbyte, providing full transparency, customization, and community-driven development for coding challenges.',
     },
+    seo: {
+      title: 'Coderbyte Alternative - Modern Coding Interview Platform | CoderScreen',
+      description:
+        'Looking for a Coderbyte alternative? CoderScreen offers live coding interviews, modern interface, real-time collaboration, and better value. Start free today.',
+      keywords: [
+        'coderbyte alternative',
+        'coderbyte alternatives',
+        'coderbyte competitors',
+        'coderbyte vs coderscreen',
+        'coderbyte vs hackerrank',
+        'coding challenge platform',
+        'technical interview tool',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams switch from Coderbyte to CoderScreen',
+      reasons: [
+        {
+          title: 'Modern Interface',
+          description:
+            'Coderbyte\'s interface feels dated. CoderScreen offers a modern, fast experience that impresses candidates and interviewers alike.',
+        },
+        {
+          title: 'Live Collaboration',
+          description:
+            'Real-time pair programming with candidates. See their cursor, provide hints, and collaborate on solutions together.',
+        },
+        {
+          title: 'Better Value',
+          description:
+            'Get live interviews, whiteboard, and advanced features for $50/month. Coderbyte charges $199/month for basic features.',
+        },
+        {
+          title: 'Open Source',
+          description:
+            'Transparent, community-driven development. See the code, contribute features, and never worry about vendor lock-in.',
+        },
+        {
+          title: 'System Design Tools',
+          description:
+            'Evaluate architecture skills with our collaborative whiteboard. Essential for senior engineering roles.',
+        },
+        {
+          title: 'Interview Playback',
+          description:
+            'Review exactly how candidates approached problems. Share recordings with hiring managers for better decisions.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'How does CoderScreen compare to Coderbyte for coding challenges?',
+        answer:
+          'While Coderbyte focuses on pre-built challenges, CoderScreen emphasizes live collaboration and custom problem creation. You get more flexibility to evaluate candidates on real-world scenarios.',
+      },
+      {
+        question: 'Does CoderScreen have a question library?',
+        answer:
+          'Yes! Create, organize, and reuse interview questions with our Question Library. Add starter code, test cases, and markdown instructions.',
+      },
+      {
+        question: 'Can I use CoderScreen for take-home assessments?',
+        answer:
+          'Absolutely! CoderScreen supports both live interviews and asynchronous take-home challenges with automated test validation.',
+      },
+      {
+        question: 'Is CoderScreen free to try?',
+        answer:
+          'Yes! Our Basic tier includes core features and up to 3 interviews per month completely free. No credit card required.',
+      },
+      {
+        question: 'What programming languages does CoderScreen support?',
+        answer:
+          'CoderScreen supports TypeScript, Python, JavaScript, Go, Rust, Java, C, C++, PHP, Ruby, Bash, and we continuously add more based on community requests.',
+      },
+    ],
     comparison: {
       features: [
         { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },

@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
   title: 'CoderScreen - Fast, Modern Technical Interviews',
   description:
     'CoderScreen is a fast, collaborative coding interview platform for teams that care about developer experience. Run live interviews, take-homes, and technical assessments with ease.',
@@ -88,6 +89,23 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'CoderScreen',
+  url: 'https://coderscreen.com',
+  logo: 'https://coderscreen.com/logo.png',
+  sameAs: ['https://twitter.com/coderscreen'],
+  description:
+    'Fast, modern technical interview platform. Run live coding interviews, take-homes, and assessments with a collaborative editor, whiteboard, and AI assistant.',
+  foundingDate: '2024',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    url: 'https://coderscreen.com',
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -95,6 +113,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
+      <head>
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
       {process.env.NEXT_PUBLIC_SEND_ANALYTICS === 'true' ? (
         <Script
           defer
@@ -103,8 +127,14 @@ export default function RootLayout({
         />
       ) : null}
       <body className={`${geistSans.className} ${geistMono.variable} antialiased`}>
+        <a
+          href='#main-content'
+          className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:text-gray-900 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+        >
+          Skip to main content
+        </a>
         <MarketingHeader />
-        {children}
+        <main id='main-content'>{children}</main>
         <MarketingFooter />
       </body>
     </html>

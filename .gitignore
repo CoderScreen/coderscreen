@@ -6,6 +6,7 @@ node_modules
 .nx/cache
 .nx/workspace-data
 
+packages/seo
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md

@@ -31,25 +31,25 @@ export const MarketingFooter: React.FC = () => {
               <a
                 href={siteConfig.external.x}
                 className='text-gray-500 hover:text-gray-700 transition-colors'
+                aria-label='Follow us on Twitter'
               >
-                <span className='sr-only'>Twitter</span>
-                <RiTwitterXLine />
+                <RiTwitterXLine aria-hidden='true' />
               </a>
               <a
                 href={siteConfig.external.linkedin}
                 className='text-gray-500 hover:text-gray-700 transition-colors'
+                aria-label='Connect with us on LinkedIn'
               >
-                <span className='sr-only'>LinkedIn</span>
-                <RiLinkedinBoxLine />
+                <RiLinkedinBoxLine aria-hidden='true' />
               </a>
               <a
                 href={siteConfig.external.githubRepo}
                 target='_blank'
                 rel='noopener noreferrer'
                 className='text-gray-500 hover:text-gray-700 transition-colors'
+                aria-label='View our GitHub repository'
               >
-                <span className='sr-only'>GitHub</span>
-                <RiGithubLine />
+                <RiGithubLine aria-hidden='true' />
               </a>
             </div>
           </div>

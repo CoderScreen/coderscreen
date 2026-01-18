@@ -53,7 +53,7 @@ export const OrgSwitcher = () => {
   return (
     <div className='px-2 pt-4'>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild disabled>
           <div className='flex items-center gap-2 cursor-pointer rounded-lg py-1.5 px-2 transition-colors hover:bg-gray-200/50'>
             {isActiveOrgLoading || !org ? (
               <div className='flex items-center gap-2 w-full'>

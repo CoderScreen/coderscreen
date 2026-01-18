@@ -122,8 +122,43 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://coderscreen.com';
+  const postUrl = `${siteUrl}/blog/${slug}`;
+  const imageUrl = post.image || `${siteUrl}/og-image.png`;
+
+  const blogPostSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description || post.title,
+    image: imageUrl,
+    datePublished: post.date,
+    dateModified: post.updatedAt || post.date,
+    author: {
+      '@type': 'Person',
+      name: post.author || 'CoderScreen Team',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'CoderScreen',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': postUrl,
+    },
+    keywords: post.tags?.join(', '),
+  };
+
   return (
     <div className='min-h-screen bg-white'>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostSchema) }}
+      />
       <article className='max-w-4xl mx-auto px-4 py-16'>
         <Link
           href='/blog'

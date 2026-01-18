@@ -73,7 +73,7 @@ export const MarketingHeader = () => {
           <div className='hidden md:flex items-center space-x-4'>
             <a href={siteConfig.external.githubRepo} target='_blank' rel='noopener noreferrer'>
               <Button variant='ghost' className='flex items-center gap-2'>
-                <RiGithubLine className='h-4 w-4' />
+                <RiGithubLine className='h-4 w-4' aria-hidden='true' />
                 GitHub
                 {/* <span className='ml-1 flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full'>
                 <RiStarLine className='h-3 w-3' />
@@ -89,11 +89,18 @@ export const MarketingHeader = () => {
 
           {/* Mobile menu button */}
           <div className='md:hidden'>
-            <Button variant='ghost' onClick={toggleMenu} className='p-2'>
+            <Button
+              variant='ghost'
+              onClick={toggleMenu}
+              className='p-2'
+              aria-expanded={isMenuOpen}
+              aria-controls='mobile-menu'
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            >
               {isMenuOpen ? (
-                <RiCloseLine className='h-5 w-5' />
+                <RiCloseLine className='h-5 w-5' aria-hidden='true' />
               ) : (
-                <RiMenuLine className='h-5 w-5' />
+                <RiMenuLine className='h-5 w-5' aria-hidden='true' />
               )}
             </Button>
           </div>
@@ -101,7 +108,7 @@ export const MarketingHeader = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className='md:hidden'>
+          <nav id='mobile-menu' className='md:hidden' aria-label='Mobile navigation'>
             <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200'>
               <button
                 onClick={() => scrollToSection('features')}
@@ -147,7 +154,7 @@ export const MarketingHeader = () => {
               <div className='pt-4 pb-3 border-t border-gray-200'>
                 <div className='flex flex-col space-y-2'>
                   <Button variant='ghost' className='justify-start flex items-center gap-2'>
-                    <RiGithubLine className='h-4 w-4' />
+                    <RiGithubLine className='h-4 w-4' aria-hidden='true' />
                     GitHub
                     {/* <span className='ml-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full'>
                       {stars.toLocaleString()}
@@ -157,7 +164,7 @@ export const MarketingHeader = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </nav>
         )}
       </div>
     </header>

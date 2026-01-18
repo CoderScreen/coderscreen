@@ -1,4 +1,5 @@
 import type { MDXComponents } from 'mdx/types';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const YoutubeEmbed = ({ videoId }: { videoId: string }) => {
@@ -47,10 +48,23 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       <code className='rounded px-1.5 py-0.5 text-sm font-mono'>{children}</code>
     ),
     pre: ({ children }) => <pre className='bg-gray-900 rounded-lg overflow-x-auto'>{children}</pre>,
-    img: ({ src, alt }) => (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt} className='rounded-lg my-6 max-w-full h-auto' />
-    ),
+    img: ({ src, alt }) => {
+      if (!src) return null;
+      // Use Next.js Image for optimized loading
+      return (
+        <span className='block my-6'>
+          <Image
+            src={src}
+            alt={alt || ''}
+            width={800}
+            height={450}
+            className='rounded-lg max-w-full h-auto'
+            loading='lazy'
+            sizes='(max-width: 768px) 100vw, 800px'
+          />
+        </span>
+      );
+    },
     hr: () => <hr className='my-8 border-gray-300' />,
     table: ({ children }) => (
       <div className='overflow-x-auto mb-4'>

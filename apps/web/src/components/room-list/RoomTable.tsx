@@ -97,12 +97,12 @@ const RowActions = ({ room }: { room: RoomSchema }) => {
             </DropdownMenuIconWrapper>
             Copy link
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDuplicateRoom}>
+          {/* <DropdownMenuItem onClick={handleDuplicateRoom}>
             <DropdownMenuIconWrapper>
               <RiFileCopyLine className='size-4' />
             </DropdownMenuIconWrapper>
             Duplicate room
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
           <DropdownMenuItem
             onClick={handleDeleteRoom}
             className='text-red-600 focus:text-red-600 focus:bg-red-50'
