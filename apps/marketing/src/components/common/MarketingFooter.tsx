@@ -16,7 +16,7 @@ export const MarketingFooter: React.FC = () => {
   return (
     <footer className='bg-white text-gray-700 border-t border-border/50'>
       <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
-        <div className='grid grid-cols-1 md:grid-cols-5 gap-8'>
+        <div className='grid grid-cols-1 md:grid-cols-6 gap-8'>
           {/* Company Info */}
           <div className='col-span-1 md:col-span-3'>
             <div className='flex items-center mb-4'>
@@ -103,7 +103,7 @@ export const MarketingFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Comparison Links */}
+          {/* Alternative Links */}
           <div>
             <h4 className='text-lg font-semibold mb-4 text-gray-900'>Alternatives</h4>
             <ul className='space-y-2'>
@@ -137,6 +137,53 @@ export const MarketingFooter: React.FC = () => {
                   className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
                 >
                   vs Coderbyte
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/leetcode-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs LeetCode
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/karat-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs Karat
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/testgorilla-alternative'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  vs TestGorilla
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Compare Links */}
+          <div>
+            <h4 className='text-lg font-semibold mb-4 text-gray-900'>Compare</h4>
+            <ul className='space-y-2'>
+              <li>
+                <a
+                  href='/compare/coderpad-vs-hackerrank'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  CoderPad vs HackerRank
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/compare/coderbyte-vs-hackerrank'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  Coderbyte vs HackerRank
                 </a>
               </li>
             </ul>

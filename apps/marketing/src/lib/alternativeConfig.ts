@@ -641,4 +641,413 @@ export const competitorData: Record<string, CompetitorData> = {
       ],
     },
   },
+  'leetcode-alternative': {
+    name: 'leetcode',
+    displayName: 'LeetCode',
+    slug: 'leetcode-alternative',
+    hero: {
+      title: 'The open-source LeetCode alternative for hiring',
+      subtitle: 'A modern platform designed for evaluating real-world coding skills',
+      description:
+        'CoderScreen is the hiring-focused alternative to LeetCode, offering live interviews, collaborative assessments, and practical problem-solving evaluation instead of algorithmic puzzle memorization.',
+    },
+    seo: {
+      title: 'LeetCode Alternative for Hiring - Practical Technical Interviews | CoderScreen',
+      description:
+        'Looking for a LeetCode alternative for technical hiring? CoderScreen offers live coding interviews, real-world problems, and collaborative assessments. No algorithm memorization required.',
+      keywords: [
+        'leetcode alternative',
+        'leetcode alternative for hiring',
+        'leetcode for interviews',
+        'leetcode vs coderscreen',
+        'practical coding interview',
+        'technical interview platform',
+        'coding assessment tool',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams choose CoderScreen over LeetCode for hiring',
+      reasons: [
+        {
+          title: 'Built for Hiring, Not Practice',
+          description:
+            'LeetCode is designed for individual practice. CoderScreen is purpose-built for technical interviews with collaboration, evaluation tools, and hiring workflows.',
+        },
+        {
+          title: 'Real-World Problems',
+          description:
+            'Evaluate candidates on practical coding challenges, not algorithm trivia. Test skills that actually matter for the job.',
+        },
+        {
+          title: 'Live Collaboration',
+          description:
+            'Watch candidates code in real-time, provide hints, and have technical discussions. True pair programming experience.',
+        },
+        {
+          title: 'System Design Support',
+          description:
+            'LeetCode focuses only on algorithms. CoderScreen includes whiteboard tools for system design interviews essential for senior roles.',
+        },
+        {
+          title: 'Interview Recording & Playback',
+          description:
+            'Review how candidates approached problems. Share recordings with hiring managers who couldn\'t attend live.',
+        },
+        {
+          title: 'Open Source Transparency',
+          description:
+            'See exactly how the platform works. No proprietary black-box scoring or hidden evaluation criteria.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'Why use CoderScreen instead of LeetCode for hiring?',
+        answer:
+          'LeetCode is designed for individual practice and algorithm drilling. CoderScreen is purpose-built for technical interviews with live collaboration, interview recording, evaluation tools, and ATS integrations that LeetCode lacks.',
+      },
+      {
+        question: 'Does CoderScreen have algorithm problems like LeetCode?',
+        answer:
+          'Yes, you can create algorithm challenges in CoderScreen. But we also support real-world coding problems, system design, and practical assessments that better predict job performance than LeetCode-style puzzles.',
+      },
+      {
+        question: 'Can candidates practice on CoderScreen before interviews?',
+        answer:
+          'CoderScreen is focused on the interview experience rather than practice. For candidate preparation, the live interview environment helps them showcase real problem-solving skills rather than memorized solutions.',
+      },
+      {
+        question: 'How does pricing compare to LeetCode Premium?',
+        answer:
+          'LeetCode Premium is $35/month per user for practice features. CoderScreen starts at $50/month for your entire team with 20 interviews, making it far more cost-effective for hiring.',
+      },
+      {
+        question: 'Is LeetCode-style interviewing effective?',
+        answer:
+          'Research shows algorithm puzzles poorly predict job performance. CoderScreen enables practical assessments, pair programming, and system design interviews that better evaluate real engineering skills.',
+      },
+    ],
+    comparison: {
+      features: [
+        { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
+        { name: 'Live Collaboration', coderScreenHas: true, competitorHas: false },
+        { name: 'AI Integration', coderScreenHas: true, competitorHas: true },
+        { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: false },
+        { name: 'System Design Tools', coderScreenHas: true, competitorHas: false },
+        { name: 'Interview Recording', coderScreenHas: true, competitorHas: false },
+        { name: 'Real-time Coding', coderScreenHas: true, competitorHas: false },
+        {
+          name: 'Multiple Languages',
+          coderScreenHas: true,
+          competitorHas: true,
+          isCoreFeature: true,
+        },
+        { name: 'ATS Integration', coderScreenHas: true, competitorHas: false },
+      ],
+    },
+    pricing: {
+      title: 'Purpose-built for hiring',
+      description:
+        'LeetCode is great for practice, but CoderScreen is built specifically for technical interviews',
+      plans: [
+        {
+          name: 'Team Hiring',
+          coderScreenPrice: '$50/month',
+          competitorPrice: '$35/user/month',
+          coderScreenFeatures: [
+            '20 interviews/month',
+            '5 team members included',
+            'Live collaboration',
+            'Interview recording',
+            'System design whiteboard',
+            'ATS integrations',
+            'Evaluation tools',
+          ],
+          competitorFeatures: [
+            'Individual practice only',
+            'Per-user pricing',
+            'No live collaboration',
+            'No interview features',
+            'Algorithm focus only',
+            'No ATS integration',
+            'Self-assessment only',
+          ],
+        },
+      ],
+    },
+  },
+  'karat-alternative': {
+    name: 'karat',
+    displayName: 'Karat',
+    slug: 'karat-alternative',
+    hero: {
+      title: 'The self-service Karat alternative',
+      subtitle: 'Run your own technical interviews without outsourcing',
+      description:
+        'CoderScreen gives you the tools to conduct professional technical interviews in-house, without the per-interview costs and dependency of outsourced interviewing services like Karat.',
+    },
+    seo: {
+      title: 'Karat Alternative - Run Technical Interviews In-House | CoderScreen',
+      description:
+        'Looking for a Karat alternative? CoderScreen lets you run professional technical interviews yourself with live collaboration, recording, and evaluation tools. No per-interview fees.',
+      keywords: [
+        'karat alternative',
+        'karat competitors',
+        'karat interview alternative',
+        'outsourced interview alternative',
+        'technical interview platform',
+        'in-house technical interviews',
+        'interview as a service alternative',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams choose CoderScreen over Karat',
+      reasons: [
+        {
+          title: 'No Per-Interview Fees',
+          description:
+            'Karat charges $200-400 per interview. CoderScreen offers unlimited platform access for a flat monthly fee, dramatically reducing costs.',
+        },
+        {
+          title: 'Keep Interviews In-House',
+          description:
+            'Your team knows your culture and requirements best. CoderScreen empowers your engineers to conduct great interviews, not outsourced contractors.',
+        },
+        {
+          title: 'Immediate Availability',
+          description:
+            'No scheduling through a third party. Start interviews when you need them with candidates and your own team members.',
+        },
+        {
+          title: 'Full Interview Control',
+          description:
+            'Design your own questions, evaluation criteria, and interview flow. Don\'t rely on Karat\'s standardized approach.',
+        },
+        {
+          title: 'Open Source Platform',
+          description:
+            'Transparent, community-driven development. See exactly how everything works with no black-box processes.',
+        },
+        {
+          title: 'Better Candidate Experience',
+          description:
+            'Candidates meet your actual team members, not contractors. Build rapport and sell your company culture during interviews.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'How much does Karat cost compared to CoderScreen?',
+        answer:
+          'Karat charges $200-400 per interview with outsourced interviewers. CoderScreen costs $50-350/month with unlimited platform access, so your own team can conduct as many interviews as needed.',
+      },
+      {
+        question: 'Why not outsource interviews like Karat offers?',
+        answer:
+          'Outsourced interviewers don\'t know your codebase, culture, or specific requirements. Your engineers can better evaluate fit and sell candidates on joining your team.',
+      },
+      {
+        question: 'Does CoderScreen provide interviewers?',
+        answer:
+          'No, CoderScreen is a platform that empowers your team to run great interviews. We provide the tools, you provide the expertise about what you\'re looking for.',
+      },
+      {
+        question: 'Can CoderScreen help train our interviewers?',
+        answer:
+          'Yes! Interview recording and playback lets new interviewers learn from experienced team members. Review past interviews for calibration and training.',
+      },
+      {
+        question: 'Is CoderScreen suitable for high-volume hiring?',
+        answer:
+          'Absolutely! Our Scale plan supports 200 interviews per month with unlimited team members. Unlike Karat, costs don\'t scale linearly with interview volume.',
+      },
+    ],
+    comparison: {
+      features: [
+        { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
+        { name: 'Live Collaboration', coderScreenHas: true, competitorHas: true },
+        { name: 'Flat Monthly Pricing', coderScreenHas: true, competitorHas: false },
+        { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: true },
+        { name: 'In-House Control', coderScreenHas: true, competitorHas: false },
+        { name: 'Interview Recording', coderScreenHas: true, competitorHas: true },
+        { name: 'Real-time Coding', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        {
+          name: 'Multiple Languages',
+          coderScreenHas: true,
+          competitorHas: true,
+          isCoreFeature: true,
+        },
+        { name: 'No Per-Interview Cost', coderScreenHas: true, competitorHas: false },
+      ],
+    },
+    pricing: {
+      title: 'Flat pricing vs. per-interview fees',
+      description:
+        'Stop paying $200-400 per interview. Get unlimited platform access for a flat monthly fee.',
+      plans: [
+        {
+          name: 'Scale',
+          coderScreenPrice: '$350/month flat',
+          competitorPrice: '$200-400/interview',
+          coderScreenFeatures: [
+            '200 interviews/month',
+            'Unlimited team members',
+            'Your own interviewers',
+            'Custom questions',
+            'Full interview control',
+            'Interview playback',
+            'Predictable costs',
+          ],
+          competitorFeatures: [
+            'Pay per interview',
+            'Outsourced interviewers',
+            'Karat\'s questions',
+            'Standardized process',
+            'Limited customization',
+            'Interview reports',
+            'Costs scale with volume',
+          ],
+        },
+      ],
+    },
+  },
+  'testgorilla-alternative': {
+    name: 'testgorilla',
+    displayName: 'TestGorilla',
+    slug: 'testgorilla-alternative',
+    hero: {
+      title: 'The open-source TestGorilla alternative',
+      subtitle: 'Live technical interviews instead of generic assessments',
+      description:
+        'CoderScreen is the developer-focused alternative to TestGorilla, offering live coding interviews and real-world technical assessments instead of multiple-choice tests.',
+    },
+    seo: {
+      title: 'TestGorilla Alternative - Live Technical Interviews | CoderScreen',
+      description:
+        'Looking for a TestGorilla alternative for developer hiring? CoderScreen offers live coding interviews, collaborative whiteboard, and real technical assessments. Built for engineering teams.',
+      keywords: [
+        'testgorilla alternative',
+        'testgorilla competitors',
+        'testgorilla vs coderscreen',
+        'skills assessment alternative',
+        'technical interview platform',
+        'developer assessment tool',
+        'coding test platform',
+      ],
+    },
+    whySwitch: {
+      title: 'Why engineering teams choose CoderScreen over TestGorilla',
+      reasons: [
+        {
+          title: 'Live Coding Interviews',
+          description:
+            'TestGorilla focuses on pre-recorded assessments. CoderScreen enables real-time pair programming where you can see how developers actually think and code.',
+        },
+        {
+          title: 'Developer-Focused',
+          description:
+            'Built specifically for technical roles. TestGorilla covers everything from sales to accounting. CoderScreen is laser-focused on engineering hiring.',
+        },
+        {
+          title: 'Real Code Execution',
+          description:
+            'Candidates write and run real code in a full development environment. No multiple-choice questions or simulated coding.',
+        },
+        {
+          title: 'System Design Support',
+          description:
+            'Evaluate architecture skills with our collaborative whiteboard. Essential for senior engineering roles that TestGorilla can\'t assess.',
+        },
+        {
+          title: 'Open Source',
+          description:
+            'Full transparency into how the platform works. Inspect the code and never worry about proprietary assessment algorithms.',
+        },
+        {
+          title: 'Interview Playback',
+          description:
+            'Review every keystroke and decision. Share recordings with team members for collaborative hiring decisions.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'How is CoderScreen different from TestGorilla?',
+        answer:
+          'TestGorilla offers broad skills assessments across many job types. CoderScreen is specialized for software engineering with live coding interviews, real-time collaboration, and system design tools.',
+      },
+      {
+        question: 'Does CoderScreen have pre-built assessments like TestGorilla?',
+        answer:
+          'CoderScreen focuses on customizable live interviews rather than standardized tests. You can create a question library tailored to your specific tech stack and requirements.',
+      },
+      {
+        question: 'Can I use CoderScreen for screening before interviews?',
+        answer:
+          'Yes! CoderScreen supports take-home assessments with automated test validation for initial screening, plus live interviews for final rounds.',
+      },
+      {
+        question: 'Is TestGorilla effective for developer hiring?',
+        answer:
+          'Generic assessments struggle to evaluate real coding ability. CoderScreen\'s live interviews and practical coding challenges better predict developer job performance.',
+      },
+      {
+        question: 'How does pricing compare?',
+        answer:
+          'TestGorilla charges per candidate assessed. CoderScreen offers flat monthly pricing starting at $50/month for 20 interviews, making it more cost-effective for engineering teams.',
+      },
+    ],
+    comparison: {
+      features: [
+        { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
+        { name: 'Live Collaboration', coderScreenHas: true, competitorHas: false },
+        { name: 'Developer Focused', coderScreenHas: true, competitorHas: false },
+        { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: false },
+        { name: 'System Design Tools', coderScreenHas: true, competitorHas: false },
+        { name: 'Real Code Execution', coderScreenHas: true, competitorHas: false },
+        {
+          name: 'Real-time Coding',
+          coderScreenHas: true,
+          competitorHas: false,
+        },
+        {
+          name: 'Multiple Languages',
+          coderScreenHas: true,
+          competitorHas: true,
+          isCoreFeature: true,
+        },
+        { name: 'Interview Recording', coderScreenHas: true, competitorHas: false },
+      ],
+    },
+    pricing: {
+      title: 'Specialized for engineering hiring',
+      description:
+        'TestGorilla covers every role generically. CoderScreen is purpose-built for hiring developers.',
+      plans: [
+        {
+          name: 'Starter',
+          coderScreenPrice: '$50/month',
+          competitorPrice: '$75/month + per candidate',
+          coderScreenFeatures: [
+            '20 interviews/month',
+            'Live coding interviews',
+            'System design whiteboard',
+            'Interview playback',
+            'Custom questions',
+            'Real code execution',
+            'Developer-focused',
+          ],
+          competitorFeatures: [
+            'Unlimited assessments',
+            'Pre-recorded tests only',
+            'Generic skills tests',
+            'Multiple-choice format',
+            '400+ test templates',
+            'Simulated coding',
+            'All job types',
+          ],
+        },
+      ],
+    },
+  },
 };
