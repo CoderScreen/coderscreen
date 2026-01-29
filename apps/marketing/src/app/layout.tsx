@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   title: 'CoderScreen - Fast, Modern Technical Interviews',
   description:
-    'CoderScreen is a fast, collaborative coding interview platform for teams that care about developer experience. Run live interviews, take-homes, and technical assessments with ease.',
+    'CoderScreen is a fast, collaborative coding interview platform. Run live interviews, take-homes, and technical assessments with ease.',
   metadataBase: new URL('https://coderscreen.com'),
   alternates: {
     canonical: 'https://coderscreen.com',

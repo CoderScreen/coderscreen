@@ -27,7 +27,7 @@ export const MarketingHeader = () => {
           <div className='flex items-center'>
             <Link href={siteConfig.home} className='flex-shrink-0 flex items-center'>
               <Logo className='w-6 h-6 text-primary mr-1' />
-              <h1 className='text-xl font-bold text-gray-900'>CoderScreen</h1>
+              <span className='text-xl font-bold text-gray-900'>CoderScreen</span>
             </Link>
           </div>
 

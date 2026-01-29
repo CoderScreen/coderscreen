@@ -19,7 +19,7 @@ const YoutubeEmbed = ({ videoId }: { videoId: string }) => {
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     h1: ({ children }) => (
-      <h1 className='text-4xl font-bold mt-8 mb-4 text-gray-900'>{children}</h1>
+      <h2 className='text-4xl font-bold mt-8 mb-4 text-gray-900'>{children}</h2>
     ),
     h2: ({ children }) => (
       <h2 className='text-3xl font-bold mt-6 mb-3 text-gray-900'>{children}</h2>

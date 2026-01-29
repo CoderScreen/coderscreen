@@ -67,7 +67,7 @@ export const comparisonData: Record<string, ComparisonData> = {
     seo: {
       title: 'CoderPad vs HackerRank: Complete Comparison Guide 2026 | CoderScreen',
       description:
-        'Comparing CoderPad vs HackerRank for technical interviews? See our detailed breakdown of features, pricing, and pros/cons. Plus discover why teams are switching to CoderScreen.',
+        'Comparing CoderPad vs HackerRank for technical interviews? See our detailed breakdown of features, pricing, and pros/cons.',
       keywords: [
         'coderpad vs hackerrank',
         'coderpad or hackerrank',

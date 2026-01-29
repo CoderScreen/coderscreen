@@ -7,6 +7,9 @@ export const metadata = {
   title: 'Blog - CoderScreen',
   description:
     'Read our latest articles about coding interviews, technical assessments, and engineering best practices.',
+  alternates: {
+    canonical: 'https://coderscreen.com/blog',
+  },
 };
 
 export default function BlogPage() {

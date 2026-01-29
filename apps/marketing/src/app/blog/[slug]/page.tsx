@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
   ].join(', ');
 
   return {
-    title: `${post.title} - CoderScreen Blog`,
+    title: `${post.title} | CoderScreen`,
     description: post.description || post.title,
     keywords,
     authors: [{ name: post.author || 'CoderScreen Team' }],

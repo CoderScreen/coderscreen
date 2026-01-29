@@ -60,9 +60,9 @@ export const competitorData: Record<string, CompetitorData> = {
         'CoderScreen is the open-source alternative to CoderPad, offering transparency, customization, and community-driven development for technical interviews.',
     },
     seo: {
-      title: 'CoderPad Alternative - Open Source Technical Interview Platform | CoderScreen',
+      title: 'CoderPad Alternative - Open Source Interview Platform',
       description:
-        'Looking for a CoderPad alternative? CoderScreen offers live coding interviews, collaborative whiteboard, AI integration, and transparent pricing. Free plan available.',
+        'Looking for a CoderPad alternative? CoderScreen offers live coding interviews, collaborative whiteboard, AI integration, and transparent pricing.',
       keywords: [
         'coderpad alternative',
         'coderpad free alternative',
@@ -225,9 +225,9 @@ export const competitorData: Record<string, CompetitorData> = {
         'CoderScreen is the open-source alternative to HackerRank, providing transparency, customization, and community-driven development for technical interviews.',
     },
     seo: {
-      title: 'HackerRank Alternative - Modern Technical Interview Platform | CoderScreen',
+      title: 'HackerRank Alternative - Modern Interview Platform',
       description:
-        'Looking for a HackerRank alternative? CoderScreen offers live coding interviews, real-time collaboration, interview playback, and better pricing. Try free today.',
+        'Looking for a HackerRank alternative? CoderScreen offers live coding interviews, real-time collaboration, interview playback, and better pricing.',
       keywords: [
         'hackerrank alternative',
         'hackerrank competitors',
@@ -386,9 +386,9 @@ export const competitorData: Record<string, CompetitorData> = {
         'CoderScreen is the open-source alternative to CodeSignal, offering full transparency, customization, and community-driven development for technical assessments.',
     },
     seo: {
-      title: 'CodeSignal Alternative - Transparent Technical Assessments | CoderScreen',
+      title: 'CodeSignal Alternative - Transparent Technical Assessments',
       description:
-        'Looking for a CodeSignal alternative with transparent pricing? CoderScreen offers live interviews, system design tools, and open-source transparency. No sales calls required.',
+        'Looking for a CodeSignal alternative? CoderScreen offers live interviews, system design tools, open-source transparency, and transparent pricing.',
       keywords: [
         'codesignal alternative',
         'codesignal competitors',
@@ -652,9 +652,9 @@ export const competitorData: Record<string, CompetitorData> = {
         'CoderScreen is the hiring-focused alternative to LeetCode, offering live interviews, collaborative assessments, and practical problem-solving evaluation instead of algorithmic puzzle memorization.',
     },
     seo: {
-      title: 'LeetCode Alternative for Hiring - Practical Technical Interviews | CoderScreen',
+      title: 'LeetCode Alternative for Hiring - Practical Interviews',
       description:
-        'Looking for a LeetCode alternative for technical hiring? CoderScreen offers live coding interviews, real-world problems, and collaborative assessments. No algorithm memorization required.',
+        'Looking for a LeetCode alternative for hiring? CoderScreen offers live coding interviews, real-world problems, and collaborative assessments.',
       keywords: [
         'leetcode alternative',
         'leetcode alternative for hiring',
@@ -789,7 +789,7 @@ export const competitorData: Record<string, CompetitorData> = {
     seo: {
       title: 'Karat Alternative - Run Technical Interviews In-House | CoderScreen',
       description:
-        'Looking for a Karat alternative? CoderScreen lets you run professional technical interviews yourself with live collaboration, recording, and evaluation tools. No per-interview fees.',
+        'Looking for a Karat alternative? CoderScreen lets you run professional technical interviews with live collaboration, recording, and evaluation tools.',
       keywords: [
         'karat alternative',
         'karat competitors',
@@ -924,7 +924,7 @@ export const competitorData: Record<string, CompetitorData> = {
     seo: {
       title: 'TestGorilla Alternative - Live Technical Interviews | CoderScreen',
       description:
-        'Looking for a TestGorilla alternative for developer hiring? CoderScreen offers live coding interviews, collaborative whiteboard, and real technical assessments. Built for engineering teams.',
+        'Looking for a TestGorilla alternative? CoderScreen offers live coding interviews, collaborative whiteboard, and real technical assessments for dev teams.',
       keywords: [
         'testgorilla alternative',
         'testgorilla competitors',
