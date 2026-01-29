@@ -2,6 +2,8 @@ import { MetadataRoute } from 'next';
 import { getBlogPosts } from '@/lib/blog';
 import { competitorData } from '@/lib/alternativeConfig';
 import { comparisonData } from '@/lib/comparisonConfig';
+import { personaData } from '@/lib/personaConfig';
+import { roleData } from '@/lib/roleConfig';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://coderscreen.com';
@@ -54,5 +56,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticUrls, ...alternativeUrls, ...comparisonUrls, ...blogUrls];
+  // Persona pages (dynamic from config)
+  const personaUrls: MetadataRoute.Sitemap = Object.values(personaData).map((persona) => ({
+    url: `${baseUrl}/for/${persona.slug}`,
+    lastModified: today,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  // Role pages (dynamic from config)
+  const roleUrls: MetadataRoute.Sitemap = Object.values(roleData).map((role) => ({
+    url: `${baseUrl}/hire/${role.slug}`,
+    lastModified: today,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  return [
+    ...staticUrls,
+    ...alternativeUrls,
+    ...comparisonUrls,
+    ...personaUrls,
+    ...roleUrls,
+    ...blogUrls,
+  ];
 }

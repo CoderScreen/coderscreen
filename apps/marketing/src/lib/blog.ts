@@ -96,6 +96,27 @@ export function getBlogPost(slug: string): BlogPost | null {
   }
 }
 
+export function getRelatedPosts(
+  currentSlug: string,
+  currentTags: string[] = [],
+  limit = 3
+): BlogPostMetadata[] {
+  const allPosts = getBlogPosts().filter((post) => post.slug !== currentSlug);
+
+  if (currentTags.length === 0) {
+    return allPosts.slice(0, limit);
+  }
+
+  const scored = allPosts.map((post) => {
+    const sharedTags = (post.tags || []).filter((tag) => currentTags.includes(tag));
+    return { post, score: sharedTags.length };
+  });
+
+  scored.sort((a, b) => b.score - a.score || new Date(b.post.date).getTime() - new Date(a.post.date).getTime());
+
+  return scored.slice(0, limit).map((s) => s.post);
+}
+
 export function getAllBlogSlugs(): string[] {
   // Check if blog directory exists
   if (!fs.existsSync(blogDirectory)) {

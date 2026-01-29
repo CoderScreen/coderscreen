@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBlogPosts } from '@/lib/blog';
+import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
 
 export const metadata = {
   title: 'Blog - CoderScreen',
@@ -15,8 +16,17 @@ export const metadata = {
 export default function BlogPage() {
   const posts = getBlogPosts();
 
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: 'Home', href: '/' },
+    { name: 'Blog', href: '/blog' },
+  ]);
+
   return (
     <div className='min-h-screen bg-white'>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <div className='max-w-4xl mx-auto px-4 py-16'>
         <h1 className='text-5xl font-bold text-gray-900 mb-4'>Blog</h1>
         <p className='text-xl text-gray-600 mb-12'>

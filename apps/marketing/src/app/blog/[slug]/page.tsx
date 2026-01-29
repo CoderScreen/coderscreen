@@ -6,8 +6,40 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 import { useMDXComponents } from '@/components/blog/MDXComponents';
-import { getAllBlogSlugs, getBlogPost } from '@/lib/blog';
+import { getAllBlogSlugs, getBlogPost, getRelatedPosts } from '@/lib/blog';
+import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
 import 'highlight.js/styles/github-dark.css';
+
+function RelatedArticles({ slug, tags }: { slug: string; tags?: string[] }) {
+  const related = getRelatedPosts(slug, tags, 3);
+
+  if (related.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className='max-w-4xl mx-auto px-4 pb-16'>
+      <h2 className='text-2xl font-bold text-gray-900 mb-6'>Related Articles</h2>
+      <div className='grid md:grid-cols-3 gap-6'>
+        {related.map((post) => (
+          <Link
+            key={post.slug}
+            href={`/blog/${post.slug}`}
+            className='block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors'
+          >
+            <h3 className='font-semibold text-gray-900 mb-2 line-clamp-2'>{post.title}</h3>
+            {post.description && (
+              <p className='text-sm text-gray-600 line-clamp-3'>{post.description}</p>
+            )}
+            <time className='block text-xs text-gray-400 mt-3' dateTime={post.date}>
+              {dayjs(post.date).format('MMMM D, YYYY')}
+            </time>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -126,6 +158,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const postUrl = `${siteUrl}/blog/${slug}`;
   const imageUrl = post.image || `${siteUrl}/og-image.png`;
 
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: 'Home', href: '/' },
+    { name: 'Blog', href: '/blog' },
+    { name: post.title, href: `/blog/${slug}` },
+  ]);
+
   const blogPostSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -158,6 +196,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <script
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostSchema) }}
+      />
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <article className='max-w-4xl mx-auto px-4 py-16'>
         <Link
@@ -232,6 +274,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           />
         </div>
       </article>
+
+      <RelatedArticles slug={slug} tags={post.tags} />
     </div>
   );
 }

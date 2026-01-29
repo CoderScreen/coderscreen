@@ -137,6 +137,273 @@ export const comparisonData: Record<string, ComparisonData> = {
       },
     ],
   },
+  'codesignal-vs-leetcode': {
+    slug: 'codesignal-vs-leetcode',
+    toolA: {
+      name: 'codesignal',
+      displayName: 'CodeSignal',
+    },
+    toolB: {
+      name: 'leetcode',
+      displayName: 'LeetCode',
+    },
+    hero: {
+      title: 'CodeSignal vs LeetCode',
+      subtitle: 'Enterprise assessments vs algorithmic practice for hiring',
+      description:
+        'Compare CodeSignal and LeetCode side-by-side. One focuses on enterprise pre-screening, the other on algorithmic practice. See which fits your hiring process.',
+    },
+    seo: {
+      title: 'CodeSignal vs LeetCode: Assessment Platform Comparison',
+      description:
+        'Comparing CodeSignal vs LeetCode for developer hiring? See our breakdown of features, pricing, and which platform fits your technical hiring needs.',
+      keywords: [
+        'codesignal vs leetcode',
+        'leetcode vs codesignal',
+        'codesignal or leetcode',
+        'coding assessment comparison',
+        'technical screening tools',
+        'developer assessment platforms',
+      ],
+    },
+    verdict: {
+      summary:
+        'CodeSignal is built for enterprise hiring with pre-built assessments and anti-cheating measures. LeetCode is primarily a practice platform adapted for hiring. Neither offers live collaborative interviews.',
+      toolABestFor:
+        'Enterprise teams needing standardized pre-screening assessments with anti-cheating features',
+      toolBBestFor:
+        'Teams that want to leverage a well-known platform candidates already practice on',
+      coderScreenAdvantage:
+        'CoderScreen offers live collaborative interviews, system design whiteboard, and open-source transparency — filling the gap both platforms leave for real-time technical evaluation.',
+    },
+    comparison: {
+      features: [
+        { name: 'Live Collaboration', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Automated Assessments', toolA: true, toolB: true, coderScreen: true },
+        { name: 'System Design Whiteboard', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Open Source', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Question Library', toolA: 'Pre-built', toolB: '3000+', coderScreen: 'Custom' },
+        { name: 'Interview Recording', toolA: false, toolB: false, coderScreen: true },
+        { name: 'AI Integration', toolA: true, toolB: false, coderScreen: true },
+        { name: 'ATS Integrations', toolA: true, toolB: false, coderScreen: true },
+        { name: 'Anti-Cheating', toolA: 'Advanced', toolB: 'Basic', coderScreen: true },
+        { name: 'Candidate Practice Mode', toolA: false, toolB: true, coderScreen: false },
+      ],
+    },
+    pricing: {
+      toolAPrice: 'Custom',
+      toolBPrice: '$299/year',
+      coderScreenPrice: '$50/month',
+      toolANotes: 'Sales call required',
+      toolBNotes: 'Per-candidate pricing for teams',
+      coderScreenNotes: '20 interviews included',
+    },
+    faq: [
+      {
+        question: 'Is CodeSignal or LeetCode better for technical hiring?',
+        answer:
+          'CodeSignal is purpose-built for hiring with standardized assessments and enterprise features. LeetCode is a practice platform with hiring add-ons. CoderScreen combines assessment with live interviews in one tool.',
+      },
+      {
+        question: 'Do candidates prefer CodeSignal or LeetCode?',
+        answer:
+          'Candidates are generally more familiar with LeetCode from interview prep. CodeSignal assessments can feel opaque. CoderScreen focuses on practical coding tasks that reflect real work.',
+      },
+      {
+        question: 'Which platform has better anti-cheating measures?',
+        answer:
+          'CodeSignal has more advanced proctoring and anti-cheating technology. LeetCode has basic plagiarism detection. CoderScreen uses live interviews where cheating is naturally prevented.',
+      },
+      {
+        question: 'Can I do live interviews on CodeSignal or LeetCode?',
+        answer:
+          'Neither platform is designed for live collaborative interviews. CodeSignal has a basic interview mode, but it lacks real-time collaboration. CoderScreen was built specifically for live pair programming.',
+      },
+      {
+        question: 'How do pricing models compare?',
+        answer:
+          'CodeSignal requires a sales call with custom enterprise pricing. LeetCode charges per-candidate for teams at $299/year base. CoderScreen starts at $50/month with 20 interviews included.',
+      },
+    ],
+  },
+  'hackerrank-vs-leetcode': {
+    slug: 'hackerrank-vs-leetcode',
+    toolA: {
+      name: 'hackerrank',
+      displayName: 'HackerRank',
+    },
+    toolB: {
+      name: 'leetcode',
+      displayName: 'LeetCode',
+    },
+    hero: {
+      title: 'HackerRank vs LeetCode',
+      subtitle: 'The two biggest names in coding challenges — compared for hiring',
+      description:
+        'HackerRank and LeetCode are the most recognized platforms in technical hiring. See how they compare on features, pricing, and effectiveness for your team.',
+    },
+    seo: {
+      title: 'HackerRank vs LeetCode: Which Is Better for Hiring?',
+      description:
+        'Comparing HackerRank vs LeetCode for technical hiring? See our detailed feature comparison, pricing, and which platform works best for your team.',
+      keywords: [
+        'hackerrank vs leetcode',
+        'leetcode vs hackerrank',
+        'hackerrank or leetcode',
+        'hackerrank vs leetcode for hiring',
+        'coding challenge platforms',
+        'technical assessment comparison',
+      ],
+    },
+    verdict: {
+      summary:
+        'HackerRank is built for enterprise hiring with automated assessments and a massive question library. LeetCode is primarily a practice platform that many teams use informally. Neither excels at live interviews.',
+      toolABestFor:
+        'Enterprise teams needing automated screening at scale with plagiarism detection and ATS integrations',
+      toolBBestFor:
+        'Teams comfortable with a familiar platform that candidates already know and practice on',
+      coderScreenAdvantage:
+        'CoderScreen provides the live collaboration missing from both platforms, plus system design tools and open-source transparency at a fraction of the cost.',
+    },
+    comparison: {
+      features: [
+        { name: 'Live Collaboration', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Automated Assessments', toolA: true, toolB: true, coderScreen: true },
+        { name: 'System Design Whiteboard', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Open Source', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Question Library', toolA: '2000+', toolB: '3000+', coderScreen: 'Custom' },
+        { name: 'Interview Recording', toolA: false, toolB: false, coderScreen: true },
+        { name: 'AI Integration', toolA: true, toolB: false, coderScreen: true },
+        { name: 'ATS Integrations', toolA: true, toolB: false, coderScreen: true },
+        { name: 'Plagiarism Detection', toolA: 'Advanced', toolB: 'Basic', coderScreen: true },
+        { name: 'Multiple Languages', toolA: '40+', toolB: '20+', coderScreen: '12+' },
+      ],
+    },
+    pricing: {
+      toolAPrice: '$199/month',
+      toolBPrice: '$299/year',
+      coderScreenPrice: '$50/month',
+      toolANotes: '10 attempts included',
+      toolBNotes: 'Per-candidate pricing for teams',
+      coderScreenNotes: '20 interviews included',
+    },
+    faq: [
+      {
+        question: 'Is HackerRank or LeetCode better for hiring developers?',
+        answer:
+          'HackerRank is purpose-built for hiring with enterprise features, ATS integrations, and standardized assessments. LeetCode is better known as a practice tool. CoderScreen handles both assessment and live interviews.',
+      },
+      {
+        question: 'Which has more coding problems?',
+        answer:
+          'LeetCode has 3000+ problems focused on algorithms and data structures. HackerRank has 2000+ covering a broader range including databases and DevOps. CoderScreen focuses on custom questions that match your actual tech stack.',
+      },
+      {
+        question: 'Do candidates prefer HackerRank or LeetCode?',
+        answer:
+          'Most developers practice on LeetCode, so they may feel more comfortable there. HackerRank assessments can feel impersonal. CoderScreen focuses on live interviews where candidates can show their real skills.',
+      },
+      {
+        question: 'Which is more affordable?',
+        answer:
+          'HackerRank starts at $199/month. LeetCode for teams charges per-candidate at $299/year base. CoderScreen is the most affordable at $50/month with 20 interviews included.',
+      },
+      {
+        question: 'Can either platform do live coding interviews?',
+        answer:
+          'Neither HackerRank nor LeetCode was built for live collaborative interviews. For real-time pair programming and system design, CoderScreen is purpose-built with live collaboration tools.',
+      },
+    ],
+  },
+  'codesignal-vs-hackerrank': {
+    slug: 'codesignal-vs-hackerrank',
+    toolA: {
+      name: 'codesignal',
+      displayName: 'CodeSignal',
+    },
+    toolB: {
+      name: 'hackerrank',
+      displayName: 'HackerRank',
+    },
+    hero: {
+      title: 'CodeSignal vs HackerRank',
+      subtitle: 'Two enterprise assessment platforms compared head-to-head',
+      description:
+        'CodeSignal and HackerRank are the leading enterprise assessment platforms. Compare their features, pricing, and approach to technical hiring.',
+    },
+    seo: {
+      title: 'CodeSignal vs HackerRank: Assessment Tools Compared',
+      description:
+        'Comparing CodeSignal vs HackerRank for technical assessments? See our detailed feature comparison, pricing, and the best alternative.',
+      keywords: [
+        'codesignal vs hackerrank',
+        'hackerrank vs codesignal',
+        'codesignal or hackerrank',
+        'enterprise coding assessment',
+        'technical screening comparison',
+        'developer assessment tools',
+      ],
+    },
+    verdict: {
+      summary:
+        'Both are strong enterprise assessment platforms. CodeSignal focuses on standardized, research-backed evaluations. HackerRank offers a broader question library and more flexibility. Neither is built for live interviews.',
+      toolABestFor:
+        'Enterprise teams wanting standardized, research-backed pre-screening with strong anti-cheating',
+      toolBBestFor:
+        'Teams needing a large question library, flexible assessments, and broad language support',
+      coderScreenAdvantage:
+        'CoderScreen adds live collaborative interviews, system design tools, and open-source transparency that both enterprise platforms lack — at a lower price.',
+    },
+    comparison: {
+      features: [
+        { name: 'Live Collaboration', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Automated Assessments', toolA: true, toolB: true, coderScreen: true },
+        { name: 'System Design Whiteboard', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Open Source', toolA: false, toolB: false, coderScreen: true },
+        { name: 'Question Library', toolA: 'Pre-built', toolB: '2000+', coderScreen: 'Custom' },
+        { name: 'Interview Recording', toolA: false, toolB: false, coderScreen: true },
+        { name: 'AI Integration', toolA: true, toolB: true, coderScreen: true },
+        { name: 'ATS Integrations', toolA: true, toolB: true, coderScreen: true },
+        { name: 'Anti-Cheating', toolA: 'Advanced', toolB: 'Advanced', coderScreen: true },
+        { name: 'Multiple Languages', toolA: '40+', toolB: '40+', coderScreen: '12+' },
+      ],
+    },
+    pricing: {
+      toolAPrice: 'Custom',
+      toolBPrice: '$199/month',
+      coderScreenPrice: '$50/month',
+      toolANotes: 'Sales call required',
+      toolBNotes: '10 attempts included',
+      coderScreenNotes: '20 interviews included',
+    },
+    faq: [
+      {
+        question: 'Is CodeSignal or HackerRank better for enterprise hiring?',
+        answer:
+          'Both serve enterprise teams well. CodeSignal is stronger on standardized evaluations and anti-cheating. HackerRank offers more question variety and flexibility. CoderScreen complements either with live interview capabilities.',
+      },
+      {
+        question: 'Which platform has better anti-cheating features?',
+        answer:
+          'Both have strong anti-cheating measures. CodeSignal uses advanced proctoring and screen monitoring. HackerRank has plagiarism detection and browser lockdown. CoderScreen uses live interviews where proctoring is built-in.',
+      },
+      {
+        question: 'How transparent is pricing?',
+        answer:
+          'HackerRank publishes starting prices ($199/month). CodeSignal requires a sales call for pricing. CoderScreen is fully transparent at $50/month with no hidden costs.',
+      },
+      {
+        question: 'Can I use these for live coding interviews?',
+        answer:
+          'Neither CodeSignal nor HackerRank excels at live collaborative interviews. For real-time pair programming and system design, CoderScreen is purpose-built with a collaborative editor and whiteboard.',
+      },
+      {
+        question: 'Which has a better candidate experience?',
+        answer:
+          'Both platforms focus on automated testing which can feel impersonal. CoderScreen emphasizes live, human interaction with a modern interface that makes candidates feel like they are actually working rather than being tested.',
+      },
+    ],
+  },
   'coderbyte-vs-hackerrank': {
     slug: 'coderbyte-vs-hackerrank',
     toolA: {

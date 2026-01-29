@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ComparePageView } from '@/components/compare/ComparePageView';
 import { comparisonData } from '@/lib/comparisonConfig';
+import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
 
 export function generateStaticParams() {
   return Object.keys(comparisonData).map((key) => ({
@@ -76,5 +77,22 @@ export default async function ComparePage({ params }: ComparePageProps) {
     notFound();
   }
 
-  return <ComparePageView comparison={comparison} />;
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: 'Home', href: '/' },
+    { name: 'Compare', href: `/compare/${slug}` },
+    {
+      name: `${comparison.toolA.displayName} vs ${comparison.toolB.displayName}`,
+      href: `/compare/${slug}`,
+    },
+  ]);
+
+  return (
+    <>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <ComparePageView comparison={comparison} />
+    </>
+  );
 }

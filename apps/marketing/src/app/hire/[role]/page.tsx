@@ -1,44 +1,42 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { AlternativePageView } from '@/components/alternative/AlternativePageView';
-import { competitorData } from '@/lib/alternativeConfig';
+import { UseCasePageView } from '@/components/usecase/UseCasePageView';
 import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
+import { roleData } from '@/lib/roleConfig';
 
 export function generateStaticParams() {
-  return Object.keys(competitorData).map((key) => ({
-    slug: key,
+  return Object.keys(roleData).map((key) => ({
+    role: key,
   }));
 }
 
-interface AlternativeCompetitorPageProps {
-  params: Promise<{ slug: string }>;
+interface RolePageProps {
+  params: Promise<{ role: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: AlternativeCompetitorPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const competitor = competitorData[slug];
+export async function generateMetadata({ params }: RolePageProps): Promise<Metadata> {
+  const { role } = await params;
+  const data = roleData[role];
 
-  if (!competitor) {
+  if (!data) {
     return {
       title: 'Not Found',
     };
   }
 
   const siteUrl = 'https://coderscreen.com';
-  const pageUrl = `${siteUrl}/${slug}`;
+  const pageUrl = `${siteUrl}/hire/${role}`;
 
   return {
-    title: competitor.seo.title,
-    description: competitor.seo.description,
-    keywords: competitor.seo.keywords,
+    title: data.seo.title,
+    description: data.seo.description,
+    keywords: data.seo.keywords,
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      title: competitor.seo.title,
-      description: competitor.seo.description,
+      title: data.seo.title,
+      description: data.seo.description,
       url: pageUrl,
       siteName: 'CoderScreen',
       type: 'website',
@@ -47,14 +45,14 @@ export async function generateMetadata({
           url: `${siteUrl}/og-image.png`,
           width: 1200,
           height: 630,
-          alt: `CoderScreen vs ${competitor.displayName}`,
+          alt: data.hero.title,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: competitor.seo.title,
-      description: competitor.seo.description,
+      title: data.seo.title,
+      description: data.seo.description,
       images: [`${siteUrl}/og-image.png`],
     },
     robots: {
@@ -71,19 +69,17 @@ export async function generateMetadata({
   };
 }
 
-export default async function AlternativeCompetitorPage({
-  params,
-}: AlternativeCompetitorPageProps) {
-  const { slug } = await params;
+export default async function RolePage({ params }: RolePageProps) {
+  const { role } = await params;
 
-  const competitor = competitorData[slug];
-  if (!competitor) {
+  const data = roleData[role];
+  if (!data) {
     notFound();
   }
 
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: 'Home', href: '/' },
-    { name: `${competitor.displayName} Alternative`, href: `/${slug}` },
+    { name: `Hire ${data.displayName}`, href: `/hire/${role}` },
   ]);
 
   return (
@@ -92,7 +88,7 @@ export default async function AlternativeCompetitorPage({
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <AlternativePageView competitor={competitor} />
+      <UseCasePageView data={data} />
     </>
   );
 }

@@ -1050,4 +1050,264 @@ export const competitorData: Record<string, CompetitorData> = {
       ],
     },
   },
+  'qualified-alternative': {
+    name: 'qualified',
+    displayName: 'Qualified.io',
+    slug: 'qualified-alternative',
+    hero: {
+      title: 'The open-source Qualified.io alternative',
+      subtitle: 'Modern technical assessments without enterprise complexity',
+      description:
+        'CoderScreen is the open-source alternative to Qualified.io, offering live coding interviews, real-time collaboration, and transparent pricing without the enterprise overhead.',
+    },
+    seo: {
+      title: 'Qualified.io Alternative - Open Source Code Assessments',
+      description:
+        'Looking for a Qualified.io alternative? CoderScreen offers live coding interviews, real-time collaboration, and transparent pricing.',
+      keywords: [
+        'qualified alternative',
+        'qualified.io alternative',
+        'qualified competitors',
+        'qualified vs coderscreen',
+        'code assessment platform',
+        'developer assessment tool',
+        'technical screening platform',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams choose CoderScreen over Qualified.io',
+      reasons: [
+        {
+          title: 'Open Source Transparency',
+          description:
+            'CoderScreen is fully open source. See the code, contribute, and self-host. Qualified.io is a closed platform with no visibility into how it works.',
+        },
+        {
+          title: 'Live Collaborative Interviews',
+          description:
+            'Go beyond automated assessments. CoderScreen enables real-time pair programming with candidates, testing collaboration skills alongside coding ability.',
+        },
+        {
+          title: 'System Design Whiteboard',
+          description:
+            'Evaluate architecture and design skills with a built-in collaborative whiteboard. Qualified.io focuses on code execution only.',
+        },
+        {
+          title: 'Transparent, Simple Pricing',
+          description:
+            'No sales calls or custom quotes needed. CoderScreen starts at $50/month with clear, published pricing for every tier.',
+        },
+        {
+          title: 'Modern Developer Experience',
+          description:
+            'A clean, fast interface that candidates enjoy using. No clunky enterprise UIs or frustrating test environments.',
+        },
+        {
+          title: 'Interview Recording & Playback',
+          description:
+            'Review every keystroke and decision a candidate made. Share recordings with hiring managers who missed the live session.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'How does CoderScreen compare to Qualified.io for assessments?',
+        answer:
+          'Qualified.io focuses on automated code challenges and project-based assessments. CoderScreen adds live collaboration, whiteboard, and AI tools on top of assessment capabilities, giving you a more complete hiring toolkit.',
+      },
+      {
+        question: 'Does CoderScreen support automated code execution like Qualified.io?',
+        answer:
+          'Yes. CoderScreen supports real-time code execution in 12+ languages, plus features Qualified.io lacks like collaborative whiteboard and interview playback.',
+      },
+      {
+        question: 'Is CoderScreen cheaper than Qualified.io?',
+        answer:
+          'Qualified.io requires custom pricing through a sales process. CoderScreen starts at $50/month with transparent pricing published on our website.',
+      },
+      {
+        question: 'Can I migrate from Qualified.io to CoderScreen?',
+        answer:
+          'Yes. You can recreate your assessment questions in CoderScreen and start running interviews immediately. Our platform supports custom questions with starter code and test cases.',
+      },
+      {
+        question: 'Does CoderScreen work for take-home assessments?',
+        answer:
+          'Yes. CoderScreen supports both live interviews and asynchronous take-home projects, giving you flexibility in how you evaluate candidates.',
+      },
+    ],
+    comparison: {
+      features: [
+        { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
+        { name: 'Live Collaboration', coderScreenHas: true, competitorHas: false },
+        { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: false },
+        { name: 'Code Execution', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        { name: 'Project-Based Assessments', coderScreenHas: true, competitorHas: true },
+        { name: 'Interview Recording', coderScreenHas: true, competitorHas: false },
+        { name: 'AI Assistant', coderScreenHas: true, competitorHas: false },
+        { name: 'ATS Integrations', coderScreenHas: true, competitorHas: true },
+        { name: 'Multiple Languages', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+      ],
+    },
+    pricing: {
+      title: 'Transparent pricing vs. sales-gated quotes',
+      description:
+        'Get started immediately with clear pricing. No sales calls required.',
+      plans: [
+        {
+          name: 'Starter',
+          coderScreenPrice: '$50/month',
+          competitorPrice: 'Custom pricing',
+          coderScreenFeatures: [
+            '20 interviews/month',
+            'Live collaboration',
+            'Code execution',
+            'Interview playback',
+            'API access',
+            'Multi-language support',
+            'Transparent pricing',
+          ],
+          competitorFeatures: [
+            'Custom volume',
+            'Automated assessments',
+            'Code execution',
+            'Project challenges',
+            'API access',
+            'Multi-language support',
+            'Sales call required',
+          ],
+        },
+      ],
+    },
+  },
+  'codesubmit-alternative': {
+    name: 'codesubmit',
+    displayName: 'CodeSubmit',
+    slug: 'codesubmit-alternative',
+    hero: {
+      title: 'The open-source CodeSubmit alternative',
+      subtitle: 'Take-home tests and live interviews in one platform',
+      description:
+        'CoderScreen is the open-source alternative to CodeSubmit, combining take-home coding projects with live collaborative interviews for a complete hiring workflow.',
+    },
+    seo: {
+      title: 'CodeSubmit Alternative - Take-Home Tests & Live Interviews',
+      description:
+        'Looking for a CodeSubmit alternative? CoderScreen offers take-home projects plus live coding interviews, whiteboard, and AI tools.',
+      keywords: [
+        'codesubmit alternative',
+        'codesubmit competitors',
+        'codesubmit vs coderscreen',
+        'take home test platform',
+        'coding take home assessment',
+        'technical interview platform',
+        'developer hiring tool',
+      ],
+    },
+    whySwitch: {
+      title: 'Why teams choose CoderScreen over CodeSubmit',
+      reasons: [
+        {
+          title: 'Live Interviews + Take-Homes',
+          description:
+            'CodeSubmit focuses on async take-home tests. CoderScreen gives you both take-homes and live collaborative interviews in one platform.',
+        },
+        {
+          title: 'Real-Time Collaboration',
+          description:
+            'Pair program with candidates in real time. See how they think, communicate, and solve problems live — not just the final result.',
+        },
+        {
+          title: 'System Design Whiteboard',
+          description:
+            'Evaluate architecture skills with a collaborative whiteboard. CodeSubmit has no whiteboard or system design capabilities.',
+        },
+        {
+          title: 'Open Source Platform',
+          description:
+            'Full transparency into how CoderScreen works. Self-host, contribute, or audit the code. CodeSubmit is closed source.',
+        },
+        {
+          title: 'AI-Assisted Interviews',
+          description:
+            'Built-in AI assistant helps evaluate candidate judgment and ability to work with modern development tools.',
+        },
+        {
+          title: 'Interview Playback',
+          description:
+            'Record and replay every interview session. Share with team members for better hiring decisions and interviewer training.',
+        },
+      ],
+    },
+    faq: [
+      {
+        question: 'How does CoderScreen compare to CodeSubmit?',
+        answer:
+          'CodeSubmit specializes in take-home coding tests with GitHub integration. CoderScreen offers both take-home and live interview capabilities, plus whiteboard, AI assistant, and interview playback.',
+      },
+      {
+        question: 'Does CoderScreen support take-home projects?',
+        answer:
+          'Yes. CoderScreen supports asynchronous take-home projects alongside live interviews, giving you more flexibility than CodeSubmit alone.',
+      },
+      {
+        question: 'Is CoderScreen more expensive than CodeSubmit?',
+        answer:
+          'CoderScreen starts at $50/month for 20 interviews. CodeSubmit charges per-candidate. For teams doing regular hiring, CoderScreen is typically more cost-effective.',
+      },
+      {
+        question: 'Can candidates use their own IDE with CoderScreen?',
+        answer:
+          'For take-home projects, candidates can use any environment. For live interviews, our built-in editor provides a fast, collaborative experience with code execution.',
+      },
+      {
+        question: 'Does CoderScreen integrate with GitHub?',
+        answer:
+          'CoderScreen is open source on GitHub. For workflow integrations, our API and ATS integrations connect with your existing hiring tools.',
+      },
+    ],
+    comparison: {
+      features: [
+        { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
+        { name: 'Live Collaboration', coderScreenHas: true, competitorHas: false },
+        { name: 'Take-Home Projects', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: false },
+        { name: 'Interview Recording', coderScreenHas: true, competitorHas: false },
+        { name: 'AI Assistant', coderScreenHas: true, competitorHas: false },
+        { name: 'Code Execution', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        { name: 'GitHub Integration', coderScreenHas: false, competitorHas: true },
+        { name: 'ATS Integrations', coderScreenHas: true, competitorHas: true },
+      ],
+    },
+    pricing: {
+      title: 'Flat monthly pricing vs. per-candidate costs',
+      description:
+        'Predictable pricing that scales with your team, not your candidate volume.',
+      plans: [
+        {
+          name: 'Starter',
+          coderScreenPrice: '$50/month',
+          competitorPrice: '$299/month',
+          coderScreenFeatures: [
+            '20 interviews/month',
+            'Live collaboration',
+            'Take-home projects',
+            'Interview playback',
+            'AI assistant',
+            'Whiteboard',
+            'API access',
+          ],
+          competitorFeatures: [
+            '10 assessments/month',
+            'Take-home projects only',
+            'GitHub integration',
+            'Candidate tracking',
+            'Code review tools',
+            'No live interviews',
+            'No whiteboard',
+          ],
+        },
+      ],
+    },
+  },
 };

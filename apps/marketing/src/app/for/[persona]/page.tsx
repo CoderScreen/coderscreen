@@ -1,44 +1,42 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { AlternativePageView } from '@/components/alternative/AlternativePageView';
-import { competitorData } from '@/lib/alternativeConfig';
+import { UseCasePageView } from '@/components/usecase/UseCasePageView';
 import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
+import { personaData } from '@/lib/personaConfig';
 
 export function generateStaticParams() {
-  return Object.keys(competitorData).map((key) => ({
-    slug: key,
+  return Object.keys(personaData).map((key) => ({
+    persona: key,
   }));
 }
 
-interface AlternativeCompetitorPageProps {
-  params: Promise<{ slug: string }>;
+interface PersonaPageProps {
+  params: Promise<{ persona: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: AlternativeCompetitorPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const competitor = competitorData[slug];
+export async function generateMetadata({ params }: PersonaPageProps): Promise<Metadata> {
+  const { persona } = await params;
+  const data = personaData[persona];
 
-  if (!competitor) {
+  if (!data) {
     return {
       title: 'Not Found',
     };
   }
 
   const siteUrl = 'https://coderscreen.com';
-  const pageUrl = `${siteUrl}/${slug}`;
+  const pageUrl = `${siteUrl}/for/${persona}`;
 
   return {
-    title: competitor.seo.title,
-    description: competitor.seo.description,
-    keywords: competitor.seo.keywords,
+    title: data.seo.title,
+    description: data.seo.description,
+    keywords: data.seo.keywords,
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      title: competitor.seo.title,
-      description: competitor.seo.description,
+      title: data.seo.title,
+      description: data.seo.description,
       url: pageUrl,
       siteName: 'CoderScreen',
       type: 'website',
@@ -47,14 +45,14 @@ export async function generateMetadata({
           url: `${siteUrl}/og-image.png`,
           width: 1200,
           height: 630,
-          alt: `CoderScreen vs ${competitor.displayName}`,
+          alt: data.hero.title,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: competitor.seo.title,
-      description: competitor.seo.description,
+      title: data.seo.title,
+      description: data.seo.description,
       images: [`${siteUrl}/og-image.png`],
     },
     robots: {
@@ -71,19 +69,17 @@ export async function generateMetadata({
   };
 }
 
-export default async function AlternativeCompetitorPage({
-  params,
-}: AlternativeCompetitorPageProps) {
-  const { slug } = await params;
+export default async function PersonaPage({ params }: PersonaPageProps) {
+  const { persona } = await params;
 
-  const competitor = competitorData[slug];
-  if (!competitor) {
+  const data = personaData[persona];
+  if (!data) {
     notFound();
   }
 
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: 'Home', href: '/' },
-    { name: `${competitor.displayName} Alternative`, href: `/${slug}` },
+    { name: `For ${data.displayName}`, href: `/for/${persona}` },
   ]);
 
   return (
@@ -92,7 +88,7 @@ export default async function AlternativeCompetitorPage({
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <AlternativePageView competitor={competitor} />
+      <UseCasePageView data={data} />
     </>
   );
 }
