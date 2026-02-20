@@ -1,63 +1,99 @@
+import { getSandbox } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity } from '@coderscreen/db/room.db';
 import { Context } from 'hono';
-import { FormattedOutput, formatExecOutput, getSandboxId } from '@/lib/sandbox';
 import { AppContext } from '..';
+import { FormattedOutput, getSandboxId } from '@/lib/sandbox';
+import { LANGUAGE_CONFIG } from '@/sandbox/languageCommands';
+
+const EXECUTION_TIMEOUT_MS = 15000;
 
 export class CodeRunService {
-  private ctx: Context<AppContext>;
+	private ctx: Context<AppContext>;
 
-  constructor(ctx: Context<AppContext>) {
-    this.ctx = ctx;
-  }
+	constructor(ctx: Context<AppContext>) {
+		this.ctx = ctx;
+	}
 
-  async runCode(params: {
-    roomId: Id<'room'>;
-    code: string;
-    language: RoomEntity['language'];
-  }): Promise<FormattedOutput> {
-    const { roomId, code, language } = params;
+	async runCode(params: {
+		roomId: Id<'room'>;
+		code: string;
+		language: RoomEntity['language'];
+	}): Promise<FormattedOutput> {
+		const { roomId, code, language } = params;
 
-    // Get the durable object to broadcast execution status
-    // const id = this.ctx.env.ROOM_DO.idFromName(roomId);
-    // const roomDo = this.ctx.env.ROOM_DO.get(id);
+		const config = LANGUAGE_CONFIG[language];
+		if (!config) {
+			return {
+				success: false,
+				timestamp: new Date().toISOString(),
+				stdout: '',
+				stderr: `Language "${language}" does not support single-file execution. Use the preview feature instead.`,
+				exitCode: 1,
+				elapsedTime: -1,
+				compileTime: undefined,
+			};
+		}
 
-    // this.ctx.executionCtx.waitUntil(roomDo.handleCodeExecutioMessage({ type: 'start' }));
+		const sandboxId = getSandboxId(roomId);
+		const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
 
-    const sandbox = await this.getSandbox(roomId);
+		const filePath = `/workspace/main${config.extension}`;
+		const outputPath = '/workspace/main_out';
 
-    try {
-      const raw = await sandbox.runCode({ language, code });
+		try {
+			// Write code to sandbox filesystem
+			await sandbox.writeFile(filePath, code);
 
-      const result = formatExecOutput(raw);
-      return result;
-    } catch (error) {
-      console.error('error', error);
-      return {
-        success: false,
-        timestamp: new Date().toISOString(),
-        stdout: '',
-        stderr: 'Error running code',
-        exitCode: 1,
-        elapsedTime: -1,
-        compileTime: undefined,
-      };
-    }
+			const start = Date.now();
+			let compileTime: number | undefined;
 
-    // throw new Error('test');
-    // console.log('result', result);
+			// Compile step for compiled languages
+			if (config.compileCommand) {
+				const compileResult = await sandbox.exec(config.compileCommand(filePath, outputPath), {
+					timeout: EXECUTION_TIMEOUT_MS,
+				});
+				compileTime = Date.now() - start;
 
-    // // // Broadcast execution complete
-    // // this.ctx.executionCtx.waitUntil(
-    // // 	roomDo.handleCodeExecutioMessage({ type: 'complete', output: result?.stdout || result?.stderr || 'No output from execution' }),
-    // // );
+				if (!compileResult.success) {
+					return {
+						success: false,
+						stdout: compileResult.stdout,
+						stderr: compileResult.stderr,
+						exitCode: compileResult.exitCode,
+						elapsedTime: compileTime,
+						compileTime,
+						timestamp: new Date().toISOString(),
+					};
+				}
+			}
 
-    // return result;
-  }
+			// Run the code
+			const runTarget = config.compileCommand ? outputPath : filePath;
+			const result = await sandbox.exec(config.runCommand(runTarget), {
+				timeout: EXECUTION_TIMEOUT_MS,
+			});
 
-  private async getSandbox(roomId: Id<'room'>) {
-    const sandboxId = getSandboxId(roomId);
-    const sandbox = this.ctx.env.SANDBOX.get(this.ctx.env.SANDBOX.idFromName(sandboxId));
-    return sandbox;
-  }
+			return {
+				success: result.success,
+				stdout: result.stdout,
+				stderr: result.stderr,
+				exitCode: result.exitCode,
+				elapsedTime: Date.now() - start,
+				compileTime,
+				timestamp: new Date().toISOString(),
+			};
+		} catch (error) {
+			console.error('Error running code:', error);
+			return {
+				success: false,
+				timestamp: new Date().toISOString(),
+				stdout: '',
+				stderr: error instanceof Error ? error.message : 'Error running code',
+				exitCode: 1,
+				elapsedTime: -1,
+				compileTime: undefined,
+			};
+		}
+	}
 }

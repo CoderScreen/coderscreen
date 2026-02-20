@@ -29,11 +29,10 @@
 	},
 	"containers": [
 		{
-			"max_instances": 2,
+			"max_instances": 5,
 			"name": "sandbox",
 			"class_name": "Sandbox",
-			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:production",
-			// registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox-image:latest
+			"image": "./src/containers/images/Dockerfile",
 			"instance_type": "standard",
 		},
 	],

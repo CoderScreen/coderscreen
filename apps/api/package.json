@@ -25,11 +25,11 @@
 		"partykit": "0.0.115",
 		"typescript": "^5.8.3",
 		"vitest": "~3.0.9",
-		"wrangler": "^4.22.0"
+		"wrangler": "^4.67.0"
 	},
 	"dependencies": {
-		"@cloudflare/containers": "^0.0.13",
-		"@cloudflare/sandbox": "workspace:^",
+		"@cloudflare/containers": "^0.0.30",
+		"@cloudflare/sandbox": "^0.7.0",
 		"@coderscreen/common": "workspace:^",
 		"@coderscreen/db": "workspace:^",
 		"@daytonaio/sdk": "0.21.1",

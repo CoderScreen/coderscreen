@@ -15,7 +15,7 @@ import { webhookRouter } from '@/routes/webhook.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
 import { auth } from '../better-auth.config';
-import { CustomSandbox as Sandbox } from './containers/CustomSandbox';
+import { SandboxDO as Sandbox } from './sandbox/SandboxDO';
 import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
 import { assetRouter } from './routes/asset.routes';
