@@ -9,9 +9,11 @@ import { publicRoomMiddleware } from '@/middleware/room.middleware';
 import { whiteboardRouter } from '@/routes/room/whiteboard.router';
 import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
+import { getSandboxId } from '@/lib/sandbox';
 import { CodeRunService } from '@/services/CodeRun.service';
 import { RoomService } from '@/services/Room.service';
 import { AppContext } from '../..';
+import { getSandbox } from '@cloudflare/sandbox';
 
 export const publicRoomRouter = new Hono<AppContext>()
   .use(publicRoomMiddleware)
@@ -80,11 +82,40 @@ export const publicRoomRouter = new Hono<AppContext>()
       const { code, language } = ctx.req.valid('json');
 
       const codeRunService = new CodeRunService(ctx);
-
-      console.log('running code', code, language);
       const result = await codeRunService.runCode({ roomId, code, language });
 
       return ctx.json(result);
+    }
+  )
+  .post(
+    '/stop',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+      const sandboxId = getSandboxId(roomId);
+      const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+      await sandbox.killAllProcesses();
+      return ctx.json({ success: true });
+    }
+  )
+  .post(
+    '/run/stream',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    zValidator('json', z.object({ code: z.string(), language: RoomLanguageSchema })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+      const { code, language } = ctx.req.valid('json');
+
+      const codeRunService = new CodeRunService(ctx);
+      const stream = await codeRunService.runCodeStream({ roomId, code, language });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      });
     }
   )
   .post(

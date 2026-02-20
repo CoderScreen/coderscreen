@@ -56,47 +56,47 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
 
 ### Checklist
 
-- [ ] **2.1 Create language command map**
+- [x] **2.1 Create language command map**
   - Create `apps/api/src/sandbox/languageCommands.ts`
   - Simple map: `{ extension, runCommand(filePath), compileCommand?(filePath, outputPath) }`
   - Cover all 11 languages: javascript, typescript, python, bash, c, c++, go, rust, php, ruby, java
   - Replaces all 11 runner files in `apps/api/src/containers/runners/`
 
-- [ ] **2.2 Rewrite CodeRun.service.ts**
+- [x] **2.2 Rewrite CodeRun.service.ts**
   - Modify `apps/api/src/services/CodeRun.service.ts`
   - Use `getSandbox(ctx.env.SANDBOX, getSandboxId(roomId))` from official SDK
   - `sandbox.writeFile('/workspace/main.ext', code)` then `sandbox.exec(runCommand, { timeout: 15000 })`
   - For compiled languages: compile step first, then run
   - Return same `FormattedOutput` shape for backward compat
 
-- [ ] **2.3 Add streaming execution endpoint**
+- [x] **2.3 Add streaming execution endpoint**
   - Modify `apps/api/src/routes/room/publicRoom.routes.ts`
   - Add `POST /rooms/:roomId/public/run/stream` - Uses `sandbox.execStream()`, returns SSE Response
 
-- [ ] **2.4 Add stop endpoint**
+- [x] **2.4 Add stop endpoint**
   - Modify `apps/api/src/routes/room/publicRoom.routes.ts`
   - Add `POST /rooms/:roomId/public/stop` - Uses `sandbox.killAllProcesses()`
 
-- [ ] **2.5 Update frontend execution hook**
+- [x] **2.5 Update frontend execution hook**
   - Modify `apps/web/src/query/realtime/execution.query.ts`
   - Add `stopExecution` callback that POSTs to `/stop`
   - Optionally consume SSE from `/run/stream` for real-time output appending
 
-- [ ] **2.6 Update Run/Stop button**
+- [x] **2.6 Update Run/Stop button**
   - Modify `apps/web/src/components/room/editor/EditorHeader.tsx`
   - Show Stop button (with `RiStopLine` icon) while `isLoading` is true
   - Wire up to `stopExecution` from the hook
 
-- [ ] **2.7 Delete old runner code**
+- [x] **2.7 Delete old runner code**
   - Delete entire `apps/api/src/containers/` directory
   - Includes: `CustomSandbox.ts`, `runners/` (all 12 files), `config/`
 
 ### Verify Phase 2
-- [ ] POST `/run` still works for all 11 languages (backward compat)
-- [ ] POST `/run/stream` returns SSE events with stdout/stderr chunks
-- [ ] POST `/stop` kills running processes
-- [ ] Stop button appears during execution and works (test with `while True: pass`)
-- [ ] Compiled languages (C, C++, Rust, Go, Java) report compile time correctly
+- [x] POST `/run` still works for all 11 languages (backward compat)
+- [x] POST `/run/stream` returns SSE events with stdout/stderr chunks
+- [x] POST `/stop` kills running processes
+- [x] Stop button appears during execution and works (test with `while True: pass`)
+- [x] Compiled languages (C, C++, Rust, Go, Java) report compile time correctly
 
 ---
 

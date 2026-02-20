@@ -5,14 +5,15 @@ import { z } from 'zod';
 import { getSingleFileTemplateFileName } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { findFileIdByPath } from '@/contexts/SandpackContext';
-import { useRunRoomCode } from '@/query/publicRoom.query';
+import { useRunRoomCode, useStopRoomCode } from '@/query/publicRoom.query';
 import { FS_MAP_KEY, FSEntry, getFileKey } from '@/query/realtime/multi-file/docUtils';
 
 type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
 export function useCodeExecutionHistory() {
   const { provider, isReadOnly } = useRoomContext();
-  const { runRoomCode, isLoading } = useRunRoomCode();
+  const { runRoomCode, abortRun, isLoading } = useRunRoomCode();
+  const { stopRoomCode } = useStopRoomCode();
   const [history, setHistory] = useState<ExecOutput[]>([]);
 
   // Observe changes to the execution history in the main doc
@@ -65,6 +66,11 @@ export function useCodeExecutionHistory() {
 
       return result;
     } catch (error) {
+      // Don't record aborted requests (user clicked Stop)
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
       const errorResult: ExecOutput = {
         success: false,
         timestamp: new Date().toISOString(),
@@ -83,6 +89,16 @@ export function useCodeExecutionHistory() {
     }
   }, [runRoomCode, provider, isReadOnly]);
 
+  // Stop a running execution: abort the in-flight request and kill sandbox processes
+  const stopExecution = useCallback(async () => {
+    abortRun();
+    try {
+      await stopRoomCode();
+    } catch (error) {
+      console.error('Failed to stop execution:', error);
+    }
+  }, [abortRun, stopRoomCode]);
+
   // Clear history from main doc
   const clearHistory = useCallback(() => {
     if (!provider || isReadOnly) return;
@@ -94,6 +110,7 @@ export function useCodeExecutionHistory() {
   return {
     history,
     executeCode,
+    stopExecution,
     isLoading,
     clearHistory,
     provider,
