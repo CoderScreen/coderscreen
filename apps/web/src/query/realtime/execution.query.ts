@@ -4,9 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { z } from 'zod';
 import { getSingleFileTemplateFileName } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { findFileIdByPath } from '@/contexts/SandpackContext';
 import { useRunRoomCode, useStopRoomCode } from '@/query/publicRoom.query';
-import { FS_MAP_KEY, FSEntry, getFileKey } from '@/query/realtime/multi-file/docUtils';
+import { FS_MAP_KEY, FSEntry, findFileIdByPath, getFileKey } from '@/query/realtime/multi-file/docUtils';
 
 type ExecOutput = z.infer<typeof ExecOutputSchema>;
 

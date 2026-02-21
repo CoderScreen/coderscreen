@@ -1,7 +1,7 @@
 import { RoomSchema } from '@coderscreen/api/schema/room';
 import { useEffect, useState } from 'react';
-import { shouldUseSandpackOutput } from '@/components/room/editor/lib/utils';
-import { SandpackOutput } from '@/components/room/output/SandpackOutput';
+import { isLanguageMultiFile } from '@/components/room/editor/lib/utils';
+import { PreviewPanel } from '@/components/room/output/PreviewPanel';
 import { SingleFileOutput } from '@/components/room/output/SingleFileOutput';
 import { useRoomContext } from '@/contexts/RoomContext';
 
@@ -49,8 +49,8 @@ export const CodeOutput = () => {
   }
 
   // Conditionally render based on language type
-  if (shouldUseSandpackOutput(language)) {
-    return <SandpackOutput />;
+  if (isLanguageMultiFile(language)) {
+    return <PreviewPanel />;
   }
 
   return <SingleFileOutput />;

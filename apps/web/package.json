@@ -14,7 +14,9 @@
     "cf-types": "wrangler types",
     "cf-dev": "wrangler dev",
     "cf-deploy": "wrangler deploy",
-    "cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'"
+    "cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'",
+    "build:staging": "vite build --mode staging && tsc",
+    "cf-deploy:staging": "pnpm build:staging && wrangler deploy --env staging"
   },
   "dependencies": {
     "@cloudflare/sandbox": "^0.7.4",
@@ -35,8 +37,6 @@
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.38.1",
     "@coderscreen/ui": "workspace:^",
-    "@codesandbox/sandpack-client": "^2.19.8",
-    "@codesandbox/sandpack-react": "^2.20.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.1.4",

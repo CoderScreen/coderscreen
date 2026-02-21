@@ -7,6 +7,7 @@ declare namespace Cloudflare {
 		NODE_ENV: string;
 		FE_APP_URL: string;
 		FREE_PLAN_ID: string;
+		PREVIEW_HOSTNAME: string;
 		USE_TUNNEL_FOR_PREVIEW: string;
 		INFISCAL_STRIPE_PUBLISHABLE_KEY: string;
 		INFISCAL_STRIPE_SECRET_KEY: string;

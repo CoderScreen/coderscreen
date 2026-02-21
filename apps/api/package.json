@@ -11,6 +11,7 @@
 		"start": "wrangler dev",
 		"test": "vitest",
 		"cf-deploy": "wrangler deploy",
+		"cf-deploy:staging": "wrangler deploy --env staging",
 		"cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'",
 		"cf-types": "wrangler types",
 		"auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./better-auth.config.ts --output ../../packages/db/src/user.db.ts",

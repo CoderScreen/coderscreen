@@ -18,6 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl wget git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Install cloudflared for local dev preview tunnels
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -L -k --output cloudflared "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}" && \
+    chmod +x cloudflared && \
+    mv cloudflared /usr/local/bin/
+
 # Install Go (AMD64)
 RUN wget -q https://go.dev/dl/go1.23.0.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz && \

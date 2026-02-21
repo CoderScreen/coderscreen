@@ -26,4 +26,19 @@
     "VITE_APP_URL": "https://app.coderscreen.com",
     "VITE_API_URL": "https://api.coderscreen.com"
   },
+  "env": {
+    "staging": {
+      "name": "coderscreen-web-staging",
+      "routes": [
+        {
+          "pattern": "staging.coderscreen.com",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "VITE_APP_URL": "https://staging.coderscreen.com",
+        "VITE_API_URL": "https://staging-api.coderscreen.com"
+      }
+    }
+  }
 }

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { GuestRoomHeader } from '@/components/room/guest/GuestRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
-import { SandpackProvider } from '@/contexts/SandpackContext';
 import { type Guest, getGuest, setGuest } from '@/lib/guest';
 import { usePublicRoom } from '@/query/publicRoom.query';
 import { getRandomColor } from '@/query/realtime/utils';
@@ -65,9 +64,7 @@ export const GuestRoomView = () => {
   // If guest info exists and room is active, show the room content
   return (
     <RoomProvider>
-      <SandpackProvider>
-        <GuestRoomContent />
-      </SandpackProvider>
+      <GuestRoomContent />
     </RoomProvider>
   );
 };

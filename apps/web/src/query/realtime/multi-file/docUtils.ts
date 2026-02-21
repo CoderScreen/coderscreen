@@ -224,6 +224,12 @@ export const createFolderEntry = (
   children,
 });
 
+// Find a file ID by its path (convenience wrapper over findItemByPath)
+export const findFileIdByPath = (fsMap: Y.Map<FSEntry>, path: string): string | null => {
+  const result = findItemByPath(fsMap, path);
+  return result ? result.id : null;
+};
+
 // Helper function to get language from file name
 export const getLanguageFromName = (name: string): string | undefined => {
   const ext = name.split('.').pop()?.toLowerCase();

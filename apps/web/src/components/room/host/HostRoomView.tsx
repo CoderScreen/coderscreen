@@ -3,7 +3,6 @@ import { DockviewReact } from 'dockview';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
-import { SandpackProvider } from '@/contexts/SandpackContext';
 import {
   DOCKVIEW_PANEL_IDS,
   lightDockviewTheme,
@@ -14,9 +13,7 @@ import {
 export const HostRoomView = () => {
   return (
     <RoomProvider>
-      <SandpackProvider>
-        <HostRoomContent />
-      </SandpackProvider>
+      <HostRoomContent />
     </RoomProvider>
   );
 };

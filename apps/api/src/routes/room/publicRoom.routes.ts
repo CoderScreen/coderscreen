@@ -10,6 +10,7 @@ import { whiteboardRouter } from '@/routes/room/whiteboard.router';
 import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
 import { getSandboxId } from '@/lib/sandbox';
+import { PreviewService } from '@/sandbox/PreviewService';
 import { CodeRunService } from '@/services/CodeRun.service';
 import { RoomService } from '@/services/Room.service';
 import { AppContext } from '../..';
@@ -128,6 +129,41 @@ export const publicRoomRouter = new Hono<AppContext>()
       const cols = parseInt(ctx.req.query('cols') || '80');
       const rows = parseInt(ctx.req.query('rows') || '24');
       return proxyTerminal(sandbox, 'default', ctx.req.raw, { cols, rows });
+    }
+  )
+  .post(
+    '/preview/start',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    zValidator('json', z.object({ language: z.enum(['react', 'vue', 'svelte']) })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+      const { language } = ctx.req.valid('json');
+
+      const previewService = new PreviewService();
+      const result = await previewService.startPreview({
+        sandboxBinding: ctx.env.SANDBOX,
+        roomId,
+        language,
+        hostname: ctx.env.PREVIEW_HOSTNAME,
+        useTunnel: !!ctx.env.USE_TUNNEL_FOR_PREVIEW,
+      });
+
+      return ctx.json(result);
+    }
+  )
+  .post(
+    '/preview/stop',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+
+      const previewService = new PreviewService();
+      await previewService.stopPreview({
+        sandboxBinding: ctx.env.SANDBOX,
+        roomId,
+      });
+
+      return ctx.json({ success: true });
     }
   )
   .post(

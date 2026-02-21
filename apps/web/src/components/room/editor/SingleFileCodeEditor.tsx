@@ -4,9 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { EditorHeader } from '@/components/room/editor/EditorHeader';
 import { getSingleFileTemplateFileName } from '@/components/room/editor/lib/languageTemplate';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { findFileIdByPath } from '@/contexts/SandpackContext';
 import { useMultiFileCodeEditor } from '@/query/realtime/editor.query';
-import { FS_MAP_KEY, FSEntry } from '@/query/realtime/multi-file/docUtils';
+import { FS_MAP_KEY, FSEntry, findFileIdByPath } from '@/query/realtime/multi-file/docUtils';
 
 interface SingleFileCodeEditorProps {
   selectedFile?: string;
