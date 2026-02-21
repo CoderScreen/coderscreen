@@ -149,7 +149,7 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
 
 ### Checklist
 
-- [ ] **4.1 Create FileSyncService**
+- [x] **4.1 Create FileSyncService**
   - Create `apps/api/src/sandbox/FileSyncService.ts`
   - Takes a sandbox handle and Yjs Y.Doc
   - `syncAllFiles()` - Walks the `fs` Y.Map, builds file paths from the tree, writes all files to `/workspace/`
@@ -157,7 +157,7 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
   - 500ms debounce per file to avoid writing on every keystroke
   - Reuses existing `FSEntry` type and `getFileKey()` pattern from `apps/api/src/partykit/room.do.ts`
 
-- [ ] **4.2 Integrate into RoomServer**
+- [x] **4.2 Integrate into RoomServer**
   - Modify `apps/api/src/partykit/room.do.ts`
   - Import `getSandbox` from `@cloudflare/sandbox` and `FileSyncService`
   - In `onLoad()`, after `this.createNewSandbox()`:
@@ -169,11 +169,11 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
     ```
 
 ### Verify Phase 4
-- [ ] Edit code in editor -> file updates in sandbox within ~500ms
-- [ ] Create new file in editor -> appears in sandbox
-- [ ] Delete file in editor -> removed from sandbox
-- [ ] Run code via terminal (`node /workspace/main.js`) uses latest editor content
-- [ ] Multi-file projects have all files synced to `/workspace/`
+- [x] Edit code in editor -> file updates in sandbox within ~500ms
+- [x] Create new file in editor -> appears in sandbox
+- [x] Delete file in editor -> removed from sandbox
+- [x] Run code via terminal (`node /workspace/main.js`) uses latest editor content
+- [x] Multi-file projects have all files synced to `/workspace/`
 
 ---
 
