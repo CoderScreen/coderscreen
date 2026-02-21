@@ -181,7 +181,7 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
 
 ### Checklist
 
-- [ ] **5.1 Create PreviewService**
+- [x] **5.1 Create PreviewService**
   - Create `apps/api/src/sandbox/PreviewService.ts`
   - Config map for React/Vue/Svelte: `{ installCommand, devCommand, port }`
   - `startPreview(sandbox, framework, hostname)`:
@@ -190,33 +190,33 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
     - `process.waitForPort(port, { timeout: 60000, mode: 'http' })`
     - `sandbox.exposePort(port, { hostname })` -> returns preview URL
 
-- [ ] **5.2 Add preview API endpoints**
+- [x] **5.2 Add preview API endpoints**
   - Modify `apps/api/src/routes/room/publicRoom.routes.ts`
   - Add `POST /rooms/:roomId/public/preview/start` - Starts dev server, returns `{ previewUrl }`
   - Add `POST /rooms/:roomId/public/preview/stop` - Kills preview process
 
-- [ ] **5.3 Create PreviewPanel component**
+- [x] **5.3 Create PreviewPanel component**
   - Create `apps/web/src/components/room/output/PreviewPanel.tsx`
   - "Start Preview" button calling `/preview/start`
   - iframe rendering the returned `previewUrl`
   - Loading/error states
   - Replaces `SandpackOutput.tsx`
 
-- [ ] **5.4 Update CodeOutput routing**
+- [x] **5.4 Update CodeOutput routing**
   - Modify `apps/web/src/components/room/output/CodeOutput.tsx`
   - Change `shouldUseSandpackOutput(language)` branch to render `PreviewPanel` instead of `SandpackOutput`
 
-- [ ] **5.5 Remove Sandpack**
+- [x] **5.5 Remove Sandpack**
   - Delete `apps/web/src/contexts/SandpackContext.tsx`
   - Delete `apps/web/src/components/room/output/SandpackOutput.tsx`
   - Remove `@codesandbox/sandpack-client` and `@codesandbox/sandpack-react` from `apps/web/package.json`
   - Remove `<SandpackProvider>` wrapper from `HostRoomView.tsx` and `GuestRoomView.tsx`
 
 ### Verify Phase 5
-- [ ] React/Vue/Svelte language selection shows PreviewPanel
-- [ ] "Start Preview" installs deps, starts dev server, shows live app in iframe
-- [ ] Code edits trigger hot reload via file sync (Phase 4)
-- [ ] "Stop Preview" kills the dev server
+- [x] React/Vue/Svelte language selection shows PreviewPanel
+- [x] "Start Preview" installs deps, starts dev server, shows live app in iframe
+- [x] Code edits trigger hot reload via file sync (Phase 4)
+- [x] "Stop Preview" kills the dev server
 
 ---
 
@@ -224,18 +224,18 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
 
 ### Checklist
 
-- [ ] **6.1 Update SandboxService**
+- [x] **6.1 Update SandboxService**
   - Modify `apps/api/src/partykit/internal/Sandbox.service.ts`
   - Use `getSandbox()` from official SDK instead of manual DO id resolution
   - `startSandbox()` calls `sandbox.exec('echo ready')` to warm up
 
-- [ ] **6.2 Simplify lib/sandbox.ts**
+- [x] **6.2 Simplify lib/sandbox.ts**
   - Modify `apps/api/src/lib/sandbox.ts`
   - Keep `getSandboxId()` (reused everywhere)
   - Simplify `ExecuteResponse` and `FormattedOutput` - remove `command`/`args` fields
   - Keep `formatExecOutput()` for backward compat with existing execution history data
 
-- [ ] **6.3 Verify no database schema changes needed**
+- [x] **6.3 Verify no database schema changes needed**
   - `executionHistory` JSONB column stores Yjs-serialized data
   - Output format (`success`, `stdout`, `stderr`, `exitCode`, `elapsedTime`, `compileTime`, `timestamp`) matches existing `ExecOutputSchema`
 
