@@ -13,7 +13,7 @@ import { getSandboxId } from '@/lib/sandbox';
 import { CodeRunService } from '@/services/CodeRun.service';
 import { RoomService } from '@/services/Room.service';
 import { AppContext } from '../..';
-import { getSandbox } from '@cloudflare/sandbox';
+import { getSandbox, proxyTerminal } from '@cloudflare/sandbox';
 
 export const publicRoomRouter = new Hono<AppContext>()
   .use(publicRoomMiddleware)
@@ -116,6 +116,18 @@ export const publicRoomRouter = new Hono<AppContext>()
           Connection: 'keep-alive',
         },
       });
+    }
+  )
+  .get(
+    '/terminal',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+      const sandboxId = getSandboxId(roomId);
+      const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+      const cols = parseInt(ctx.req.query('cols') || '80');
+      const rows = parseInt(ctx.req.query('rows') || '24');
+      return proxyTerminal(sandbox, 'default', ctx.req.raw, { cols, rows });
     }
   )
   .post(

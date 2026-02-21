@@ -104,20 +104,20 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
 
 ### Checklist
 
-- [ ] **3.1 Backend terminal WebSocket route**
+- [x] **3.1 Backend terminal WebSocket route**
   - Modify `apps/api/src/routes/room/publicRoom.routes.ts`
   - Add `GET /rooms/:roomId/public/terminal` - WebSocket upgrade handler
-  - Uses `sandbox.terminal(request, { cols: 80, rows: 24 })` from official SDK
+  - Uses `proxyTerminal()` from official SDK with sandbox DO stub
   - SDK handles: PTY creation, binary frame proxying, reconnection buffering
   - **Key decision**: Route through Hono API, NOT PartyKit (PartyKit uses Yjs protocol)
 
-- [ ] **3.2 Add frontend dependencies**
+- [x] **3.2 Add frontend dependencies**
   - `apps/web/package.json` - Add:
     - `@xterm/xterm` ^5.5.0
     - `@xterm/addon-fit` ^0.10.0
     - `@cloudflare/sandbox` ^0.7.0 (for `@cloudflare/sandbox/xterm` SandboxAddon)
 
-- [ ] **3.3 Create Terminal component**
+- [x] **3.3 Create Terminal component**
   - Create `apps/web/src/components/room/terminal/Terminal.tsx`
   - Uses `@xterm/xterm` + `@xterm/addon-fit`
   - Uses `SandboxAddon` from `@cloudflare/sandbox/xterm` for WebSocket
@@ -125,7 +125,7 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
   - Auto-reconnect enabled
   - ResizeObserver for panel resize handling
 
-- [ ] **3.4 Register terminal in Dockview**
+- [x] **3.4 Register terminal in Dockview**
   - Modify `apps/web/src/components/room/Dockview.tsx`:
     - Add `TERMINAL: 'terminal'` to `DOCKVIEW_PANEL_IDS`
     - Add terminal component to `useDockviewComponents`
@@ -136,12 +136,12 @@ The goal is to replace this with the official `@cloudflare/sandbox` SDK (v0.7.x 
     - Same terminal panel addition
 
 ### Verify Phase 3
-- [ ] WebSocket connects at `/rooms/:roomId/public/terminal`
-- [ ] xterm.js renders in the Terminal Dockview panel
-- [ ] Interactive shell works: `ls`, `pwd`, `echo`, `python3 -c "print('hi')"`
-- [ ] Terminal reconnects after brief disconnect
-- [ ] Panel resize causes terminal to refit correctly
-- [ ] Both host and guest see the terminal panel
+- [x] WebSocket connects at `/rooms/:roomId/public/terminal`
+- [x] xterm.js renders in the Terminal Dockview panel
+- [x] Interactive shell works: `ls`, `pwd`, `echo`, `python3 -c "print('hi')"`
+- [x] Terminal reconnects after brief disconnect
+- [x] Panel resize causes terminal to refit correctly
+- [x] Both host and guest see the terminal panel
 
 ---
 

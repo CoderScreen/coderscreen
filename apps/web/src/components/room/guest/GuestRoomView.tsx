@@ -143,11 +143,14 @@ const GuestRoomContent = () => {
             });
 
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.WHITEBOARD,
-              component: 'whiteboard',
-              title: 'Whiteboard',
+              id: DOCKVIEW_PANEL_IDS.TERMINAL,
+              component: 'terminal',
+              title: 'Terminal',
               tabComponent: 'tab',
-              inactive: true,
+              position: {
+                direction: 'below',
+                referencePanel: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
+              },
             });
 
             api.addPanel({
