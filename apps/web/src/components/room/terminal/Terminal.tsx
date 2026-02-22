@@ -3,12 +3,14 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Terminal as XTerminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { useEffect, useRef, useState } from 'react';
+import { useRoomContext } from '@/contexts/RoomContext';
 import { useCurrentRoomId } from '@/lib/params';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const Terminal = () => {
   const roomId = useCurrentRoomId();
+  const { terminalInputRef } = useRoomContext();
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerminal | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
@@ -63,6 +65,11 @@ export const Terminal = () => {
 
     sandboxAddon.connect({ sandboxId: `s_${roomId}` });
 
+    // Register programmatic input method for Run button
+    terminalInputRef.current = (cmd: string) => {
+      term.input(cmd, true);
+    };
+
     const observer = new ResizeObserver(() => {
       fitAddon.fit();
     });
@@ -70,11 +77,12 @@ export const Terminal = () => {
 
     return () => {
       observer.disconnect();
+      terminalInputRef.current = null;
       sandboxAddon.dispose();
       term.dispose();
       xtermRef.current = null;
     };
-  }, [roomId]);
+  }, [roomId, terminalInputRef]);
 
   return (
     <div className='relative h-full w-full'>

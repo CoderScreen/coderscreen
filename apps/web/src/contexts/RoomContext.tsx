@@ -1,4 +1,5 @@
 import { PublicRoomSchema, RoomSchema } from '@coderscreen/api/schema/room';
+import type { DockviewApi } from 'dockview';
 import React, {
   createContext,
   ReactNode,
@@ -6,6 +7,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import YPartyKitProvider from 'y-partykit/provider';
@@ -22,6 +24,8 @@ interface RoomContextType {
   currentStatus: RoomSchema['status'] | undefined;
   currentLanguage: RoomSchema['language'] | undefined;
   setLanguage: (language: RoomSchema['language']) => void;
+  terminalInputRef: React.MutableRefObject<((cmd: string) => void) | null>;
+  dockviewApiRef: React.MutableRefObject<DockviewApi | null>;
 }
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -43,6 +47,9 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState<RoomSchema['language'] | undefined>(
     undefined
   );
+
+  const terminalInputRef = useRef<((cmd: string) => void) | null>(null);
+  const dockviewApiRef = useRef<DockviewApi | null>(null);
 
   const { publicRoom } = usePublicRoom();
 
@@ -206,6 +213,8 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
         currentStatus,
         currentLanguage,
         setLanguage,
+        terminalInputRef,
+        dockviewApiRef,
       }}
     >
       {children}

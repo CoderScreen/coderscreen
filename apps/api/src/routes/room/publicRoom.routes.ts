@@ -77,13 +77,13 @@ export const publicRoomRouter = new Hono<AppContext>()
         roomId: idString('room'),
       })
     ),
-    zValidator('json', z.object({ code: z.string(), language: RoomLanguageSchema })),
+    zValidator('json', z.object({ code: z.string().optional(), language: RoomLanguageSchema })),
     async (ctx) => {
       const { roomId } = ctx.req.valid('param');
-      const { code, language } = ctx.req.valid('json');
+      const { language } = ctx.req.valid('json');
 
       const codeRunService = new CodeRunService(ctx);
-      const result = await codeRunService.runCode({ roomId, code, language });
+      const result = await codeRunService.runCode({ roomId, language });
 
       return ctx.json(result);
     }
@@ -95,20 +95,25 @@ export const publicRoomRouter = new Hono<AppContext>()
       const { roomId } = ctx.req.valid('param');
       const sandboxId = getSandboxId(roomId);
       const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
-      await sandbox.killAllProcesses();
+      const processes = await sandbox.listProcesses();
+      await Promise.all(
+        processes
+          .filter((p) => p.status === 'running')
+          .map((p) => sandbox.killProcess(p.id))
+      );
       return ctx.json({ success: true });
     }
   )
   .post(
     '/run/stream',
     zValidator('param', z.object({ roomId: idString('room') })),
-    zValidator('json', z.object({ code: z.string(), language: RoomLanguageSchema })),
+    zValidator('json', z.object({ code: z.string().optional(), language: RoomLanguageSchema })),
     async (ctx) => {
       const { roomId } = ctx.req.valid('param');
-      const { code, language } = ctx.req.valid('json');
+      const { language } = ctx.req.valid('json');
 
       const codeRunService = new CodeRunService(ctx);
-      const stream = await codeRunService.runCodeStream({ roomId, code, language });
+      const stream = await codeRunService.runCodeStream({ roomId, language });
 
       return new Response(stream, {
         headers: {

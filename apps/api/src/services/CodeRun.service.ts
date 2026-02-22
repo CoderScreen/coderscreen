@@ -17,10 +17,9 @@ export class CodeRunService {
 
 	async runCodeStream(params: {
 		roomId: Id<'room'>;
-		code: string;
 		language: RoomEntity['language'];
 	}): Promise<ReadableStream<Uint8Array>> {
-		const { roomId, code, language } = params;
+		const { roomId, language } = params;
 
 		const config = LANGUAGE_CONFIG[language];
 		if (!config) {
@@ -36,8 +35,6 @@ export class CodeRunService {
 		const outputPath = '/workspace/main_out';
 
 		try {
-			await sandbox.writeFile(filePath, code);
-
 			// Compile step for compiled languages
 			if (config.compileCommand) {
 				const compileResult = await sandbox.exec(config.compileCommand(filePath, outputPath), {
@@ -74,10 +71,9 @@ export class CodeRunService {
 
 	async runCode(params: {
 		roomId: Id<'room'>;
-		code: string;
 		language: RoomEntity['language'];
 	}): Promise<FormattedOutput> {
-		const { roomId, code, language } = params;
+		const { roomId, language } = params;
 
 		const config = LANGUAGE_CONFIG[language];
 		if (!config) {
@@ -99,9 +95,6 @@ export class CodeRunService {
 		const outputPath = '/workspace/main_out';
 
 		try {
-			// Write code to sandbox filesystem
-			await sandbox.writeFile(filePath, code);
-
 			const start = Date.now();
 			let compileTime: number | undefined;
 

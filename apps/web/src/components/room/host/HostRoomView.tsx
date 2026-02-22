@@ -19,7 +19,7 @@ export const HostRoomView = () => {
 };
 
 const HostRoomContent = () => {
-  const { currentStatus } = useRoomContext();
+  const { currentStatus, dockviewApiRef } = useRoomContext();
 
   const components = useDockviewComponents(false);
   const tabComponents = useTabComponents();
@@ -45,16 +45,17 @@ const HostRoomContent = () => {
           tabComponents={tabComponents}
           onReady={(event) => {
             const { api } = event;
+            dockviewApiRef.current = api;
 
             // Add code editor panel
             api.addPanel({
               id: DOCKVIEW_PANEL_IDS.CODE_EDITOR,
-              component: 'code-editor', // Use the original component names
+              component: 'code-editor',
               title: 'Code Editor',
               tabComponent: 'tab',
             });
 
-            // Add other panels as tabs in a second panel
+            // Add code-output panel (will be closed by useEffect for single-file languages)
             api.addPanel({
               id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
               component: 'code-output',

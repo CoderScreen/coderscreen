@@ -18,8 +18,9 @@ import {
 import { RiArrowRightLine, RiCloseLine, RiPlayLine, RiStopLine } from '@remixicon/react';
 import { useCallback, useState } from 'react';
 import { LanguageIcon } from '@/components/common/LanguageIcon';
+import { isLanguageMultiFile } from '@/components/room/editor/lib/utils';
 import { useRoomContext } from '@/contexts/RoomContext';
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
+import { useCodeExecution } from '@/query/realtime/execution.query';
 
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -53,7 +54,7 @@ interface EditorHeaderProps {
 
 export const EditorHeader = ({ handleWorkspaceReset }: EditorHeaderProps) => {
   const { currentLanguage, setLanguage, isReadOnly } = useRoomContext();
-  const { executeCode, stopExecution, isLoading } = useCodeExecutionHistory();
+  const { executeCode, stopExecution, isLoading } = useCodeExecution();
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<RoomSchema['language'] | null>(null);
@@ -131,14 +132,18 @@ export const EditorHeader = ({ handleWorkspaceReset }: EditorHeaderProps) => {
           </Select>
         </div>
 
-        {isLoading ? (
-          <Button icon={RiStopLine} variant='destructive' onClick={stopExecution}>
-            Stop
-          </Button>
-        ) : (
-          <Button icon={RiPlayLine} onClick={executeCode}>
-            Run Code
-          </Button>
+        {currentLanguage && !isLanguageMultiFile(currentLanguage) && (
+          <div className='flex items-center gap-1'>
+            {isLoading ? (
+              <Button icon={RiStopLine} variant='destructive' onClick={stopExecution}>
+                Stop
+              </Button>
+            ) : (
+              <Button icon={RiPlayLine} onClick={executeCode}>
+                Run
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

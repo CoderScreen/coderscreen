@@ -71,7 +71,7 @@ export const GuestRoomView = () => {
 
 const GuestRoomContent = () => {
   const [currentView, setCurrentView] = useState<'room' | 'summary'>('room');
-  const { subscribeToStatus, currentStatus } = useRoomContext();
+  const { subscribeToStatus, currentStatus, dockviewApiRef } = useRoomContext();
 
   // Subscribe to live status changes
   useEffect(() => {
@@ -108,6 +108,7 @@ const GuestRoomContent = () => {
           tabComponents={tabComponents}
           onReady={(event) => {
             const { api } = event;
+            dockviewApiRef.current = api;
 
             // Add code editor panel
             api.addPanel({
@@ -117,8 +118,7 @@ const GuestRoomContent = () => {
               tabComponent: 'tab',
             });
 
-            // Add other panels as tabs in a second panel
-
+            // Add code-output panel (will be closed by useEffect for single-file languages)
             api.addPanel({
               id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
               component: 'code-output',

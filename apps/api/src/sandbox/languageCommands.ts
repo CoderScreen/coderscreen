@@ -30,17 +30,17 @@ export const LANGUAGE_CONFIG: Record<RoomEntity['language'], LanguageConfig | un
 	rust: {
 		extension: '.rs',
 		compileCommand: (f, o) => `rustc ${f} -o ${o}`,
-		runCommand: (o) => `./${o}`,
+		runCommand: (o) => o,
 	},
 	c: {
 		extension: '.c',
 		compileCommand: (f, o) => `gcc -o ${o} ${f} -Wall -Wextra -std=c99`,
-		runCommand: (o) => `./${o}`,
+		runCommand: (o) => o,
 	},
 	'c++': {
 		extension: '.cpp',
 		compileCommand: (f, o) => `g++ -o ${o} ${f} -Wall -Wextra -std=c++17`,
-		runCommand: (o) => `./${o}`,
+		runCommand: (o) => o,
 	},
 	java: {
 		extension: '.java',

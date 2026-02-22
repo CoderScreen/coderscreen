@@ -1,121 +1,68 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@coderscreen/ui/collapsible';
-import { Tooltip } from '@coderscreen/ui/tooltip';
-import { RiArrowRightSLine, RiHammerLine, RiPlayLine, RiTerminalLine } from '@remixicon/react';
-import { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
-import { useCodeExecutionHistory } from '@/query/realtime/execution.query';
+import { RiPlayLine, RiLoader4Line } from '@remixicon/react';
+import { useEffect, useState } from 'react';
+import { useRoomContext } from '@/contexts/RoomContext';
+import { type ExecOutput, useCodeExecution } from '@/query/realtime/execution.query';
 
 export const SingleFileOutput = () => {
-  const { history } = useCodeExecutionHistory();
-  const [openItems, setOpenItems] = useState<Map<number, boolean>>(new Map());
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { provider } = useRoomContext();
+  const { isLoading } = useCodeExecution();
+  const [latestResult, setLatestResult] = useState<ExecOutput | null>(null);
 
-  // Auto-scroll to bottom when new items are added
+  // Subscribe to Yjs executionHistory changes
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  }, []);
+    if (!provider) return;
 
-  const toggleItem = (index: number) => {
-    setOpenItems((prev) => {
-      const newOpen = new Map(prev);
-      const val = newOpen.get(index);
-      newOpen.set(index, val === undefined ? false : !val);
-      return newOpen;
-    });
-  };
+    const history = provider.doc.getArray<ExecOutput>('executionHistory');
 
-  if (!history.length) {
+    const updateLatest = () => {
+      if (history.length > 0) {
+        setLatestResult(history.get(history.length - 1));
+      }
+    };
+
+    // Set initial value
+    updateLatest();
+
+    // Listen for changes
+    history.observe(updateLatest);
+    return () => history.unobserve(updateLatest);
+  }, [provider]);
+
+  // Loading state
+  if (isLoading) {
     return (
-      <div className='h-full w-full bg-white text-gray-800 font-mono'>
-        <div className='p-6 h-full overflow-auto'>
-          <div className='flex items-center justify-center h-full'>
-            <div className='text-center max-w-sm'>
-              <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4'>
-                <RiTerminalLine className='text-gray-400 size-6' />
-              </div>
-              <h3 className='text-sm font-medium text-gray-900 mb-2'>No output yet</h3>
-              <p className='text-sm text-gray-500 leading-relaxed'>
-                Run your code to see the execution results and output here
-              </p>
-            </div>
-          </div>
+      <div className='h-full w-full bg-white flex items-center justify-center'>
+        <div className='text-center'>
+          <RiLoader4Line className='size-6 text-gray-400 animate-spin mx-auto mb-2' />
+          <p className='text-sm text-gray-500'>Running...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className='h-full w-full bg-white text-gray-800 font-mono'>
-      <div ref={scrollContainerRef} className='h-full overflow-auto'>
-        {history.map((data, idx) => {
-          const hasOutput = data.stdout && data.stdout.trim() !== '';
-          const hasError = data.stderr && data.stderr.trim() !== '';
-          // if never opened or has been opened
-          const isOpen = !openItems.has(idx) || openItems.get(idx) === true;
-          const executionNumber = idx + 1; // Latest is at the bottom
-
-          return (
-            <Collapsible
-              key={`${data.timestamp}-${idx}`}
-              open={isOpen}
-              onOpenChange={() => toggleItem(idx)}
-            >
-              <CollapsibleTrigger className='w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between group text-gray-500 text-xs'>
-                <div className='flex items-center gap-3'>
-                  <span
-                    className={cn(
-                      'transform transition-transform duration-200',
-                      isOpen ? 'rotate-90' : 'rotate-0'
-                    )}
-                  >
-                    <RiArrowRightSLine />
-                  </span>
-                  <div className='flex items-center gap-2'>
-                    <span className='text-gray-600'>Execution #{executionNumber}</span>
-                    <span className='text-gray-400'>
-                      {new Date(data.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
-                <div className='flex items-center gap-2'>
-                  {data.compileTime && (
-                    <Tooltip content='Compilation time' triggerAsChild>
-                      <span className='text-gray-400 flex items-center gap-0.5'>
-                        <RiHammerLine className='size-3' />
-                        {data.compileTime}ms
-                      </span>
-                    </Tooltip>
-                  )}
-                  {data.elapsedTime >= 0 && (
-                    <Tooltip content='Execution time' triggerAsChild>
-                      <span className='text-gray-400 flex items-center gap-0.5'>
-                        <RiPlayLine className='size-3' />
-                        {data.elapsedTime}ms
-                      </span>
-                    </Tooltip>
-                  )}
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className='px-4 pb-2 space-y-1'>
-                  {hasOutput && (
-                    <pre className='text-sm text-gray-800 font-mono whitespace-pre-wrap break-words leading-relaxed'>
-                      {data.stdout}
-                    </pre>
-                  )}
-                  {hasError && (
-                    <pre className='text-sm text-red-600 font-mono whitespace-pre-wrap break-words leading-relaxed'>
-                      Error: {data.stderr}
-                    </pre>
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
+  // Empty state — no results yet
+  if (!latestResult) {
+    return (
+      <div className='h-full w-full bg-white flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3'>
+            <RiPlayLine className='text-gray-400 size-5' />
+          </div>
+          <p className='text-sm text-gray-500'>Run your code to see output</p>
+        </div>
       </div>
+    );
+  }
+
+  // Result state — show stdout/stderr
+  return (
+    <div className='h-full w-full bg-white overflow-auto'>
+      <pre className='p-4 text-sm font-mono whitespace-pre-wrap break-words'>
+        {latestResult.stdout}
+        {latestResult.stderr && (
+          <span className='text-red-600'>{latestResult.stderr}</span>
+        )}
+      </pre>
     </div>
   );
 };
