@@ -11,7 +11,7 @@ import { AppContext } from '@/index';
 import { retryable } from '@/lib/utils';
 import { BillingService } from '@/services/billing/Billing.service';
 import { UsageService } from '@/services/billing/Usage.service';
-import { LoopsService } from '@/services/third-party/Loops.service';
+import { ResendService } from '@/services/third-party/Resend.service';
 import { betterAuthConfig } from '../../better-auth.config';
 
 export const useAuth: (
@@ -21,7 +21,7 @@ export const useAuth: (
   const db = useDb(ctx);
   const billingService = new BillingService(ctx);
   const usageService = new UsageService(ctx);
-  const loopsService = new LoopsService(ctx);
+  const resendService = new ResendService(ctx);
 
   const options = {
     trustedOrigins: [env.FE_APP_URL],
@@ -34,33 +34,25 @@ export const useAuth: (
       user: {
         create: {
           after: async (user) => {
-            await Promise.all([
-              retryable(() =>
-                loopsService.createContact({
-                  email: user.email,
-                  name: user.name,
-                })
-              ),
-              retryable(async () => {
-                // check if user is invited to any organization, if so they dont need to be onboarded
-                const db = useDb(ctx);
-                const invitations = await db
-                  .select()
-                  .from(schema.invitation)
-                  .where(eq(schema.invitation.email, user.email))
-                  .limit(1);
+            await retryable(async () => {
+              // check if user is invited to any organization, if so they dont need to be onboarded
+              const db = useDb(ctx);
+              const invitations = await db
+                .select()
+                .from(schema.invitation)
+                .where(eq(schema.invitation.email, user.email))
+                .limit(1);
 
-                if (invitations.length === 0) {
-                  return;
-                }
+              if (invitations.length === 0) {
+                return;
+              }
 
-                // create user as onboarded
-                await db
-                  .update(schema.user)
-                  .set({ isOnboarded: true })
-                  .where(eq(schema.user.id, user.id));
-              }),
-            ]);
+              // create user as onboarded
+              await db
+                .update(schema.user)
+                .set({ isOnboarded: true })
+                .where(eq(schema.user.id, user.id));
+            });
           },
         },
       },
@@ -99,7 +91,7 @@ export const useAuth: (
         sendInvitationEmail: async (data) => {
           const inviteLink = `${env.FE_APP_URL}/accept-invitation/${data.id}`;
 
-          await loopsService.sendTransactionalEmail('org_invitation', data.email, {
+          await resendService.sendTransactionalEmail('org_invitation', data.email, {
             invited_by_username: data.inviter.user.name,
             invited_by_email: data.inviter.user.email,
             org_name: data.organization.name,
@@ -163,7 +155,7 @@ export const useAuth: (
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
       sendVerificationEmail: async (data) => {
-        await loopsService.sendTransactionalEmail('verification_code', data.user.email, {
+        await resendService.sendTransactionalEmail('verification_code', data.user.email, {
           verification_url: data.url,
         });
       },
