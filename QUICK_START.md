@@ -97,7 +97,7 @@ INFISCAL_STRIPE_SECRET_KEY =  ""
 INFISCAL_STRIPE_WEBHOOK_SECRET = ""
 
 # third party services
-INFISCAL_LOOPS_API_KEY = "" # you can leave as empty string if NODE_ENV = development
+INFISCAL_RESEND_API_KEY = "" # you can leave as empty string if NODE_ENV = development
 INFISCAL_OPENROUTER_API_KEY = ""
 
 # better auth secrets
