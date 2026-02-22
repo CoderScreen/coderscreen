@@ -30,13 +30,12 @@ export const UseCaseFAQ = ({ data }: UseCaseFAQProps) => {
     <section className='py-16 px-6'>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <div className='max-w-3xl mx-auto'>
         <div className='text-center mb-12'>
-          <h2 className='text-3xl md:text-4xl font-bold mb-4'>
-            Frequently asked questions
-          </h2>
+          <h2 className='text-3xl md:text-4xl font-bold mb-4'>Frequently asked questions</h2>
         </div>
 
         <Accordion type='single' collapsible className='w-full'>

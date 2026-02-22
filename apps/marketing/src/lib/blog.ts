@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import matter from 'gray-matter';
 
 const blogDirectory = path.join(process.cwd(), 'content/blog');
@@ -112,7 +112,9 @@ export function getRelatedPosts(
     return { post, score: sharedTags.length };
   });
 
-  scored.sort((a, b) => b.score - a.score || new Date(b.post.date).getTime() - new Date(a.post.date).getTime());
+  scored.sort(
+    (a, b) => b.score - a.score || new Date(b.post.date).getTime() - new Date(a.post.date).getTime()
+  );
 
   return scored.slice(0, limit).map((s) => s.post);
 }

@@ -131,10 +131,12 @@ export default function RootLayout({
       <head>
         <script
           type='application/ld+json'
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         <script
           type='application/ld+json'
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>

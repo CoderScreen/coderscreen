@@ -118,12 +118,12 @@ export const comparisonData: Record<string, ComparisonData> = {
       {
         question: 'Which platform has better pricing?',
         answer:
-          "CoderPad starts at $100/month for 5 interviews, HackerRank at $199/month for 10 attempts. CoderScreen offers 20 interviews for $50/month, making it the most cost-effective option.",
+          'CoderPad starts at $100/month for 5 interviews, HackerRank at $199/month for 10 attempts. CoderScreen offers 20 interviews for $50/month, making it the most cost-effective option.',
       },
       {
         question: 'Can I use both CoderPad and HackerRank together?',
         answer:
-          "Some teams use HackerRank for initial screening and CoderPad for live interviews. This adds complexity and cost. CoderScreen handles both use cases in one platform.",
+          'Some teams use HackerRank for initial screening and CoderPad for live interviews. This adds complexity and cost. CoderScreen handles both use cases in one platform.',
       },
       {
         question: 'Which platform is better for system design interviews?',
@@ -133,7 +133,7 @@ export const comparisonData: Record<string, ComparisonData> = {
       {
         question: 'How do the question libraries compare?',
         answer:
-          "HackerRank has the largest library with 2000+ questions. CoderPad has a limited set. CoderScreen focuses on custom questions tailored to your tech stack, which often better predicts job performance.",
+          'HackerRank has the largest library with 2000+ questions. CoderPad has a limited set. CoderScreen focuses on custom questions tailored to your tech stack, which often better predicts job performance.',
       },
     ],
   },
@@ -436,8 +436,7 @@ export const comparisonData: Record<string, ComparisonData> = {
     verdict: {
       summary:
         'Both platforms focus on automated coding assessments. HackerRank offers more scale and enterprise features, while Coderbyte is more affordable for smaller teams. Neither excels at live interviews.',
-      toolABestFor:
-        'Smaller teams wanting affordable coding challenges with a modern interface',
+      toolABestFor: 'Smaller teams wanting affordable coding challenges with a modern interface',
       toolBBestFor:
         'Enterprise teams needing large question libraries and advanced plagiarism detection',
       coderScreenAdvantage:
@@ -469,12 +468,12 @@ export const comparisonData: Record<string, ComparisonData> = {
       {
         question: 'Which has more coding challenges - Coderbyte or HackerRank?',
         answer:
-          'HackerRank has a significantly larger library with 2000+ questions compared to Coderbyte\'s 300+. However, custom questions tailored to your stack often work better than generic challenges.',
+          "HackerRank has a significantly larger library with 2000+ questions compared to Coderbyte's 300+. However, custom questions tailored to your stack often work better than generic challenges.",
       },
       {
         question: 'Is Coderbyte or HackerRank better for small companies?',
         answer:
-          "Both start around $199/month. Coderbyte is slightly more accessible for smaller teams. CoderScreen at $50/month is more affordable for startups and small companies.",
+          'Both start around $199/month. Coderbyte is slightly more accessible for smaller teams. CoderScreen at $50/month is more affordable for startups and small companies.',
       },
       {
         question: 'Can I do live coding interviews on either platform?',

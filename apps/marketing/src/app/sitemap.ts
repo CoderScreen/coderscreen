@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
-import { getBlogPosts } from '@/lib/blog';
 import { competitorData } from '@/lib/alternativeConfig';
+import { getBlogPosts } from '@/lib/blog';
 import { comparisonData } from '@/lib/comparisonConfig';
 import { personaData } from '@/lib/personaConfig';
 import { roleData } from '@/lib/roleConfig';
@@ -38,14 +38,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   );
 
   // Comparison pages (dynamic from config)
-  const comparisonUrls: MetadataRoute.Sitemap = Object.values(comparisonData).map(
-    (comparison) => ({
-      url: `${baseUrl}/compare/${comparison.slug}`,
-      lastModified: today,
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    })
-  );
+  const comparisonUrls: MetadataRoute.Sitemap = Object.values(comparisonData).map((comparison) => ({
+    url: `${baseUrl}/compare/${comparison.slug}`,
+    lastModified: today,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
 
   // Dynamic blog post URLs
   const blogPosts = getBlogPosts();

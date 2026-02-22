@@ -30,6 +30,7 @@ export const CompareFAQ = ({ comparison }: CompareFAQProps) => {
     <section className='py-16 border-b border-border/50'>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
@@ -44,11 +45,9 @@ export const CompareFAQ = ({ comparison }: CompareFAQProps) => {
         <div className='max-w-3xl mx-auto'>
           <Accordion type='single' collapsible className='w-full'>
             {comparison.faq.map((item, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
+              <AccordionItem key={item.question} value={`item-${index}`}>
                 <AccordionTrigger className='text-left'>{item.question}</AccordionTrigger>
-                <AccordionContent className='text-muted-foreground'>
-                  {item.answer}
-                </AccordionContent>
+                <AccordionContent className='text-muted-foreground'>{item.answer}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>

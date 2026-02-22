@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ComparePageView } from '@/components/compare/ComparePageView';
-import { comparisonData } from '@/lib/comparisonConfig';
 import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
+import { comparisonData } from '@/lib/comparisonConfig';
 
 export function generateStaticParams() {
   return Object.keys(comparisonData).map((key) => ({
@@ -90,6 +90,7 @@ export default async function ComparePage({ params }: ComparePageProps) {
     <>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <ComparePageView comparison={comparison} />

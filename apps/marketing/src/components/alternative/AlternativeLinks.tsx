@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { competitorData, CompetitorData } from '@/lib/alternativeConfig';
+import { CompetitorData, competitorData } from '@/lib/alternativeConfig';
 
 interface AlternativeLinksProps {
   currentCompetitor: CompetitorData;

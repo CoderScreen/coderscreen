@@ -20,9 +20,7 @@ export const UseCaseHero = ({ data }: UseCaseHeroProps) => {
           {data.hero.title}
         </h1>
 
-        <p className='text-xl md:text-2xl font-medium text-center mb-4'>
-          {data.hero.subtitle}
-        </p>
+        <p className='text-xl md:text-2xl font-medium text-center mb-4'>{data.hero.subtitle}</p>
 
         <p className='text-lg md:text-xl text-muted-foreground text-center max-w-3xl mx-auto leading-relaxed mb-6'>
           {data.hero.description}

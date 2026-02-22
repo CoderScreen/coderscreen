@@ -86,6 +86,7 @@ export default async function RolePage({ params }: RolePageProps) {
     <>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <UseCasePageView data={data} />
