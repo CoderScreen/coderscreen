@@ -1,20 +1,20 @@
+import { getSandbox, proxyTerminal } from '@cloudflare/sandbox';
 import { idString } from '@coderscreen/common/id';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
+import { getSandboxId } from '@/lib/sandbox';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
 import { publicRoomMiddleware } from '@/middleware/room.middleware';
 import { whiteboardRouter } from '@/routes/room/whiteboard.router';
+import { PreviewService } from '@/sandbox/PreviewService';
 import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
-import { getSandboxId } from '@/lib/sandbox';
-import { PreviewService } from '@/sandbox/PreviewService';
 import { CodeRunService } from '@/services/CodeRun.service';
 import { RoomService } from '@/services/Room.service';
 import { AppContext } from '../..';
-import { getSandbox, proxyTerminal } from '@cloudflare/sandbox';
 
 export const publicRoomRouter = new Hono<AppContext>()
   .use(publicRoomMiddleware)
@@ -77,7 +77,7 @@ export const publicRoomRouter = new Hono<AppContext>()
         roomId: idString('room'),
       })
     ),
-    zValidator('json', z.object({ code: z.string().optional(), language: RoomLanguageSchema })),
+    zValidator('json', z.object({ language: RoomLanguageSchema })),
     async (ctx) => {
       const { roomId } = ctx.req.valid('param');
       const { language } = ctx.req.valid('json');
@@ -88,26 +88,20 @@ export const publicRoomRouter = new Hono<AppContext>()
       return ctx.json(result);
     }
   )
-  .post(
-    '/stop',
-    zValidator('param', z.object({ roomId: idString('room') })),
-    async (ctx) => {
-      const { roomId } = ctx.req.valid('param');
-      const sandboxId = getSandboxId(roomId);
-      const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
-      const processes = await sandbox.listProcesses();
-      await Promise.all(
-        processes
-          .filter((p) => p.status === 'running')
-          .map((p) => sandbox.killProcess(p.id))
-      );
-      return ctx.json({ success: true });
-    }
-  )
+  .post('/stop', zValidator('param', z.object({ roomId: idString('room') })), async (ctx) => {
+    const { roomId } = ctx.req.valid('param');
+    const sandboxId = getSandboxId(roomId);
+    const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+    const processes = await sandbox.listProcesses();
+    await Promise.all(
+      processes.filter((p) => p.status === 'running').map((p) => sandbox.killProcess(p.id))
+    );
+    return ctx.json({ success: true });
+  })
   .post(
     '/run/stream',
     zValidator('param', z.object({ roomId: idString('room') })),
-    zValidator('json', z.object({ code: z.string().optional(), language: RoomLanguageSchema })),
+    zValidator('json', z.object({ language: RoomLanguageSchema })),
     async (ctx) => {
       const { roomId } = ctx.req.valid('param');
       const { language } = ctx.req.valid('json');
@@ -124,18 +118,14 @@ export const publicRoomRouter = new Hono<AppContext>()
       });
     }
   )
-  .get(
-    '/terminal',
-    zValidator('param', z.object({ roomId: idString('room') })),
-    async (ctx) => {
-      const { roomId } = ctx.req.valid('param');
-      const sandboxId = getSandboxId(roomId);
-      const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
-      const cols = parseInt(ctx.req.query('cols') || '80');
-      const rows = parseInt(ctx.req.query('rows') || '24');
-      return proxyTerminal(sandbox, 'default', ctx.req.raw, { cols, rows });
-    }
-  )
+  .get('/terminal', zValidator('param', z.object({ roomId: idString('room') })), async (ctx) => {
+    const { roomId } = ctx.req.valid('param');
+    const sandboxId = getSandboxId(roomId);
+    const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+    const cols = parseInt(ctx.req.query('cols') || '80');
+    const rows = parseInt(ctx.req.query('rows') || '24');
+    return proxyTerminal(sandbox, 'default', ctx.req.raw, { cols, rows });
+  })
   .post(
     '/preview/start',
     zValidator('param', z.object({ roomId: idString('room') })),

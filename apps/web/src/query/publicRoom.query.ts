@@ -1,3 +1,4 @@
+import { RoomSchema } from '@coderscreen/api/schema/room';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCurrentRoomId } from '@/lib/params';
 import { apiClient } from './client';
@@ -23,7 +24,7 @@ export const usePublicRoom = () => {
 export const useRunRoomCode = () => {
   const currentRoomId = useCurrentRoomId();
   const mutation = useMutation({
-    mutationFn: async ({ language }: { language: string }) => {
+    mutationFn: async ({ language }: { language: RoomSchema['language'] }) => {
       const response = await apiClient.rooms[':roomId'].public.run.$post({
         param: { roomId: currentRoomId },
         json: { language },
