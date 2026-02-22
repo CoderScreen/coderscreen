@@ -8,6 +8,7 @@ import {
 import {
   RiArrowDownSLine,
   RiBold,
+  RiCodeBoxLine,
   RiCodeLine,
   RiDoubleQuotesL,
   RiH1,
@@ -41,6 +42,10 @@ export const TipTapHeader = (props: { editor: Editor | null | undefined }) => {
 
   const toggleCode = () => {
     editor?.chain().focus().toggleCode().run();
+  };
+
+  const toggleCodeBlock = () => {
+    editor?.chain().focus().toggleCodeBlock().run();
   };
 
   const toggleBlockquote = () => {
@@ -119,6 +124,14 @@ export const TipTapHeader = (props: { editor: Editor | null | undefined }) => {
           className={BUTTON_CLASSNAME}
         >
           <RiCodeLine className='size-4' />
+        </Button>
+        <Button
+          variant={editor?.isActive('codeBlock') ? 'light' : 'ghost'}
+          onClick={toggleCodeBlock}
+          disabled={!editor?.isEditable}
+          className={BUTTON_CLASSNAME}
+        >
+          <RiCodeBoxLine className='size-4' />
         </Button>
         <Button
           variant={editor?.isActive('blockquote') ? 'light' : 'ghost'}
