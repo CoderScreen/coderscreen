@@ -47,7 +47,7 @@ export class ResendService {
   async sendTransactionalEmail<T extends TransactionalEmailTypes>(
     type: T,
     email: string,
-    params: TransactionEmailPayload<T>,
+    params: TransactionEmailPayload<T>
   ): Promise<void> {
     const { subject, html } = EMAIL_BUILDERS[type](params as any);
 
