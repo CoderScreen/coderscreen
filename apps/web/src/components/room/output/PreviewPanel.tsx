@@ -5,7 +5,7 @@ import {
   RiRefreshLine,
   RiStopLine,
 } from '@remixicon/react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCurrentRoomId } from '@/lib/params';
 import { useRoomContext } from '@/contexts/RoomContext';
 
@@ -15,14 +15,43 @@ type PreviewState = 'idle' | 'installing' | 'running' | 'error';
 
 export const PreviewPanel = () => {
   const roomId = useCurrentRoomId();
-  const { currentLanguage } = useRoomContext();
+  const { currentLanguage, provider } = useRoomContext();
   const [state, setState] = useState<PreviewState>('idle');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // Subscribe to Yjs previewUrl for cross-participant sync
+  useEffect(() => {
+    if (!provider) return;
+
+    const previewUrlField = provider.doc.getText('previewUrl');
+
+    // Read initial value
+    const initialUrl = previewUrlField.toJSON();
+    if (initialUrl) {
+      setPreviewUrl(initialUrl);
+      setState('running');
+    }
+
+    // Observe changes from other participants
+    const handleChange = () => {
+      const newUrl = previewUrlField.toJSON();
+      if (newUrl) {
+        setPreviewUrl(newUrl);
+        setState('running');
+      } else {
+        setPreviewUrl(null);
+        setState('idle');
+      }
+    };
+
+    previewUrlField.observe(handleChange);
+    return () => previewUrlField.unobserve(handleChange);
+  }, [provider]);
+
   const startPreview = useCallback(async () => {
-    if (!currentLanguage) return;
+    if (!currentLanguage || !provider) return;
 
     setState('installing');
     setErrorMessage('');
@@ -43,15 +72,28 @@ export const PreviewPanel = () => {
       }
 
       const data = (await response.json()) as { previewUrl: string };
-      setPreviewUrl(data.previewUrl);
-      setState('running');
+
+      // Store in Yjs so other participants get the URL
+      const previewUrlField = provider.doc.getText('previewUrl');
+      provider.doc.transact(() => {
+        previewUrlField.delete(0, previewUrlField.length);
+        previewUrlField.insert(0, data.previewUrl);
+      });
     } catch (error) {
       setState('error');
       setErrorMessage(error instanceof Error ? error.message : 'Failed to start preview');
     }
-  }, [roomId, currentLanguage]);
+  }, [roomId, currentLanguage, provider]);
 
   const stopPreview = useCallback(async () => {
+    // Clear Yjs previewUrl (syncs to all participants)
+    if (provider) {
+      const previewUrlField = provider.doc.getText('previewUrl');
+      provider.doc.transact(() => {
+        previewUrlField.delete(0, previewUrlField.length);
+      });
+    }
+
     try {
       await fetch(`${API_URL}/rooms/${roomId}/public/preview/stop`, {
         method: 'POST',
@@ -59,9 +101,7 @@ export const PreviewPanel = () => {
     } catch {
       // Best effort stop
     }
-    setPreviewUrl(null);
-    setState('idle');
-  }, [roomId]);
+  }, [roomId, provider]);
 
   const restartPreview = useCallback(async () => {
     await stopPreview();
