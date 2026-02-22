@@ -15,8 +15,6 @@
 		"cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'",
 		"cf-types": "wrangler types",
 		"auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./better-auth.config.ts --output ../../packages/db/src/user.db.ts",
-		"sandbox:build": "cd ../.. && pnpm sandbox:build && docker image tag sandbox-image:latest sandbox-image:production",
-		"sandbox:push": "wrangler containers push sandbox-image:production",
 		"stripe:listen": "stripe listen --forward-to localhost:8000/webhook/stripe"
 	},
 	"devDependencies": {

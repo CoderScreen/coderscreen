@@ -12,8 +12,7 @@
     "deploy:web": "npx nx run @coderscreen/web:cf-deploy",
     "deploy:api": "npx nx run @coderscreen/api:cf-deploy",
     "deploy:branch:web": "npx nx run @coderscreen/web:cf-deploy:branch",
-    "deploy:branch:api": "npx nx run @coderscreen/api:cf-deploy:branch",
-    "sandbox:build": "docker build --platform linux/amd64 -t sandbox-image:production -f ./apps/api/src/containers/images/Dockerfile ."
+    "deploy:branch:api": "npx nx run @coderscreen/api:cf-deploy:branch"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.6",
