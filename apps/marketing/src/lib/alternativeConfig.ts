@@ -540,7 +540,7 @@ export const competitorData: Record<string, CompetitorData> = {
         {
           title: 'Modern Interface',
           description:
-            'Coderbyte\'s interface feels dated. CoderScreen offers a modern, fast experience that impresses candidates and interviewers alike.',
+            "Coderbyte's interface feels dated. CoderScreen offers a modern, fast experience that impresses candidates and interviewers alike.",
         },
         {
           title: 'Live Collaboration',
@@ -691,7 +691,7 @@ export const competitorData: Record<string, CompetitorData> = {
         {
           title: 'Interview Recording & Playback',
           description:
-            'Review how candidates approached problems. Share recordings with hiring managers who couldn\'t attend live.',
+            "Review how candidates approached problems. Share recordings with hiring managers who couldn't attend live.",
         },
         {
           title: 'Open Source Transparency',
@@ -821,7 +821,7 @@ export const competitorData: Record<string, CompetitorData> = {
         {
           title: 'Full Interview Control',
           description:
-            'Design your own questions, evaluation criteria, and interview flow. Don\'t rely on Karat\'s standardized approach.',
+            "Design your own questions, evaluation criteria, and interview flow. Don't rely on Karat's standardized approach.",
         },
         {
           title: 'Open Source Platform',
@@ -844,12 +844,12 @@ export const competitorData: Record<string, CompetitorData> = {
       {
         question: 'Why not outsource interviews like Karat offers?',
         answer:
-          'Outsourced interviewers don\'t know your codebase, culture, or specific requirements. Your engineers can better evaluate fit and sell candidates on joining your team.',
+          "Outsourced interviewers don't know your codebase, culture, or specific requirements. Your engineers can better evaluate fit and sell candidates on joining your team.",
       },
       {
         question: 'Does CoderScreen provide interviewers?',
         answer:
-          'No, CoderScreen is a platform that empowers your team to run great interviews. We provide the tools, you provide the expertise about what you\'re looking for.',
+          "No, CoderScreen is a platform that empowers your team to run great interviews. We provide the tools, you provide the expertise about what you're looking for.",
       },
       {
         question: 'Can CoderScreen help train our interviewers?',
@@ -859,7 +859,7 @@ export const competitorData: Record<string, CompetitorData> = {
       {
         question: 'Is CoderScreen suitable for high-volume hiring?',
         answer:
-          'Absolutely! Our Scale plan supports 200 interviews per month with unlimited team members. Unlike Karat, costs don\'t scale linearly with interview volume.',
+          "Absolutely! Our Scale plan supports 200 interviews per month with unlimited team members. Unlike Karat, costs don't scale linearly with interview volume.",
       },
     ],
     comparison: {
@@ -870,7 +870,12 @@ export const competitorData: Record<string, CompetitorData> = {
         { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: true },
         { name: 'In-House Control', coderScreenHas: true, competitorHas: false },
         { name: 'Interview Recording', coderScreenHas: true, competitorHas: true },
-        { name: 'Real-time Coding', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        {
+          name: 'Real-time Coding',
+          coderScreenHas: true,
+          competitorHas: true,
+          isCoreFeature: true,
+        },
         {
           name: 'Multiple Languages',
           coderScreenHas: true,
@@ -901,7 +906,7 @@ export const competitorData: Record<string, CompetitorData> = {
           competitorFeatures: [
             'Pay per interview',
             'Outsourced interviewers',
-            'Karat\'s questions',
+            "Karat's questions",
             'Standardized process',
             'Limited customization',
             'Interview reports',
@@ -956,7 +961,7 @@ export const competitorData: Record<string, CompetitorData> = {
         {
           title: 'System Design Support',
           description:
-            'Evaluate architecture skills with our collaborative whiteboard. Essential for senior engineering roles that TestGorilla can\'t assess.',
+            "Evaluate architecture skills with our collaborative whiteboard. Essential for senior engineering roles that TestGorilla can't assess.",
         },
         {
           title: 'Open Source',
@@ -989,7 +994,7 @@ export const competitorData: Record<string, CompetitorData> = {
       {
         question: 'Is TestGorilla effective for developer hiring?',
         answer:
-          'Generic assessments struggle to evaluate real coding ability. CoderScreen\'s live interviews and practical coding challenges better predict developer job performance.',
+          "Generic assessments struggle to evaluate real coding ability. CoderScreen's live interviews and practical coding challenges better predict developer job performance.",
       },
       {
         question: 'How does pricing compare?',
@@ -1146,13 +1151,17 @@ export const competitorData: Record<string, CompetitorData> = {
         { name: 'Interview Recording', coderScreenHas: true, competitorHas: false },
         { name: 'AI Assistant', coderScreenHas: true, competitorHas: false },
         { name: 'ATS Integrations', coderScreenHas: true, competitorHas: true },
-        { name: 'Multiple Languages', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        {
+          name: 'Multiple Languages',
+          coderScreenHas: true,
+          competitorHas: true,
+          isCoreFeature: true,
+        },
       ],
     },
     pricing: {
       title: 'Transparent pricing vs. sales-gated quotes',
-      description:
-        'Get started immediately with clear pricing. No sales calls required.',
+      description: 'Get started immediately with clear pricing. No sales calls required.',
       plans: [
         {
           name: 'Starter',
@@ -1270,7 +1279,12 @@ export const competitorData: Record<string, CompetitorData> = {
       features: [
         { name: 'Open Source', coderScreenHas: true, competitorHas: false, isCoreFeature: true },
         { name: 'Live Collaboration', coderScreenHas: true, competitorHas: false },
-        { name: 'Take-Home Projects', coderScreenHas: true, competitorHas: true, isCoreFeature: true },
+        {
+          name: 'Take-Home Projects',
+          coderScreenHas: true,
+          competitorHas: true,
+          isCoreFeature: true,
+        },
         { name: 'Collaborative Whiteboard', coderScreenHas: true, competitorHas: false },
         { name: 'Interview Recording', coderScreenHas: true, competitorHas: false },
         { name: 'AI Assistant', coderScreenHas: true, competitorHas: false },
@@ -1281,8 +1295,7 @@ export const competitorData: Record<string, CompetitorData> = {
     },
     pricing: {
       title: 'Flat monthly pricing vs. per-candidate costs',
-      description:
-        'Predictable pricing that scales with your team, not your candidate volume.',
+      description: 'Predictable pricing that scales with your team, not your candidate volume.',
       plans: [
         {
           name: 'Starter',

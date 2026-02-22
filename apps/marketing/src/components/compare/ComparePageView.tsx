@@ -1,11 +1,11 @@
 import { MarketingCTA } from '@/components/common/MarketingCTA';
 import { ComparisonData } from '@/lib/comparisonConfig';
-import { CompareHero } from './CompareHero';
-import { CompareVerdict } from './CompareVerdict';
-import { CompareTable } from './CompareTable';
-import { ComparePricing } from './ComparePricing';
 import { CompareFAQ } from './CompareFAQ';
+import { CompareHero } from './CompareHero';
 import { CompareLinks } from './CompareLinks';
+import { ComparePricing } from './ComparePricing';
+import { CompareTable } from './CompareTable';
+import { CompareVerdict } from './CompareVerdict';
 
 interface ComparePageViewProps {
   comparison: ComparisonData;

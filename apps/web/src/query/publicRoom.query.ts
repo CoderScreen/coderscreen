@@ -1,5 +1,5 @@
 import { RoomSchema } from '@coderscreen/api/schema/room';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCurrentRoomId } from '@/lib/params';
 import { apiClient } from './client';
 
@@ -23,29 +23,26 @@ export const usePublicRoom = () => {
 
 export const useRunRoomCode = () => {
   const currentRoomId = useCurrentRoomId();
-  const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async ({ code, language }: { code: string; language: RoomSchema['language'] }) => {
+    mutationFn: async ({ language }: { language: RoomSchema['language'] }) => {
       const response = await apiClient.rooms[':roomId'].public.run.$post({
         param: { roomId: currentRoomId },
-        json: { code, language },
+        json: { language },
       });
-      if (!response.ok) {
-        throw new Error('Failed to run room code');
-      }
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['rooms', currentRoomId, 'codeResult'], data);
-    },
-    meta: {
-      // SUCCESS_MESSAGE: 'Room code run successfully',
-      ERROR_MESSAGE: 'Failed to run room code',
+  });
+  return { runRoomCode: mutation.mutateAsync, ...mutation };
+};
+
+export const useStopRoomCode = () => {
+  const currentRoomId = useCurrentRoomId();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      await apiClient.rooms[':roomId'].public.stop.$post({
+        param: { roomId: currentRoomId },
+      });
     },
   });
-  return {
-    runRoomCode: mutation.mutateAsync,
-    isLoading: mutation.isPending,
-    ...mutation,
-  };
+  return { stopRoomCode: mutation.mutateAsync, ...mutation };
 };

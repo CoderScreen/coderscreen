@@ -1,3 +1,4 @@
+import { getSandbox } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
@@ -7,7 +8,9 @@ import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
+import { getSandboxId } from '@/lib/sandbox';
 import { getWorkspaceTemplate } from '@/lib/templates/languageTemplate';
+import { FileSyncService } from '@/sandbox/FileSyncService';
 import { AIService, ChatMessage, User } from './internal/AI.service';
 import { SandboxService } from './internal/Sandbox.service';
 
@@ -133,6 +136,7 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
   private db: PostgresJsDatabase | null = null;
   private sandboxService: SandboxService;
   private aiService: AIService | null = null;
+  private fileSyncService: FileSyncService | null = null;
   private room: RoomEntity | null = null;
   private trackedUserIds: Set<string> = new Set();
 
@@ -185,6 +189,12 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     // warm up the sandbox
     this.createNewSandbox();
+
+    // Start file sync: Yjs document -> sandbox filesystem
+    const sandbox = getSandbox(this.env.SANDBOX, getSandboxId(roomId), { normalizeId: true });
+    this.fileSyncService = new FileSyncService(sandbox, this.document);
+    this.ctx.waitUntil(this.fileSyncService.syncAllFiles());
+    this.fileSyncService.startObserving();
 
     this.document.awareness.on(
       'change',

@@ -1,12 +1,15 @@
+import { getSandbox, proxyTerminal } from '@cloudflare/sandbox';
 import { idString } from '@coderscreen/common/id';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
+import { getSandboxId } from '@/lib/sandbox';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
 import { publicRoomMiddleware } from '@/middleware/room.middleware';
 import { whiteboardRouter } from '@/routes/room/whiteboard.router';
+import { PreviewService } from '@/sandbox/PreviewService';
 import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
 import { CodeRunService } from '@/services/CodeRun.service';
@@ -74,17 +77,88 @@ export const publicRoomRouter = new Hono<AppContext>()
         roomId: idString('room'),
       })
     ),
-    zValidator('json', z.object({ code: z.string(), language: RoomLanguageSchema })),
+    zValidator('json', z.object({ language: RoomLanguageSchema })),
     async (ctx) => {
       const { roomId } = ctx.req.valid('param');
-      const { code, language } = ctx.req.valid('json');
+      const { language } = ctx.req.valid('json');
 
       const codeRunService = new CodeRunService(ctx);
-
-      console.log('running code', code, language);
-      const result = await codeRunService.runCode({ roomId, code, language });
+      const result = await codeRunService.runCode({ roomId, language });
 
       return ctx.json(result);
+    }
+  )
+  .post('/stop', zValidator('param', z.object({ roomId: idString('room') })), async (ctx) => {
+    const { roomId } = ctx.req.valid('param');
+    const sandboxId = getSandboxId(roomId);
+    const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+    const processes = await sandbox.listProcesses();
+    await Promise.all(
+      processes.filter((p) => p.status === 'running').map((p) => sandbox.killProcess(p.id))
+    );
+    return ctx.json({ success: true });
+  })
+  .post(
+    '/run/stream',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    zValidator('json', z.object({ language: RoomLanguageSchema })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+      const { language } = ctx.req.valid('json');
+
+      const codeRunService = new CodeRunService(ctx);
+      const stream = await codeRunService.runCodeStream({ roomId, language });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      });
+    }
+  )
+  .get('/terminal', zValidator('param', z.object({ roomId: idString('room') })), async (ctx) => {
+    const { roomId } = ctx.req.valid('param');
+    const sandboxId = getSandboxId(roomId);
+    const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+    const cols = parseInt(ctx.req.query('cols') || '80');
+    const rows = parseInt(ctx.req.query('rows') || '24');
+    return proxyTerminal(sandbox, 'default', ctx.req.raw, { cols, rows });
+  })
+  .post(
+    '/preview/start',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    zValidator('json', z.object({ language: z.enum(['react', 'vue', 'svelte']) })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+      const { language } = ctx.req.valid('json');
+
+      const previewService = new PreviewService();
+      const result = await previewService.startPreview({
+        sandboxBinding: ctx.env.SANDBOX,
+        roomId,
+        language,
+        hostname: ctx.env.PREVIEW_HOSTNAME,
+        useTunnel: !!ctx.env.USE_TUNNEL_FOR_PREVIEW,
+      });
+
+      return ctx.json(result);
+    }
+  )
+  .post(
+    '/preview/stop',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    async (ctx) => {
+      const { roomId } = ctx.req.valid('param');
+
+      const previewService = new PreviewService();
+      await previewService.stopPreview({
+        sandboxBinding: ctx.env.SANDBOX,
+        roomId,
+      });
+
+      return ctx.json({ success: true });
     }
   )
   .post(

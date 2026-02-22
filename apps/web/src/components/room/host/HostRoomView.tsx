@@ -3,7 +3,6 @@ import { DockviewReact } from 'dockview';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
-import { SandpackProvider } from '@/contexts/SandpackContext';
 import {
   DOCKVIEW_PANEL_IDS,
   lightDockviewTheme,
@@ -14,15 +13,13 @@ import {
 export const HostRoomView = () => {
   return (
     <RoomProvider>
-      <SandpackProvider>
-        <HostRoomContent />
-      </SandpackProvider>
+      <HostRoomContent />
     </RoomProvider>
   );
 };
 
 const HostRoomContent = () => {
-  const { currentStatus } = useRoomContext();
+  const { currentStatus, dockviewApiRef } = useRoomContext();
 
   const components = useDockviewComponents(false);
   const tabComponents = useTabComponents();
@@ -48,16 +45,17 @@ const HostRoomContent = () => {
           tabComponents={tabComponents}
           onReady={(event) => {
             const { api } = event;
+            dockviewApiRef.current = api;
 
             // Add code editor panel
             api.addPanel({
               id: DOCKVIEW_PANEL_IDS.CODE_EDITOR,
-              component: 'code-editor', // Use the original component names
+              component: 'code-editor',
               title: 'Code Editor',
               tabComponent: 'tab',
             });
 
-            // Add other panels as tabs in a second panel
+            // Add code-output panel (will be closed by useEffect for single-file languages)
             api.addPanel({
               id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
               component: 'code-output',
@@ -79,11 +77,14 @@ const HostRoomContent = () => {
             });
 
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.WHITEBOARD,
-              component: 'whiteboard',
-              title: 'Whiteboard',
+              id: DOCKVIEW_PANEL_IDS.TERMINAL,
+              component: 'terminal',
+              title: 'Terminal',
               tabComponent: 'tab',
-              inactive: true,
+              position: {
+                direction: 'below',
+                referencePanel: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
+              },
             });
 
             api.addPanel({

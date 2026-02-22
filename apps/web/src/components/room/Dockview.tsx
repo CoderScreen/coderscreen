@@ -4,6 +4,7 @@ import {
   RiPencilLine,
   RiSlideshowLine,
   RiStickyNoteLine,
+  RiTerminalBoxLine,
   RiTerminalLine,
 } from '@remixicon/react';
 import type { DockviewTheme, IDockviewPanelHeaderProps, IDockviewPanelProps } from 'dockview';
@@ -11,9 +12,9 @@ import { useMemo } from 'react';
 import { AiChatView } from '@/components/room/ai-chat/AiChatView';
 import { EditorView } from '@/components/room/editor/EditorView';
 import { CodeOutput } from '@/components/room/output/CodeOutput';
+import { Terminal } from '@/components/room/terminal/Terminal';
 import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
 import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
-import { WhiteboardView } from '@/components/room/whiteboard/WhiteboardView';
 import { cx } from '@/lib/utils';
 
 export const DOCKVIEW_PANEL_IDS = {
@@ -21,6 +22,7 @@ export const DOCKVIEW_PANEL_IDS = {
   INSTRUCTIONS: 'instructions',
   CODE_OUTPUT: 'code-output',
   WHITEBOARD: 'whiteboard',
+  TERMINAL: 'terminal',
   AI_CHAT: 'ai-chat',
   NOTES: 'notes',
   TAB: 'tab',
@@ -42,6 +44,8 @@ export const getTabIcon = (panelId: string) => {
       return <RiTerminalLine className='size-4' />;
     case DOCKVIEW_PANEL_IDS.WHITEBOARD:
       return <RiSlideshowLine className='size-4' />;
+    case DOCKVIEW_PANEL_IDS.TERMINAL:
+      return <RiTerminalBoxLine className='size-4' />;
     case DOCKVIEW_PANEL_IDS.AI_CHAT:
       return <RiChatAiLine className='size-4' />;
     case DOCKVIEW_PANEL_IDS.NOTES:
@@ -72,9 +76,9 @@ export const useDockviewComponents = (isGuest: boolean) =>
           <CodeOutput />
         </div>
       ),
-      whiteboard: (_: IDockviewPanelProps) => (
-        <div className='h-full overflow-y-auto'>
-          <WhiteboardView />
+      terminal: (_: IDockviewPanelProps) => (
+        <div className='h-full'>
+          <Terminal />
         </div>
       ),
       'ai-chat': (_: IDockviewPanelProps) => (

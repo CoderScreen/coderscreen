@@ -62,6 +62,7 @@ export const LandingFAQ = () => {
     <section id='faq' className='w-full p-6'>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <div className='flex flex-col gap-4 text-center mb-12'>

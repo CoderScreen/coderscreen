@@ -23,7 +23,7 @@
     "highlight.js": "^11.11.1",
     "motion": "^12.23.6",
     "next": "15.4.8",
-    "next-mdx-remote": "^5.0.0",
+    "next-mdx-remote": "^6.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "rehype-highlight": "^7.0.2",

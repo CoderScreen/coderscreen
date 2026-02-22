@@ -1,8 +1,12 @@
+import { getSandbox } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity } from '@coderscreen/db/room.db';
 import { Context } from 'hono';
-import { FormattedOutput, formatExecOutput, getSandboxId } from '@/lib/sandbox';
+import { FormattedOutput, getSandboxId } from '@/lib/sandbox';
+import { LANGUAGE_CONFIG } from '@/sandbox/languageCommands';
 import { AppContext } from '..';
+
+const EXECUTION_TIMEOUT_MS = 15000;
 
 export class CodeRunService {
   private ctx: Context<AppContext>;
@@ -11,53 +15,133 @@ export class CodeRunService {
     this.ctx = ctx;
   }
 
-  async runCode(params: {
+  async runCodeStream(params: {
     roomId: Id<'room'>;
-    code: string;
     language: RoomEntity['language'];
-  }): Promise<FormattedOutput> {
-    const { roomId, code, language } = params;
+  }): Promise<ReadableStream<Uint8Array>> {
+    const { roomId, language } = params;
 
-    // Get the durable object to broadcast execution status
-    // const id = this.ctx.env.ROOM_DO.idFromName(roomId);
-    // const roomDo = this.ctx.env.ROOM_DO.get(id);
+    const config = LANGUAGE_CONFIG[language];
+    if (!config) {
+      return this.sseErrorStream(
+        `Language "${language}" does not support single-file execution. Use the preview feature instead.`
+      );
+    }
 
-    // this.ctx.executionCtx.waitUntil(roomDo.handleCodeExecutioMessage({ type: 'start' }));
+    const sandboxId = getSandboxId(roomId);
+    const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
 
-    const sandbox = await this.getSandbox(roomId);
+    const filePath = `/workspace/main${config.extension}`;
+    const outputPath = '/workspace/main_out';
 
     try {
-      const raw = await sandbox.runCode({ language, code });
+      // Compile step for compiled languages
+      if (config.compileCommand) {
+        const compileResult = await sandbox.exec(config.compileCommand(filePath, outputPath), {
+          timeout: EXECUTION_TIMEOUT_MS,
+        });
 
-      const result = formatExecOutput(raw);
-      return result;
+        if (!compileResult.success) {
+          return this.sseErrorStream(compileResult.stderr || compileResult.stdout);
+        }
+      }
+
+      // Stream the run step
+      const runTarget = config.compileCommand ? outputPath : filePath;
+      return await sandbox.execStream(config.runCommand(runTarget), {
+        timeout: EXECUTION_TIMEOUT_MS,
+      });
     } catch (error) {
-      console.error('error', error);
+      console.error('Error streaming code:', error);
+      return this.sseErrorStream(error instanceof Error ? error.message : 'Error running code');
+    }
+  }
+
+  private sseErrorStream(message: string): ReadableStream<Uint8Array> {
+    const encoder = new TextEncoder();
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`));
+        controller.close();
+      },
+    });
+  }
+
+  async runCode(params: {
+    roomId: Id<'room'>;
+    language: RoomEntity['language'];
+  }): Promise<FormattedOutput> {
+    const { roomId, language } = params;
+
+    const config = LANGUAGE_CONFIG[language];
+    if (!config) {
       return {
         success: false,
         timestamp: new Date().toISOString(),
         stdout: '',
-        stderr: 'Error running code',
+        stderr: `Language "${language}" does not support single-file execution. Use the preview feature instead.`,
         exitCode: 1,
         elapsedTime: -1,
         compileTime: undefined,
       };
     }
 
-    // throw new Error('test');
-    // console.log('result', result);
-
-    // // // Broadcast execution complete
-    // // this.ctx.executionCtx.waitUntil(
-    // // 	roomDo.handleCodeExecutioMessage({ type: 'complete', output: result?.stdout || result?.stderr || 'No output from execution' }),
-    // // );
-
-    // return result;
-  }
-
-  private async getSandbox(roomId: Id<'room'>) {
     const sandboxId = getSandboxId(roomId);
-    const sandbox = this.ctx.env.SANDBOX.get(this.ctx.env.SANDBOX.idFromName(sandboxId));
-    return sandbox;
+    const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+
+    const filePath = `/workspace/main${config.extension}`;
+    const outputPath = '/workspace/main_out';
+
+    try {
+      const start = Date.now();
+      let compileTime: number | undefined;
+
+      // Compile step for compiled languages
+      if (config.compileCommand) {
+        const compileResult = await sandbox.exec(config.compileCommand(filePath, outputPath), {
+          timeout: EXECUTION_TIMEOUT_MS,
+        });
+        compileTime = Date.now() - start;
+
+        if (!compileResult.success) {
+          return {
+            success: false,
+            stdout: compileResult.stdout,
+            stderr: compileResult.stderr,
+            exitCode: compileResult.exitCode,
+            elapsedTime: compileTime,
+            compileTime,
+            timestamp: new Date().toISOString(),
+          };
+        }
+      }
+
+      // Run the code
+      const runTarget = config.compileCommand ? outputPath : filePath;
+      const result = await sandbox.exec(config.runCommand(runTarget), {
+        timeout: EXECUTION_TIMEOUT_MS,
+      });
+
+      return {
+        success: result.success,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exitCode: result.exitCode,
+        elapsedTime: Date.now() - start,
+        compileTime,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error running code:', error);
+      return {
+        success: false,
+        timestamp: new Date().toISOString(),
+        stdout: '',
+        stderr: error instanceof Error ? error.message : 'Error running code',
+        exitCode: 1,
+        elapsedTime: -1,
+        compileTime: undefined,
+      };
+    }
   }
 }

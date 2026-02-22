@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { GuestRoomHeader } from '@/components/room/guest/GuestRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
-import { SandpackProvider } from '@/contexts/SandpackContext';
 import { type Guest, getGuest, setGuest } from '@/lib/guest';
 import { usePublicRoom } from '@/query/publicRoom.query';
 import { getRandomColor } from '@/query/realtime/utils';
@@ -65,16 +64,14 @@ export const GuestRoomView = () => {
   // If guest info exists and room is active, show the room content
   return (
     <RoomProvider>
-      <SandpackProvider>
-        <GuestRoomContent />
-      </SandpackProvider>
+      <GuestRoomContent />
     </RoomProvider>
   );
 };
 
 const GuestRoomContent = () => {
   const [currentView, setCurrentView] = useState<'room' | 'summary'>('room');
-  const { subscribeToStatus, currentStatus } = useRoomContext();
+  const { subscribeToStatus, currentStatus, dockviewApiRef } = useRoomContext();
 
   // Subscribe to live status changes
   useEffect(() => {
@@ -111,6 +108,7 @@ const GuestRoomContent = () => {
           tabComponents={tabComponents}
           onReady={(event) => {
             const { api } = event;
+            dockviewApiRef.current = api;
 
             // Add code editor panel
             api.addPanel({
@@ -120,8 +118,7 @@ const GuestRoomContent = () => {
               tabComponent: 'tab',
             });
 
-            // Add other panels as tabs in a second panel
-
+            // Add code-output panel (will be closed by useEffect for single-file languages)
             api.addPanel({
               id: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
               component: 'code-output',
@@ -143,11 +140,14 @@ const GuestRoomContent = () => {
             });
 
             api.addPanel({
-              id: DOCKVIEW_PANEL_IDS.WHITEBOARD,
-              component: 'whiteboard',
-              title: 'Whiteboard',
+              id: DOCKVIEW_PANEL_IDS.TERMINAL,
+              component: 'terminal',
+              title: 'Terminal',
               tabComponent: 'tab',
-              inactive: true,
+              position: {
+                direction: 'below',
+                referencePanel: DOCKVIEW_PANEL_IDS.CODE_OUTPUT,
+              },
             });
 
             api.addPanel({

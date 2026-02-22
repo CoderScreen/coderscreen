@@ -6,13 +6,22 @@ export const REACT_WORKSPACE_TEMPLATE: WorkspaceTemplate = [
     code: JSON.stringify(
       {
         name: 'react-workspace',
+        private: true,
+        type: 'module',
         main: 'src/index.tsx',
+        scripts: {
+          dev: 'vite',
+        },
         dependencies: {
-          react: 'latest',
-          'react-dom': 'latest',
-          '@types/react': 'latest',
-          '@types/react-dom': 'latest',
-          typescript: 'latest',
+          react: '^19.0.0',
+          'react-dom': '^19.0.0',
+        },
+        devDependencies: {
+          '@types/react': '^19.0.0',
+          '@types/react-dom': '^19.0.0',
+          '@vitejs/plugin-react': '^4.0.0',
+          typescript: '^5.0.0',
+          vite: '^6.0.0',
         },
       },
       null,
@@ -20,12 +29,7 @@ export const REACT_WORKSPACE_TEMPLATE: WorkspaceTemplate = [
     ),
   },
   {
-    path: '/public',
-    isFolder: true,
-    code: '',
-  },
-  {
-    path: '/public/index.html',
+    path: '/index.html',
     code: `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -35,8 +39,20 @@ export const REACT_WORKSPACE_TEMPLATE: WorkspaceTemplate = [
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
+`,
+  },
+  {
+    path: '/vite.config.ts',
+    code: `import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: { allowedHosts: true },
+})
 `,
   },
   {
@@ -174,6 +190,7 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
+  server: { allowedHosts: true },
 })
 `,
   },
@@ -321,53 +338,102 @@ button:hover {
 
 export const SVELTE_WORKSPACE_TEMPLATE: WorkspaceTemplate = [
   {
-    path: '/App.svelte',
-    code: `<style>
-  h1 {
-    font-size: 1.5rem;
-  }
-</style>
-
-<script>
-  let name = 'world';
-</script>
-
-<main>
-  <h1>Hello {name}</h1>
-</main>`,
+    path: '/package.json',
+    code: JSON.stringify(
+      {
+        name: 'svelte-app',
+        private: true,
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+        },
+        devDependencies: {
+          '@sveltejs/vite-plugin-svelte': '^5.0.0',
+          svelte: '^5.0.0',
+          vite: '^6.0.0',
+        },
+      },
+      null,
+      2
+    ),
   },
   {
-    path: '/index.js',
-    code: `import App from "./App.svelte";
-import "./styles.css";
-
-const app = new App({
-  target: document.body
-});
-
-export default app;
+    path: '/index.html',
+    code: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Svelte App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
 `,
   },
   {
-    path: '/public/index.html',
-    code: `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf8" />
-    <meta name="viewport" content="width=device-width" />
+    path: '/vite.config.ts',
+    code: `import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
-    <title>Svelte app</title>
-
-    <link rel="stylesheet" href="public/bundle.css" />
-  </head>
-
-  <body>
-    <script src="bundle.js"></script>
-  </body>
-</html>`,
+export default defineConfig({
+  plugins: [svelte()],
+  server: { allowedHosts: true },
+})
+`,
   },
   {
-    path: '/styles.css',
+    path: '/svelte.config.js',
+    code: `import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
+
+export default {
+  preprocess: vitePreprocess(),
+}
+`,
+  },
+  {
+    path: '/src',
+    isFolder: true,
+    code: '',
+  },
+  {
+    path: '/src/main.ts',
+    code: `import App from './App.svelte'
+import './styles.css'
+
+const app = new App({
+  target: document.getElementById('app')!,
+})
+
+export default app
+`,
+  },
+  {
+    path: '/src/App.svelte',
+    code: `<script>
+  let count = $state(0);
+</script>
+
+<main>
+  <h1>Hello Svelte!</h1>
+  <p>Count: {count}</p>
+  <button onclick={() => count++}>
+    Click me
+  </button>
+</main>
+
+<style>
+  main {
+    text-align: center;
+    padding: 20px;
+  }
+</style>
+`,
+  },
+  {
+    path: '/src/styles.css',
     code: `body {
   margin: 0;
   padding: 20px;
@@ -378,24 +444,10 @@ export default app;
   -moz-osx-font-smoothing: grayscale;
 }
 
-main {
-  text-align: center;
-  padding: 20px;
-}
-
 h1 {
   color: #333;
   margin-bottom: 20px;
 }
 `,
-  },
-  {
-    path: '/package.json',
-    code: JSON.stringify({
-      dependencies: {
-        svelte: '^3.0.0',
-      },
-      main: '/index.js',
-    }),
   },
 ];

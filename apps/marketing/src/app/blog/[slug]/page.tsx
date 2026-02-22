@@ -195,10 +195,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     <div className='min-h-screen bg-white'>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostSchema) }}
       />
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <article className='max-w-4xl mx-auto px-4 py-16'>

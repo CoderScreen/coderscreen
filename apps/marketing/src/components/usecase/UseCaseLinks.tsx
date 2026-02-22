@@ -16,9 +16,7 @@ export const UseCaseLinks = ({ currentSlug, type }: UseCaseLinksProps) => {
       <div className='max-w-4xl mx-auto'>
         {type === 'persona' ? (
           <>
-            <h2 className='text-2xl font-bold text-center mb-8'>
-              Explore by role
-            </h2>
+            <h2 className='text-2xl font-bold text-center mb-8'>Explore by role</h2>
             <div className='grid sm:grid-cols-3 gap-4'>
               {Object.values(roleData).map((role) => (
                 <Link
@@ -33,9 +31,7 @@ export const UseCaseLinks = ({ currentSlug, type }: UseCaseLinksProps) => {
 
             {otherPersonas.length > 0 && (
               <>
-                <h3 className='text-xl font-bold text-center mt-10 mb-6'>
-                  Other use cases
-                </h3>
+                <h3 className='text-xl font-bold text-center mt-10 mb-6'>Other use cases</h3>
                 <div className='grid sm:grid-cols-3 gap-4'>
                   {otherPersonas.map((persona) => (
                     <Link
@@ -54,9 +50,7 @@ export const UseCaseLinks = ({ currentSlug, type }: UseCaseLinksProps) => {
           </>
         ) : (
           <>
-            <h2 className='text-2xl font-bold text-center mb-8'>
-              Explore by team type
-            </h2>
+            <h2 className='text-2xl font-bold text-center mb-8'>Explore by team type</h2>
             <div className='grid sm:grid-cols-2 md:grid-cols-4 gap-4'>
               {Object.values(personaData).map((persona) => (
                 <Link
@@ -73,9 +67,7 @@ export const UseCaseLinks = ({ currentSlug, type }: UseCaseLinksProps) => {
 
             {otherRoles.length > 0 && (
               <>
-                <h3 className='text-xl font-bold text-center mt-10 mb-6'>
-                  Hire other roles
-                </h3>
+                <h3 className='text-xl font-bold text-center mt-10 mb-6'>Hire other roles</h3>
                 <div className='grid sm:grid-cols-3 gap-4'>
                   {otherRoles.map((role) => (
                     <Link

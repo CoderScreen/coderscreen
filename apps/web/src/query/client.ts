@@ -43,6 +43,8 @@ export const TanstackQueryClient = new QueryClient({
       _context: unknown,
       mutation: Mutation<unknown, unknown, unknown, unknown>
     ): void => {
+      // Don't toast abort errors (e.g. user cancelled a running execution)
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       handleApiError(error, mutation.meta?.ERROR_MESSAGE as string);
       throw error;
     },

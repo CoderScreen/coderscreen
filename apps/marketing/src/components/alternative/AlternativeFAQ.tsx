@@ -30,6 +30,7 @@ export const AlternativeFAQ = ({ competitor }: AlternativeFAQProps) => {
     <section className='py-16 px-6'>
       <script
         type='application/ld+json'
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <div className='max-w-3xl mx-auto'>

@@ -21,21 +21,3 @@ export const isLanguageMultiFile = (language: RoomSchema['language']) => {
   ];
   return !singleFileLanguages.includes(language);
 };
-
-/**
- * Check if a language should use SandpackOutput (multi-file/web frameworks)
- * @param language
- * @returns
- */
-export const shouldUseSandpackOutput = (language: RoomSchema['language']) => {
-  return isLanguageMultiFile(language);
-};
-
-/**
- * Check if a language should use SingleFileOutput (single-file languages)
- * @param language
- * @returns
- */
-export const shouldUseSingleFileOutput = (language: RoomSchema['language']) => {
-  return !isLanguageMultiFile(language);
-};

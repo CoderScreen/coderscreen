@@ -27,7 +27,7 @@ const InstructionBody = ({ editor }: { editor: Editor | null }) => {
       <TipTapHeader editor={editor} />
       <button
         type='button'
-        className='flex-1 min-h-0 overflow-auto'
+        className='flex-1 min-h-0 overflow-auto text-left'
         onClick={() => editor?.chain()?.focus()?.run()}
       >
         <EditorContent
