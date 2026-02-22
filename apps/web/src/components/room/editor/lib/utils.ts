@@ -21,4 +21,3 @@ export const isLanguageMultiFile = (language: RoomSchema['language']) => {
   ];
   return !singleFileLanguages.includes(language);
 };
-

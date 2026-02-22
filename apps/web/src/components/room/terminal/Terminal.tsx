@@ -1,4 +1,4 @@
-import { SandboxAddon, type ConnectionState } from '@cloudflare/sandbox/xterm';
+import { type ConnectionState, SandboxAddon } from '@cloudflare/sandbox/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal as XTerminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';

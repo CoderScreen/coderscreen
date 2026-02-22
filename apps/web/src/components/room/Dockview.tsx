@@ -12,9 +12,9 @@ import { useMemo } from 'react';
 import { AiChatView } from '@/components/room/ai-chat/AiChatView';
 import { EditorView } from '@/components/room/editor/EditorView';
 import { CodeOutput } from '@/components/room/output/CodeOutput';
+import { Terminal } from '@/components/room/terminal/Terminal';
 import { InstructionEditor } from '@/components/room/tiptap/InstructionEditor';
 import { NotesEditor } from '@/components/room/tiptap/NotesEditor';
-import { Terminal } from '@/components/room/terminal/Terminal';
 import { cx } from '@/lib/utils';
 
 export const DOCKVIEW_PANEL_IDS = {

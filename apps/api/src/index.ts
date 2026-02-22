@@ -1,5 +1,5 @@
-import { getSandbox } from '@cloudflare/sandbox';
 import { switchPort } from '@cloudflare/containers';
+import { getSandbox } from '@cloudflare/sandbox';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Hono } from 'hono';
 import { except } from 'hono/combine';
@@ -17,12 +17,12 @@ import { webhookRouter } from '@/routes/webhook.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
 import { auth } from '../better-auth.config';
-import { SandboxDO as Sandbox } from './sandbox/SandboxDO';
 import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
 import { assetRouter } from './routes/asset.routes';
 import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { roomRouter } from './routes/room.routes';
+import { SandboxDO as Sandbox } from './sandbox/SandboxDO';
 
 export interface AppContext {
   Variables: {
@@ -132,9 +132,7 @@ app.get(
 // Preview proxy: route subdomain requests like {port}-{sandboxId}-{token}.hostname to the sandbox container
 function extractSandboxRoute(url: URL) {
   // Pattern: {port}-{sandboxId}-{16-char-token}.{hostname}
-  const match = url.hostname.match(
-    /^(\d{4,5})-([^.-][^.]*?[^.-]|[^.-])-([a-z0-9_-]{16})\.(.+)$/
-  );
+  const match = url.hostname.match(/^(\d{4,5})-([^.-][^.]*?[^.-]|[^.-])-([a-z0-9_-]{16})\.(.+)$/);
   if (!match) return null;
 
   const port = parseInt(match[1], 10);

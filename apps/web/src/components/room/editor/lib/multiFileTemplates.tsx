@@ -51,7 +51,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: { allowedHosts: 'true' },
+  server: { allowedHosts: true },
 })
 `,
   },
@@ -190,7 +190,7 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  server: { allowedHosts: 'true' },
+  server: { allowedHosts: true },
 })
 `,
   },
@@ -380,7 +380,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 export default defineConfig({
   plugins: [svelte()],
-  server: { allowedHosts: 'true' },
+  server: { allowedHosts: true },
 })
 `,
   },

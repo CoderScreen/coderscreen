@@ -1,4 +1,4 @@
-import { RiPlayLine, RiLoader4Line } from '@remixicon/react';
+import { RiLoader4Line, RiPlayLine } from '@remixicon/react';
 import { useEffect, useState } from 'react';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { type ExecOutput, useCodeExecution } from '@/query/realtime/execution.query';
@@ -59,9 +59,7 @@ export const SingleFileOutput = () => {
     <div className='h-full w-full bg-white overflow-auto'>
       <pre className='p-4 text-sm font-mono whitespace-pre-wrap break-words'>
         {latestResult.stdout}
-        {latestResult.stderr && (
-          <span className='text-red-600'>{latestResult.stderr}</span>
-        )}
+        {latestResult.stderr && <span className='text-red-600'>{latestResult.stderr}</span>}
       </pre>
     </div>
   );
