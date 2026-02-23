@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@coderscreen/ui/button';
-import { RiCloseLine, RiGithubLine, RiMenuLine } from '@remixicon/react';
+import { RiCloseLine, RiGithubFill, RiGithubLine, RiMenuLine } from '@remixicon/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -25,9 +25,7 @@ export const MarketingHeader = () => {
   return (
     <header
       className={
-        isHome
-          ? 'bg-primary border-b border-white/50'
-          : 'bg-white/95 backdrop-blur-sm border-b border-border/50'
+        isHome ? 'bg-primary border-b border-white/50' : 'bg-white/95 backdrop-blur-sm border-b'
       }
     >
       <div className='max-w-6xl mx-auto px-2'>
@@ -97,7 +95,7 @@ export const MarketingHeader = () => {
                 variant='ghost'
                 className={`flex items-center gap-2 ${isHome ? 'text-white/80 hover:text-white hover:bg-white/10' : ''}`}
               >
-                <RiGithubLine className='h-4 w-4' aria-hidden='true' />
+                <RiGithubFill className='h-4 w-4' aria-hidden='true' />
                 GitHub
               </Button>
             </a>

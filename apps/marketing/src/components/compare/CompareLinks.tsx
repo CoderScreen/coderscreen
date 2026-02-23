@@ -23,7 +23,7 @@ export const CompareLinks = ({ currentComparison }: CompareLinksProps) => {
             <Link
               key={comparison.slug}
               href={`/compare/${comparison.slug}`}
-              className='px-4 py-2 border border-border/50 rounded-md hover:bg-muted/50 transition-colors text-sm'
+              className='px-4 py-2 border border rounded-md hover:bg-muted/50 transition-colors text-sm'
             >
               {comparison.toolA.displayName} vs {comparison.toolB.displayName}
             </Link>

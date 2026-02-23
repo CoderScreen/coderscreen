@@ -51,7 +51,7 @@ export default function NotFound() {
         </div>
 
         {/* Helpful Links */}
-        <div className='border-t border-border/50 pt-8'>
+        <div className='border-t border pt-8'>
           <p className='text-sm text-muted-foreground mb-4'>
             Maybe you were looking for one of these?
           </p>

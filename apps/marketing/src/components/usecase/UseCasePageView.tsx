@@ -13,7 +13,7 @@ interface UseCasePageViewProps {
 
 export const UseCasePageView = ({ data }: UseCasePageViewProps) => {
   return (
-    <div className='min-h-screen max-w-6xl mx-auto border border-border/50 border-y-0'>
+    <div className='min-h-screen max-w-6xl mx-auto border border border-y-0'>
       <UseCaseHero data={data} />
       <UseCaseValueProps data={data} />
       <UseCaseFeatures data={data} />

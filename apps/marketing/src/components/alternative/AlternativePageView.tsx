@@ -15,7 +15,7 @@ interface AlternativePageViewProps {
 
 export const AlternativePageView = ({ competitor }: AlternativePageViewProps) => {
   return (
-    <div className='min-h-screen max-w-6xl mx-auto border border-border/50 border-y-0'>
+    <div className='min-h-screen max-w-6xl mx-auto border border border-y-0'>
       <AlternativeHero competitor={competitor} />
       <AlternativeWhySwitch competitor={competitor} />
       <LandingUseCases />
