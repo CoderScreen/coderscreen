@@ -74,7 +74,7 @@ export default function NotFound() {
               GitHub
             </a>
             <a
-              href={siteConfig.external.bookDemo}
+              href={siteConfig.external.contactSales}
               target='_blank'
               rel='noopener noreferrer'
               className='text-primary hover:text-primary/80 transition-colors'
