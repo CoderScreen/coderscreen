@@ -252,7 +252,7 @@ export const LandingPricing = () => {
 
   return (
     <section id='pricing' className='w-full'>
-      <div className='w-full pt-10 border-b border-border/50'>
+      <div className='w-full pt-10 border-b border-'>
         <div className='flex flex-col items-center gap-4 text-center mb-10'>
           <h2 className='text-3xl font-semibold'>Simple, transparent pricing</h2>
           <p className='text-muted-foreground max-w-2xl mx-auto'>
@@ -275,14 +275,14 @@ export const LandingPricing = () => {
           </ToggleGroup>
         </div>
 
-        <div className='w-full grid grid-cols-2 lg:grid-cols-4 border-t border-border/50'>
+        <div className='w-full grid grid-cols-2 lg:grid-cols-4 border-t'>
           {PRICING_PLANS.slice(0, 4).map((plan, index) => (
             <Card
               key={plan.name}
               className={cx(
                 'relative transition-all duration-200 flex flex-col h-full rounded-none shadow-none border-none',
-                index === 1 ? 'border-y-0 border-border/50 border-solid' : '',
-                index === 2 ? 'border-y-0 border-l-0 border-r border-border/50 border-solid' : '',
+                index === 1 ? 'border-y-0 border-solid' : '',
+                index === 2 ? 'border-y-0 border-l-0 border-r border-solid' : '',
                 plan.popular ? 'border-primary border-solid border-1' : ''
               )}
             >

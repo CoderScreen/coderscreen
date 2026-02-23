@@ -20,7 +20,7 @@ export const CompareTable = ({ comparison }: CompareTableProps) => {
   const features = comparison.comparison.features;
 
   return (
-    <section className='py-16 border-b border-border/50'>
+    <section className='py-16 border-b'>
       <div className='container mx-auto px-6'>
         <div className='max-w-4xl mx-auto mb-10'>
           <h2 className='text-3xl font-semibold mb-4'>Feature Comparison</h2>
@@ -33,7 +33,7 @@ export const CompareTable = ({ comparison }: CompareTableProps) => {
         <div className='max-w-4xl mx-auto overflow-x-auto'>
           <table className='w-full min-w-[600px]'>
             <thead>
-              <tr className='border-b border-border/50'>
+              <tr className='border-b'>
                 <th className='text-left py-4 pr-4 text-sm font-medium text-muted-foreground'>
                   Feature
                 </th>
@@ -48,10 +48,7 @@ export const CompareTable = ({ comparison }: CompareTableProps) => {
             </thead>
             <tbody>
               {features.map((feature, index) => (
-                <tr
-                  key={feature.name}
-                  className={index !== features.length - 1 ? 'border-b border-border/50' : ''}
-                >
+                <tr key={feature.name} className={index !== features.length - 1 ? 'border-b' : ''}>
                   <td className='py-4 pr-4 text-sm'>{feature.name}</td>
                   <td className='py-4 px-4 text-center'>
                     <div className='flex justify-center'>{renderFeatureValue(feature.toolA)}</div>

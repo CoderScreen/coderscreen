@@ -59,7 +59,7 @@ const faqSchema = {
 
 export const LandingFAQ = () => {
   return (
-    <section id='faq' className='w-full p-6'>
+    <section id='faq' className='w-full py-10 px-6 border-b'>
       <script
         type='application/ld+json'
         // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema

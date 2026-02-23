@@ -10,7 +10,6 @@ export const siteConfig = {
 
     // app links
     getStarted: 'https://app.coderscreen.com/register',
-    bookDemo: 'https://cal.com/rogutkuba/coderscreen-demo',
 
     // email links
     contactSales: 'mailto:kuba@coderscreen.com?subject=Enterprise%20Plan%20Request',

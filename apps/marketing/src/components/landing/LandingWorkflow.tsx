@@ -248,8 +248,8 @@ const SECOND_SECTION_FEATURES: {
 
 export const LandingWorkflow = () => {
   return (
-    <section id='workflow' className='w-full pt-10 border-t border-border/50'>
-      <div className='w-full px-6 pb-10 border-b border-border/50'>
+    <section id='workflow' className='w-full'>
+      <div className='w-full px-6 py-10'>
         <div className='flex flex-col items-center gap-1'>
           <h2 className='text-3xl font-semibold'>End-to-End Technical Hiring</h2>
           <p className='text-muted-foreground w-1/2 text-center'>
@@ -264,7 +264,7 @@ export const LandingWorkflow = () => {
           <Card
             key={feature.title}
             className={cx(
-              'p-6 h-full rounded-none shadow-none border-t-0 border-border/50',
+              'p-6 h-full rounded-none shadow-none border',
               index === 0 ? 'border-l-0' : 'border-x-0'
             )}
           >

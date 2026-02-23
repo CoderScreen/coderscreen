@@ -13,7 +13,7 @@ interface ComparePageViewProps {
 
 export const ComparePageView = ({ comparison }: ComparePageViewProps) => {
   return (
-    <div className='min-h-screen max-w-6xl mx-auto border border-border/50 border-y-0'>
+    <div className='min-h-screen max-w-6xl mx-auto border border border-y-0'>
       <CompareHero comparison={comparison} />
       <CompareVerdict comparison={comparison} />
       <CompareTable comparison={comparison} />

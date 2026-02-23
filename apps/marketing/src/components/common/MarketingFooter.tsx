@@ -14,7 +14,7 @@ export const MarketingFooter: React.FC = () => {
   };
 
   return (
-    <footer className='bg-white text-gray-700 border-t border-border/50'>
+    <footer className='bg-white text-gray-700 border-t '>
       <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <div className='grid grid-cols-1 md:grid-cols-6 gap-8'>
           {/* Company Info */}
@@ -90,14 +90,6 @@ export const MarketingFooter: React.FC = () => {
                   className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
                 >
                   Get Started
-                </a>
-              </li>
-              <li>
-                <a
-                  href={siteConfig.external.bookDemo}
-                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
-                >
-                  Book Demo
                 </a>
               </li>
             </ul>

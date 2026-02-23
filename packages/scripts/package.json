@@ -16,6 +16,7 @@
   "dependencies": {
     "@coderscreen/common": "workspace:*",
     "@coderscreen/db": "workspace:*",
+    "@fal-ai/client": "^1.9.3",
     "drizzle-orm": "^0.44.3",
     "postgres": "^3.4.7"
   }
