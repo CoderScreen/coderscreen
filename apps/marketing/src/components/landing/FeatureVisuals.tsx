@@ -209,7 +209,11 @@ export const LiveInterviewVisual = () => {
             <span className='text-blue-600'>for</span>
             <span className='text-gray-700'> (</span>
             <span className='text-blue-600'>let</span>
-            <span className='text-gray-700'>{' i = 0; i < nums.length; i++) {'}{'{'}{'}'}</span>
+            <span className='text-gray-700'>
+              {' i = 0; i < nums.length; i++) {'}
+              {'{'}
+              {'}'}
+            </span>
           </span>
         </div>
 

@@ -38,8 +38,7 @@ export const CompareFAQ = ({ comparison }: CompareFAQProps) => {
         <div className='max-w-4xl mx-auto mb-10'>
           <h2 className='text-3xl font-semibold mb-4'>Frequently Asked Questions</h2>
           <p className='text-muted-foreground'>
-            Common questions about {comparison.toolA.displayName} vs{' '}
-            {comparison.toolB.displayName}.
+            Common questions about {comparison.toolA.displayName} vs {comparison.toolB.displayName}.
           </p>
         </div>
 
@@ -48,9 +47,7 @@ export const CompareFAQ = ({ comparison }: CompareFAQProps) => {
             {comparison.faq.map((item, index) => (
               <AccordionItem key={item.question} value={`item-${index}`}>
                 <AccordionTrigger className='text-left'>{item.question}</AccordionTrigger>
-                <AccordionContent className='text-muted-foreground'>
-                  {item.answer}
-                </AccordionContent>
+                <AccordionContent className='text-muted-foreground'>{item.answer}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
