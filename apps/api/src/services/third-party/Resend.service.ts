@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { Resend } from 'resend';
 import { AppContext } from '@/index';
 import { buildOrgInvitationEmail } from './emails/org-invitation';
+import { buildSignupFeedbackEmail } from './emails/signup-feedback';
 import { buildVerificationEmail } from './emails/verification';
 
 type TransactionalEmailTypes = 'verification_code' | 'org_invitation';
@@ -71,6 +72,32 @@ export class ResendService {
     if (error) {
       console.error('Failed to send email:', error);
       throw new Error(`Failed to send email: ${error.message}`);
+    }
+  }
+
+  async sendScheduledFeedbackEmail(email: string, params: { user_name: string }): Promise<void> {
+    const { subject, html } = buildSignupFeedbackEmail(params);
+    if (this.ctx.env.NODE_ENV === 'development') {
+      console.log('Skipping scheduled feedback email in development. Details:', {
+        email,
+        subject,
+        scheduledAt: 'in 7 days',
+        params,
+      });
+      return;
+    }
+
+    const { error } = await this.client.emails.send({
+      from: 'Kuba from CoderScreen <kuba@coderscreen.com>',
+      replyTo: 'team@coderscreen.com',
+      to: email,
+      subject,
+      html,
+      scheduledAt: 'in 7 days',
+    });
+
+    if (error) {
+      console.error('Failed to schedule feedback email:', error);
     }
   }
 }

@@ -53,6 +53,11 @@ export const useAuth: (
                 .set({ isOnboarded: true })
                 .where(eq(schema.user.id, user.id));
             });
+
+            // Schedule feedback email for 7 days after signup
+            resendService
+              .sendScheduledFeedbackEmail(user.email, { user_name: user.name })
+              .catch((err) => console.error('Failed to schedule feedback email:', err));
           },
         },
       },
