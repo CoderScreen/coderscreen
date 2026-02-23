@@ -31,14 +31,6 @@ export const metadata: Metadata = {
       'Run live coding interviews, take-homes, and assessments with a collaborative editor, whiteboard, and AI assistant. Built for developer-first hiring.',
     url: 'https://coderscreen.com',
     siteName: 'CoderScreen',
-    images: [
-      {
-        url: 'https://coderscreen.com/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'CoderScreen - Technical Interview Platform',
-      },
-    ],
     type: 'website',
     locale: 'en_US',
   },
@@ -47,7 +39,6 @@ export const metadata: Metadata = {
     title: 'CoderScreen - Technical Interview Platform',
     description:
       'Collaborative coding interviews that feel like real development. Try CoderScreen for free.',
-    images: ['https://coderscreen.com/og-image.png'],
     creator: '@coderscreen',
   },
   keywords: [
