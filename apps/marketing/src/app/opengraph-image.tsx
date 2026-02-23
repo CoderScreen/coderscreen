@@ -66,243 +66,221 @@ const smallRects = [
 ];
 
 export default async function Image() {
-  const fontCss = await fetch(
-    'https://fonts.googleapis.com/css2?family=Geist:wght@400;700',
-  ).then((res) => res.text());
-
-  const fontUrls = [...fontCss.matchAll(/src:\s*url\(([^)]+)\)/g)].map(
-    (m) => m[1],
+  const fontCss = await fetch('https://fonts.googleapis.com/css2?family=Geist:wght@400;700').then(
+    (res) => res.text()
   );
 
+  const fontUrls = [...fontCss.matchAll(/src:\s*url\(([^)]+)\)/g)].map((m) => m[1]);
+
   const [boldFontData, regularFontData] = await Promise.all([
-    fetch(fontUrls[fontUrls.length - 1] ?? fontUrls[0]).then((r) =>
-      r.arrayBuffer(),
-    ),
+    fetch(fontUrls[fontUrls.length - 1] ?? fontUrls[0]).then((r) => r.arrayBuffer()),
     fetch(fontUrls[0]).then((r) => r.arrayBuffer()),
   ]);
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1860fb',
+        position: 'relative',
+        fontFamily: 'Geist',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Geometric overlay - rectangles */}
+      {rects.map((r) => (
+        <div
+          key={`r-${r.x}-${r.y}`}
+          style={{
+            position: 'absolute',
+            left: r.x,
+            top: r.y,
+            width: r.w,
+            height: r.h,
+            border: `1px solid rgba(255,255,255,${r.o})`,
+          }}
+        />
+      ))}
+
+      {/* Small rectangles */}
+      {smallRects.map((r) => (
+        <div
+          key={`sr-${r.x}-${r.y}`}
+          style={{
+            position: 'absolute',
+            left: r.x,
+            top: r.y,
+            width: r.w,
+            height: r.h,
+            border: `1.5px solid rgba(255,255,255,${r.o})`,
+          }}
+        />
+      ))}
+
+      {/* Dots */}
+      {dots.map((d) => (
+        <div
+          key={`d-${d.x}-${d.y}`}
+          style={{
+            position: 'absolute',
+            left: d.x - d.r,
+            top: d.y - d.r,
+            width: d.r * 2,
+            height: d.r * 2,
+            borderRadius: '50%',
+            backgroundColor: `rgba(255,255,255,${d.o})`,
+          }}
+        />
+      ))}
+
+      {/* Crosses */}
+      {crosses.map((c) => (
+        <div key={`c-${c.x}-${c.y}`} style={{ display: 'flex' }}>
+          <div
+            style={{
+              position: 'absolute',
+              left: c.x - 15,
+              top: c.y,
+              width: 30,
+              height: 1,
+              backgroundColor: `rgba(255,255,255,${c.o})`,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: c.x,
+              top: c.y - 15,
+              width: 1,
+              height: 30,
+              backgroundColor: `rgba(255,255,255,${c.o})`,
+            }}
+          />
+        </div>
+      ))}
+
+      {/* Corner brackets */}
+      {/* Top-left */}
       <div
         style={{
-          width: '100%',
-          height: '100%',
+          position: 'absolute',
+          left: 20,
+          top: 16,
+          width: 40,
+          height: 40,
+          borderTop: '1.5px solid rgba(255,255,255,0.2)',
+          borderLeft: '1.5px solid rgba(255,255,255,0.2)',
+        }}
+      />
+      {/* Top-right */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 20,
+          top: 16,
+          width: 40,
+          height: 40,
+          borderTop: '1.5px solid rgba(255,255,255,0.2)',
+          borderRight: '1.5px solid rgba(255,255,255,0.2)',
+        }}
+      />
+      {/* Bottom-left */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 20,
+          bottom: 16,
+          width: 40,
+          height: 40,
+          borderBottom: '1.5px solid rgba(255,255,255,0.2)',
+          borderLeft: '1.5px solid rgba(255,255,255,0.2)',
+        }}
+      />
+      {/* Bottom-right */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 20,
+          bottom: 16,
+          width: 40,
+          height: 40,
+          borderBottom: '1.5px solid rgba(255,255,255,0.2)',
+          borderRight: '1.5px solid rgba(255,255,255,0.2)',
+        }}
+      />
+
+      {/* Content */}
+      <div
+        style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#1860fb',
           position: 'relative',
-          fontFamily: 'Geist',
-          overflow: 'hidden',
+          zIndex: 10,
+          padding: '0 80px',
         }}
       >
-        {/* Geometric overlay - rectangles */}
-        {rects.map((r, i) => (
-          <div
-            key={`r${i}`}
-            style={{
-              position: 'absolute',
-              left: r.x,
-              top: r.y,
-              width: r.w,
-              height: r.h,
-              border: `1px solid rgba(255,255,255,${r.o})`,
-            }}
-          />
-        ))}
+        {/* Logo */}
+        {/* biome-ignore lint/a11y/noSvgWithoutTitle: OG image, not rendered in DOM */}
+        <svg viewBox='0 0 200 200' width='56' height='56' style={{ marginBottom: 24 }}>
+          <path d='m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z' fill='white' />
+          <path d='m33 60.6l51.8 28.7v100.7l-51.8-28.7z' fill='white' />
+          <path d='m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z' fill='white' />
+          <path d='m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z' fill='white' />
+        </svg>
 
-        {/* Small rectangles */}
-        {smallRects.map((r, i) => (
-          <div
-            key={`sr${i}`}
-            style={{
-              position: 'absolute',
-              left: r.x,
-              top: r.y,
-              width: r.w,
-              height: r.h,
-              border: `1.5px solid rgba(255,255,255,${r.o})`,
-            }}
-          />
-        ))}
-
-        {/* Dots */}
-        {dots.map((d, i) => (
-          <div
-            key={`d${i}`}
-            style={{
-              position: 'absolute',
-              left: d.x - d.r,
-              top: d.y - d.r,
-              width: d.r * 2,
-              height: d.r * 2,
-              borderRadius: '50%',
-              backgroundColor: `rgba(255,255,255,${d.o})`,
-            }}
-          />
-        ))}
-
-        {/* Crosses */}
-        {crosses.map((c, i) => (
-          <div key={`c${i}`} style={{ display: 'flex' }}>
-            <div
-              style={{
-                position: 'absolute',
-                left: c.x - 15,
-                top: c.y,
-                width: 30,
-                height: 1,
-                backgroundColor: `rgba(255,255,255,${c.o})`,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                left: c.x,
-                top: c.y - 15,
-                width: 1,
-                height: 30,
-                backgroundColor: `rgba(255,255,255,${c.o})`,
-              }}
-            />
-          </div>
-        ))}
-
-        {/* Corner brackets */}
-        {/* Top-left */}
+        {/* Title */}
         <div
           style={{
-            position: 'absolute',
-            left: 20,
-            top: 16,
-            width: 40,
-            height: 40,
-            borderTop: '1.5px solid rgba(255,255,255,0.2)',
-            borderLeft: '1.5px solid rgba(255,255,255,0.2)',
-          }}
-        />
-        {/* Top-right */}
-        <div
-          style={{
-            position: 'absolute',
-            right: 20,
-            top: 16,
-            width: 40,
-            height: 40,
-            borderTop: '1.5px solid rgba(255,255,255,0.2)',
-            borderRight: '1.5px solid rgba(255,255,255,0.2)',
-          }}
-        />
-        {/* Bottom-left */}
-        <div
-          style={{
-            position: 'absolute',
-            left: 20,
-            bottom: 16,
-            width: 40,
-            height: 40,
-            borderBottom: '1.5px solid rgba(255,255,255,0.2)',
-            borderLeft: '1.5px solid rgba(255,255,255,0.2)',
-          }}
-        />
-        {/* Bottom-right */}
-        <div
-          style={{
-            position: 'absolute',
-            right: 20,
-            bottom: 16,
-            width: 40,
-            height: 40,
-            borderBottom: '1.5px solid rgba(255,255,255,0.2)',
-            borderRight: '1.5px solid rgba(255,255,255,0.2)',
-          }}
-        />
-
-        {/* Content */}
-        <div
-          style={{
+            fontSize: 64,
+            fontWeight: 700,
+            color: 'white',
+            lineHeight: 1.1,
+            textAlign: 'center',
+            marginBottom: 20,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            zIndex: 10,
-            padding: '0 80px',
           }}
         >
-          {/* Logo */}
-          <svg
-            viewBox="0 0 200 200"
-            width="56"
-            height="56"
-            style={{ marginBottom: 24 }}
-          >
-            <path
-              d="m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z"
-              fill="white"
-            />
-            <path
-              d="m33 60.6l51.8 28.7v100.7l-51.8-28.7z"
-              fill="white"
-            />
-            <path
-              d="m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z"
-              fill="white"
-            />
-            <path
-              d="m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z"
-              fill="white"
-            />
-          </svg>
+          <span>The Open Source</span>
+          <span>Interview Platform</span>
+        </div>
 
-          {/* Title */}
-          <div
-            style={{
-              fontSize: 64,
-              fontWeight: 700,
-              color: 'white',
-              lineHeight: 1.1,
-              textAlign: 'center',
-              marginBottom: 20,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <span>The Open Source</span>
-            <span>Interview Platform</span>
-          </div>
+        {/* Subtitle */}
+        <div
+          style={{
+            fontSize: 22,
+            fontWeight: 400,
+            color: 'rgba(255,255,255,0.8)',
+            textAlign: 'center',
+            maxWidth: 700,
+            lineHeight: 1.5,
+          }}
+        >
+          Run live coding interviews and technical screens with a collaborative editor your
+          candidates will actually enjoy.
+        </div>
 
-          {/* Subtitle */}
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 400,
-              color: 'rgba(255,255,255,0.8)',
-              textAlign: 'center',
-              maxWidth: 700,
-              lineHeight: 1.5,
-            }}
-          >
-            Run live coding interviews and technical screens with a
-            collaborative editor your candidates will actually enjoy.
-          </div>
-
-          {/* Domain */}
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 400,
-              color: 'rgba(255,255,255,0.5)',
-              marginTop: 32,
-            }}
-          >
-            coderscreen.com
-          </div>
+        {/* Domain */}
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: 400,
+            color: 'rgba(255,255,255,0.5)',
+            marginTop: 32,
+          }}
+        >
+          coderscreen.com
         </div>
       </div>
-    ),
+    </div>,
     {
       ...size,
       fonts: [
@@ -314,6 +292,6 @@ export default async function Image() {
           style: 'normal',
         },
       ],
-    },
+    }
   );
 }

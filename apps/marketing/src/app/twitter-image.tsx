@@ -1,1 +1,1 @@
-export { default, alt, size, contentType } from './opengraph-image';
+export { alt, contentType, default, size } from './opengraph-image';
