@@ -8,14 +8,16 @@ import { LandingUseCases } from './LandingUseCases';
 
 export const LandingPageView = () => {
   return (
-    <div className='min-h-screen max-w-6xl mx-auto border border-border/50 border-y-0'>
+    <div className='min-h-screen'>
       <LandingHero />
-      <LandingUseCases />
-      <LandingFeatures />
-      <LandingWorkflow />
-      <LandingPricing />
-      <LandingFAQ />
-      <MarketingCTA />
+      <div className='max-w-6xl mx-auto border border-border/50 border-y-0'>
+        <LandingUseCases />
+        <LandingFeatures />
+        <LandingWorkflow />
+        <LandingPricing />
+        <LandingFAQ />
+        <MarketingCTA />
+      </div>
     </div>
   );
 };
