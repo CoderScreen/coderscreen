@@ -13,6 +13,13 @@ export const Entities = {
   eventUsage: 'eu',
   eventUsageType: 'eut',
   eventLog: 'el',
+  candidate: 'cand',
+  assessment: 'as',
+  assessmentQuestion: 'aq',
+  assessmentTestCase: 'atc',
+  assessmentSubmission: 'asub',
+  questionSubmission: 'qs',
+  testCaseResult: 'tcr',
 } as const;
 
 type Entities = typeof Entities;

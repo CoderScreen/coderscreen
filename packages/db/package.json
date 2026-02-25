@@ -34,6 +34,13 @@
     "./template.db": "./src/template.db.ts",
     "./llmMessage.db": "./src/llmMessage.db.ts",
     "./billing.db": "./src/billing.db.ts",
-    "./usage.db": "./src/usage.db.ts"
+    "./usage.db": "./src/usage.db.ts",
+    "./candidate.db": "./src/candidate.db.ts",
+    "./assessment.db": "./src/assessment.db.ts",
+    "./assessmentQuestion.db": "./src/assessmentQuestion.db.ts",
+    "./assessmentTestCase.db": "./src/assessmentTestCase.db.ts",
+    "./assessmentSubmission.db": "./src/assessmentSubmission.db.ts",
+    "./questionSubmission.db": "./src/questionSubmission.db.ts",
+    "./testCaseResult.db": "./src/testCaseResult.db.ts"
   }
 }
