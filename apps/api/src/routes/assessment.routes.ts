@@ -6,16 +6,22 @@ import { z } from 'zod';
 import {
   AssessmentQuestionSchema,
   AssessmentSchema,
+  CandidateSchema,
   CreateAssessmentSchema,
+  CreateCandidateSchema,
   CreateQuestionSchema,
+  CreateSubmissionSchema,
   CreateTestCaseSchema,
+  GradeSubmissionSchema,
   ReorderQuestionsSchema,
+  SubmissionSchema,
   TestCaseSchema,
   UpdateAssessmentSchema,
   UpdateQuestionSchema,
   UpdateTestCaseSchema,
 } from '@/schema/assessment.zod';
 import { AssessmentService } from '@/services/Assessment.service';
+import { AssessmentSubmissionService } from '@/services/AssessmentSubmission.service';
 import { AppContext } from '..';
 
 export const assessmentRouter = new Hono<AppContext>()
@@ -378,5 +384,183 @@ export const assessmentRouter = new Hono<AppContext>()
       const { testCaseId } = ctx.req.valid('param');
       await service.deleteTestCase(testCaseId);
       return ctx.json(null, 200);
+    }
+  )
+  // === Submissions ===
+  // GET /assessments/:id/submissions - List submissions
+  .get(
+    '/:id/submissions',
+    describeRoute({
+      description: 'List all submissions for an assessment',
+      responses: {
+        200: {
+          description: 'List of submissions',
+        },
+      },
+    }),
+    zValidator('param', z.object({ id: idString('assessment') })),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { id } = ctx.req.valid('param');
+      const result = await service.listSubmissions(id);
+      return ctx.json(result);
+    }
+  )
+  // POST /assessments/:id/submissions - Invite a candidate
+  .post(
+    '/:id/submissions',
+    describeRoute({
+      description: 'Invite a candidate to take an assessment',
+      responses: {
+        201: {
+          description: 'Submission created successfully',
+        },
+      },
+    }),
+    zValidator('param', z.object({ id: idString('assessment') })),
+    zValidator('json', CreateSubmissionSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { id } = ctx.req.valid('param');
+      const body = ctx.req.valid('json');
+      const result = await service.inviteCandidate(id, body);
+      return ctx.json(result, 201);
+    }
+  )
+  // GET /assessments/:id/submissions/:subId - Get submission details
+  .get(
+    '/:id/submissions/:subId',
+    describeRoute({
+      description: 'Get detailed submission with code and test results',
+      responses: {
+        200: {
+          description: 'Submission details',
+        },
+        404: {
+          description: 'Submission not found',
+        },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        id: idString('assessment'),
+        subId: idString('assessmentSubmission'),
+      })
+    ),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const result = await service.getSubmissionDetails(subId);
+
+      if (!result) {
+        return ctx.json({ error: 'Submission not found' }, 404);
+      }
+
+      return ctx.json(result);
+    }
+  )
+  // POST /assessments/:id/submissions/:subId/grade - Grade a submission
+  .post(
+    '/:id/submissions/:subId/grade',
+    describeRoute({
+      description: 'Grade a submission',
+      responses: {
+        200: {
+          description: 'Submission graded successfully',
+        },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        id: idString('assessment'),
+        subId: idString('assessmentSubmission'),
+      })
+    ),
+    zValidator('json', GradeSubmissionSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const body = ctx.req.valid('json');
+      const result = await service.gradeSubmission(subId, body);
+      return ctx.json(result);
+    }
+  );
+
+// === Candidate Router (separate, mounted at /candidates) ===
+
+export const candidateRouter = new Hono<AppContext>()
+  // GET /candidates - List all candidates
+  .get(
+    '/',
+    describeRoute({
+      description: 'List all candidates for the organization',
+      responses: {
+        200: {
+          description: 'List of candidates',
+          content: {
+            'application/json': {
+              schema: resolver(z.array(CandidateSchema)),
+            },
+          },
+        },
+      },
+    }),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const result = await service.listCandidates();
+      return ctx.json(result);
+    }
+  )
+  // POST /candidates - Create a candidate
+  .post(
+    '/',
+    describeRoute({
+      description: 'Create a candidate (upserts on org+email)',
+      responses: {
+        201: {
+          description: 'Candidate created successfully',
+          content: {
+            'application/json': {
+              schema: resolver(CandidateSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator('json', CreateCandidateSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const body = ctx.req.valid('json');
+      const result = await service.createCandidate(body);
+      return ctx.json(result, 201);
+    }
+  )
+  // GET /candidates/:id - Get candidate with submission history
+  .get(
+    '/:id',
+    describeRoute({
+      description: 'Get a candidate with their submission history',
+      responses: {
+        200: {
+          description: 'Candidate details',
+        },
+        404: {
+          description: 'Candidate not found',
+        },
+      },
+    }),
+    zValidator('param', z.object({ id: idString('candidate') })),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { id } = ctx.req.valid('param');
+      const result = await service.getCandidate(id);
+
+      if (!result) {
+        return ctx.json({ error: 'Candidate not found' }, 404);
+      }
+
+      return ctx.json(result);
     }
   );

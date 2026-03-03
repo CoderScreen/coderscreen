@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { AppContext } from '..';
 import { AssessmentService } from './Assessment.service';
+import { AssessmentSubmissionService } from './AssessmentSubmission.service';
 import { AssetService } from './Asset.service';
 import { CodeRunService } from './CodeRun.service';
 import { RoomService } from './Room.service';
@@ -11,6 +12,7 @@ export interface AppFactory {
   codeRunService: CodeRunService;
   assetService: AssetService;
   assessmentService: AssessmentService;
+  assessmentSubmissionService: AssessmentSubmissionService;
 }
 
 export const appFactoryMiddleware = createMiddleware(async (ctx, next) => {
@@ -19,6 +21,7 @@ export const appFactoryMiddleware = createMiddleware(async (ctx, next) => {
     codeRunService: new CodeRunService(ctx),
     assetService: new AssetService(ctx),
     assessmentService: new AssessmentService(ctx),
+    assessmentSubmissionService: new AssessmentSubmissionService(ctx),
   };
   ctx.set('appFactory', appFactory);
   return next();

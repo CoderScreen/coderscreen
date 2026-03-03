@@ -117,6 +117,66 @@ export const UpdateTestCaseSchema = z.object({
   position: z.number().int().min(0).optional(),
 });
 
+// === Candidate ===
+
+export const CandidateSchema = z.object({
+  id: idString('candidate'),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  name: z.string().min(1),
+  email: z.string().email(),
+});
+
+export const CreateCandidateSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+});
+
+// === Submission ===
+
+export const SubmissionStatusSchema = z.enum([
+  'not_started',
+  'in_progress',
+  'submitted',
+  'expired',
+  'graded',
+]);
+
+export const SubmissionSchema = z.object({
+  id: idString('assessmentSubmission'),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  assessmentId: idString('assessment'),
+  candidateId: idString('candidate'),
+  status: SubmissionStatusSchema,
+  selectedLanguage: AssessmentLanguageSchema.nullable(),
+  startedAt: z.string().nullable(),
+  submittedAt: z.string().nullable(),
+  expiresAt: z.string().nullable(),
+  totalScore: z.number().int().nullable(),
+  maxScore: z.number().int().nullable(),
+  gradingNotes: z.string(),
+  accessToken: z.string(),
+});
+
+export const CreateSubmissionSchema = z.object({
+  candidateId: idString('candidate').optional(),
+  candidateName: z.string().min(1).optional(),
+  candidateEmail: z.string().email().optional(),
+});
+
+export const GradeSubmissionSchema = z.object({
+  gradingNotes: z.string().optional(),
+  questionScores: z
+    .array(
+      z.object({
+        questionSubmissionId: idString('questionSubmission'),
+        score: z.number().int().min(0),
+      })
+    )
+    .optional(),
+});
+
 // === Types ===
 
 export type AssessmentSchema = z.infer<typeof AssessmentSchema>;
@@ -128,3 +188,8 @@ export type UpdateQuestionSchema = z.infer<typeof UpdateQuestionSchema>;
 export type TestCaseSchema = z.infer<typeof TestCaseSchema>;
 export type CreateTestCaseSchema = z.infer<typeof CreateTestCaseSchema>;
 export type UpdateTestCaseSchema = z.infer<typeof UpdateTestCaseSchema>;
+export type CandidateSchema = z.infer<typeof CandidateSchema>;
+export type CreateCandidateSchema = z.infer<typeof CreateCandidateSchema>;
+export type SubmissionSchema = z.infer<typeof SubmissionSchema>;
+export type CreateSubmissionSchema = z.infer<typeof CreateSubmissionSchema>;
+export type GradeSubmissionSchema = z.infer<typeof GradeSubmissionSchema>;

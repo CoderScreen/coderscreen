@@ -20,6 +20,7 @@ export const assessmentSubmissionTable = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
     candidateId: text('candidate_id')
+      .$type<Id<'candidate'>>()
       .notNull()
       .references(() => candidateTable.id, { onDelete: 'cascade' }),
     status: text('status').$type<SubmissionStatus>().notNull().default('not_started'),
