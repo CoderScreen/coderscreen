@@ -289,12 +289,14 @@ export class AssessmentSubmissionService {
     }
 
     // Update individual question scores if provided
+    let totalScore = 0;
     if (grades.questionScores) {
       for (const qs of grades.questionScores) {
         await this.db
           .update(questionSubmissionTable)
-          .set({ updatedAt: new Date().toISOString() })
+          .set({ score: qs.score, updatedAt: new Date().toISOString() })
           .where(eq(questionSubmissionTable.id, qs.questionSubmissionId));
+        totalScore += qs.score;
       }
     }
 
@@ -302,6 +304,7 @@ export class AssessmentSubmissionService {
       .update(assessmentSubmissionTable)
       .set({
         status: 'graded',
+        totalScore: grades.questionScores ? totalScore : submission.totalScore,
         gradingNotes: grades.gradingNotes ?? submission.gradingNotes,
         updatedAt: new Date().toISOString(),
       })

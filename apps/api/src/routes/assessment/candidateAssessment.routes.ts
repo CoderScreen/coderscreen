@@ -38,13 +38,13 @@ export const candidateAssessmentRouter = new Hono<AppContext>()
       const { subId } = ctx.req.valid('param');
       const { token } = ctx.req.valid('query');
 
-      // Check expiration first
-      await service.checkExpiration(subId);
-
       const result = await service.getSubmissionByToken(token);
       if (!result || result.submission.id !== subId) {
         return ctx.json({ error: 'Invalid token or submission' }, 401);
       }
+
+      // Check expiration after token validation
+      await service.checkExpiration(subId);
 
       return ctx.json(result);
     }

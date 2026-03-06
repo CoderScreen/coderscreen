@@ -20,6 +20,7 @@ export const questionSubmissionTable = pgTable('question_submissions', {
     .references(() => organization.id, { onDelete: 'cascade' }),
   code: text('code').notNull().default(''),
   timeSpentSeconds: integer('time_spent_seconds').notNull().default(0),
+  score: integer('score'),
 });
 
 export type QuestionSubmissionEntity = typeof questionSubmissionTable.$inferSelect;
