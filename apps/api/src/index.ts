@@ -19,6 +19,8 @@ import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
 import { auth } from '../better-auth.config';
 import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
+import { candidateAssessmentRouter } from './routes/assessment/candidateAssessment.routes';
+import { assessmentRouter, candidateRouter } from './routes/assessment.routes';
 import { assetRouter } from './routes/asset.routes';
 import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { roomRouter } from './routes/room.routes';
@@ -71,13 +73,28 @@ const app = new Hono<AppContext>()
   .all('/auth/*', (ctx) => {
     return useAuth(ctx).handler(ctx.req.raw);
   })
-  .use('*', except(['/webhook/*', '/rooms/:roomId/public/*', '/openapi'], authMiddleware))
+  .use(
+    '*',
+    except(
+      [
+        '/webhook/*',
+        '/rooms/:roomId/public/*',
+        '/assessments/:subId/take',
+        '/assessments/:subId/take/*',
+        '/openapi',
+      ],
+      authMiddleware
+    )
+  )
   .route('/webhook', webhookRouter)
   .route('/rooms/:roomId/public', publicRoomRouter)
   .route('/assets', assetRouter)
   .route('/templates', templateRouter)
   .route('/rooms', roomRouter)
   .route('/billing', billingRouter)
+  .route('/assessments', candidateAssessmentRouter)
+  .route('/assessments', assessmentRouter)
+  .route('/candidates', candidateRouter)
   .onError((err, ctx) => {
     const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
 
