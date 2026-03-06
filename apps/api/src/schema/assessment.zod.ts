@@ -177,8 +177,27 @@ export const GradeSubmissionSchema = z.object({
     .optional(),
 });
 
+// === Candidate-Facing Schemas ===
+
+export const StartAssessmentSchema = z.object({
+  selectedLanguage: AssessmentLanguageSchema,
+});
+
+export const SaveCodeSchema = z.object({
+  questionId: idString('assessmentQuestion'),
+  code: z.string(),
+});
+
+export const RunTestsSchema = z.object({
+  questionId: idString('assessmentQuestion'),
+  code: z.string(),
+});
+
 // === Types ===
 
+export type StartAssessmentSchema = z.infer<typeof StartAssessmentSchema>;
+export type SaveCodeSchema = z.infer<typeof SaveCodeSchema>;
+export type RunTestsSchema = z.infer<typeof RunTestsSchema>;
 export type AssessmentSchema = z.infer<typeof AssessmentSchema>;
 export type CreateAssessmentSchema = z.infer<typeof CreateAssessmentSchema>;
 export type UpdateAssessmentSchema = z.infer<typeof UpdateAssessmentSchema>;

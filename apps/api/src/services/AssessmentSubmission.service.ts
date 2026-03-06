@@ -1,10 +1,11 @@
 import { generateId, Id } from '@coderscreen/common/id';
-import { assessmentTable } from '@coderscreen/db/assessment.db';
+import { assessmentTable, AssessmentLanguage } from '@coderscreen/db/assessment.db';
 import { assessmentQuestionTable } from '@coderscreen/db/assessmentQuestion.db';
 import {
   assessmentSubmissionTable,
   AssessmentSubmissionEntity,
 } from '@coderscreen/db/assessmentSubmission.db';
+import { assessmentTestCaseTable } from '@coderscreen/db/assessmentTestCase.db';
 import { candidateTable, CandidateEntity } from '@coderscreen/db/candidate.db';
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
@@ -15,7 +16,13 @@ import { HTTPException } from 'hono/http-exception';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
 import { getSession } from '@/lib/session';
-import { CreateSubmissionSchema, GradeSubmissionSchema } from '@/schema/assessment.zod';
+import {
+  CreateSubmissionSchema,
+  GradeSubmissionSchema,
+  SaveCodeSchema,
+  StartAssessmentSchema,
+} from '@/schema/assessment.zod';
+import { AssessmentCodeRunService, TestCaseRunResult } from '@/services/AssessmentCodeRun.service';
 
 export class AssessmentSubmissionService {
   private readonly db: PostgresJsDatabase;
@@ -299,5 +306,343 @@ export class AssessmentSubmissionService {
       .where(eq(assessmentSubmissionTable.id, submissionId))
       .returning()
       .then((r) => r[0]);
+  }
+
+  // === Candidate-Facing Methods (token-authenticated, no session required) ===
+
+  async getSubmissionForToken(token: string): Promise<AssessmentSubmissionEntity | null> {
+    return this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.accessToken, token))
+      .then((r) => (r.length > 0 ? r[0] : null));
+  }
+
+  async getSubmissionByToken(token: string) {
+    const submission = await this.getSubmissionForToken(token);
+    if (!submission) return null;
+
+    // Load assessment
+    const assessment = await this.db
+      .select()
+      .from(assessmentTable)
+      .where(eq(assessmentTable.id, submission.assessmentId as Id<'assessment'>))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!assessment) return null;
+
+    // Load questions with visible test cases + candidate's saved code
+    const questions = await this.db
+      .select()
+      .from(assessmentQuestionTable)
+      .where(eq(assessmentQuestionTable.assessmentId, assessment.id))
+      .orderBy(asc(assessmentQuestionTable.position));
+
+    const questionsWithData = [];
+    for (const q of questions) {
+      const testCases = await this.db
+        .select()
+        .from(assessmentTestCaseTable)
+        .where(
+          and(
+            eq(assessmentTestCaseTable.questionId, q.id),
+            eq(assessmentTestCaseTable.isHidden, false)
+          )
+        )
+        .orderBy(asc(assessmentTestCaseTable.position));
+
+      const questionSubmission = await this.db
+        .select()
+        .from(questionSubmissionTable)
+        .where(
+          and(
+            eq(questionSubmissionTable.submissionId, submission.id),
+            eq(questionSubmissionTable.questionId, q.id)
+          )
+        )
+        .then((r) => (r.length > 0 ? r[0] : null));
+
+      questionsWithData.push({
+        ...q,
+        testCases,
+        questionSubmission,
+      });
+    }
+
+    return {
+      submission: {
+        id: submission.id,
+        status: submission.status,
+        selectedLanguage: submission.selectedLanguage,
+        startedAt: submission.startedAt,
+        submittedAt: submission.submittedAt,
+        expiresAt: submission.expiresAt,
+      },
+      assessment: {
+        id: assessment.id,
+        title: assessment.title,
+        description: assessment.description,
+        mode: assessment.mode,
+        allowedLanguages: assessment.allowedLanguages,
+        timeLimitSeconds: assessment.timeLimitSeconds,
+        questions: questionsWithData,
+      },
+    };
+  }
+
+  async startAssessment(
+    submissionId: Id<'assessmentSubmission'>,
+    params: StartAssessmentSchema
+  ) {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    if (submission.status !== 'not_started') {
+      throw new HTTPException(400, { message: 'Assessment has already been started' });
+    }
+
+    // Load assessment to get time limit and validate language
+    const assessment = await this.db
+      .select()
+      .from(assessmentTable)
+      .where(eq(assessmentTable.id, submission.assessmentId as Id<'assessment'>))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!assessment) {
+      throw new HTTPException(404, { message: 'Assessment not found' });
+    }
+
+    if (!assessment.allowedLanguages.includes(params.selectedLanguage)) {
+      throw new HTTPException(400, {
+        message: 'Selected language is not allowed for this assessment',
+      });
+    }
+
+    const now = new Date();
+    const startedAt = now.toISOString();
+    const expiresAt = assessment.timeLimitSeconds
+      ? new Date(now.getTime() + assessment.timeLimitSeconds * 1000).toISOString()
+      : null;
+
+    return this.db
+      .update(assessmentSubmissionTable)
+      .set({
+        status: 'in_progress',
+        selectedLanguage: params.selectedLanguage,
+        startedAt,
+        expiresAt,
+        updatedAt: startedAt,
+      })
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .returning()
+      .then((r) => r[0]);
+  }
+
+  async saveCode(submissionId: Id<'assessmentSubmission'>, params: SaveCodeSchema) {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    if (submission.status !== 'in_progress') {
+      throw new HTTPException(400, { message: 'Assessment is not in progress' });
+    }
+
+    const updated = await this.db
+      .update(questionSubmissionTable)
+      .set({
+        code: params.code,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(questionSubmissionTable.submissionId, submissionId),
+          eq(questionSubmissionTable.questionId, params.questionId)
+        )
+      )
+      .returning()
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!updated) {
+      throw new HTTPException(404, { message: 'Question submission not found' });
+    }
+
+    return updated;
+  }
+
+  async checkExpiration(submissionId: Id<'assessmentSubmission'>): Promise<boolean> {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) return false;
+
+    if (
+      submission.status === 'in_progress' &&
+      submission.expiresAt &&
+      new Date(submission.expiresAt) < new Date()
+    ) {
+      await this.db
+        .update(assessmentSubmissionTable)
+        .set({
+          status: 'expired',
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(assessmentSubmissionTable.id, submissionId));
+      return true;
+    }
+
+    return false;
+  }
+
+  async runVisibleTests(
+    submissionId: Id<'assessmentSubmission'>,
+    params: { questionId: Id<'assessmentQuestion'>; code: string }
+  ) {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    if (submission.status !== 'in_progress') {
+      throw new HTTPException(400, { message: 'Assessment is not in progress' });
+    }
+
+    if (!submission.selectedLanguage) {
+      throw new HTTPException(400, { message: 'No language selected' });
+    }
+
+    // Get visible test cases for this question
+    const testCases = await this.db
+      .select()
+      .from(assessmentTestCaseTable)
+      .where(
+        and(
+          eq(assessmentTestCaseTable.questionId, params.questionId),
+          eq(assessmentTestCaseTable.isHidden, false)
+        )
+      )
+      .orderBy(asc(assessmentTestCaseTable.position));
+
+    if (testCases.length === 0) {
+      return { results: [] };
+    }
+
+    const codeRunService = new AssessmentCodeRunService(this.ctx);
+    const results = await codeRunService.runTestCases({
+      submissionId,
+      code: params.code,
+      language: submission.selectedLanguage as AssessmentLanguage,
+      testCases,
+    });
+
+    return { results };
+  }
+
+  async submitAssessment(submissionId: Id<'assessmentSubmission'>) {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    if (submission.status !== 'in_progress') {
+      throw new HTTPException(400, { message: 'Assessment is not in progress' });
+    }
+
+    if (!submission.selectedLanguage) {
+      throw new HTTPException(400, { message: 'No language selected' });
+    }
+
+    // Get all question submissions with their saved code
+    const questionSubmissions = await this.db
+      .select()
+      .from(questionSubmissionTable)
+      .where(eq(questionSubmissionTable.submissionId, submissionId));
+
+    const codeRunService = new AssessmentCodeRunService(this.ctx);
+    let totalPassed = 0;
+    let totalTests = 0;
+
+    for (const qs of questionSubmissions) {
+      // Get ALL test cases (visible + hidden) for this question
+      const testCases = await this.db
+        .select()
+        .from(assessmentTestCaseTable)
+        .where(eq(assessmentTestCaseTable.questionId, qs.questionId))
+        .orderBy(asc(assessmentTestCaseTable.position));
+
+      if (testCases.length === 0) continue;
+
+      // Run code against all test cases
+      const results = await codeRunService.runTestCases({
+        submissionId,
+        code: qs.code,
+        language: submission.selectedLanguage as AssessmentLanguage,
+        testCases,
+      });
+
+      // Store results in testCaseResult table
+      for (const result of results) {
+        await this.db.insert(testCaseResultTable).values({
+          id: generateId('testCaseResult'),
+          createdAt: new Date().toISOString(),
+          questionSubmissionId: qs.id,
+          testCaseId: result.testCaseId,
+          organizationId: submission.organizationId,
+          passed: result.passed,
+          actualOutput: result.actualOutput,
+          stderr: result.stderr,
+          exitCode: result.exitCode,
+          executionTimeMs: result.executionTimeMs,
+        });
+
+        totalTests++;
+        if (result.passed) totalPassed++;
+      }
+    }
+
+    // Update submission status
+    const updated = await this.db
+      .update(assessmentSubmissionTable)
+      .set({
+        status: 'submitted',
+        submittedAt: new Date().toISOString(),
+        totalScore: totalPassed,
+        maxScore: totalTests,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .returning()
+      .then((r) => r[0]);
+
+    return {
+      ...updated,
+      totalPassed,
+      totalTests,
+    };
   }
 }

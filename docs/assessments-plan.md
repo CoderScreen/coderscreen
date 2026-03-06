@@ -91,17 +91,17 @@
 
 ## Phase 4: Candidate-Facing API (take assessment)
 
-- [ ] Create `apps/api/src/routes/assessment/candidateAssessment.routes.ts`
-  - [ ] `GET /assessments/:subId/take?token=xxx` — load assessment (only visible test cases)
-  - [ ] `POST /assessments/:subId/take/start` — set selectedLanguage, startedAt, expiresAt
-  - [ ] `POST /assessments/:subId/take/save` — auto-save code for a question
-- [ ] Add auth exception for `/assessments/:subId/take/*` in `index.ts`
-- [ ] Add candidate-facing Zod schemas (start, save) to `assessment.zod.ts`
-- [ ] Add methods to `AssessmentSubmission.service.ts`
-  - [ ] `getSubmissionByToken` — validate token, return submission
-  - [ ] `startAssessment` — set startedAt, selectedLanguage, compute expiresAt
-  - [ ] `saveCode` — upsert code into questionSubmission
-  - [ ] `checkExpiration` — auto-transition expired submissions
+- [x] Create `apps/api/src/routes/assessment/candidateAssessment.routes.ts`
+  - [x] `GET /assessments/:subId/take?token=xxx` — load assessment (only visible test cases)
+  - [x] `POST /assessments/:subId/take/start` — set selectedLanguage, startedAt, expiresAt
+  - [x] `POST /assessments/:subId/take/save` — auto-save code for a question
+- [x] Add auth exception for `/assessments/:subId/take/*` in `index.ts`
+- [x] Add candidate-facing Zod schemas (start, save) to `assessment.zod.ts`
+- [x] Add methods to `AssessmentSubmission.service.ts`
+  - [x] `getSubmissionByToken` — validate token, return submission
+  - [x] `startAssessment` — set startedAt, selectedLanguage, compute expiresAt
+  - [x] `saveCode` — upsert code into questionSubmission
+  - [x] `checkExpiration` — auto-transition expired submissions
 
 **How to test:** `pnpm build` passes. GET with valid token returns assessment (hidden test cases excluded). Start sets timing fields. Save persists code. Invalid/expired tokens rejected.
 
@@ -109,21 +109,21 @@
 
 ## Phase 5: Code Execution & Submission
 
-- [ ] Create `apps/api/src/services/AssessmentCodeRun.service.ts`
-  - [ ] `runVisibleTests` — run code against visible test cases only
-  - [ ] `runAllTests` — run code against all test cases (including hidden)
-  - [ ] `executeTestCase` — write code to sandbox, pipe stdin, compare stdout
-  - [ ] Sandbox ID: `s_assessment_${submissionId}`
-  - [ ] Stdin approach: write to `/workspace/input.txt`, run `<command> < /workspace/input.txt`
-  - [ ] Compiled languages: compile first using `LANGUAGE_CONFIG`, then run
-- [ ] Add routes to `candidateAssessment.routes.ts`
-  - [ ] `POST /assessments/:subId/take/run` — run visible tests
-  - [ ] `POST /assessments/:subId/take/submit` — run all tests, store results, set submitted
-- [ ] Add `submitAssessment` to `AssessmentSubmission.service.ts`
-  - [ ] Run all test cases (including hidden)
-  - [ ] Store results in `testCaseResult` table
-  - [ ] Auto-grade (count passed tests)
-  - [ ] Set status=submitted, submittedAt
+- [x] Create `apps/api/src/services/AssessmentCodeRun.service.ts`
+  - [x] `runTestCases` — generic runner for any set of test cases
+  - [x] `runVisibleTests` — run code against visible test cases only (in `AssessmentSubmission.service.ts`)
+  - [x] Write code to sandbox via `sandbox.writeFile`, pipe stdin, compare stdout
+  - [x] Sandbox ID: `s_assessment_${submissionId}`
+  - [x] Stdin approach: write to `/workspace/input.txt`, run `<command> < /workspace/input.txt`
+  - [x] Compiled languages: compile first using `LANGUAGE_CONFIG`, then run
+- [x] Add routes to `candidateAssessment.routes.ts`
+  - [x] `POST /assessments/:subId/take/run` — run visible tests
+  - [x] `POST /assessments/:subId/take/submit` — run all tests, store results, set submitted
+- [x] Add `submitAssessment` to `AssessmentSubmission.service.ts`
+  - [x] Run all test cases (including hidden)
+  - [x] Store results in `testCaseResult` table
+  - [x] Auto-grade (count passed tests)
+  - [x] Set status=submitted, submittedAt
 
 **How to test:** Full flow with sandbox running. Create assessment with visible + hidden test cases. Invite candidate, start, run code — see pass/fail for visible only. Submit — all tests run, results stored. Org-side GET shows all results including hidden.
 
