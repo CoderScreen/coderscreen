@@ -14,7 +14,6 @@ import {
   CreateTestCaseSchema,
   GradeSubmissionSchema,
   ReorderQuestionsSchema,
-  SubmissionSchema,
   TestCaseSchema,
   UpdateAssessmentSchema,
   UpdateQuestionSchema,

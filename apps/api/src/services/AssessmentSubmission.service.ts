@@ -1,12 +1,12 @@
 import { generateId, Id } from '@coderscreen/common/id';
-import { assessmentTable, AssessmentLanguage } from '@coderscreen/db/assessment.db';
+import { AssessmentLanguage, assessmentTable } from '@coderscreen/db/assessment.db';
 import { assessmentQuestionTable } from '@coderscreen/db/assessmentQuestion.db';
 import {
-  assessmentSubmissionTable,
   AssessmentSubmissionEntity,
+  assessmentSubmissionTable,
 } from '@coderscreen/db/assessmentSubmission.db';
 import { assessmentTestCaseTable } from '@coderscreen/db/assessmentTestCase.db';
-import { candidateTable, CandidateEntity } from '@coderscreen/db/candidate.db';
+import { CandidateEntity, candidateTable } from '@coderscreen/db/candidate.db';
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { and, asc, desc, eq } from 'drizzle-orm';
@@ -22,7 +22,7 @@ import {
   SaveCodeSchema,
   StartAssessmentSchema,
 } from '@/schema/assessment.zod';
-import { AssessmentCodeRunService, TestCaseRunResult } from '@/services/AssessmentCodeRun.service';
+import { AssessmentCodeRunService } from '@/services/AssessmentCodeRun.service';
 
 export class AssessmentSubmissionService {
   private readonly db: PostgresJsDatabase;
@@ -143,7 +143,9 @@ export class AssessmentSubmissionService {
     }
 
     if (assessment.status !== 'active') {
-      throw new HTTPException(400, { message: 'Assessment must be published before inviting candidates' });
+      throw new HTTPException(400, {
+        message: 'Assessment must be published before inviting candidates',
+      });
     }
 
     // Create submission
@@ -390,10 +392,7 @@ export class AssessmentSubmissionService {
     };
   }
 
-  async startAssessment(
-    submissionId: Id<'assessmentSubmission'>,
-    params: StartAssessmentSchema
-  ) {
+  async startAssessment(submissionId: Id<'assessmentSubmission'>, params: StartAssessmentSchema) {
     const submission = await this.db
       .select()
       .from(assessmentSubmissionTable)

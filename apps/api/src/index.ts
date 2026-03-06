@@ -19,8 +19,8 @@ import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
 import { auth } from '../better-auth.config';
 import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
-import { assessmentRouter, candidateRouter } from './routes/assessment.routes';
 import { candidateAssessmentRouter } from './routes/assessment/candidateAssessment.routes';
+import { assessmentRouter, candidateRouter } from './routes/assessment.routes';
 import { assetRouter } from './routes/asset.routes';
 import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { roomRouter } from './routes/room.routes';
@@ -76,7 +76,13 @@ const app = new Hono<AppContext>()
   .use(
     '*',
     except(
-      ['/webhook/*', '/rooms/:roomId/public/*', '/assessments/:subId/take', '/assessments/:subId/take/*', '/openapi'],
+      [
+        '/webhook/*',
+        '/rooms/:roomId/public/*',
+        '/assessments/:subId/take',
+        '/assessments/:subId/take/*',
+        '/openapi',
+      ],
       authMiddleware
     )
   )

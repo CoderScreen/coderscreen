@@ -82,10 +82,9 @@ export class AssessmentCodeRunService {
 
       const start = Date.now();
       try {
-        const result = await sandbox.exec(
-          `${config.runCommand(runTarget)} < ${inputPath}`,
-          { timeout: EXECUTION_TIMEOUT_MS }
-        );
+        const result = await sandbox.exec(`${config.runCommand(runTarget)} < ${inputPath}`, {
+          timeout: EXECUTION_TIMEOUT_MS,
+        });
         const executionTimeMs = Date.now() - start;
 
         const actualOutput = result.stdout.trim();

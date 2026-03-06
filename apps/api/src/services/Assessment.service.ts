@@ -1,5 +1,5 @@
 import { generateId, Id } from '@coderscreen/common/id';
-import { AssessmentEntity, assessmentTable } from '@coderscreen/db/assessment.db';
+import { assessmentTable } from '@coderscreen/db/assessment.db';
 import {
   AssessmentQuestionEntity,
   assessmentQuestionTable,
