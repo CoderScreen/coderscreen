@@ -3,18 +3,10 @@ interface Env {
 }
 
 export default {
-  async fetch() {
-    return new Response('Not found', { status: 404 });
-    // console.log('fetch', env);
-    // try {
-    //   // First try to serve the exact requested path
-    //   const requestUrl = new URL(request.url);
-    //   let response = await env.ASSETS.fetch(requestUrl, request);
-
-    //   return response;
-    // } catch (error) {
-    //   console.error('Error serving static content:', error);
-    //   return new Response('Error serving content', { status: 500 });
-    // }
+  async fetch(request: Request, env: Env) {
+    // Serve static assets through the ASSETS binding
+    // The not_found_handling: "single-page-application" in wrangler.jsonc
+    // ensures that non-file paths return index.html for client-side routing
+    return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;

@@ -11,6 +11,9 @@ export const metadata = {
   alternates: {
     canonical: 'https://coderscreen.com/blog',
   },
+  openGraph: {
+    url: 'https://coderscreen.com/blog',
+  },
 };
 
 export default function BlogPage() {
