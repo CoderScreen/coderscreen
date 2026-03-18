@@ -59,7 +59,6 @@ const MAIN_NAVIGATION: {
     titleKey: 'Assessments',
     href: siteConfig.routes.assessments,
     icon: RiListCheck3,
-    comingSoon: true,
   },
   {
     titleKey: 'Take-Homes',
@@ -77,7 +76,6 @@ const MAIN_NAVIGATION: {
     titleKey: 'Candidates',
     href: siteConfig.routes.candidates,
     icon: RiUserStarLine,
-    comingSoon: true,
   },
   {
     titleKey: 'Settings',

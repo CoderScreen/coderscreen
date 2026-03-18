@@ -1,4 +1,5 @@
 import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { Agentation } from 'agentation';
 import { StrictMode, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -54,6 +55,7 @@ function App() {
   return (
     <AuthProvider>
       <InnerApp />
+      {process.env.NODE_ENV === 'development' && <Agentation endpoint='http://localhost:4747' />}
     </AuthProvider>
   );
 }

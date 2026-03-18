@@ -42,7 +42,7 @@ export const idString = <T extends keyof Entities>(
     .transform((id: string) => id as Id<T>);
 };
 
-const idGen = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 32);
+const idGen = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 16);
 export const generateId = <T extends keyof Entities>(entity: T): Id<T> => {
   return `${Entities[entity]}_${idGen()}` as Id<T>;
 };

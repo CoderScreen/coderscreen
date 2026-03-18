@@ -16,7 +16,8 @@
     "cf-deploy": "wrangler deploy",
     "cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'",
     "build:staging": "vite build --mode staging && tsc",
-    "cf-deploy:staging": "pnpm build:staging && wrangler deploy --env staging"
+    "cf-deploy:staging": "pnpm build:staging && wrangler deploy --env staging",
+    "agentation": "npx agentation-mcp server"
   },
   "dependencies": {
     "@cloudflare/sandbox": "^0.7.4",
@@ -85,6 +86,7 @@
     "@tldraw/sync": "^3.14.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
+    "agentation": "^2.3.3",
     "better-auth": "^1.2.10",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
