@@ -19,3 +19,13 @@ export const useCurrentAssessmentId = (): string => {
 
   return params.assessmentId;
 };
+
+export const useCurrentSubId = (): string => {
+  const params = useParams({ strict: false });
+
+  if (!params.subId) {
+    throw new Error('useCurrentSubId must be used within a route that has a subId param');
+  }
+
+  return params.subId;
+};

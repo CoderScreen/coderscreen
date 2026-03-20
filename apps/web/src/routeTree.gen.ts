@@ -13,6 +13,7 @@ import { Route as OrganizationsRouteImport } from './routes/organizations'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as TakeSubIdRouteImport } from './routes/take/$subId'
 import { Route as AcceptInvitationInvIdRouteImport } from './routes/accept-invitation/$invId'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
@@ -21,13 +22,20 @@ import { Route as authRegisterRouteImport } from './routes/(auth)/register'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as RoomRoomIdIndexRouteImport } from './routes/room/$roomId/index'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
+import { Route as AppQuestionsIndexRouteImport } from './routes/_app/questions/index'
 import { Route as AppAssessmentsIndexRouteImport } from './routes/_app/assessments/index'
 import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary'
 import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
 import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing'
+import { Route as AppQuestionsNewRouteImport } from './routes/_app/questions/new'
 import { Route as AppAssessmentsAssessmentIdRouteImport } from './routes/_app/assessments/$assessmentId'
-import { Route as AppAssessmentsAssessmentIdQuestionsNewRouteImport } from './routes/_app/assessments/$assessmentId.questions.new'
-import { Route as AppAssessmentsAssessmentIdQuestionsQuestionIdEditRouteImport } from './routes/_app/assessments/$assessmentId.questions.$questionId.edit'
+import { Route as AppAssessmentsAssessmentIdIndexRouteImport } from './routes/_app/assessments/$assessmentId/index'
+import { Route as AppQuestionsQuestionIdEditRouteImport } from './routes/_app/questions/$questionId.edit'
+import { Route as AppAssessmentsAssessmentIdSettingsRouteImport } from './routes/_app/assessments/$assessmentId/settings'
+import { Route as AppAssessmentsAssessmentIdSubmissionsIndexRouteImport } from './routes/_app/assessments/$assessmentId/submissions.index'
+import { Route as AppAssessmentsAssessmentIdQuestionsIndexRouteImport } from './routes/_app/assessments/$assessmentId/questions.index'
+import { Route as AppAssessmentsAssessmentIdQuestionsNewRouteImport } from './routes/_app/assessments/$assessmentId/questions.new'
+import { Route as AppAssessmentsAssessmentIdQuestionsQuestionIdEditRouteImport } from './routes/_app/assessments/$assessmentId/questions.$questionId.edit'
 
 const OrganizationsRoute = OrganizationsRouteImport.update({
   id: '/organizations',
@@ -47,6 +55,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const TakeSubIdRoute = TakeSubIdRouteImport.update({
+  id: '/take/$subId',
+  path: '/take/$subId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AcceptInvitationInvIdRoute = AcceptInvitationInvIdRouteImport.update({
   id: '/accept-invitation/$invId',
@@ -88,6 +101,11 @@ const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   path: '/settings/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppQuestionsIndexRoute = AppQuestionsIndexRouteImport.update({
+  id: '/questions/',
+  path: '/questions/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssessmentsIndexRoute = AppAssessmentsIndexRouteImport.update({
   id: '/assessments/',
   path: '/assessments/',
@@ -108,11 +126,46 @@ const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
   path: '/settings/billing',
   getParentRoute: () => AppRoute,
 } as any)
+const AppQuestionsNewRoute = AppQuestionsNewRouteImport.update({
+  id: '/questions/new',
+  path: '/questions/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssessmentsAssessmentIdRoute =
   AppAssessmentsAssessmentIdRouteImport.update({
     id: '/assessments/$assessmentId',
     path: '/assessments/$assessmentId',
     getParentRoute: () => AppRoute,
+  } as any)
+const AppAssessmentsAssessmentIdIndexRoute =
+  AppAssessmentsAssessmentIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAssessmentsAssessmentIdRoute,
+  } as any)
+const AppQuestionsQuestionIdEditRoute =
+  AppQuestionsQuestionIdEditRouteImport.update({
+    id: '/questions/$questionId/edit',
+    path: '/questions/$questionId/edit',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAssessmentsAssessmentIdSettingsRoute =
+  AppAssessmentsAssessmentIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AppAssessmentsAssessmentIdRoute,
+  } as any)
+const AppAssessmentsAssessmentIdSubmissionsIndexRoute =
+  AppAssessmentsAssessmentIdSubmissionsIndexRouteImport.update({
+    id: '/submissions/',
+    path: '/submissions/',
+    getParentRoute: () => AppAssessmentsAssessmentIdRoute,
+  } as any)
+const AppAssessmentsAssessmentIdQuestionsIndexRoute =
+  AppAssessmentsAssessmentIdQuestionsIndexRouteImport.update({
+    id: '/questions/',
+    path: '/questions/',
+    getParentRoute: () => AppAssessmentsAssessmentIdRoute,
   } as any)
 const AppAssessmentsAssessmentIdQuestionsNewRoute =
   AppAssessmentsAssessmentIdQuestionsNewRouteImport.update({
@@ -136,15 +189,23 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
+  '/take/$subId': typeof TakeSubIdRoute
   '/': typeof AppIndexRoute
   '/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdRouteWithChildren
+  '/questions/new': typeof AppQuestionsNewRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
   '/assessments': typeof AppAssessmentsIndexRoute
+  '/questions': typeof AppQuestionsIndexRoute
   '/settings': typeof AppSettingsIndexRoute
   '/room/$roomId': typeof RoomRoomIdIndexRoute
+  '/assessments/$assessmentId/settings': typeof AppAssessmentsAssessmentIdSettingsRoute
+  '/questions/$questionId/edit': typeof AppQuestionsQuestionIdEditRoute
+  '/assessments/$assessmentId/': typeof AppAssessmentsAssessmentIdIndexRoute
   '/assessments/$assessmentId/questions/new': typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  '/assessments/$assessmentId/questions': typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
+  '/assessments/$assessmentId/submissions': typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   '/assessments/$assessmentId/questions/$questionId/edit': typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -156,15 +217,22 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
+  '/take/$subId': typeof TakeSubIdRoute
   '/': typeof AppIndexRoute
-  '/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdRouteWithChildren
+  '/questions/new': typeof AppQuestionsNewRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
   '/assessments': typeof AppAssessmentsIndexRoute
+  '/questions': typeof AppQuestionsIndexRoute
   '/settings': typeof AppSettingsIndexRoute
   '/room/$roomId': typeof RoomRoomIdIndexRoute
+  '/assessments/$assessmentId/settings': typeof AppAssessmentsAssessmentIdSettingsRoute
+  '/questions/$questionId/edit': typeof AppQuestionsQuestionIdEditRoute
+  '/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdIndexRoute
   '/assessments/$assessmentId/questions/new': typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  '/assessments/$assessmentId/questions': typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
+  '/assessments/$assessmentId/submissions': typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   '/assessments/$assessmentId/questions/$questionId/edit': typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
 }
 export interface FileRoutesById {
@@ -178,15 +246,23 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
+  '/take/$subId': typeof TakeSubIdRoute
   '/_app/': typeof AppIndexRoute
   '/_app/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdRouteWithChildren
+  '/_app/questions/new': typeof AppQuestionsNewRoute
   '/_app/settings/billing': typeof AppSettingsBillingRoute
   '/_app/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
   '/_app/assessments/': typeof AppAssessmentsIndexRoute
+  '/_app/questions/': typeof AppQuestionsIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/room/$roomId/': typeof RoomRoomIdIndexRoute
+  '/_app/assessments/$assessmentId/settings': typeof AppAssessmentsAssessmentIdSettingsRoute
+  '/_app/questions/$questionId/edit': typeof AppQuestionsQuestionIdEditRoute
+  '/_app/assessments/$assessmentId/': typeof AppAssessmentsAssessmentIdIndexRoute
   '/_app/assessments/$assessmentId/questions/new': typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  '/_app/assessments/$assessmentId/questions/': typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
+  '/_app/assessments/$assessmentId/submissions/': typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   '/_app/assessments/$assessmentId/questions/$questionId/edit': typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
 }
 export interface FileRouteTypes {
@@ -200,15 +276,23 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rooms'
     | '/accept-invitation/$invId'
+    | '/take/$subId'
     | '/'
     | '/assessments/$assessmentId'
+    | '/questions/new'
     | '/settings/billing'
     | '/settings/team'
     | '/room/$roomId/summary'
     | '/assessments'
+    | '/questions'
     | '/settings'
     | '/room/$roomId'
+    | '/assessments/$assessmentId/settings'
+    | '/questions/$questionId/edit'
+    | '/assessments/$assessmentId/'
     | '/assessments/$assessmentId/questions/new'
+    | '/assessments/$assessmentId/questions'
+    | '/assessments/$assessmentId/submissions'
     | '/assessments/$assessmentId/questions/$questionId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -220,15 +304,22 @@ export interface FileRouteTypes {
     | '/profile'
     | '/rooms'
     | '/accept-invitation/$invId'
+    | '/take/$subId'
     | '/'
-    | '/assessments/$assessmentId'
+    | '/questions/new'
     | '/settings/billing'
     | '/settings/team'
     | '/room/$roomId/summary'
     | '/assessments'
+    | '/questions'
     | '/settings'
     | '/room/$roomId'
+    | '/assessments/$assessmentId/settings'
+    | '/questions/$questionId/edit'
+    | '/assessments/$assessmentId'
     | '/assessments/$assessmentId/questions/new'
+    | '/assessments/$assessmentId/questions'
+    | '/assessments/$assessmentId/submissions'
     | '/assessments/$assessmentId/questions/$questionId/edit'
   id:
     | '__root__'
@@ -241,15 +332,23 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/rooms'
     | '/accept-invitation/$invId'
+    | '/take/$subId'
     | '/_app/'
     | '/_app/assessments/$assessmentId'
+    | '/_app/questions/new'
     | '/_app/settings/billing'
     | '/_app/settings/team'
     | '/room/$roomId/summary'
     | '/_app/assessments/'
+    | '/_app/questions/'
     | '/_app/settings/'
     | '/room/$roomId/'
+    | '/_app/assessments/$assessmentId/settings'
+    | '/_app/questions/$questionId/edit'
+    | '/_app/assessments/$assessmentId/'
     | '/_app/assessments/$assessmentId/questions/new'
+    | '/_app/assessments/$assessmentId/questions/'
+    | '/_app/assessments/$assessmentId/submissions/'
     | '/_app/assessments/$assessmentId/questions/$questionId/edit'
   fileRoutesById: FileRoutesById
 }
@@ -260,6 +359,7 @@ export interface RootRouteChildren {
   authLoginRoute: typeof authLoginRoute
   authRegisterRoute: typeof authRegisterRoute
   AcceptInvitationInvIdRoute: typeof AcceptInvitationInvIdRoute
+  TakeSubIdRoute: typeof TakeSubIdRoute
   RoomRoomIdSummaryRoute: typeof RoomRoomIdSummaryRoute
   RoomRoomIdIndexRoute: typeof RoomRoomIdIndexRoute
 }
@@ -293,6 +393,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/take/$subId': {
+      id: '/take/$subId'
+      path: '/take/$subId'
+      fullPath: '/take/$subId'
+      preLoaderRoute: typeof TakeSubIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/accept-invitation/$invId': {
       id: '/accept-invitation/$invId'
@@ -350,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/questions/': {
+      id: '/_app/questions/'
+      path: '/questions'
+      fullPath: '/questions'
+      preLoaderRoute: typeof AppQuestionsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessments/': {
       id: '/_app/assessments/'
       path: '/assessments'
@@ -378,12 +492,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBillingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/questions/new': {
+      id: '/_app/questions/new'
+      path: '/questions/new'
+      fullPath: '/questions/new'
+      preLoaderRoute: typeof AppQuestionsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assessments/$assessmentId': {
       id: '/_app/assessments/$assessmentId'
       path: '/assessments/$assessmentId'
       fullPath: '/assessments/$assessmentId'
       preLoaderRoute: typeof AppAssessmentsAssessmentIdRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/assessments/$assessmentId/': {
+      id: '/_app/assessments/$assessmentId/'
+      path: '/'
+      fullPath: '/assessments/$assessmentId/'
+      preLoaderRoute: typeof AppAssessmentsAssessmentIdIndexRouteImport
+      parentRoute: typeof AppAssessmentsAssessmentIdRoute
+    }
+    '/_app/questions/$questionId/edit': {
+      id: '/_app/questions/$questionId/edit'
+      path: '/questions/$questionId/edit'
+      fullPath: '/questions/$questionId/edit'
+      preLoaderRoute: typeof AppQuestionsQuestionIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessments/$assessmentId/settings': {
+      id: '/_app/assessments/$assessmentId/settings'
+      path: '/settings'
+      fullPath: '/assessments/$assessmentId/settings'
+      preLoaderRoute: typeof AppAssessmentsAssessmentIdSettingsRouteImport
+      parentRoute: typeof AppAssessmentsAssessmentIdRoute
+    }
+    '/_app/assessments/$assessmentId/submissions/': {
+      id: '/_app/assessments/$assessmentId/submissions/'
+      path: '/submissions'
+      fullPath: '/assessments/$assessmentId/submissions'
+      preLoaderRoute: typeof AppAssessmentsAssessmentIdSubmissionsIndexRouteImport
+      parentRoute: typeof AppAssessmentsAssessmentIdRoute
+    }
+    '/_app/assessments/$assessmentId/questions/': {
+      id: '/_app/assessments/$assessmentId/questions/'
+      path: '/questions'
+      fullPath: '/assessments/$assessmentId/questions'
+      preLoaderRoute: typeof AppAssessmentsAssessmentIdQuestionsIndexRouteImport
+      parentRoute: typeof AppAssessmentsAssessmentIdRoute
     }
     '/_app/assessments/$assessmentId/questions/new': {
       id: '/_app/assessments/$assessmentId/questions/new'
@@ -403,14 +559,25 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppAssessmentsAssessmentIdRouteChildren {
+  AppAssessmentsAssessmentIdSettingsRoute: typeof AppAssessmentsAssessmentIdSettingsRoute
+  AppAssessmentsAssessmentIdIndexRoute: typeof AppAssessmentsAssessmentIdIndexRoute
   AppAssessmentsAssessmentIdQuestionsNewRoute: typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  AppAssessmentsAssessmentIdQuestionsIndexRoute: typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
+  AppAssessmentsAssessmentIdSubmissionsIndexRoute: typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute: typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
 }
 
 const AppAssessmentsAssessmentIdRouteChildren: AppAssessmentsAssessmentIdRouteChildren =
   {
+    AppAssessmentsAssessmentIdSettingsRoute:
+      AppAssessmentsAssessmentIdSettingsRoute,
+    AppAssessmentsAssessmentIdIndexRoute: AppAssessmentsAssessmentIdIndexRoute,
     AppAssessmentsAssessmentIdQuestionsNewRoute:
       AppAssessmentsAssessmentIdQuestionsNewRoute,
+    AppAssessmentsAssessmentIdQuestionsIndexRoute:
+      AppAssessmentsAssessmentIdQuestionsIndexRoute,
+    AppAssessmentsAssessmentIdSubmissionsIndexRoute:
+      AppAssessmentsAssessmentIdSubmissionsIndexRoute,
     AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute:
       AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute,
   }
@@ -426,10 +593,13 @@ interface AppRouteChildren {
   AppRoomsRoute: typeof AppRoomsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppAssessmentsAssessmentIdRoute: typeof AppAssessmentsAssessmentIdRouteWithChildren
+  AppQuestionsNewRoute: typeof AppQuestionsNewRoute
   AppSettingsBillingRoute: typeof AppSettingsBillingRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppAssessmentsIndexRoute: typeof AppAssessmentsIndexRoute
+  AppQuestionsIndexRoute: typeof AppQuestionsIndexRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
+  AppQuestionsQuestionIdEditRoute: typeof AppQuestionsQuestionIdEditRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -438,10 +608,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppRoomsRoute: AppRoomsRoute,
   AppIndexRoute: AppIndexRoute,
   AppAssessmentsAssessmentIdRoute: AppAssessmentsAssessmentIdRouteWithChildren,
+  AppQuestionsNewRoute: AppQuestionsNewRoute,
   AppSettingsBillingRoute: AppSettingsBillingRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppAssessmentsIndexRoute: AppAssessmentsIndexRoute,
+  AppQuestionsIndexRoute: AppQuestionsIndexRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
+  AppQuestionsQuestionIdEditRoute: AppQuestionsQuestionIdEditRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -453,6 +626,7 @@ const rootRouteChildren: RootRouteChildren = {
   authLoginRoute: authLoginRoute,
   authRegisterRoute: authRegisterRoute,
   AcceptInvitationInvIdRoute: AcceptInvitationInvIdRoute,
+  TakeSubIdRoute: TakeSubIdRoute,
   RoomRoomIdSummaryRoute: RoomRoomIdSummaryRoute,
   RoomRoomIdIndexRoute: RoomRoomIdIndexRoute,
 }

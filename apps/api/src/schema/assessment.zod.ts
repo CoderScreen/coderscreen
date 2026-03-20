@@ -55,11 +55,13 @@ export const AssessmentQuestionSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   assessmentId: idString('assessment'),
+  questionId: idString('questionLibrary'),
+  position: z.number().int().min(0),
+  // Flattened from library question
   title: z.string().min(1).max(200),
   description: z.record(z.any()),
-  position: z.number().int().min(0),
-  timeLimitSeconds: z.number().int().positive().nullable(),
   starterCode: z.string(),
+  timeLimitSeconds: z.number().int().positive().nullable(),
 });
 
 export const CreateQuestionSchema = z.object({
@@ -90,10 +92,10 @@ export const ReorderQuestionsSchema = z.object({
 // === Test Case ===
 
 export const TestCaseSchema = z.object({
-  id: idString('assessmentTestCase'),
+  id: idString('questionLibraryTestCase'),
   createdAt: z.string(),
   updatedAt: z.string(),
-  questionId: idString('assessmentQuestion'),
+  questionId: idString('questionLibrary'),
   label: z.string(),
   input: z.string(),
   expectedOutput: z.string(),
@@ -181,6 +183,7 @@ export const GradeSubmissionSchema = z.object({
 
 export const StartAssessmentSchema = z.object({
   selectedLanguage: AssessmentLanguageSchema,
+  enteredName: z.string().min(1),
 });
 
 export const SaveCodeSchema = z.object({
@@ -192,6 +195,15 @@ export const RunTestsSchema = z.object({
   questionId: idString('assessmentQuestion'),
   code: z.string(),
 });
+
+// === Link Existing Library Question ===
+
+export const LinkQuestionSchema = z.object({
+  libraryQuestionId: idString('questionLibrary'),
+  position: z.number().int().min(0),
+});
+
+export type LinkQuestionSchema = z.infer<typeof LinkQuestionSchema>;
 
 // === Types ===
 

@@ -13,7 +13,7 @@ export function AssessmentListHeader() {
       <div className='flex items-center justify-between py-4'>
         <div className='flex flex-col'>
           <SmallHeader>Assessments</SmallHeader>
-          <MutedText>Manage your coding assessments</MutedText>
+          <MutedText>Send take-home coding challenges to candidates</MutedText>
         </div>
 
         <div className='flex items-center gap-2'>

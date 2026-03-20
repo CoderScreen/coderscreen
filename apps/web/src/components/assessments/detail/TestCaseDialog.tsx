@@ -6,13 +6,12 @@ import { Label } from '@coderscreen/ui/label';
 import { Textarea } from '@coderscreen/ui/textarea';
 import { RiArrowRightLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
-import { useCreateTestCase, useUpdateTestCase } from '@/query/assessment.query';
+import type { TestCaseCallbacks } from './TestCasesList';
 
 interface TestCaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  assessmentId: string;
-  questionId: string;
+  callbacks: TestCaseCallbacks;
   mode: 'create' | 'edit';
   testCase?: {
     id: string;
@@ -28,15 +27,12 @@ interface TestCaseDialogProps {
 export const TestCaseDialog = ({
   open,
   onOpenChange,
-  assessmentId,
-  questionId,
+  callbacks,
   mode,
   testCase,
   nextPosition = 0,
 }: TestCaseDialogProps) => {
-  const { createTestCase, isLoading: isCreating } = useCreateTestCase(assessmentId, questionId);
-  const { updateTestCase, isLoading: isUpdating } = useUpdateTestCase(assessmentId, questionId);
-  const isLoading = isCreating || isUpdating;
+  const isLoading = (callbacks.isCreating || callbacks.isUpdating) ?? false;
 
   const form = useForm({
     defaultValues: {
@@ -47,7 +43,7 @@ export const TestCaseDialog = ({
     },
     onSubmit: async ({ value }) => {
       if (mode === 'create') {
-        await createTestCase({
+        await callbacks.createTestCase({
           label: value.label,
           input: value.input,
           expectedOutput: value.expectedOutput,
@@ -55,7 +51,7 @@ export const TestCaseDialog = ({
           position: nextPosition,
         });
       } else if (testCase) {
-        await updateTestCase({
+        await callbacks.updateTestCase({
           testCaseId: testCase.id,
           data: {
             label: value.label,
@@ -88,7 +84,10 @@ export const TestCaseDialog = ({
           <form.Field name='label'>
             {(field) => (
               <div>
-                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor={field.name}
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Label
                 </Label>
                 <Input
@@ -114,7 +113,10 @@ export const TestCaseDialog = ({
           >
             {(field) => (
               <div>
-                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor={field.name}
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Input (stdin)
                 </Label>
                 <Textarea
@@ -146,7 +148,10 @@ export const TestCaseDialog = ({
           >
             {(field) => (
               <div>
-                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor={field.name}
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Expected Output (stdout)
                 </Label>
                 <Textarea
@@ -169,14 +174,12 @@ export const TestCaseDialog = ({
           {/* Is Hidden */}
           <form.Field name='isHidden'>
             {(field) => (
-              <label className='flex items-center gap-2 cursor-pointer'>
+              <label htmlFor={field.name} className='flex items-center gap-2 cursor-pointer'>
                 <Checkbox
                   checked={field.state.value}
                   onCheckedChange={(checked) => field.handleChange(!!checked)}
                 />
-                <span className='text-sm'>
-                  Hidden test case (only revealed after submission)
-                </span>
+                <span className='text-sm'>Hidden (not shown to candidates)</span>
               </label>
             )}
           </form.Field>

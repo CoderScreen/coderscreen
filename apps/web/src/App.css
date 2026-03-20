@@ -3,6 +3,11 @@
 /* Tell Tailwind to scan the UI package for classes when building */
 @source '../../../packages/ui/src/**/*.{ts,tsx}';
 
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
 /** TIPTAP */
 .ProseMirror:focus {
   outline: none;

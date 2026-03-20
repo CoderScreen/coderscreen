@@ -1,6 +1,5 @@
 import type { AssessmentSchema } from '@coderscreen/api/schema/assessment';
 import { Button } from '@coderscreen/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@coderscreen/ui/dialog';
 import { Input } from '@coderscreen/ui/input';
 import { Label } from '@coderscreen/ui/label';
 import {
@@ -10,11 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@coderscreen/ui/select';
-import { Textarea } from '@coderscreen/ui/textarea';
 import { RiDeleteBinLine, RiSaveLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
 import { useDeleteAssessment, useUpdateAssessment } from '@/query/assessment.query';
 import { ASSESSMENT_LANGUAGES } from '@/lib/languages';
 import { LanguageSelector } from '@/components/common/LanguageSelector';
@@ -39,13 +38,13 @@ interface AssessmentSettingsTabProps {
 
 export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps) => {
   const { updateAssessment, isLoading } = useUpdateAssessment();
+  const { deleteAssessment, isLoading: isDeleting } = useDeleteAssessment();
+  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const form = useForm({
     defaultValues: {
       title: assessment.title,
-      description: assessment.description,
-      mode: assessment.mode,
       allowedLanguages: assessment.allowedLanguages as string[],
       timeLimitPreset: timeLimitToPreset(assessment.timeLimitSeconds),
       customMinutes: timeLimitToCustomMinutes(assessment.timeLimitSeconds),
@@ -62,8 +61,6 @@ export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps
         id: assessment.id,
         data: {
           title: value.title,
-          description: value.description,
-          mode: value.mode as 'sequential' | 'independent',
           allowedLanguages: value.allowedLanguages as (typeof ASSESSMENT_LANGUAGES)[number][],
           timeLimitSeconds,
         },
@@ -110,49 +107,7 @@ export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps
           )}
         </form.Field>
 
-        {/* Description */}
-        <form.Field name='description'>
-          {(field) => (
-            <div>
-              <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
-                Description
-              </Label>
-              <Textarea
-                id={field.name}
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                placeholder='Describe the assessment...'
-                rows={3}
-              />
-            </div>
-          )}
-        </form.Field>
 
-        {/* Mode */}
-        <form.Field name='mode'>
-          {(field) => (
-            <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>Mode</Label>
-              <Select
-                value={field.state.value}
-                onValueChange={(val) => field.handleChange(val as 'sequential' | 'independent')}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='independent'>
-                    Independent — Questions accessible in any order
-                  </SelectItem>
-                  <SelectItem value='sequential'>
-                    Sequential — Questions locked in order
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </form.Field>
 
         {/* Time Limit */}
         <form.Field name='timeLimitPreset'>
@@ -233,9 +188,13 @@ export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps
           )}
         </form.Field>
 
-        <Button type='submit' isLoading={isLoading} icon={RiSaveLine}>
-          Save Changes
-        </Button>
+        <form.Subscribe selector={(state) => state.isDirty}>
+          {(isDirty) => (
+            <Button type='submit' isLoading={isLoading} icon={RiSaveLine} disabled={!isDirty}>
+              Save Changes
+            </Button>
+          )}
+        </form.Subscribe>
       </form>
 
       {/* Danger Zone */}
@@ -253,52 +212,18 @@ export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps
         </Button>
       </div>
 
-      <DeleteAssessmentDialog
-        assessmentId={assessment.id}
+      <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+        onConfirm={async () => {
+          await deleteAssessment(assessment.id);
+          setDeleteDialogOpen(false);
+          router.navigate({ to: '/assessments' });
+        }}
+        title='Delete Assessment'
+        description='Are you sure you want to delete this assessment? This action cannot be undone. All questions, test cases, and submissions will be permanently removed.'
+        isLoading={isDeleting}
       />
     </div>
-  );
-};
-
-const DeleteAssessmentDialog = ({
-  assessmentId,
-  open,
-  onOpenChange,
-}: {
-  assessmentId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) => {
-  const { deleteAssessment, isLoading } = useDeleteAssessment();
-  const router = useRouter();
-
-  const handleDelete = async () => {
-    await deleteAssessment(assessmentId);
-    onOpenChange(false);
-    router.navigate({ to: '/assessments' });
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader>
-          <DialogTitle>Delete Assessment</DialogTitle>
-        </DialogHeader>
-        <p className='text-sm text-gray-500'>
-          Are you sure you want to delete this assessment? This action cannot be undone. All
-          questions, test cases, and submissions will be permanently removed.
-        </p>
-        <div className='flex justify-end gap-3 pt-4'>
-          <Button variant='secondary' onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant='destructive' onClick={handleDelete} isLoading={isLoading}>
-            Delete
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };

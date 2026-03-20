@@ -23,14 +23,15 @@ import { Tooltip } from '@coderscreen/ui/tooltip';
 import { MutedText } from '@coderscreen/ui/typography';
 import {
   RiAddLine,
-  RiCornerDownRightLine,
   RiDeleteBinLine,
   RiListCheck3,
   RiMore2Line,
 } from '@remixicon/react';
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
+import { Pagination } from '@/components/common/Pagination';
 import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
 import { useAssessments, useDeleteAssessment } from '@/query/assessment.query';
 import { CreateAssessmentDialog } from './CreateAssessmentDialog';
@@ -50,25 +51,22 @@ const StatusBadge = ({ status }: { status: AssessmentSchema['status'] }) => {
 
 const RowActions = ({ assessment }: { assessment: AssessmentSchema }) => {
   const { deleteAssessment } = useDeleteAssessment();
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const handleDelete = async () => {
     await deleteAssessment(assessment.id);
+    setDeleteOpen(false);
   };
 
   return (
-    <div className='flex items-center gap-2'>
-      <Link to='/assessments/$assessmentId' params={{ assessmentId: assessment.id }}>
-        <Button variant='secondary' icon={RiCornerDownRightLine} iconPosition='right'>
-          View
-        </Button>
-      </Link>
+    <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant='icon' icon={RiMore2Line} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuItem
-            onClick={handleDelete}
+            onClick={() => setDeleteOpen(true)}
             className='text-red-600 focus:text-red-600 focus:bg-red-50'
           >
             <DropdownMenuIconWrapper className='text-red-600'>
@@ -78,15 +76,25 @@ const RowActions = ({ assessment }: { assessment: AssessmentSchema }) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDelete}
+        title='Delete Assessment'
+        description='Are you sure you want to delete this assessment? This action cannot be undone.'
+      />
     </div>
   );
 };
 
 export function AssessmentTable() {
-  const { assessments, isLoading } = useAssessments();
-  const noAssessments = assessments?.length === 0;
+  const [page, setPage] = useState(1);
+  const { assessments, pagination, isLoading } = useAssessments(page);
+  const navigate = useNavigate();
+  const noAssessments = assessments?.length === 0 && page === 1;
 
   return (
+    <>
     <TableRoot>
       <Table>
         <TableHead>
@@ -103,7 +111,16 @@ export function AssessmentTable() {
             <EmptyTable noAssessments={!!noAssessments} />
           ) : (
             assessments.map((assessment) => (
-              <TableRow key={assessment.id} className='group'>
+              <TableRow
+                key={assessment.id}
+                className='group cursor-pointer hover:bg-gray-50'
+                onClick={() =>
+                  navigate({
+                    to: '/assessments/$assessmentId',
+                    params: { assessmentId: assessment.id },
+                  })
+                }
+              >
                 <TableCell>{assessment.title}</TableCell>
                 <TableCell>
                   <StatusBadge status={assessment.status} />
@@ -120,6 +137,10 @@ export function AssessmentTable() {
         </TableBody>
       </Table>
     </TableRoot>
+    {pagination && (
+      <Pagination page={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />
+    )}
+    </>
   );
 }
 

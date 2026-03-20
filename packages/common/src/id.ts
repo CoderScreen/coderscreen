@@ -16,10 +16,12 @@ export const Entities = {
   candidate: 'cand',
   assessment: 'as',
   assessmentQuestion: 'aq',
-  assessmentTestCase: 'atc',
+
   assessmentSubmission: 'asub',
   questionSubmission: 'qs',
   testCaseResult: 'tcr',
+  questionLibrary: 'ql',
+  questionLibraryTestCase: 'qltc',
 } as const;
 
 type Entities = typeof Entities;

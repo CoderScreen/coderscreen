@@ -4,6 +4,7 @@ export const siteConfig = {
     rooms: '/rooms',
     room: (id: string) => `/rooms/${id}`,
     assessments: '/assessments',
+    questions: '/questions',
     takeHomes: '/take-homes',
     candidates: '/candidates',
     settings: '/settings',

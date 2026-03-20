@@ -1,4 +1,11 @@
 import { Button } from '@coderscreen/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@coderscreen/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@coderscreen/ui/dropdown';
 import { SmallHeader } from '@coderscreen/ui/heading';
 import { Input } from '@coderscreen/ui/input';
 import {
@@ -13,22 +20,27 @@ import {
 import { MutedText } from '@coderscreen/ui/typography';
 import {
   RiAddLine,
+  RiBookLine,
   RiCheckboxCircleLine,
   RiCheckLine,
   RiCloseLine,
+  RiContactsBookUploadLine,
   RiDeleteBinLine,
-  RiEdit2Line,
   RiFileTextLine,
   RiPencilLine,
   RiTimeLine,
 } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
-import { useDeleteQuestion, useUpdateAssessment } from '@/query/assessment.query';
+import { Pagination } from '@/components/common/Pagination';
+import { useDeleteQuestion, useLinkQuestion, useUpdateAssessment } from '@/query/assessment.query';
+import { useQuestionLibrary } from '@/query/questionLibrary.query';
 
 interface QuestionItem {
   id: string;
+  questionId?: string;
   title: string;
   description: Record<string, unknown>;
   position: number;
@@ -49,11 +61,19 @@ interface AssessmentQuestionsTabProps {
     id: string;
     timeLimitSeconds?: number | null;
     questions?: QuestionItem[];
+    questionsPagination?: {
+      page: number;
+      limit: number;
+      totalCount: number;
+      totalPages: number;
+    };
   };
+  onQuestionsPageChange?: (page: number) => void;
 }
 
-export const AssessmentQuestionsTab = ({ assessment }: AssessmentQuestionsTabProps) => {
+export const AssessmentQuestionsTab = ({ assessment, onQuestionsPageChange }: AssessmentQuestionsTabProps) => {
   const navigate = useNavigate();
+  const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
 
   const questions = assessment.questions ?? [];
   const sortedQuestions = [...questions].sort((a, b) => a.position - b.position);
@@ -85,10 +105,30 @@ export const AssessmentQuestionsTab = ({ assessment }: AssessmentQuestionsTabPro
         <MutedText>
           {sortedQuestions.length} question{sortedQuestions.length !== 1 ? 's' : ''}
         </MutedText>
-        <Button icon={RiAddLine} onClick={goToNewQuestion}>
-          Add Question
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button icon={RiAddLine}>Add Question</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end'>
+            <DropdownMenuItem onClick={goToNewQuestion}>
+              <RiFileTextLine className='size-4 mr-2' />
+              Create New Question
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLibraryDialogOpen(true)}>
+              <RiContactsBookUploadLine className='size-4 mr-2' />
+              From Question Library
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <QuestionLibraryDialog
+        open={libraryDialogOpen}
+        onOpenChange={setLibraryDialogOpen}
+        assessmentId={assessment.id}
+        existingQuestionIds={questions.map((q) => q.questionId ?? '')}
+        nextPosition={sortedQuestions.length}
+      />
 
       {/* Questions table */}
       <TableRoot>
@@ -134,6 +174,14 @@ export const AssessmentQuestionsTab = ({ assessment }: AssessmentQuestionsTabPro
           </TableBody>
         </Table>
       </TableRoot>
+
+      {assessment.questionsPagination && onQuestionsPageChange && (
+        <Pagination
+          page={assessment.questionsPagination.page}
+          totalPages={assessment.questionsPagination.totalPages}
+          onPageChange={onQuestionsPageChange}
+        />
+      )}
     </div>
   );
 };
@@ -232,32 +280,138 @@ interface QuestionRowProps {
 
 const QuestionRow = ({ question, index, assessmentId, onEdit }: QuestionRowProps) => {
   const { deleteQuestion } = useDeleteQuestion(assessmentId);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const testCases = question.testCases ?? [];
 
   return (
-    <TableRow className='cursor-pointer hover:bg-gray-50' onClick={onEdit}>
-      <TableCell className='text-gray-500 font-medium'>{index + 1}</TableCell>
-      <TableCell>{question.title}</TableCell>
-      <TableCell>
-        <span className='inline-flex items-center gap-1 text-gray-500'>
-          <RiCheckboxCircleLine className='size-3.5' />
-          {testCases.length}
-        </span>
-      </TableCell>
-      <TableCell>
-        <div className='flex items-center gap-1'>
+    <>
+      <TableRow className='cursor-pointer hover:bg-gray-50' onClick={onEdit}>
+        <TableCell className='text-gray-500 font-medium'>{index + 1}</TableCell>
+        <TableCell>{question.title}</TableCell>
+        <TableCell>
+          <span className='inline-flex items-center gap-1 text-gray-500'>
+            <RiCheckboxCircleLine className='size-3.5' />
+            {testCases.length}
+          </span>
+        </TableCell>
+        <TableCell>
           <Button
             variant='ghost'
             className='p-1 text-red-500 hover:text-red-600'
             onClick={(e) => {
               e.stopPropagation();
-              deleteQuestion(question.id);
+              setDeleteOpen(true);
             }}
           >
             <RiDeleteBinLine className='size-4' />
           </Button>
+        </TableCell>
+      </TableRow>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={() => {
+          deleteQuestion(question.id);
+          setDeleteOpen(false);
+        }}
+        title='Delete Question'
+        description='Are you sure you want to delete this question and its test cases? This action cannot be undone.'
+      />
+    </>
+  );
+};
+
+// === Question Library Picker Dialog ===
+
+interface QuestionLibraryDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  assessmentId: string;
+  existingQuestionIds: string[];
+  nextPosition: number;
+}
+
+const QuestionLibraryDialog = ({
+  open,
+  onOpenChange,
+  assessmentId,
+  existingQuestionIds,
+  nextPosition,
+}: QuestionLibraryDialogProps) => {
+  const { questions, isLoading } = useQuestionLibrary();
+  const { linkQuestion, isLoading: isLinking } = useLinkQuestion(assessmentId);
+  const [search, setSearch] = useState('');
+
+  const availableQuestions = (questions ?? []).filter((q) => !existingQuestionIds.includes(q.id));
+
+  const filteredQuestions = search.trim()
+    ? availableQuestions.filter((q) => q.title.toLowerCase().includes(search.toLowerCase()))
+    : availableQuestions;
+
+  const handleAdd = async (libraryQuestionId: string) => {
+    await linkQuestion({ libraryQuestionId, position: nextPosition });
+    onOpenChange(false);
+    setSearch('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className='sm:max-w-lg'>
+        <DialogHeader>
+          <DialogTitle>Add from Question Library</DialogTitle>
+        </DialogHeader>
+
+        <Input
+          placeholder='Search questions...'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className='mb-3'
+        />
+
+        <div className='max-h-80 overflow-y-auto'>
+          {isLoading ? (
+            <p className='text-sm text-gray-500 text-center py-8'>Loading questions...</p>
+          ) : filteredQuestions.length === 0 ? (
+            <div className='text-center py-8'>
+              <EmptyStateIcon icon={RiBookLine} />
+              <p className='text-sm text-gray-500 mt-2'>
+                {availableQuestions.length === 0
+                  ? 'No library questions available. Create one first.'
+                  : 'No matching questions found.'}
+              </p>
+            </div>
+          ) : (
+            <TableRoot>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell>Title</TableHeaderCell>
+                    <TableHeaderCell className='w-20' />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredQuestions.map((q) => (
+                    <TableRow key={q.id}>
+                      <TableCell>{q.title}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant='secondary'
+                          className='text-xs h-7'
+                          icon={RiAddLine}
+                          onClick={() => handleAdd(q.id)}
+                          isLoading={isLinking}
+                        >
+                          Add
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableRoot>
+          )}
         </div>
-      </TableCell>
-    </TableRow>
+      </DialogContent>
+    </Dialog>
   );
 };

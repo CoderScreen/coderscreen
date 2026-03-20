@@ -9,8 +9,8 @@ import {
   RiLock2Line,
 } from '@remixicon/react';
 import { useState } from 'react';
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
-import { useDeleteTestCase } from '@/query/assessment.query';
 import { TestCaseDialog } from './TestCaseDialog';
 
 interface TestCase {
@@ -22,16 +22,37 @@ interface TestCase {
   position: number;
 }
 
-interface TestCasesListProps {
-  testCases: TestCase[];
-  assessmentId: string;
-  questionId: string;
+export interface TestCaseCallbacks {
+  createTestCase: (data: {
+    label: string;
+    input: string;
+    expectedOutput: string;
+    isHidden: boolean;
+    position: number;
+  }) => Promise<unknown>;
+  updateTestCase: (args: {
+    testCaseId: string;
+    data: {
+      label?: string;
+      input?: string;
+      expectedOutput?: string;
+      isHidden?: boolean;
+    };
+  }) => Promise<unknown>;
+  deleteTestCase: (testCaseId: string) => Promise<unknown>;
+  isCreating?: boolean;
+  isUpdating?: boolean;
 }
 
-export const TestCasesList = ({ testCases, assessmentId, questionId }: TestCasesListProps) => {
+interface TestCasesListProps {
+  testCases: TestCase[];
+  callbacks: TestCaseCallbacks;
+}
+
+export const TestCasesList = ({ testCases, callbacks }: TestCasesListProps) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingTestCase, setEditingTestCase] = useState<TestCase | null>(null);
-  const { deleteTestCase } = useDeleteTestCase(assessmentId, questionId);
+  const [deletingTestCaseId, setDeletingTestCaseId] = useState<string | null>(null);
 
   const sortedTestCases = [...testCases].sort((a, b) => a.position - b.position);
 
@@ -84,7 +105,7 @@ export const TestCasesList = ({ testCases, assessmentId, questionId }: TestCases
                   type='button'
                   variant='ghost'
                   className='p-1 text-red-500 hover:text-red-600'
-                  onClick={() => deleteTestCase(tc.id)}
+                  onClick={() => setDeletingTestCaseId(tc.id)}
                 >
                   <RiDeleteBinLine className='size-3.5' />
                 </Button>
@@ -106,8 +127,7 @@ export const TestCasesList = ({ testCases, assessmentId, questionId }: TestCases
 
       <TestCaseDialog
         mode='create'
-        assessmentId={assessmentId}
-        questionId={questionId}
+        callbacks={callbacks}
         nextPosition={sortedTestCases.length}
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
@@ -116,8 +136,7 @@ export const TestCasesList = ({ testCases, assessmentId, questionId }: TestCases
       {editingTestCase && (
         <TestCaseDialog
           mode='edit'
-          assessmentId={assessmentId}
-          questionId={questionId}
+          callbacks={callbacks}
           testCase={editingTestCase}
           open={!!editingTestCase}
           onOpenChange={(open) => {
@@ -125,6 +144,21 @@ export const TestCasesList = ({ testCases, assessmentId, questionId }: TestCases
           }}
         />
       )}
+
+      <ConfirmDeleteDialog
+        open={!!deletingTestCaseId}
+        onOpenChange={(open) => {
+          if (!open) setDeletingTestCaseId(null);
+        }}
+        onConfirm={() => {
+          if (deletingTestCaseId) {
+            callbacks.deleteTestCase(deletingTestCaseId);
+            setDeletingTestCaseId(null);
+          }
+        }}
+        title='Delete Test Case'
+        description='Are you sure you want to delete this test case? This action cannot be undone.'
+      />
     </div>
   );
 };

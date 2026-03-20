@@ -7,8 +7,8 @@ import { organization, user } from './user.db';
 export const templateTable = pgTable('templates', {
   id: text('id').primaryKey().$type<Id<'template'>>(),
   title: text('title').notNull(),
-  createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).default(sql`now()`).notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
   organizationId: text('organization_id')
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),

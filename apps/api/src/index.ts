@@ -21,6 +21,7 @@ import { WhiteboardDurableObject } from './durable-objects/whiteboard.do';
 import { PrivateRoomServer } from './partykit/privateRoom.do';
 import { candidateAssessmentRouter } from './routes/assessment/candidateAssessment.routes';
 import { assessmentRouter, candidateRouter } from './routes/assessment.routes';
+import { questionLibraryRouter } from './routes/questionLibrary.routes';
 import { assetRouter } from './routes/asset.routes';
 import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { roomRouter } from './routes/room.routes';
@@ -95,6 +96,7 @@ const app = new Hono<AppContext>()
   .route('/assessments', candidateAssessmentRouter)
   .route('/assessments', assessmentRouter)
   .route('/candidates', candidateRouter)
+  .route('/questions', questionLibraryRouter)
   .onError((err, ctx) => {
     const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
 

@@ -11,7 +11,13 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { TipTapHeader } from '@/components/room/tiptap/TipTapHeader';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
-import { useCreateQuestion, useUpdateQuestion } from '@/query/assessment.query';
+import {
+  useCreateQuestion,
+  useCreateTestCase,
+  useDeleteTestCase,
+  useUpdateQuestion,
+  useUpdateTestCase,
+} from '@/query/assessment.query';
 import { TestCasesList } from './TestCasesList';
 
 interface QuestionEditorProps {
@@ -46,6 +52,16 @@ export const QuestionEditor = ({
   const { createQuestion, isLoading: isCreating } = useCreateQuestion(assessmentId);
   const { updateQuestion, isLoading: isUpdating } = useUpdateQuestion(assessmentId);
   const isLoading = isCreating || isUpdating;
+
+  const { createTestCase, isLoading: isCreatingTC } = useCreateTestCase(
+    assessmentId,
+    question?.id ?? ''
+  );
+  const { updateTestCase, isLoading: isUpdatingTC } = useUpdateTestCase(
+    assessmentId,
+    question?.id ?? ''
+  );
+  const { deleteTestCase } = useDeleteTestCase(assessmentId, question?.id ?? '');
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -179,8 +195,13 @@ export const QuestionEditor = ({
                   {mode === 'edit' && question ? (
                     <TestCasesList
                       testCases={question.testCases ?? []}
-                      assessmentId={assessmentId}
-                      questionId={question.id}
+                      callbacks={{
+                        createTestCase,
+                        updateTestCase,
+                        deleteTestCase,
+                        isCreating: isCreatingTC,
+                        isUpdating: isUpdatingTC,
+                      }}
                     />
                   ) : (
                     <div className='h-full flex flex-col items-center justify-center text-center py-8 space-y-3'>

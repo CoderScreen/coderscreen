@@ -17,15 +17,20 @@ import { apiClient } from './client';
 // Assessments
 // ============================================================
 
-export const useAssessments = () => {
+export const useAssessments = (page = 1, limit = 20) => {
   const query = useQuery({
-    queryKey: ['assessments'],
+    queryKey: ['assessments', { page, limit }],
     queryFn: async () => {
-      const response = await apiClient.assessments.$get();
+      const response = await apiClient.assessments.$get({
+        query: { page: String(page), limit: String(limit) },
+      } as any);
       if (!response.ok) {
         throw new Error('Failed to fetch assessments');
       }
-      return response.json();
+      return response.json() as Promise<{
+        data: any[];
+        pagination: { page: number; limit: number; totalCount: number; totalPages: number };
+      }>;
     },
     meta: {
       ERROR_MESSAGE: 'Failed to fetch assessments',
@@ -33,18 +38,24 @@ export const useAssessments = () => {
   });
 
   return {
-    assessments: query.data,
+    assessments: query.data?.data,
+    pagination: query.data?.pagination,
     ...query,
   };
 };
 
-export const useAssessment = (id: string) => {
+export const useAssessment = (id: string, questionsPage?: number, questionsLimit?: number) => {
   const query = useQuery({
-    queryKey: ['assessments', id],
+    queryKey: ['assessments', id, { questionsPage, questionsLimit }],
     queryFn: async () => {
+      const queryParams: Record<string, string> = {};
+      if (questionsPage) queryParams.page = String(questionsPage);
+      if (questionsLimit) queryParams.limit = String(questionsLimit);
+
       const response = await apiClient.assessments[':id'].$get({
         param: { id },
-      });
+        ...(Object.keys(queryParams).length > 0 ? { query: queryParams } : {}),
+      } as any);
       if (!response.ok) {
         throw new Error('Failed to fetch assessment');
       }
@@ -335,6 +346,36 @@ export const useReorderQuestions = (assessmentId: string) => {
 
   return {
     reorderQuestions: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+export const useLinkQuestion = (assessmentId: string) => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (data: { libraryQuestionId: string; position: number }) => {
+      const response = await (apiClient.assessments[':id'].questions as any).link.$post({
+        param: { id: assessmentId },
+        json: data,
+      });
+      if (!response.ok) {
+        await throwApiError(response);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId] });
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Question added from library',
+      ERROR_MESSAGE: 'Failed to add question',
+    },
+  });
+
+  return {
+    linkQuestion: mutation.mutateAsync,
     isLoading: mutation.isPending,
     ...mutation,
   };

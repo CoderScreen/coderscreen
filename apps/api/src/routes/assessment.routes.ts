@@ -11,6 +11,7 @@ import {
   CreateCandidateSchema,
   CreateQuestionSchema,
   CreateSubmissionSchema,
+  LinkQuestionSchema,
   CreateTestCaseSchema,
   GradeSubmissionSchema,
   ReorderQuestionsSchema,
@@ -19,6 +20,7 @@ import {
   UpdateQuestionSchema,
   UpdateTestCaseSchema,
 } from '@/schema/assessment.zod';
+import { PaginationQuerySchema } from '@/lib/pagination';
 import { AssessmentService } from '@/services/Assessment.service';
 import { AssessmentSubmissionService } from '@/services/AssessmentSubmission.service';
 import { AppContext } from '..';
@@ -40,9 +42,11 @@ export const assessmentRouter = new Hono<AppContext>()
         },
       },
     }),
+    zValidator('query', PaginationQuerySchema),
     async (ctx) => {
       const service = new AssessmentService(ctx);
-      const assessments = await service.listAssessments();
+      const query = ctx.req.valid('query');
+      const assessments = await service.listAssessments(query);
       return ctx.json(assessments);
     }
   )
@@ -85,10 +89,12 @@ export const assessmentRouter = new Hono<AppContext>()
       },
     }),
     zValidator('param', z.object({ id: idString('assessment') })),
+    zValidator('query', PaginationQuerySchema.optional()),
     async (ctx) => {
       const service = new AssessmentService(ctx);
       const { id } = ctx.req.valid('param');
-      const result = await service.getAssessmentWithQuestions(id);
+      const query = ctx.req.valid('query');
+      const result = await service.getAssessmentWithQuestions(id, query);
 
       if (!result) {
         return ctx.json({ error: 'Assessment not found' }, 404);
@@ -213,6 +219,32 @@ export const assessmentRouter = new Hono<AppContext>()
       const { id } = ctx.req.valid('param');
       const body = ctx.req.valid('json');
       const result = await service.createQuestion(id, body);
+      return ctx.json(result, 201);
+    }
+  )
+  // POST /assessments/:id/questions/link - Link an existing library question
+  .post(
+    '/:id/questions/link',
+    describeRoute({
+      description: 'Link an existing library question to an assessment',
+      responses: {
+        201: {
+          description: 'Question linked successfully',
+          content: {
+            'application/json': {
+              schema: resolver(AssessmentQuestionSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator('param', z.object({ id: idString('assessment') })),
+    zValidator('json', LinkQuestionSchema),
+    async (ctx) => {
+      const service = new AssessmentService(ctx);
+      const { id } = ctx.req.valid('param');
+      const body = ctx.req.valid('json');
+      const result = await service.linkExistingQuestion(id, body);
       return ctx.json(result, 201);
     }
   )
@@ -347,7 +379,7 @@ export const assessmentRouter = new Hono<AppContext>()
       z.object({
         id: idString('assessment'),
         questionId: idString('assessmentQuestion'),
-        testCaseId: idString('assessmentTestCase'),
+        testCaseId: idString('questionLibraryTestCase'),
       })
     ),
     zValidator('json', UpdateTestCaseSchema),
@@ -375,7 +407,7 @@ export const assessmentRouter = new Hono<AppContext>()
       z.object({
         id: idString('assessment'),
         questionId: idString('assessmentQuestion'),
-        testCaseId: idString('assessmentTestCase'),
+        testCaseId: idString('questionLibraryTestCase'),
       })
     ),
     async (ctx) => {

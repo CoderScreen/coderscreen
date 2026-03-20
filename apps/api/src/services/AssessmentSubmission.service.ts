@@ -5,7 +5,8 @@ import {
   AssessmentSubmissionEntity,
   assessmentSubmissionTable,
 } from '@coderscreen/db/assessmentSubmission.db';
-import { assessmentTestCaseTable } from '@coderscreen/db/assessmentTestCase.db';
+import { questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
+import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTestCase.db';
 import { CandidateEntity, candidateTable } from '@coderscreen/db/candidate.db';
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
@@ -167,7 +168,7 @@ export class AssessmentSubmissionService {
       .returning()
       .then((r) => r[0]);
 
-    // Create questionSubmission rows for each question
+    // Create questionSubmission rows for each assessment question link
     const questions = await this.db
       .select()
       .from(assessmentQuestionTable)
@@ -336,25 +337,33 @@ export class AssessmentSubmissionService {
 
     if (!assessment) return null;
 
-    // Load questions with visible test cases + candidate's saved code
-    const questions = await this.db
-      .select()
+    // Load questions via join: assessmentQuestion → questionLibrary
+    const rows = await this.db
+      .select({
+        link: assessmentQuestionTable,
+        question: questionLibraryTable,
+      })
       .from(assessmentQuestionTable)
+      .innerJoin(
+        questionLibraryTable,
+        eq(assessmentQuestionTable.questionId, questionLibraryTable.id)
+      )
       .where(eq(assessmentQuestionTable.assessmentId, assessment.id))
       .orderBy(asc(assessmentQuestionTable.position));
 
     const questionsWithData = [];
-    for (const q of questions) {
+    for (const r of rows) {
+      // Only visible test cases for candidate
       const testCases = await this.db
         .select()
-        .from(assessmentTestCaseTable)
+        .from(questionLibraryTestCaseTable)
         .where(
           and(
-            eq(assessmentTestCaseTable.questionId, q.id),
-            eq(assessmentTestCaseTable.isHidden, false)
+            eq(questionLibraryTestCaseTable.questionId, r.question.id),
+            eq(questionLibraryTestCaseTable.isHidden, false)
           )
         )
-        .orderBy(asc(assessmentTestCaseTable.position));
+        .orderBy(asc(questionLibraryTestCaseTable.position));
 
       const questionSubmission = await this.db
         .select()
@@ -362,17 +371,34 @@ export class AssessmentSubmissionService {
         .where(
           and(
             eq(questionSubmissionTable.submissionId, submission.id),
-            eq(questionSubmissionTable.questionId, q.id)
+            eq(questionSubmissionTable.questionId, r.link.id)
           )
         )
-        .then((r) => (r.length > 0 ? r[0] : null));
+        .then((rows) => (rows.length > 0 ? rows[0] : null));
 
       questionsWithData.push({
-        ...q,
+        id: r.link.id,
+        createdAt: r.link.createdAt,
+        updatedAt: r.link.updatedAt,
+        assessmentId: r.link.assessmentId,
+        organizationId: r.link.organizationId,
+        questionId: r.question.id,
+        position: r.link.position,
+        title: r.question.title,
+        description: r.question.description,
+        starterCode: r.question.starterCode,
+        timeLimitSeconds: r.question.timeLimitSeconds,
         testCases,
         questionSubmission,
       });
     }
+
+    // Load candidate info
+    const candidate = await this.db
+      .select()
+      .from(candidateTable)
+      .where(eq(candidateTable.id, submission.candidateId))
+      .then((r) => (r.length > 0 ? r[0] : null));
 
     return {
       submission: {
@@ -382,6 +408,8 @@ export class AssessmentSubmissionService {
         startedAt: submission.startedAt,
         submittedAt: submission.submittedAt,
         expiresAt: submission.expiresAt,
+        candidateEmail: candidate?.email ?? null,
+        candidateName: candidate?.name ?? null,
       },
       assessment: {
         id: assessment.id,
@@ -438,6 +466,7 @@ export class AssessmentSubmissionService {
       .set({
         status: 'in_progress',
         selectedLanguage: params.selectedLanguage,
+        enteredName: params.enteredName,
         startedAt,
         expiresAt,
         updatedAt: startedAt,
@@ -533,17 +562,28 @@ export class AssessmentSubmissionService {
       throw new HTTPException(400, { message: 'No language selected' });
     }
 
-    // Get visible test cases for this question
+    // Resolve assessmentQuestion → library question
+    const link = await this.db
+      .select()
+      .from(assessmentQuestionTable)
+      .where(eq(assessmentQuestionTable.id, params.questionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!link) {
+      throw new HTTPException(404, { message: 'Question not found' });
+    }
+
+    // Get visible test cases from library
     const testCases = await this.db
       .select()
-      .from(assessmentTestCaseTable)
+      .from(questionLibraryTestCaseTable)
       .where(
         and(
-          eq(assessmentTestCaseTable.questionId, params.questionId),
-          eq(assessmentTestCaseTable.isHidden, false)
+          eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>),
+          eq(questionLibraryTestCaseTable.isHidden, false)
         )
       )
-      .orderBy(asc(assessmentTestCaseTable.position));
+      .orderBy(asc(questionLibraryTestCaseTable.position));
 
     if (testCases.length === 0) {
       return { results: [] };
@@ -590,12 +630,23 @@ export class AssessmentSubmissionService {
     let totalTests = 0;
 
     for (const qs of questionSubmissions) {
-      // Get ALL test cases (visible + hidden) for this question
+      // Resolve assessmentQuestion → library question
+      const link = await this.db
+        .select()
+        .from(assessmentQuestionTable)
+        .where(eq(assessmentQuestionTable.id, qs.questionId as Id<'assessmentQuestion'>))
+        .then((r) => (r.length > 0 ? r[0] : null));
+
+      if (!link) continue;
+
+      // Get ALL test cases (visible + hidden) from library
       const testCases = await this.db
         .select()
-        .from(assessmentTestCaseTable)
-        .where(eq(assessmentTestCaseTable.questionId, qs.questionId))
-        .orderBy(asc(assessmentTestCaseTable.position));
+        .from(questionLibraryTestCaseTable)
+        .where(
+          eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>)
+        )
+        .orderBy(asc(questionLibraryTestCaseTable.position));
 
       if (testCases.length === 0) continue;
 

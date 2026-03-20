@@ -11,8 +11,8 @@ export const assessmentSubmissionTable = pgTable(
   'assessment_submissions',
   {
     id: text('id').primaryKey().$type<Id<'assessmentSubmission'>>(),
-    createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
-    updatedAt: timestamp('updated_at', { mode: 'string' }).default(sql`now()`).notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
     assessmentId: text('assessment_id')
       .notNull()
       .references(() => assessmentTable.id, { onDelete: 'cascade' }),
@@ -25,13 +25,14 @@ export const assessmentSubmissionTable = pgTable(
       .references(() => candidateTable.id, { onDelete: 'cascade' }),
     status: text('status').$type<SubmissionStatus>().notNull().default('not_started'),
     selectedLanguage: text('selected_language'),
-    startedAt: timestamp('started_at', { mode: 'string' }),
-    submittedAt: timestamp('submitted_at', { mode: 'string' }),
-    expiresAt: timestamp('expires_at', { mode: 'string' }),
+    startedAt: timestamp('started_at', { mode: 'string', withTimezone: true }),
+    submittedAt: timestamp('submitted_at', { mode: 'string', withTimezone: true }),
+    expiresAt: timestamp('expires_at', { mode: 'string', withTimezone: true }),
     totalScore: integer('total_score'),
     maxScore: integer('max_score'),
     gradingNotes: text('grading_notes').notNull().default(''),
     accessToken: text('access_token').notNull().unique(),
+    enteredName: text('entered_name'),
   },
   (t) => [
     index('idx_submission_assessment').on(t.assessmentId),

@@ -1,7 +1,7 @@
 import { getSandbox } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { AssessmentLanguage } from '@coderscreen/db/assessment.db';
-import { AssessmentTestCaseEntity } from '@coderscreen/db/assessmentTestCase.db';
+import { QuestionLibraryTestCaseEntity } from '@coderscreen/db/questionLibraryTestCase.db';
 import { Context } from 'hono';
 import { LANGUAGE_CONFIG } from '@/sandbox/languageCommands';
 import { AppContext } from '..';
@@ -28,7 +28,7 @@ export class AssessmentCodeRunService {
     submissionId: Id<'assessmentSubmission'>;
     code: string;
     language: AssessmentLanguage;
-    testCases: AssessmentTestCaseEntity[];
+    testCases: QuestionLibraryTestCaseEntity[];
   }): Promise<TestCaseRunResult[]> {
     const { submissionId, code, language, testCases } = params;
 
