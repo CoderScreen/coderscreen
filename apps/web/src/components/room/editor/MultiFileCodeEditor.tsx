@@ -33,7 +33,7 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
       <EditorHeader handleWorkspaceReset={handleWorkspaceReset} />
 
       {/* Editor and File Explorer */}
-      <div className='flex-1 flex'>
+      <div className='flex-1 flex min-h-0'>
         <PanelGroup direction='horizontal'>
           {/* File Explorer */}
           <Panel defaultSize={20} minSize={15} maxSize={590}>

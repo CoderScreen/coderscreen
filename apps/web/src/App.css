@@ -104,6 +104,10 @@
 }
 
 /* CODEMIRROR */
+.cm-editor {
+  height: 100%;
+}
+
 .ͼ1.cm-focused {
   outline: none;
 }
