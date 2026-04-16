@@ -50,11 +50,11 @@ export function SingleFileCodeEditor(_props: SingleFileCodeEditorProps) {
   }, [fileId, isElementReady, setSelectedFile]);
 
   return (
-    <div className='h-full w-full bg-white text-gray-900 relative flex flex-col'>
+    <div className='h-full w-full bg-white text-gray-900 relative flex flex-col min-h-0'>
       {/* Menu Bar */}
       <EditorHeader handleWorkspaceReset={handleWorkspaceReset} />
 
-      <div className='h-full w-full' ref={editorElementRef} />
+      <div className='flex-1 min-h-0 w-full overflow-hidden' ref={editorElementRef} />
     </div>
   );
 }
