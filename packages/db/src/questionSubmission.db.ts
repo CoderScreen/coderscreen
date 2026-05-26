@@ -1,6 +1,6 @@
 import type { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
-import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { assessmentQuestionTable } from './assessmentQuestion.db';
 import { assessmentSubmissionTable } from './assessmentSubmission.db';
 import { organization } from './user.db';
@@ -19,8 +19,11 @@ export const questionSubmissionTable = pgTable('question_submissions', {
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),
   code: text('code').notNull().default(''),
+  language: text('language'),
   timeSpentSeconds: integer('time_spent_seconds').notNull().default(0),
   score: integer('score'),
+  maxScore: integer('max_score'),
+  isDraft: boolean('is_draft').notNull().default(true),
 });
 
 export type QuestionSubmissionEntity = typeof questionSubmissionTable.$inferSelect;

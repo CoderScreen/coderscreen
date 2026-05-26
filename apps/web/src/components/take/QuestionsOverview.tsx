@@ -8,18 +8,16 @@ import {
   DialogTitle,
 } from '@coderscreen/ui/dialog';
 import { RiCodeLine, RiSendPlaneLine } from '@remixicon/react';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 import { useSubmitAssessment } from '@/query/candidateAssessment.query';
 
-interface QuestionsOverviewProps {
-  onSelectQuestion: (index: number) => void;
-}
-
-export const QuestionsOverview = ({ onSelectQuestion }: QuestionsOverviewProps) => {
+export const QuestionsOverview = () => {
   const { assessment, codeMap, saveCurrentCode, subId, token } = useTakeAssessment();
   const { submitAssessment, isSubmitting } = useSubmitAssessment(subId, token);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const navigate = useNavigate();
 
   const questions = assessment?.questions ?? [];
 
@@ -29,6 +27,15 @@ export const QuestionsOverview = ({ onSelectQuestion }: QuestionsOverviewProps) 
     const question = questions.find((q) => q.id === questionId);
     const starter = question?.starterCode ?? '';
     return code !== starter && code.trim().length > 0;
+  };
+
+  const handleSelectQuestion = (questionId: string) => {
+    saveCurrentCode();
+    navigate({
+      to: '/take/$subId/question/$questionId',
+      params: { subId, questionId },
+      search: { token },
+    });
   };
 
   const handleSubmit = async () => {
@@ -52,7 +59,7 @@ export const QuestionsOverview = ({ onSelectQuestion }: QuestionsOverviewProps) 
               return (
                 <button
                   key={q.id}
-                  onClick={() => onSelectQuestion(i)}
+                  onClick={() => handleSelectQuestion(q.id)}
                   className='text-left border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all group cursor-pointer'
                 >
                   <div className='flex items-start justify-between'>

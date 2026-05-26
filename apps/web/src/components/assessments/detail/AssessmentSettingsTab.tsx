@@ -1,5 +1,7 @@
 import type { AssessmentSchema } from '@coderscreen/api/schema/assessment';
 import { Button } from '@coderscreen/ui/button';
+import { Divider } from '@coderscreen/ui/divider';
+import { SmallHeader } from '@coderscreen/ui/heading';
 import { Input } from '@coderscreen/ui/input';
 import { Label } from '@coderscreen/ui/label';
 import {
@@ -9,14 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@coderscreen/ui/select';
+import { MutedText } from '@coderscreen/ui/typography';
 import { RiDeleteBinLine, RiSaveLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
-import { useDeleteAssessment, useUpdateAssessment } from '@/query/assessment.query';
-import { ASSESSMENT_LANGUAGES } from '@/lib/languages';
 import { LanguageSelector } from '@/components/common/LanguageSelector';
+import { ASSESSMENT_LANGUAGES } from '@/lib/languages';
+import { useDeleteAssessment, useUpdateAssessment } from '@/query/assessment.query';
 
 function timeLimitToPreset(timeLimitSeconds: number | null): string {
   if (timeLimitSeconds === null) return 'none';
@@ -107,17 +110,12 @@ export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps
           )}
         </form.Field>
 
-
-
         {/* Time Limit */}
         <form.Field name='timeLimitPreset'>
           {(field) => (
             <div>
               <Label className='block text-sm font-medium text-gray-700 mb-2'>Time Limit</Label>
-              <Select
-                value={field.state.value}
-                onValueChange={(val) => field.handleChange(val)}
-              >
+              <Select value={field.state.value} onValueChange={(val) => field.handleChange(val)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -198,18 +196,22 @@ export const AssessmentSettingsTab = ({ assessment }: AssessmentSettingsTabProps
       </form>
 
       {/* Danger Zone */}
-      <div className='mt-12 pt-6 border-t border-red-200'>
-        <h3 className='text-sm font-medium text-red-600 mb-2'>Danger Zone</h3>
-        <p className='text-sm text-gray-500 mb-4'>
+      <Divider />
+
+      <div>
+        <SmallHeader>Danger Zone</SmallHeader>
+        <MutedText>
           Permanently delete this assessment and all its questions, test cases, and submissions.
-        </p>
-        <Button
-          variant='destructive'
-          icon={RiDeleteBinLine}
-          onClick={() => setDeleteDialogOpen(true)}
-        >
-          Delete Assessment
-        </Button>
+        </MutedText>
+        <div className='mt-4'>
+          <Button
+            variant='destructive'
+            icon={RiDeleteBinLine}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            Delete Assessment
+          </Button>
+        </div>
       </div>
 
       <ConfirmDeleteDialog

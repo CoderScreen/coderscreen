@@ -50,7 +50,7 @@ const StatusBadge = ({ status }: { status: AssessmentSchema['status'] }) => {
 };
 
 const RowActions = ({ assessment }: { assessment: AssessmentSchema }) => {
-  const { deleteAssessment } = useDeleteAssessment();
+  const { deleteAssessment, isLoading } = useDeleteAssessment();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const handleDelete = async () => {
@@ -82,6 +82,7 @@ const RowActions = ({ assessment }: { assessment: AssessmentSchema }) => {
         onConfirm={handleDelete}
         title='Delete Assessment'
         description='Are you sure you want to delete this assessment? This action cannot be undone.'
+        isLoading={isLoading}
       />
     </div>
   );

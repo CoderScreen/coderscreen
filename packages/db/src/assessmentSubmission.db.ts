@@ -21,7 +21,6 @@ export const assessmentSubmissionTable = pgTable(
       .references(() => organization.id, { onDelete: 'cascade' }),
     candidateId: text('candidate_id')
       .$type<Id<'candidate'>>()
-      .notNull()
       .references(() => candidateTable.id, { onDelete: 'cascade' }),
     status: text('status').$type<SubmissionStatus>().notNull().default('not_started'),
     selectedLanguage: text('selected_language'),
@@ -33,6 +32,7 @@ export const assessmentSubmissionTable = pgTable(
     gradingNotes: text('grading_notes').notNull().default(''),
     accessToken: text('access_token').notNull().unique(),
     enteredName: text('entered_name'),
+    enteredEmail: text('entered_email'),
   },
   (t) => [
     index('idx_submission_assessment').on(t.assessmentId),

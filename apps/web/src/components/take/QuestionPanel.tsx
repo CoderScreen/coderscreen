@@ -1,14 +1,18 @@
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { useEffect } from 'react';
-import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 
-export const QuestionPanel = () => {
-  const { currentQuestion } = useTakeAssessment();
+interface QuestionPanelProps {
+  question: {
+    id: string;
+    description: Record<string, unknown>;
+  };
+}
 
+export const QuestionPanel = ({ question }: QuestionPanelProps) => {
   const editor = useEditor({
     extensions: [StarterKit],
-    content: currentQuestion?.description ?? { type: 'doc', content: [{ type: 'paragraph' }] },
+    content: question.description ?? { type: 'doc', content: [{ type: 'paragraph' }] },
     editable: false,
     editorProps: {
       attributes: {
@@ -19,12 +23,10 @@ export const QuestionPanel = () => {
 
   // Update editor content when question changes
   useEffect(() => {
-    if (editor && currentQuestion?.description) {
-      editor.commands.setContent(currentQuestion.description);
+    if (editor && question.description) {
+      editor.commands.setContent(question.description);
     }
-  }, [editor, currentQuestion?.id, currentQuestion?.description]);
-
-  if (!currentQuestion) return null;
+  }, [editor, question.id, question.description]);
 
   return (
     <div className='h-full overflow-y-auto'>

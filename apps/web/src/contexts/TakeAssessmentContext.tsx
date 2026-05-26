@@ -15,14 +15,10 @@ import {
 } from '@/query/candidateAssessment.query';
 
 type AssessmentData = NonNullable<ReturnType<typeof useCandidateAssessment>['data']>;
-type Question = AssessmentData['assessment']['questions'][number];
 
 interface TakeAssessmentContextType {
   assessment: AssessmentData['assessment'] | undefined;
   submission: AssessmentData['submission'] | undefined;
-  currentQuestionIndex: number;
-  setCurrentQuestionIndex: (index: number) => void;
-  currentQuestion: Question | undefined;
   codeMap: Record<string, string>;
   setCode: (questionId: string, code: string) => void;
   timeRemainingMs: number | null;
@@ -56,7 +52,6 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
   const { saveCode: saveCodeMutation, isSaving } = useSaveCode(subId, token);
   const { submitAssessment } = useSubmitAssessment(subId, token);
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [codeMap, setCodeMap] = useState<Record<string, string>>({});
   const [timeRemainingMs, setTimeRemainingMs] = useState<number | null>(null);
   const [isExpired, setIsExpired] = useState(false);
@@ -160,15 +155,6 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     await flushDirty();
   }, [flushDirty]);
 
-  // Save on question switch
-  const handleSetQuestionIndex = useCallback(
-    (index: number) => {
-      flushDirty();
-      setCurrentQuestionIndex(index);
-    },
-    [flushDirty]
-  );
-
   // Save on beforeunload
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -178,17 +164,10 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [flushDirty]);
 
-  const currentQuestion = useMemo(() => {
-    return data?.assessment?.questions?.[currentQuestionIndex];
-  }, [data?.assessment?.questions, currentQuestionIndex]);
-
   const value = useMemo(
     () => ({
       assessment: data?.assessment,
       submission: data?.submission,
-      currentQuestionIndex,
-      setCurrentQuestionIndex: handleSetQuestionIndex,
-      currentQuestion,
       codeMap,
       setCode,
       timeRemainingMs,
@@ -204,9 +183,6 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     }),
     [
       data,
-      currentQuestionIndex,
-      handleSetQuestionIndex,
-      currentQuestion,
       codeMap,
       setCode,
       timeRemainingMs,

@@ -4,7 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
 import { validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { RunTestsSchema, SaveCodeSchema, StartAssessmentSchema } from '@/schema/assessment.zod';
+import { ChangeLanguageSchema, RunTestsSchema, SaveCodeSchema, StartAssessmentSchema } from '@/schema/assessment.zod';
 import { AssessmentSubmissionService } from '@/services/AssessmentSubmission.service';
 import { AppContext } from '../..';
 
@@ -137,11 +137,102 @@ export const candidateAssessmentRouter = new Hono<AppContext>()
       return ctx.json(result);
     }
   )
+  // POST /:subId/take/language - Change selected language
+  .post(
+    '/:subId/take/language',
+    describeRoute({
+      description: 'Change the selected programming language',
+      responses: {
+        200: { description: 'Language changed' },
+        400: { description: 'Assessment not in progress or language not allowed' },
+        401: { description: 'Invalid or expired token' },
+      },
+    }),
+    zValidator('param', z.object({ subId: idString('assessmentSubmission') })),
+    zValidator('query', z.object({ token: z.string().min(1) })),
+    zValidator('json', ChangeLanguageSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const { token } = ctx.req.valid('query');
+      const body = ctx.req.valid('json');
+
+      await validateToken(service, token, subId);
+
+      const expired = await service.checkExpiration(subId);
+      if (expired) {
+        throw new HTTPException(400, { message: 'Assessment has expired' });
+      }
+
+      const result = await service.changeLanguage(subId, body);
+      return ctx.json(result);
+    }
+  )
+  // POST /:subId/take/submit-code - Submit code for a question (runs ALL tests, creates submission)
+  .post(
+    '/:subId/take/submit-code',
+    describeRoute({
+      description: 'Submit code for a question (runs all tests including hidden, stores submission)',
+      responses: {
+        200: { description: 'Code submitted and tested' },
+        400: { description: 'Assessment not in progress or expired' },
+        401: { description: 'Invalid or expired token' },
+      },
+    }),
+    zValidator('param', z.object({ subId: idString('assessmentSubmission') })),
+    zValidator('query', z.object({ token: z.string().min(1) })),
+    zValidator('json', RunTestsSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const { token } = ctx.req.valid('query');
+      const body = ctx.req.valid('json');
+
+      await validateToken(service, token, subId);
+
+      const expired = await service.checkExpiration(subId);
+      if (expired) {
+        throw new HTTPException(400, { message: 'Assessment has expired' });
+      }
+
+      const result = await service.submitCode(subId, body);
+      return ctx.json(result);
+    }
+  )
+  // GET /:subId/take/questions/:questionId/history - Get submission history for a question
+  .get(
+    '/:subId/take/questions/:questionId/history',
+    describeRoute({
+      description: 'Get submission history for a specific question',
+      responses: {
+        200: { description: 'Submission history' },
+        401: { description: 'Invalid or expired token' },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        subId: idString('assessmentSubmission'),
+        questionId: idString('assessmentQuestion'),
+      })
+    ),
+    zValidator('query', z.object({ token: z.string().min(1) })),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId, questionId } = ctx.req.valid('param');
+      const { token } = ctx.req.valid('query');
+
+      await validateToken(service, token, subId);
+
+      const result = await service.getSubmissionHistory(subId, questionId);
+      return ctx.json(result);
+    }
+  )
   // POST /:subId/take/submit - Submit the assessment
   .post(
     '/:subId/take/submit',
     describeRoute({
-      description: 'Submit the assessment (runs all tests including hidden, stores results)',
+      description: 'Submit the assessment (calculates final score from best submissions)',
       responses: {
         200: { description: 'Assessment submitted' },
         400: { description: 'Assessment not in progress or expired' },

@@ -44,6 +44,7 @@ interface QuestionItem {
   title: string;
   description: Record<string, unknown>;
   position: number;
+  points: number;
   timeLimitSeconds: number | null;
   starterCode: string;
   testCases?: {
@@ -71,12 +72,16 @@ interface AssessmentQuestionsTabProps {
   onQuestionsPageChange?: (page: number) => void;
 }
 
-export const AssessmentQuestionsTab = ({ assessment, onQuestionsPageChange }: AssessmentQuestionsTabProps) => {
+export const AssessmentQuestionsTab = ({
+  assessment,
+  onQuestionsPageChange,
+}: AssessmentQuestionsTabProps) => {
   const navigate = useNavigate();
   const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
 
   const questions = assessment.questions ?? [];
   const sortedQuestions = [...questions].sort((a, b) => a.position - b.position);
+  const totalPoints = sortedQuestions.reduce((sum, q) => sum + (q.points ?? 0), 0);
 
   const goToNewQuestion = () => {
     navigate({
@@ -94,16 +99,11 @@ export const AssessmentQuestionsTab = ({ assessment, onQuestionsPageChange }: As
 
   return (
     <div className='py-6'>
-      {/* Time limit control */}
-      <TimeLimitControl
-        assessmentId={assessment.id}
-        timeLimitSeconds={assessment.timeLimitSeconds ?? null}
-      />
-
       {/* Questions header */}
-      <div className='flex items-center justify-between mb-4 mt-6'>
+      <div className='flex items-center justify-between mb-4'>
         <MutedText>
           {sortedQuestions.length} question{sortedQuestions.length !== 1 ? 's' : ''}
+          {sortedQuestions.length > 0 ? ` · ${totalPoints} total points` : ''}
         </MutedText>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -138,13 +138,14 @@ export const AssessmentQuestionsTab = ({ assessment, onQuestionsPageChange }: As
               <TableHeaderCell className='w-12'>#</TableHeaderCell>
               <TableHeaderCell>Title</TableHeaderCell>
               <TableHeaderCell>Test Cases</TableHeaderCell>
+              <TableHeaderCell>Points</TableHeaderCell>
               <TableHeaderCell className='w-20' />
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedQuestions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={5}>
                   <div className='flex flex-col items-center justify-center py-12 px-4'>
                     <EmptyStateIcon icon={RiFileTextLine} />
                     <SmallHeader className='mt-4'>No questions yet</SmallHeader>
@@ -294,6 +295,7 @@ const QuestionRow = ({ question, index, assessmentId, onEdit }: QuestionRowProps
             {testCases.length}
           </span>
         </TableCell>
+        <TableCell className='text-gray-700 font-medium'>{question.points}</TableCell>
         <TableCell>
           <Button
             variant='ghost'

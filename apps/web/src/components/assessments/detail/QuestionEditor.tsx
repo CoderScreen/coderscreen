@@ -28,6 +28,7 @@ interface QuestionEditorProps {
     title: string;
     description: Record<string, unknown>;
     position: number;
+    points: number;
     timeLimitSeconds: number | null;
     starterCode: string;
     testCases?: {
@@ -76,6 +77,7 @@ export const QuestionEditor = ({
   const form = useForm({
     defaultValues: {
       title: mode === 'edit' && question ? question.title : '',
+      points: mode === 'edit' && question ? question.points : 100,
     },
     onSubmit: async ({ value }) => {
       const description = editor?.getJSON() ?? {};
@@ -85,6 +87,7 @@ export const QuestionEditor = ({
           title: value.title,
           description,
           position: nextPosition,
+          points: value.points,
           starterCode: '',
           timeLimitSeconds: null,
         });
@@ -100,6 +103,7 @@ export const QuestionEditor = ({
           data: {
             title: value.title,
             description,
+            points: value.points,
             starterCode: '',
             timeLimitSeconds: null,
           },
@@ -136,36 +140,70 @@ export const QuestionEditor = ({
 
       {/* Content */}
       <div className='flex flex-col flex-1 min-h-0 pb-4'>
-        {/* Title */}
-        <form.Field
-          name='title'
-          validators={{
-            onChange: ({ value }: { value: string }) => {
-              if (!value) return 'Title is required';
-              if (value.length > 200) return 'Title must be less than 200 characters';
-              return undefined;
-            },
-          }}
-        >
-          {(field) => (
-            <div className='mb-3'>
-              <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-1.5'>
-                Title
-              </Label>
-              <Input
-                id={field.name}
-                placeholder='e.g., Two Sum'
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                hasError={!field.state.meta.isValid}
-              />
-              {field.state.meta.errors?.length > 0 && (
-                <p className='text-sm text-red-600 mt-1'>{field.state.meta.errors.join(', ')}</p>
-              )}
-            </div>
-          )}
-        </form.Field>
+        {/* Title + Points */}
+        <div className='mb-3 grid grid-cols-[1fr_auto] gap-3'>
+          <form.Field
+            name='title'
+            validators={{
+              onChange: ({ value }: { value: string }) => {
+                if (!value) return 'Title is required';
+                if (value.length > 200) return 'Title must be less than 200 characters';
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-1.5'>
+                  Title
+                </Label>
+                <Input
+                  id={field.name}
+                  placeholder='e.g., Two Sum'
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  hasError={!field.state.meta.isValid}
+                />
+                {field.state.meta.errors?.length > 0 && (
+                  <p className='text-sm text-red-600 mt-1'>{field.state.meta.errors.join(', ')}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field
+            name='points'
+            validators={{
+              onChange: ({ value }: { value: number }) => {
+                if (!Number.isInteger(value) || value < 0) return 'Points must be a non-negative integer';
+                if (value > 10000) return 'Points must be at most 10000';
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div className='w-32'>
+                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-1.5'>
+                  Points
+                </Label>
+                <Input
+                  id={field.name}
+                  type='number'
+                  min={0}
+                  max={10000}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(Number(e.target.value))}
+                  onBlur={field.handleBlur}
+                  hasError={!field.state.meta.isValid}
+                />
+                {field.state.meta.errors?.length > 0 && (
+                  <p className='text-sm text-red-600 mt-1'>{field.state.meta.errors.join(', ')}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+        </div>
 
         {/* Resizable side-by-side panels */}
         <div className='flex-1 min-h-0'>

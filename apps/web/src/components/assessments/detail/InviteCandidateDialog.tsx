@@ -50,8 +50,8 @@ export const InviteCandidateDialog = ({
     onSubmit: async ({ value }) => {
       const data =
         mode === 'existing'
-          ? { candidateId: value.candidateId as `cand_${string}` }
-          : { candidateName: value.candidateName, candidateEmail: value.candidateEmail };
+          ? { candidateId: value.candidateId as `cand_${string}`, isGenericLink: false as const }
+          : { candidateName: value.candidateName, candidateEmail: value.candidateEmail, isGenericLink: false as const };
 
       const result = await inviteCandidate(data);
 

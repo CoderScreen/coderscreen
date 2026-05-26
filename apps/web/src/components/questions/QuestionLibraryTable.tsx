@@ -1,4 +1,3 @@
-import { Badge } from '@coderscreen/ui/badge';
 import { Button } from '@coderscreen/ui/button';
 import {
   DropdownMenu,
@@ -37,21 +36,8 @@ import {
   useQuestionLibrary,
 } from '@/query/questionLibrary.query';
 
-const DifficultyBadge = ({ difficulty }: { difficulty: string | null }) => {
-  switch (difficulty) {
-    case 'easy':
-      return <Badge variant='success'>Easy</Badge>;
-    case 'medium':
-      return <Badge variant='warning'>Medium</Badge>;
-    case 'hard':
-      return <Badge variant='error'>Hard</Badge>;
-    default:
-      return null;
-  }
-};
-
 const RowActions = ({ question }: { question: QuestionLibraryItem }) => {
-  const { deleteQuestion } = useDeleteQuestionLibrary();
+  const { deleteQuestion, isLoading } = useDeleteQuestionLibrary();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const handleDelete = async () => {
@@ -83,6 +69,7 @@ const RowActions = ({ question }: { question: QuestionLibraryItem }) => {
         onConfirm={handleDelete}
         title='Delete Question'
         description='Are you sure you want to delete this question? This will also delete all associated test cases. This action cannot be undone.'
+        isLoading={isLoading}
       />
     </div>
   );
@@ -99,8 +86,8 @@ export function QuestionLibraryTable() {
         <TableHead>
           <TableRow>
             <TableHeaderCell>Title</TableHeaderCell>
-            <TableHeaderCell>Difficulty</TableHeaderCell>
-            <TableHeaderCell>Tags</TableHeaderCell>
+            <TableHeaderCell>Times Taken</TableHeaderCell>
+            <TableHeaderCell>Avg Score</TableHeaderCell>
             <TableHeaderCell>Created</TableHeaderCell>
           </TableRow>
         </TableHead>
@@ -122,17 +109,11 @@ export function QuestionLibraryTable() {
                 }
               >
                 <TableCell>{question.title}</TableCell>
+                <TableCell>{question.timesTaken}</TableCell>
                 <TableCell>
-                  <DifficultyBadge difficulty={question.difficulty} />
-                </TableCell>
-                <TableCell>
-                  <div className='flex gap-1 flex-wrap'>
-                    {(question.tags as string[])?.map((tag) => (
-                      <Badge key={tag} variant='neutral'>
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+                  {question.avgScore !== null
+                    ? `${Math.round(question.avgScore * 100)}%`
+                    : '—'}
                 </TableCell>
                 <TableCell className='flex justify-between items-center gap-2 mr-4'>
                   <Tooltip content={formatDatetime(question.createdAt)}>

@@ -355,7 +355,7 @@ export const useLinkQuestion = (assessmentId: string) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (data: { libraryQuestionId: string; position: number }) => {
+    mutationFn: async (data: { libraryQuestionId: string; position: number; points?: number }) => {
       const response = await (apiClient.assessments[':id'].questions as any).link.$post({
         param: { id: assessmentId },
         json: data,

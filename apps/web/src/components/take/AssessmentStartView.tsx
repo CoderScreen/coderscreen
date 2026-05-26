@@ -34,10 +34,12 @@ export const AssessmentStartView = () => {
   const [enteredName, setEnteredName] = useState<string>(
     (submission as any)?.candidateName ?? ''
   );
+  const [enteredEmail, setEnteredEmail] = useState<string>('');
 
   if (!assessment) return null;
 
   const candidateEmail = (submission as any)?.candidateEmail as string | null;
+  const isGenericLink = !candidateEmail;
 
   const formatTimeLimit = (seconds: number) => {
     if (seconds >= 3600) {
@@ -50,7 +52,11 @@ export const AssessmentStartView = () => {
 
   const handleStart = async () => {
     if (!selectedLanguage || !enteredName.trim()) return;
-    await startAssessment({ selectedLanguage, enteredName: enteredName.trim() });
+    await startAssessment({
+      selectedLanguage,
+      enteredName: enteredName.trim(),
+      ...(isGenericLink && enteredEmail.trim() ? { enteredEmail: enteredEmail.trim() } : {}),
+    });
   };
 
   return (
@@ -83,10 +89,20 @@ export const AssessmentStartView = () => {
           </div>
 
           <div className='space-y-4'>
-            {candidateEmail && (
+            {candidateEmail ? (
               <div>
                 <label className='block text-sm font-medium text-gray-700 mb-1.5'>Email</label>
                 <Input value={candidateEmail} disabled className='bg-gray-50' />
+              </div>
+            ) : (
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1.5'>Email</label>
+                <Input
+                  type='email'
+                  value={enteredEmail}
+                  onChange={(e) => setEnteredEmail(e.target.value)}
+                  placeholder='Enter your email'
+                />
               </div>
             )}
 

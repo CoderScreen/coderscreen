@@ -112,6 +112,7 @@ const SelectContent = React.forwardRef<
   ) => (
     <SelectPrimitives.Portal>
       <SelectPrimitives.Content
+        style={{ pointerEvents: 'auto' }}
         ref={forwardedRef}
         className={cx(
           // base

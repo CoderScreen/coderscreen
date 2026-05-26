@@ -1,24 +1,17 @@
 import { Button } from '@coderscreen/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@coderscreen/ui/dialog';
+import { Tabs, TabsList, TabsTrigger } from '@coderscreen/ui/tabs';
 import {
   RiArrowDownSLine,
+  RiArrowGoBackLine,
   RiArrowRightSLine,
   RiCheckLine,
   RiCloseLine,
+  RiHistoryLine,
   RiLoader4Line,
   RiPlayLine,
   RiSendPlaneLine,
 } from '@remixicon/react';
 import { useEffect, useState } from 'react';
-import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
-import { useSubmitAssessment } from '@/query/candidateAssessment.query';
 
 interface TestResult {
   testCaseId: string;
@@ -38,11 +31,23 @@ interface TestCase {
   expectedOutput?: string;
 }
 
+interface SubmissionHistoryItem {
+  id: string;
+  createdAt: string;
+  code: string;
+  score: number | null;
+  maxScore: number | null;
+}
+
 interface TestResultsPanelProps {
   testCases: TestCase[];
   results: TestResult[] | null;
   isRunning: boolean;
   onRunTests: () => void;
+  onSubmitCode: () => void;
+  isSubmitting: boolean;
+  history: SubmissionHistoryItem[];
+  onRestoreCode: (code: string) => void;
 }
 
 export const TestResultsPanel = ({
@@ -50,11 +55,12 @@ export const TestResultsPanel = ({
   results,
   isRunning,
   onRunTests,
+  onSubmitCode,
+  isSubmitting,
+  history,
+  onRestoreCode,
 }: TestResultsPanelProps) => {
-  const { saveCurrentCode, subId, token } = useTakeAssessment();
-  const { submitAssessment, isSubmitting } = useSubmitAssessment(subId, token);
-  const [activeTab, setActiveTab] = useState<'testCases' | 'results'>('testCases');
-  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState<'testCases' | 'results' | 'history'>('testCases');
 
   // Auto-switch to results tab when results arrive
   useEffect(() => {
@@ -63,42 +69,22 @@ export const TestResultsPanel = ({
     }
   }, [results]);
 
-  const handleSubmit = async () => {
-    await saveCurrentCode();
-    await submitAssessment();
-    setShowSubmitDialog(false);
-  };
-
   const passed = results?.filter((r) => r.passed).length ?? 0;
 
   return (
-    <>
-      <div className='h-full flex flex-col'>
-        {/* Tab bar with actions */}
-        <div className='flex items-center justify-between border-b border-gray-200 px-3'>
-          <div className='flex items-center gap-1'>
-            <button
-              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
-                activeTab === 'testCases'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('testCases')}
-            >
+    <div className='h-full flex flex-col'>
+      {/* Tab bar with actions */}
+      <div className='flex items-center justify-between border-b border-gray-200 px-3 py-2 gap-4'>
+        <Tabs value={activeTab}>
+          <TabsList variant='solid'>
+            <TabsTrigger value='testCases' onClick={() => setActiveTab('testCases')}>
               Test Cases
-            </button>
-            <button
-              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
-                activeTab === 'results'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('results')}
-            >
+            </TabsTrigger>
+            <TabsTrigger value='results' onClick={() => setActiveTab('results')}>
               Results
               {results && (
                 <span
-                  className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                  className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ml-1 ${
                     passed === results.length
                       ? 'bg-green-100 text-green-700'
                       : 'bg-red-100 text-red-700'
@@ -107,59 +93,48 @@ export const TestResultsPanel = ({
                   {passed}/{results.length}
                 </span>
               )}
-            </button>
-          </div>
+            </TabsTrigger>
+            <TabsTrigger value='history' onClick={() => setActiveTab('history')}>
+              History
+              {history.length > 0 && (
+                <span className='text-xs px-1.5 py-0.5 rounded-full font-semibold ml-1 bg-gray-200 text-gray-700'>
+                  {history.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-          <div className='flex items-center gap-2'>
-            <Button
-              variant='secondary'
-              icon={RiPlayLine}
-              onClick={onRunTests}
-              isLoading={isRunning}
-            >
-              Run Tests
-            </Button>
-            <Button
-              icon={RiSendPlaneLine}
-              onClick={() => setShowSubmitDialog(true)}
-            >
-              Submit
-            </Button>
-          </div>
-        </div>
-
-        {/* Tab content */}
-        <div className='flex-1 overflow-y-auto'>
-          {activeTab === 'testCases' ? (
-            <TestCasesContent testCases={testCases} />
-          ) : (
-            <ResultsContent
-              results={results}
-              isRunning={isRunning}
-            />
-          )}
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='secondary'
+            icon={RiPlayLine}
+            onClick={onRunTests}
+            isLoading={isRunning}
+          >
+            Run
+          </Button>
+          <Button
+            icon={RiSendPlaneLine}
+            onClick={onSubmitCode}
+            isLoading={isSubmitting}
+          >
+            Submit
+          </Button>
         </div>
       </div>
 
-      <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
-        <DialogContent className='sm:max-w-md'>
-          <DialogHeader>
-            <DialogTitle>Submit Assessment?</DialogTitle>
-            <DialogDescription>
-              This will run all test cases (including hidden ones) and cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant='secondary' onClick={() => setShowSubmitDialog(false)}>
-              Cancel
-            </Button>
-            <Button icon={RiSendPlaneLine} onClick={handleSubmit} isLoading={isSubmitting}>
-              Submit
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+      {/* Tab content */}
+      <div className='flex-1 overflow-y-auto'>
+        {activeTab === 'testCases' ? (
+          <TestCasesContent testCases={testCases} />
+        ) : activeTab === 'results' ? (
+          <ResultsContent results={results} isRunning={isRunning} />
+        ) : (
+          <HistoryContent history={history} onRestoreCode={onRestoreCode} />
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -257,9 +232,7 @@ const ResultsContent = ({
     <div className='h-full flex flex-col'>
       {/* Summary bar */}
       <div className='flex items-center gap-3 px-4 py-2 border-b border-gray-100'>
-        <span className='text-sm font-medium text-gray-700'>
-          {results.length} tests
-        </span>
+        <span className='text-sm font-medium text-gray-700'>{results.length} tests</span>
         {passedCount > 0 && (
           <span className='flex items-center gap-1 text-sm text-green-600'>
             <RiCheckLine className='size-4' />
@@ -368,7 +341,6 @@ const ResultsContent = ({
                     >
                       <RiCheckLine className='size-4 shrink-0' />
                       <span className='flex-1'>Case {index + 1}</span>
-
                     </div>
                   );
                 })}
@@ -376,6 +348,98 @@ const ResultsContent = ({
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+const formatRelativeTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return date.toLocaleDateString();
+};
+
+const HistoryContent = ({
+  history,
+  onRestoreCode,
+}: {
+  history: SubmissionHistoryItem[];
+  onRestoreCode: (code: string) => void;
+}) => {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  if (history.length === 0) {
+    return (
+      <div className='h-full flex items-center justify-center'>
+        <div className='flex flex-col items-center gap-2 text-gray-400'>
+          <RiHistoryLine className='size-8' />
+          <span className='text-sm'>No submissions yet</span>
+          <span className='text-xs'>Submit your code to see history</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='h-full flex flex-col'>
+      <div className='flex-1 overflow-y-auto'>
+        {history.map((submission, index) => {
+          const isExpanded = expandedId === submission.id;
+          const score = submission.score ?? 0;
+          const maxScore = submission.maxScore ?? 0;
+          const isPerfect = score === maxScore && maxScore > 0;
+
+          return (
+            <div key={submission.id} className='border-b border-gray-100'>
+              <button
+                className='w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors'
+                onClick={() => setExpandedId(isExpanded ? null : submission.id)}
+              >
+                <span className='font-mono text-sm text-gray-500 w-6'>
+                  #{history.length - index}
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    isPerfect
+                      ? 'bg-green-100 text-green-700'
+                      : score > 0
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {score}/{maxScore}
+                </span>
+                <span className='flex-1 text-left text-sm text-gray-500'>
+                  {formatRelativeTime(submission.createdAt)}
+                </span>
+                {isExpanded ? (
+                  <RiArrowDownSLine className='size-4 text-gray-400' />
+                ) : (
+                  <RiArrowRightSLine className='size-4 text-gray-400' />
+                )}
+              </button>
+
+              {isExpanded && (
+                <div className='px-4 pb-4 pt-1'>
+                  <Button
+                    variant='secondary'
+                    onClick={() => onRestoreCode(submission.code)}
+                  >
+                    <RiArrowGoBackLine className='size-4 mr-1.5' />
+                    Restore this code
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

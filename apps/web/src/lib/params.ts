@@ -29,3 +29,13 @@ export const useCurrentSubId = (): string => {
 
   return params.subId;
 };
+
+export const useCurrentQuestionId = (): string => {
+  const params = useParams({ strict: false });
+
+  if (!params.questionId) {
+    throw new Error('useCurrentQuestionId must be used within a route that has a questionId param');
+  }
+
+  return params.questionId;
+};

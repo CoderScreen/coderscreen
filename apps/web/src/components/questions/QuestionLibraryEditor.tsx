@@ -29,8 +29,6 @@ interface QuestionLibraryEditorProps {
     description: Record<string, unknown>;
     starterCode: string;
     timeLimitSeconds: number | null;
-    difficulty: string | null;
-    tags: string[];
     testCases?: {
       id: string;
       label: string;
@@ -90,8 +88,6 @@ export const QuestionLibraryEditor = ({
           description,
           starterCode: '',
           timeLimitSeconds: null,
-          difficulty: null,
-          tags: [],
         });
 
         const newQuestion = result as { id: string };

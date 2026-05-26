@@ -18,6 +18,7 @@ import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
 import { getSession } from '@/lib/session';
 import {
+  ChangeLanguageSchema,
   CreateSubmissionSchema,
   GradeSubmissionSchema,
   SaveCodeSchema,
@@ -106,9 +107,11 @@ export class AssessmentSubmissionService {
   async inviteCandidate(assessmentId: Id<'assessment'>, params: CreateSubmissionSchema) {
     const { orgId } = getSession(this.ctx);
 
-    // Resolve candidate
-    let candidate: CandidateEntity;
-    if (params.candidateId) {
+    // Resolve candidate (null for generic links)
+    let candidate: CandidateEntity | null = null;
+    if (params.isGenericLink) {
+      // No candidate needed — the candidate fills in their info on the start screen
+    } else if (params.candidateId) {
       const existing = await this.db
         .select()
         .from(candidateTable)
@@ -128,7 +131,7 @@ export class AssessmentSubmissionService {
       });
     } else {
       throw new HTTPException(400, {
-        message: 'Provide either candidateId or both candidateName and candidateEmail',
+        message: 'Provide either candidateId, both candidateName and candidateEmail, or isGenericLink',
       });
     }
 
@@ -161,7 +164,7 @@ export class AssessmentSubmissionService {
         updatedAt: new Date().toISOString(),
         assessmentId,
         organizationId: orgId,
-        candidateId: candidate.id,
+        candidateId: candidate?.id ?? null,
         status: 'not_started',
         accessToken,
       })
@@ -183,6 +186,7 @@ export class AssessmentSubmissionService {
         submissionId: submissionId,
         questionId: q.id,
         organizationId: orgId,
+        isDraft: true,
       });
     }
 
@@ -204,7 +208,7 @@ export class AssessmentSubmissionService {
       .orderBy(desc(assessmentSubmissionTable.createdAt));
 
     // Join with candidates
-    const candidateIds = [...new Set(submissions.map((s) => s.candidateId))];
+    const candidateIds = [...new Set(submissions.map((s) => s.candidateId).filter(Boolean))] as Id<'candidate'>[];
     const candidates: CandidateEntity[] = [];
     for (const cId of candidateIds) {
       const c = await this.db
@@ -219,7 +223,7 @@ export class AssessmentSubmissionService {
 
     return submissions.map((s) => ({
       ...s,
-      candidate: candidateMap.get(s.candidateId) || null,
+      candidate: s.candidateId ? candidateMap.get(s.candidateId) || null : null,
     }));
   }
 
@@ -239,11 +243,13 @@ export class AssessmentSubmissionService {
 
     if (!submission) return null;
 
-    const candidate = await this.db
-      .select()
-      .from(candidateTable)
-      .where(eq(candidateTable.id, submission.candidateId))
-      .then((r) => (r.length > 0 ? r[0] : null));
+    const candidate = submission.candidateId
+      ? await this.db
+          .select()
+          .from(candidateTable)
+          .where(eq(candidateTable.id, submission.candidateId))
+          .then((r) => (r.length > 0 ? r[0] : null))
+      : null;
 
     const questionSubmissions = await this.db
       .select()
@@ -290,28 +296,91 @@ export class AssessmentSubmissionService {
     }
 
     // Update individual question scores if provided
-    let totalScore = 0;
+    let weightedTotal: number | null = null;
+    let weightedMax: number | null = null;
     if (grades.questionScores) {
+      // Apply manual score overrides to each question submission
       for (const qs of grades.questionScores) {
         await this.db
           .update(questionSubmissionTable)
           .set({ score: qs.score, updatedAt: new Date().toISOString() })
           .where(eq(questionSubmissionTable.id, qs.questionSubmissionId));
-        totalScore += qs.score;
       }
+
+      // Recompute weighted aggregate using the assessment-question points weights
+      const aggregate = await this.computeWeightedAggregate(submissionId);
+      weightedTotal = aggregate.totalScore;
+      weightedMax = aggregate.maxScore;
     }
 
     return this.db
       .update(assessmentSubmissionTable)
       .set({
         status: 'graded',
-        totalScore: grades.questionScores ? totalScore : submission.totalScore,
+        totalScore: weightedTotal ?? submission.totalScore,
+        maxScore: weightedMax ?? submission.maxScore,
         gradingNotes: grades.gradingNotes ?? submission.gradingNotes,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(assessmentSubmissionTable.id, submissionId))
       .returning()
       .then((r) => r[0]);
+  }
+
+  /**
+   * Compute weighted assessment score from per-question best submissions:
+   *   weightedScore(q) = (bestQS.score / bestQS.maxScore) * aq.points
+   *   totalScore       = round(sum(weightedScore))
+   *   maxScore         = sum(aq.points)
+   */
+  private async computeWeightedAggregate(
+    submissionId: Id<'assessmentSubmission'>
+  ): Promise<{ totalScore: number; maxScore: number }> {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      return { totalScore: 0, maxScore: 0 };
+    }
+
+    const assessmentQuestions = await this.db
+      .select()
+      .from(assessmentQuestionTable)
+      .where(eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>));
+
+    let weightedTotal = 0;
+    let weightedMax = 0;
+
+    for (const aq of assessmentQuestions) {
+      weightedMax += aq.points;
+
+      const bestSubmission = await this.db
+        .select()
+        .from(questionSubmissionTable)
+        .where(
+          and(
+            eq(questionSubmissionTable.submissionId, submissionId),
+            eq(questionSubmissionTable.questionId, aq.id),
+            eq(questionSubmissionTable.isDraft, false)
+          )
+        )
+        .orderBy(desc(questionSubmissionTable.score))
+        .limit(1)
+        .then((r) => (r.length > 0 ? r[0] : null));
+
+      if (bestSubmission && bestSubmission.maxScore && bestSubmission.maxScore > 0) {
+        const ratio = (bestSubmission.score ?? 0) / bestSubmission.maxScore;
+        weightedTotal += ratio * aq.points;
+      }
+    }
+
+    return {
+      totalScore: Math.round(weightedTotal),
+      maxScore: weightedMax,
+    };
   }
 
   // === Candidate-Facing Methods (token-authenticated, no session required) ===
@@ -393,12 +462,14 @@ export class AssessmentSubmissionService {
       });
     }
 
-    // Load candidate info
-    const candidate = await this.db
-      .select()
-      .from(candidateTable)
-      .where(eq(candidateTable.id, submission.candidateId))
-      .then((r) => (r.length > 0 ? r[0] : null));
+    // Load candidate info (if linked)
+    const candidate = submission.candidateId
+      ? await this.db
+          .select()
+          .from(candidateTable)
+          .where(eq(candidateTable.id, submission.candidateId))
+          .then((r) => (r.length > 0 ? r[0] : null))
+      : null;
 
     return {
       submission: {
@@ -408,6 +479,8 @@ export class AssessmentSubmissionService {
         startedAt: submission.startedAt,
         submittedAt: submission.submittedAt,
         expiresAt: submission.expiresAt,
+        enteredName: submission.enteredName,
+        enteredEmail: submission.enteredEmail,
         candidateEmail: candidate?.email ?? null,
         candidateName: candidate?.name ?? null,
       },
@@ -467,6 +540,7 @@ export class AssessmentSubmissionService {
         status: 'in_progress',
         selectedLanguage: params.selectedLanguage,
         enteredName: params.enteredName,
+        enteredEmail: params.enteredEmail ?? null,
         startedAt,
         expiresAt,
         updatedAt: startedAt,
@@ -491,6 +565,7 @@ export class AssessmentSubmissionService {
       throw new HTTPException(400, { message: 'Assessment is not in progress' });
     }
 
+    // Only update the draft row (auto-save working code)
     const updated = await this.db
       .update(questionSubmissionTable)
       .set({
@@ -500,7 +575,8 @@ export class AssessmentSubmissionService {
       .where(
         and(
           eq(questionSubmissionTable.submissionId, submissionId),
-          eq(questionSubmissionTable.questionId, params.questionId)
+          eq(questionSubmissionTable.questionId, params.questionId),
+          eq(questionSubmissionTable.isDraft, true)
         )
       )
       .returning()
@@ -511,6 +587,181 @@ export class AssessmentSubmissionService {
     }
 
     return updated;
+  }
+
+  /**
+   * Submit code for a question - runs ALL test cases (visible + hidden)
+   * Creates a new submission record with test results
+   */
+  async submitCode(
+    submissionId: Id<'assessmentSubmission'>,
+    params: { questionId: Id<'assessmentQuestion'>; code: string }
+  ) {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    if (submission.status !== 'in_progress') {
+      throw new HTTPException(400, { message: 'Assessment is not in progress' });
+    }
+
+    if (!submission.selectedLanguage) {
+      throw new HTTPException(400, { message: 'No language selected' });
+    }
+
+    // Resolve assessmentQuestion → library question
+    const link = await this.db
+      .select()
+      .from(assessmentQuestionTable)
+      .where(eq(assessmentQuestionTable.id, params.questionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!link) {
+      throw new HTTPException(404, { message: 'Question not found' });
+    }
+
+    // Get ALL test cases (visible + hidden) from library
+    const testCases = await this.db
+      .select()
+      .from(questionLibraryTestCaseTable)
+      .where(eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>))
+      .orderBy(asc(questionLibraryTestCaseTable.position));
+
+    // Run code against all test cases
+    const codeRunService = new AssessmentCodeRunService(this.ctx);
+    const results = await codeRunService.runTestCases({
+      submissionId,
+      code: params.code,
+      language: submission.selectedLanguage as AssessmentLanguage,
+      testCases,
+    });
+
+    // Calculate score (each test = 1 point)
+    const passedCount = results.filter((r) => r.passed).length;
+    const maxScore = testCases.length;
+
+    // Create NEW questionSubmission record (isDraft=false for actual submission)
+    const questionSubmissionId = generateId('questionSubmission');
+    const newQuestionSubmission = await this.db
+      .insert(questionSubmissionTable)
+      .values({
+        id: questionSubmissionId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        submissionId: submissionId,
+        questionId: params.questionId,
+        organizationId: submission.organizationId,
+        code: params.code,
+        language: submission.selectedLanguage,
+        isDraft: false,
+        score: passedCount,
+        maxScore: maxScore,
+      })
+      .returning()
+      .then((r) => r[0]);
+
+    // Store test results
+    for (const result of results) {
+      await this.db.insert(testCaseResultTable).values({
+        id: generateId('testCaseResult'),
+        createdAt: new Date().toISOString(),
+        questionSubmissionId: questionSubmissionId,
+        testCaseId: result.testCaseId,
+        organizationId: submission.organizationId,
+        passed: result.passed,
+        actualOutput: result.actualOutput,
+        stderr: result.stderr,
+        exitCode: result.exitCode,
+        executionTimeMs: result.executionTimeMs,
+      });
+    }
+
+    // Return results - only show visible test results to candidate
+    const visibleResults = results.filter((r) => {
+      const tc = testCases.find((tc) => tc.id === r.testCaseId);
+      return tc && !tc.isHidden;
+    });
+
+    return {
+      questionSubmission: newQuestionSubmission,
+      score: passedCount,
+      maxScore,
+      visibleResults,
+    };
+  }
+
+  /**
+   * Get submission history for a question (all non-draft submissions)
+   */
+  async getSubmissionHistory(
+    submissionId: Id<'assessmentSubmission'>,
+    questionId: Id<'assessmentQuestion'>
+  ) {
+    // Get all actual submissions (not drafts)
+    const submissions = await this.db
+      .select()
+      .from(questionSubmissionTable)
+      .where(
+        and(
+          eq(questionSubmissionTable.submissionId, submissionId),
+          eq(questionSubmissionTable.questionId, questionId),
+          eq(questionSubmissionTable.isDraft, false)
+        )
+      )
+      .orderBy(desc(questionSubmissionTable.createdAt));
+
+    return submissions;
+  }
+
+  async changeLanguage(
+    submissionId: Id<'assessmentSubmission'>,
+    params: ChangeLanguageSchema
+  ) {
+    const submission = await this.db
+      .select()
+      .from(assessmentSubmissionTable)
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!submission) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    if (submission.status !== 'in_progress') {
+      throw new HTTPException(400, { message: 'Assessment is not in progress' });
+    }
+
+    const assessment = await this.db
+      .select()
+      .from(assessmentTable)
+      .where(eq(assessmentTable.id, submission.assessmentId as Id<'assessment'>))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!assessment) {
+      throw new HTTPException(404, { message: 'Assessment not found' });
+    }
+
+    if (!assessment.allowedLanguages.includes(params.selectedLanguage)) {
+      throw new HTTPException(400, {
+        message: 'Selected language is not allowed for this assessment',
+      });
+    }
+
+    return this.db
+      .update(assessmentSubmissionTable)
+      .set({
+        selectedLanguage: params.selectedLanguage,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .returning()
+      .then((r) => r[0]);
   }
 
   async checkExpiration(submissionId: Id<'assessmentSubmission'>): Promise<boolean> {
@@ -615,77 +866,15 @@ export class AssessmentSubmissionService {
       throw new HTTPException(400, { message: 'Assessment is not in progress' });
     }
 
-    if (!submission.selectedLanguage) {
-      throw new HTTPException(400, { message: 'No language selected' });
-    }
+    const { totalScore, maxScore } = await this.computeWeightedAggregate(submissionId);
 
-    // Get all question submissions with their saved code
-    const questionSubmissions = await this.db
-      .select()
-      .from(questionSubmissionTable)
-      .where(eq(questionSubmissionTable.submissionId, submissionId));
-
-    const codeRunService = new AssessmentCodeRunService(this.ctx);
-    let totalPassed = 0;
-    let totalTests = 0;
-
-    for (const qs of questionSubmissions) {
-      // Resolve assessmentQuestion → library question
-      const link = await this.db
-        .select()
-        .from(assessmentQuestionTable)
-        .where(eq(assessmentQuestionTable.id, qs.questionId as Id<'assessmentQuestion'>))
-        .then((r) => (r.length > 0 ? r[0] : null));
-
-      if (!link) continue;
-
-      // Get ALL test cases (visible + hidden) from library
-      const testCases = await this.db
-        .select()
-        .from(questionLibraryTestCaseTable)
-        .where(
-          eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>)
-        )
-        .orderBy(asc(questionLibraryTestCaseTable.position));
-
-      if (testCases.length === 0) continue;
-
-      // Run code against all test cases
-      const results = await codeRunService.runTestCases({
-        submissionId,
-        code: qs.code,
-        language: submission.selectedLanguage as AssessmentLanguage,
-        testCases,
-      });
-
-      // Store results in testCaseResult table
-      for (const result of results) {
-        await this.db.insert(testCaseResultTable).values({
-          id: generateId('testCaseResult'),
-          createdAt: new Date().toISOString(),
-          questionSubmissionId: qs.id,
-          testCaseId: result.testCaseId,
-          organizationId: submission.organizationId,
-          passed: result.passed,
-          actualOutput: result.actualOutput,
-          stderr: result.stderr,
-          exitCode: result.exitCode,
-          executionTimeMs: result.executionTimeMs,
-        });
-
-        totalTests++;
-        if (result.passed) totalPassed++;
-      }
-    }
-
-    // Update submission status
     const updated = await this.db
       .update(assessmentSubmissionTable)
       .set({
         status: 'submitted',
         submittedAt: new Date().toISOString(),
-        totalScore: totalPassed,
-        maxScore: totalTests,
+        totalScore,
+        maxScore,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(assessmentSubmissionTable.id, submissionId))
@@ -694,8 +883,8 @@ export class AssessmentSubmissionService {
 
     return {
       ...updated,
-      totalPassed,
-      totalTests,
+      totalScore,
+      maxScore,
     };
   }
 }

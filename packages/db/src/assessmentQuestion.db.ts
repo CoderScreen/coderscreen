@@ -19,6 +19,7 @@ export const assessmentQuestionTable = pgTable('assessment_questions', {
     .notNull()
     .references(() => questionLibraryTable.id, { onDelete: 'cascade' }),
   position: integer('position').notNull(),
+  points: integer('points').notNull().default(100),
 });
 
 export type AssessmentQuestionEntity = typeof assessmentQuestionTable.$inferSelect;

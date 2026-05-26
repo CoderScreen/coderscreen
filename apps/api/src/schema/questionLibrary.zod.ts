@@ -1,8 +1,6 @@
 import { idString } from '@coderscreen/common/id';
 import { z } from 'zod';
 
-export const QuestionLibraryDifficultySchema = z.enum(['easy', 'medium', 'hard']);
-
 // === Question Library ===
 
 export const QuestionLibrarySchema = z.object({
@@ -13,9 +11,9 @@ export const QuestionLibrarySchema = z.object({
   description: z.record(z.any()),
   starterCode: z.string(),
   timeLimitSeconds: z.number().int().positive().nullable(),
-  difficulty: QuestionLibraryDifficultySchema.nullable(),
-  tags: z.array(z.string()),
   isPublic: z.boolean(),
+  timesTaken: z.number().int().min(0),
+  avgScore: z.number().min(0).max(1).nullable(),
 });
 
 export const CreateQuestionLibrarySchema = z.object({
@@ -23,8 +21,6 @@ export const CreateQuestionLibrarySchema = z.object({
   description: z.record(z.any()).optional().default({}),
   starterCode: z.string().optional().default(''),
   timeLimitSeconds: z.number().int().positive().nullable().optional().default(null),
-  difficulty: QuestionLibraryDifficultySchema.nullable().optional().default(null),
-  tags: z.array(z.string()).optional().default([]),
 });
 
 export const UpdateQuestionLibrarySchema = z.object({
@@ -32,8 +28,6 @@ export const UpdateQuestionLibrarySchema = z.object({
   description: z.record(z.any()).optional(),
   starterCode: z.string().optional(),
   timeLimitSeconds: z.number().int().positive().nullable().optional(),
-  difficulty: QuestionLibraryDifficultySchema.nullable().optional(),
-  tags: z.array(z.string()).optional(),
 });
 
 // === Question Library Test Case ===

@@ -129,6 +129,7 @@ export class AssessmentService {
       organizationId: r.link.organizationId,
       questionId: r.question.id,
       position: r.link.position,
+      points: r.link.points,
       title: r.question.title,
       description: r.question.description,
       starterCode: r.question.starterCode,
@@ -275,6 +276,7 @@ export class AssessmentService {
       title: string;
       description: Record<string, unknown>;
       position: number;
+      points?: number;
       timeLimitSeconds?: number | null;
       starterCode?: string;
     }
@@ -309,6 +311,7 @@ export class AssessmentService {
         organizationId: orgId,
         questionId: libraryQuestion.id,
         position: values.position,
+        points: values.points ?? 100,
       })
       .returning()
       .then((r) => r[0]);
@@ -328,6 +331,7 @@ export class AssessmentService {
     values: {
       libraryQuestionId: Id<'questionLibrary'>;
       position: number;
+      points?: number;
     }
   ) {
     const { orgId } = getSession(this.ctx);
@@ -359,6 +363,7 @@ export class AssessmentService {
         organizationId: orgId,
         questionId: libraryQuestion.id,
         position: values.position,
+        points: values.points ?? 100,
       })
       .returning()
       .then((r) => r[0]);
@@ -378,6 +383,7 @@ export class AssessmentService {
       title?: string;
       description?: Record<string, unknown>;
       position?: number;
+      points?: number;
       timeLimitSeconds?: number | null;
       starterCode?: string;
     }
@@ -400,14 +406,15 @@ export class AssessmentService {
       throw new HTTPException(404, { message: 'Question not found' });
     }
 
-    // Update position on the link if changed
-    if (values.position !== undefined) {
+    // Update link-level fields if changed
+    const linkUpdates: Record<string, unknown> = {};
+    if (values.position !== undefined) linkUpdates.position = values.position;
+    if (values.points !== undefined) linkUpdates.points = values.points;
+    if (Object.keys(linkUpdates).length > 0) {
+      linkUpdates.updatedAt = new Date().toISOString();
       await this.db
         .update(assessmentQuestionTable)
-        .set({
-          position: values.position,
-          updatedAt: new Date().toISOString(),
-        })
+        .set(linkUpdates)
         .where(eq(assessmentQuestionTable.id, questionId));
     }
 

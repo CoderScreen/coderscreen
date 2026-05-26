@@ -1,12 +1,11 @@
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useCallback, useState } from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
-import { useRunTests } from '@/query/candidateAssessment.query';
+import { useRunTests, useSubmitCode, useSubmissionHistory } from '@/query/candidateAssessment.query';
 import { AssessmentHeader } from './AssessmentHeader';
-import { QuestionPanel } from './QuestionPanel';
 import { CodeEditorPanel } from './CodeEditorPanel';
+import { QuestionPanel } from './QuestionPanel';
 import { TestResultsPanel } from './TestResultsPanel';
-import { QuestionsOverview } from './QuestionsOverview';
 
 interface TestResult {
   testCaseId: string;
@@ -19,21 +18,37 @@ interface TestResult {
   executionTimeMs: number;
 }
 
-export const AssessmentCodingView = () => {
-  const { currentQuestion, codeMap, setCurrentQuestionIndex, saveCurrentCode, subId, token } =
-    useTakeAssessment();
+interface AssessmentCodingViewProps {
+  question: {
+    id: string;
+    title: string;
+    description: Record<string, unknown>;
+    starterCode: string;
+    testCases?: {
+      id: string;
+      label?: string;
+      input?: string;
+      expectedOutput?: string;
+    }[];
+    [key: string]: unknown;
+  };
+}
+
+export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) => {
+  const { assessment, codeMap, setCode, subId, token } = useTakeAssessment();
   const { runTests, isRunning } = useRunTests(subId, token);
+  const { submitCode, isSubmitting } = useSubmitCode(subId, token);
+  const { history } = useSubmissionHistory(subId, token, question.id);
   const [testResults, setTestResults] = useState<TestResult[] | null>(null);
-  const [activeView, setActiveView] = useState<'overview' | 'coding'>('overview');
+
+  const questions = assessment?.questions ?? [];
+  const questionIndex = questions.findIndex((q) => q.id === question.id);
 
   const handleRunTests = useCallback(async () => {
-    if (!currentQuestion) return;
+    const code = codeMap[question.id] ?? '';
+    const result = await runTests({ questionId: question.id, code });
 
-    const code = codeMap[currentQuestion.id] ?? '';
-    const result = await runTests({ questionId: currentQuestion.id, code });
-
-    // Map test case metadata onto results
-    const testCases = currentQuestion.testCases ?? [];
+    const testCases = question.testCases ?? [];
     const results = (result.results ?? []).map((r: any) => {
       const tc = testCases.find((t) => t.id === r.testCaseId);
       return {
@@ -45,71 +60,83 @@ export const AssessmentCodingView = () => {
     });
 
     setTestResults(results);
-  }, [currentQuestion, codeMap, runTests]);
+  }, [question, codeMap, runTests]);
 
-  const handleSelectQuestion = useCallback(
-    (index: number) => {
-      saveCurrentCode();
-      setCurrentQuestionIndex(index);
-      setTestResults(null);
-      setActiveView('coding');
+  const handleSubmitCode = useCallback(async () => {
+    const code = codeMap[question.id] ?? '';
+    const result = (await submitCode({ questionId: question.id, code })) as {
+      visibleResults?: Array<{
+        testCaseId: string;
+        actualOutput: string;
+        stderr: string;
+        passed: boolean;
+        executionTimeMs: number;
+      }>;
+    };
+
+    // Show visible test results after submission
+    const testCases = question.testCases ?? [];
+    const results = (result.visibleResults ?? []).map((r) => {
+      const tc = testCases.find((t) => t.id === r.testCaseId);
+      return {
+        ...r,
+        label: tc?.label,
+        input: tc?.input,
+        expectedOutput: tc?.expectedOutput,
+      };
+    });
+
+    setTestResults(results);
+  }, [question, codeMap, submitCode]);
+
+  const handleRestoreCode = useCallback(
+    (code: string) => {
+      setCode(question.id, code);
     },
-    [saveCurrentCode, setCurrentQuestionIndex]
+    [question.id, setCode]
   );
 
-  const handleBackToOverview = useCallback(() => {
-    saveCurrentCode();
-    setActiveView('overview');
-  }, [saveCurrentCode]);
-
-  if (activeView === 'overview') {
-    return (
-      <div className='h-screen flex flex-col bg-white'>
-        <AssessmentHeader mode='overview' />
-        <QuestionsOverview onSelectQuestion={handleSelectQuestion} />
-      </div>
-    );
-  }
-
-  const testCases = currentQuestion?.testCases ?? [];
+  const testCases = question.testCases ?? [];
 
   return (
-    <div className='h-screen flex flex-col bg-white'>
-      <AssessmentHeader mode='coding' onBackToOverview={handleBackToOverview} />
+    <div className='h-screen flex flex-col bg-gray-100'>
+      <AssessmentHeader mode='coding' question={question} questionIndex={questionIndex} />
 
-      <div className='flex-1 min-h-0'>
+      <div className='flex-1 min-h-0 p-2'>
         <PanelGroup direction='horizontal'>
           {/* Left: Question */}
           <Panel defaultSize={40} minSize={20}>
-            <div className='h-full border-r border-gray-200'>
-              <QuestionPanel />
+            <div className='h-full bg-white rounded-lg overflow-hidden border border-gray-200'>
+              <QuestionPanel question={question} />
             </div>
           </Panel>
 
-          <PanelResizeHandle className='w-2 flex items-center justify-center group cursor-col-resize'>
-            <div className='w-0.5 h-8 rounded-full bg-gray-300 group-hover:bg-gray-400 group-active:bg-gray-500 transition-colors' />
-          </PanelResizeHandle>
+          <PanelResizeHandle className='w-2 cursor-col-resize' />
 
           {/* Right: Editor + Test/Results */}
           <Panel defaultSize={60} minSize={30}>
             <PanelGroup direction='vertical'>
               {/* Top: Code Editor */}
               <Panel defaultSize={70} minSize={30}>
-                <CodeEditorPanel />
+                <div className='h-full bg-white rounded-lg overflow-hidden border border-gray-200'>
+                  <CodeEditorPanel question={question} />
+                </div>
               </Panel>
 
-              <PanelResizeHandle className='h-2 flex items-center justify-center group cursor-row-resize'>
-                <div className='h-0.5 w-8 rounded-full bg-gray-300 group-hover:bg-gray-400 group-active:bg-gray-500 transition-colors' />
-              </PanelResizeHandle>
+              <PanelResizeHandle className='h-2 cursor-row-resize' />
 
               {/* Bottom: Test Cases + Results (tabbed) */}
               <Panel defaultSize={30} minSize={15}>
-                <div className='h-full border-t border-gray-200'>
+                <div className='h-full bg-white rounded-lg overflow-hidden border border-gray-200'>
                   <TestResultsPanel
                     testCases={testCases}
                     results={testResults}
                     isRunning={isRunning}
                     onRunTests={handleRunTests}
+                    onSubmitCode={handleSubmitCode}
+                    isSubmitting={isSubmitting}
+                    history={history}
+                    onRestoreCode={handleRestoreCode}
                   />
                 </div>
               </Panel>

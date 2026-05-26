@@ -13,8 +13,6 @@ export const questionLibraryTable = pgTable('question_library', {
   description: jsonb('description').notNull(),
   starterCode: text('starter_code').notNull().default(''),
   timeLimitSeconds: integer('time_limit_seconds'),
-  difficulty: text('difficulty').$type<'easy' | 'medium' | 'hard'>(),
-  tags: jsonb('tags').notNull().default(sql`'[]'::jsonb`).$type<string[]>(),
   isPublic: boolean('is_public').notNull().default(false),
 });
 
