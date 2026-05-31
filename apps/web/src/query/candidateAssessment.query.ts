@@ -34,19 +34,11 @@ export const useStartAssessment = (subId: string, token: string) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async ({
-      selectedLanguage,
-      enteredName,
-      enteredEmail,
-    }: {
-      selectedLanguage: string;
-      enteredName: string;
-      enteredEmail?: string;
-    }) => {
+    mutationFn: async ({ selectedLanguage }: { selectedLanguage: string }) => {
       const response = await apiClient.assessments[':subId'].take.start.$post({
         param: { subId },
         query: { token },
-        json: { selectedLanguage, enteredName, ...(enteredEmail ? { enteredEmail } : {}) } as any,
+        json: { selectedLanguage } as any,
       });
       if (!response.ok) {
         const error = await response.json();
@@ -186,14 +178,11 @@ export const useSubmitCode = (subId: string, token: string) => {
 
   const mutation = useMutation({
     mutationFn: async ({ questionId, code }: RunTestsSchema) => {
-      const response = await fetch(
-        `/api/assessments/${subId}/take/submit-code?token=${encodeURIComponent(token)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questionId, code }),
-        }
-      );
+      const response = await apiClient.assessments[':subId'].take['submit-code'].$post({
+        param: { subId },
+        query: { token },
+        json: { questionId, code },
+      });
       if (!response.ok) {
         const error = await response.json();
         throw error;
@@ -203,6 +192,9 @@ export const useSubmitCode = (subId: string, token: string) => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['submission-history', subId, variables.questionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['candidate-assessment', subId, token],
       });
     },
     meta: {
@@ -222,9 +214,10 @@ export const useSubmissionHistory = (subId: string, token: string, questionId: s
   const query = useQuery({
     queryKey: ['submission-history', subId, questionId],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/assessments/${subId}/take/questions/${questionId}/history?token=${encodeURIComponent(token)}`
-      );
+      const response = await apiClient.assessments[':subId'].take.questions[':questionId'].history.$get({
+        param: { subId, questionId },
+        query: { token },
+      });
       if (!response.ok) {
         const error = await response.json();
         throw error;

@@ -107,11 +107,8 @@ export class AssessmentSubmissionService {
   async inviteCandidate(assessmentId: Id<'assessment'>, params: CreateSubmissionSchema) {
     const { orgId } = getSession(this.ctx);
 
-    // Resolve candidate (null for generic links)
-    let candidate: CandidateEntity | null = null;
-    if (params.isGenericLink) {
-      // No candidate needed — the candidate fills in their info on the start screen
-    } else if (params.candidateId) {
+    let candidate: CandidateEntity;
+    if ('candidateId' in params) {
       const existing = await this.db
         .select()
         .from(candidateTable)
@@ -124,14 +121,10 @@ export class AssessmentSubmissionService {
         throw new HTTPException(404, { message: 'Candidate not found' });
       }
       candidate = existing;
-    } else if (params.candidateName && params.candidateEmail) {
+    } else {
       candidate = await this.createCandidate({
         name: params.candidateName,
         email: params.candidateEmail,
-      });
-    } else {
-      throw new HTTPException(400, {
-        message: 'Provide either candidateId, both candidateName and candidateEmail, or isGenericLink',
       });
     }
 
@@ -164,7 +157,7 @@ export class AssessmentSubmissionService {
         updatedAt: new Date().toISOString(),
         assessmentId,
         organizationId: orgId,
-        candidateId: candidate?.id ?? null,
+        candidateId: candidate.id,
         status: 'not_started',
         accessToken,
       })
@@ -208,7 +201,7 @@ export class AssessmentSubmissionService {
       .orderBy(desc(assessmentSubmissionTable.createdAt));
 
     // Join with candidates
-    const candidateIds = [...new Set(submissions.map((s) => s.candidateId).filter(Boolean))] as Id<'candidate'>[];
+    const candidateIds = [...new Set(submissions.map((s) => s.candidateId))] as Id<'candidate'>[];
     const candidates: CandidateEntity[] = [];
     for (const cId of candidateIds) {
       const c = await this.db
@@ -223,7 +216,7 @@ export class AssessmentSubmissionService {
 
     return submissions.map((s) => ({
       ...s,
-      candidate: s.candidateId ? candidateMap.get(s.candidateId) || null : null,
+      candidate: candidateMap.get(s.candidateId) ?? null,
     }));
   }
 
@@ -243,13 +236,11 @@ export class AssessmentSubmissionService {
 
     if (!submission) return null;
 
-    const candidate = submission.candidateId
-      ? await this.db
-          .select()
-          .from(candidateTable)
-          .where(eq(candidateTable.id, submission.candidateId))
-          .then((r) => (r.length > 0 ? r[0] : null))
-      : null;
+    const candidate = await this.db
+      .select()
+      .from(candidateTable)
+      .where(eq(candidateTable.id, submission.candidateId))
+      .then((r) => (r.length > 0 ? r[0] : null));
 
     const questionSubmissions = await this.db
       .select()
@@ -420,6 +411,28 @@ export class AssessmentSubmissionService {
       .where(eq(assessmentQuestionTable.assessmentId, assessment.id))
       .orderBy(asc(assessmentQuestionTable.position));
 
+    // Best non-draft submission per assessment question for this submission (highest score wins)
+    const nonDraftSubmissions = await this.db
+      .select()
+      .from(questionSubmissionTable)
+      .where(
+        and(
+          eq(questionSubmissionTable.submissionId, submission.id),
+          eq(questionSubmissionTable.isDraft, false)
+        )
+      )
+      .orderBy(desc(questionSubmissionTable.score));
+
+    const bestByQuestionId = new Map<
+      string,
+      { score: number | null; maxScore: number | null }
+    >();
+    for (const qs of nonDraftSubmissions) {
+      if (!bestByQuestionId.has(qs.questionId)) {
+        bestByQuestionId.set(qs.questionId, { score: qs.score, maxScore: qs.maxScore });
+      }
+    }
+
     const questionsWithData = [];
     for (const r of rows) {
       // Only visible test cases for candidate
@@ -445,6 +458,8 @@ export class AssessmentSubmissionService {
         )
         .then((rows) => (rows.length > 0 ? rows[0] : null));
 
+      const best = bestByQuestionId.get(r.link.id) ?? null;
+
       questionsWithData.push({
         id: r.link.id,
         createdAt: r.link.createdAt,
@@ -459,17 +474,18 @@ export class AssessmentSubmissionService {
         timeLimitSeconds: r.question.timeLimitSeconds,
         testCases,
         questionSubmission,
+        bestScore: best?.score ?? null,
+        maxScore: best?.maxScore ?? null,
       });
     }
 
-    // Load candidate info (if linked)
-    const candidate = submission.candidateId
-      ? await this.db
-          .select()
-          .from(candidateTable)
-          .where(eq(candidateTable.id, submission.candidateId))
-          .then((r) => (r.length > 0 ? r[0] : null))
-      : null;
+    const candidate = await this.db
+      .select()
+      .from(candidateTable)
+      .where(eq(candidateTable.id, submission.candidateId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!candidate) return null;
 
     return {
       submission: {
@@ -479,10 +495,8 @@ export class AssessmentSubmissionService {
         startedAt: submission.startedAt,
         submittedAt: submission.submittedAt,
         expiresAt: submission.expiresAt,
-        enteredName: submission.enteredName,
-        enteredEmail: submission.enteredEmail,
-        candidateEmail: candidate?.email ?? null,
-        candidateName: candidate?.name ?? null,
+        candidateEmail: candidate.email,
+        candidateName: candidate.name,
       },
       assessment: {
         id: assessment.id,
@@ -539,8 +553,6 @@ export class AssessmentSubmissionService {
       .set({
         status: 'in_progress',
         selectedLanguage: params.selectedLanguage,
-        enteredName: params.enteredName,
-        enteredEmail: params.enteredEmail ?? null,
         startedAt,
         expiresAt,
         updatedAt: startedAt,

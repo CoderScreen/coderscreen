@@ -164,12 +164,15 @@ export const SubmissionSchema = z.object({
   accessToken: z.string(),
 });
 
-export const CreateSubmissionSchema = z.object({
-  candidateId: idString('candidate').optional(),
-  candidateName: z.string().min(1).optional(),
-  candidateEmail: z.string().email().optional(),
-  isGenericLink: z.boolean().optional().default(false),
-});
+export const CreateSubmissionSchema = z.union([
+  z.object({
+    candidateId: idString('candidate'),
+  }),
+  z.object({
+    candidateName: z.string().min(1),
+    candidateEmail: z.string().email(),
+  }),
+]);
 
 export const GradeSubmissionSchema = z.object({
   gradingNotes: z.string().optional(),
@@ -187,8 +190,6 @@ export const GradeSubmissionSchema = z.object({
 
 export const StartAssessmentSchema = z.object({
   selectedLanguage: AssessmentLanguageSchema,
-  enteredName: z.string().min(1),
-  enteredEmail: z.string().email().optional(),
 });
 
 export const SaveCodeSchema = z.object({

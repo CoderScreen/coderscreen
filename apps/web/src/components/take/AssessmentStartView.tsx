@@ -1,5 +1,4 @@
 import { Button } from '@coderscreen/ui/button';
-import { Input } from '@coderscreen/ui/input';
 import {
   Select,
   SelectContent,
@@ -31,15 +30,10 @@ export const AssessmentStartView = () => {
   const { assessment, submission, subId, token } = useTakeAssessment();
   const { startAssessment, isLoading } = useStartAssessment(subId, token);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-  const [enteredName, setEnteredName] = useState<string>(
-    (submission as any)?.candidateName ?? ''
-  );
-  const [enteredEmail, setEnteredEmail] = useState<string>('');
 
   if (!assessment) return null;
 
-  const candidateEmail = (submission as any)?.candidateEmail as string | null;
-  const isGenericLink = !candidateEmail;
+  const candidateName = submission?.candidateName ?? '';
 
   const formatTimeLimit = (seconds: number) => {
     if (seconds >= 3600) {
@@ -51,12 +45,8 @@ export const AssessmentStartView = () => {
   };
 
   const handleStart = async () => {
-    if (!selectedLanguage || !enteredName.trim()) return;
-    await startAssessment({
-      selectedLanguage,
-      enteredName: enteredName.trim(),
-      ...(isGenericLink && enteredEmail.trim() ? { enteredEmail: enteredEmail.trim() } : {}),
-    });
+    if (!selectedLanguage) return;
+    await startAssessment({ selectedLanguage });
   };
 
   return (
@@ -68,6 +58,9 @@ export const AssessmentStartView = () => {
               <RiCodeLine className='w-6 h-6 text-blue-600' />
             </div>
             <h1 className='text-2xl font-bold text-gray-900'>{assessment.title}</h1>
+            {candidateName && (
+              <p className='text-base text-gray-700 mt-3'>Welcome, {candidateName}</p>
+            )}
             {assessment.description && (
               <p className='text-sm text-gray-500 mt-2'>{assessment.description}</p>
             )}
@@ -89,32 +82,6 @@ export const AssessmentStartView = () => {
           </div>
 
           <div className='space-y-4'>
-            {candidateEmail ? (
-              <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1.5'>Email</label>
-                <Input value={candidateEmail} disabled className='bg-gray-50' />
-              </div>
-            ) : (
-              <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1.5'>Email</label>
-                <Input
-                  type='email'
-                  value={enteredEmail}
-                  onChange={(e) => setEnteredEmail(e.target.value)}
-                  placeholder='Enter your email'
-                />
-              </div>
-            )}
-
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1.5'>Your Name</label>
-              <Input
-                value={enteredName}
-                onChange={(e) => setEnteredName(e.target.value)}
-                placeholder='Enter your full name'
-              />
-            </div>
-
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1.5'>
                 Programming Language
@@ -148,7 +115,7 @@ export const AssessmentStartView = () => {
               icon={RiPlayLine}
               onClick={handleStart}
               isLoading={isLoading}
-              disabled={!selectedLanguage || !enteredName.trim()}
+              disabled={!selectedLanguage}
             >
               Start Assessment
             </Button>

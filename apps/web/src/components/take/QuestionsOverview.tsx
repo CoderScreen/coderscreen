@@ -56,8 +56,21 @@ export const QuestionsOverview = () => {
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8'>
             {questions.map((q, i) => {
               const started = isStarted(q.id);
+              const bestScore = q.bestScore;
+              const maxScore = q.maxScore;
+              const hasSubmission = bestScore !== null && maxScore !== null;
+              const isPerfect = hasSubmission && bestScore === maxScore && maxScore > 0;
+              const isPartial = hasSubmission && !isPerfect && (bestScore ?? 0) > 0;
+              const scorePillClass = !hasSubmission
+                ? 'bg-gray-100 text-gray-500'
+                : isPerfect
+                  ? 'bg-green-100 text-green-700'
+                  : isPartial
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-red-100 text-red-700';
               return (
                 <button
+                  type='button'
                   key={q.id}
                   onClick={() => handleSelectQuestion(q.id)}
                   className='text-left border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all group cursor-pointer'
@@ -71,7 +84,7 @@ export const QuestionsOverview = () => {
                     </div>
                     <RiCodeLine className='size-5 text-gray-300 group-hover:text-blue-400 transition-colors mt-1' />
                   </div>
-                  <div className='mt-3 ml-10'>
+                  <div className='mt-3 ml-10 flex items-center gap-2'>
                     <span
                       className={`inline-flex items-center text-sm font-medium px-2.5 py-0.5 rounded-full ${
                         started
@@ -80,6 +93,11 @@ export const QuestionsOverview = () => {
                       }`}
                     >
                       {started ? 'Started' : 'Not started'}
+                    </span>
+                    <span
+                      className={`inline-flex items-center text-sm font-medium px-2.5 py-0.5 rounded-full ${scorePillClass}`}
+                    >
+                      {hasSubmission ? `${bestScore}/${maxScore}` : '-'}
                     </span>
                   </div>
                 </button>

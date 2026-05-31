@@ -30,7 +30,7 @@ export const SubmissionDetailDialog = ({
   const { submission, isLoading } = useSubmission(assessmentId, subId);
 
   const sub = submission as Record<string, unknown> | undefined;
-  const candidate = sub?.candidate as Record<string, unknown> | null;
+  const candidate = sub?.candidate as Record<string, unknown> | undefined;
   const questionSubmissions = (sub?.questionSubmissions as Record<string, unknown>[]) ?? [];
 
   return (
@@ -43,10 +43,8 @@ export const SubmissionDetailDialog = ({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>
-                {(candidate?.name as string) || 'Unknown Candidate'}
-              </DialogTitle>
-              <MutedText>{(candidate?.email as string) || ''}</MutedText>
+              <DialogTitle>{candidate?.name as string}</DialogTitle>
+              <MutedText>{candidate?.email as string}</MutedText>
             </DialogHeader>
 
             {/* Submission info */}

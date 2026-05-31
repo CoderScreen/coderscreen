@@ -1,4 +1,12 @@
 import { Button } from '@coderscreen/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@coderscreen/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@coderscreen/ui/tabs';
 import {
   RiArrowDownSLine,
@@ -12,6 +20,7 @@ import {
   RiSendPlaneLine,
 } from '@remixicon/react';
 import { useEffect, useState } from 'react';
+import { formatDatetime } from '@/lib/dateUtils';
 
 interface TestResult {
   testCaseId: string;
@@ -374,6 +383,7 @@ const HistoryContent = ({
   onRestoreCode: (code: string) => void;
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pendingRestore, setPendingRestore] = useState<SubmissionHistoryItem | null>(null);
 
   if (history.length === 0) {
     return (
@@ -430,7 +440,7 @@ const HistoryContent = ({
                 <div className='px-4 pb-4 pt-1'>
                   <Button
                     variant='secondary'
-                    onClick={() => onRestoreCode(submission.code)}
+                    onClick={() => setPendingRestore(submission)}
                   >
                     <RiArrowGoBackLine className='size-4 mr-1.5' />
                     Restore this code
@@ -441,6 +451,37 @@ const HistoryContent = ({
           );
         })}
       </div>
+
+      <Dialog open={!!pendingRestore} onOpenChange={(open) => !open && setPendingRestore(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restore this code?</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            This will overwrite your current code in the editor with the submission from{' '}
+            <span className='font-medium text-stone-900'>
+              {pendingRestore ? formatDatetime(pendingRestore.createdAt) : ''}
+            </span>
+            . Your current code will be lost unless you've already submitted it.
+          </DialogDescription>
+          <DialogFooter>
+            <Button variant='secondary' onClick={() => setPendingRestore(null)} icon={RiCloseLine}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (pendingRestore) {
+                  onRestoreCode(pendingRestore.code);
+                  setPendingRestore(null);
+                }
+              }}
+              icon={RiArrowGoBackLine}
+            >
+              Restore
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

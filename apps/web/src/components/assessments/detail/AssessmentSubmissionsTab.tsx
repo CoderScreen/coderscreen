@@ -20,13 +20,10 @@ import {
 } from '@coderscreen/ui/table';
 import { Tooltip } from '@coderscreen/ui/tooltip';
 import { MutedText } from '@coderscreen/ui/typography';
-import { Dialog, DialogContent } from '@coderscreen/ui/dialog';
-import { Input } from '@coderscreen/ui/input';
 import {
   RiAddLine,
   RiEyeLine,
   RiFileCopyLine,
-  RiLinksLine,
   RiMailSendLine,
   RiMore2Line,
 } from '@remixicon/react';
@@ -34,7 +31,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
 import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
-import { useInviteCandidate, useSubmissions } from '@/query/assessment.query';
+import { useSubmissions } from '@/query/assessment.query';
 import { InviteCandidateDialog } from './InviteCandidateDialog';
 import { SubmissionDetailDialog } from './SubmissionDetailView';
 
@@ -61,26 +58,8 @@ interface AssessmentSubmissionsTabProps {
 
 export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissionsTabProps) => {
   const { submissions, isLoading } = useSubmissions(assessmentId);
-  const { inviteCandidate, isLoading: isGenerating } = useInviteCandidate(assessmentId);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
-
-  const handleGenerateLink = async () => {
-    const result = await inviteCandidate({ isGenericLink: true });
-    if (result && typeof result === 'object' && 'accessToken' in result) {
-      const token = (result as { accessToken: string }).accessToken;
-      const link = `${window.location.origin}/take/${(result as { id: string }).id}?token=${token}`;
-      setGeneratedLink(link);
-    }
-  };
-
-  const handleCopyGeneratedLink = () => {
-    if (generatedLink) {
-      navigator.clipboard.writeText(generatedLink);
-      toast.success('Link copied to clipboard');
-    }
-  };
 
   return (
     <div className='py-6'>
@@ -95,14 +74,6 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
             onClick={() => window.open(`/assessments/${assessmentId}/preview`, '_blank')}
           >
             Preview
-          </Button>
-          <Button
-            variant='secondary'
-            icon={RiLinksLine}
-            onClick={handleGenerateLink}
-            isLoading={isGenerating}
-          >
-            Generate Link
           </Button>
           <Button icon={RiMailSendLine} onClick={() => setInviteDialogOpen(true)}>
             Invite Candidate
@@ -146,15 +117,15 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
               </TableRow>
             ) : (
               submissions.map((sub: Record<string, unknown>) => {
-                const candidate = sub.candidate as Record<string, unknown> | null;
+                const candidate = sub.candidate as Record<string, unknown>;
                 return (
                   <TableRow
                     key={sub.id as string}
                     className='cursor-pointer hover:bg-gray-50'
                     onClick={() => setSelectedSubId(sub.id as string)}
                   >
-                    <TableCell>{(candidate?.name as string) || '-'}</TableCell>
-                    <TableCell>{(candidate?.email as string) || '-'}</TableCell>
+                    <TableCell>{candidate.name as string}</TableCell>
+                    <TableCell>{candidate.email as string}</TableCell>
                     <TableCell>
                       <SubmissionStatusBadge status={sub.status as string} />
                     </TableCell>
@@ -211,29 +182,6 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
           }}
         />
       )}
-
-      <Dialog open={!!generatedLink} onOpenChange={(open) => { if (!open) setGeneratedLink(null); }}>
-        <DialogContent className='sm:max-w-md'>
-          <div className='text-center py-4'>
-            <div className='inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 mb-4'>
-              <RiLinksLine className='w-6 h-6 text-blue-600' />
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-1'>Link Generated</h3>
-            <p className='text-sm text-gray-500 mb-6'>
-              Anyone with this link can take the assessment. They will enter their name and email before starting.
-            </p>
-            <div className='bg-gray-50 rounded-lg p-3 mb-4'>
-              <Input value={generatedLink ?? ''} readOnly className='text-xs font-mono bg-white' />
-            </div>
-            <div className='flex gap-2 justify-center'>
-              <Button variant='secondary' icon={RiFileCopyLine} onClick={handleCopyGeneratedLink}>
-                Copy Link
-              </Button>
-              <Button onClick={() => setGeneratedLink(null)}>Done</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
