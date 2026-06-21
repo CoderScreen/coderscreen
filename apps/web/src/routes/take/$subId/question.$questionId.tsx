@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { AssessmentCodingView } from '@/components/take/AssessmentCodingView';
 import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 import { useCurrentQuestionId } from '@/lib/params';
-import { AssessmentCodingView } from '@/components/take/AssessmentCodingView';
 
 export const Route = createFileRoute('/take/$subId/question/$questionId')({
   component: RouteComponent,

@@ -84,7 +84,7 @@ export const TestCaseRow = ({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExpanded, testCase.id]);
+  }, [isExpanded, testCase.args, testCase.expectedReturn, testCase.isHidden, testCase.label]);
 
   if (!isExpanded) {
     return (
@@ -128,6 +128,7 @@ export const TestCaseRow = ({
       ) : (
         <div className='space-y-2'>
           {signature.parameters.map((p, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: parameters are a positional list indexed into draft.args[i]; index is the correct identity
             <div key={i}>
               <Label className='block text-xs font-mono text-gray-600 mb-1'>
                 {p.name}: <span className='text-gray-400'>{p.type}</span>
@@ -165,6 +166,7 @@ export const TestCaseRow = ({
             className='text-sm'
           />
         </div>
+        {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps a Radix Switch (custom control biome can't detect as an input) */}
         <label className='flex items-center gap-2 px-3 py-2 rounded border border-gray-200 bg-white cursor-pointer'>
           <Switch
             checked={draft.isHidden}

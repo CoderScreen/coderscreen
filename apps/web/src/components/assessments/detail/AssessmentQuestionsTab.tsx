@@ -193,7 +193,7 @@ interface TimeLimitControlProps {
   timeLimitSeconds: number | null;
 }
 
-const TimeLimitControl = ({ assessmentId, timeLimitSeconds }: TimeLimitControlProps) => {
+const _TimeLimitControl = ({ assessmentId, timeLimitSeconds }: TimeLimitControlProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [minutes, setMinutes] = useState(
     timeLimitSeconds ? String(Math.floor(timeLimitSeconds / 60)) : ''

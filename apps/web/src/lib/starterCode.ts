@@ -63,10 +63,7 @@ export const FUNCTION_MODE_LANGUAGE_LABEL: Record<FunctionModeLanguage, string> 
 // authored override. Used to flag stale overrides after the author renames
 // the function or a parameter. This is a string-match heuristic — fine to be
 // occasionally over-eager.
-export function overrideLooksStale(
-  signature: Signature,
-  override: string
-): boolean {
+export function overrideLooksStale(signature: Signature, override: string): boolean {
   if (!signature.functionName) return false;
   if (!override.includes(signature.functionName)) return true;
   for (const p of signature.parameters) {

@@ -5,8 +5,12 @@ import { questionLibraryTable } from './questionLibrary.db';
 
 export const questionLibraryTestCaseTable = pgTable('question_library_test_cases', {
   id: text('id').primaryKey().$type<Id<'questionLibraryTestCase'>>(),
-  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
   questionId: text('question_id')
     .notNull()
     .references(() => questionLibraryTable.id, { onDelete: 'cascade' }),

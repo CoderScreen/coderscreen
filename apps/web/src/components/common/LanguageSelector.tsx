@@ -11,6 +11,7 @@ export const LanguageSelector = ({ value, onChange }: LanguageSelectorProps) => 
   return (
     <div className='grid grid-cols-3 gap-2'>
       {ASSESSMENT_LANGUAGES.map((lang) => (
+        // biome-ignore lint/a11y/noLabelWithoutControl: label wraps a Radix Checkbox (custom control biome can't detect as an input)
         <label key={lang} className='flex items-center gap-2 text-sm cursor-pointer'>
           <Checkbox
             checked={value.includes(lang)}

@@ -1,4 +1,3 @@
-import { Badge } from '@coderscreen/ui/badge';
 import { Button } from '@coderscreen/ui/button';
 import { SmallHeader } from '@coderscreen/ui/heading';
 import {

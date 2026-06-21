@@ -7,8 +7,12 @@ import { organization } from './user.db';
 
 export const assessmentQuestionTable = pgTable('assessment_questions', {
   id: text('id').primaryKey().$type<Id<'assessmentQuestion'>>(),
-  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
   assessmentId: text('assessment_id')
     .notNull()
     .references(() => assessmentTable.id, { onDelete: 'cascade' }),

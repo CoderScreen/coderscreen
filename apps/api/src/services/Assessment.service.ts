@@ -2,10 +2,7 @@ import { generateId, Id } from '@coderscreen/common/id';
 import type { Parameter, TypeString } from '@coderscreen/common/types';
 import { assessmentTable } from '@coderscreen/db/assessment.db';
 import { assessmentQuestionTable } from '@coderscreen/db/assessmentQuestion.db';
-import {
-  QuestionLibraryEntity,
-  questionLibraryTable,
-} from '@coderscreen/db/questionLibrary.db';
+import { QuestionLibraryEntity, questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
 import {
   QuestionLibraryTestCaseEntity,
   questionLibraryTestCaseTable,
@@ -16,12 +13,8 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
+import { buildPaginatedResponse, PaginationQuery, paginateQuery } from '@/lib/pagination';
 import { getSession } from '@/lib/session';
-import {
-  buildPaginatedResponse,
-  PaginationQuery,
-  paginateQuery,
-} from '@/lib/pagination';
 import {
   signatureChangesInvalidateTestCases,
   validateTestCaseShape,
@@ -471,10 +464,7 @@ export class AssessmentService {
           await tx
             .delete(questionLibraryTestCaseTable)
             .where(
-              eq(
-                questionLibraryTestCaseTable.questionId,
-                link.questionId as Id<'questionLibrary'>
-              )
+              eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>)
             );
         }
 
@@ -545,7 +535,9 @@ export class AssessmentService {
 
     // Build CASE expression for batch update
     const positionCase = sql`CASE ${sql.join(
-      order.map((item) => sql`WHEN ${assessmentQuestionTable.id} = ${item.id} THEN ${item.position}`),
+      order.map(
+        (item) => sql`WHEN ${assessmentQuestionTable.id} = ${item.id} THEN ${item.position}`
+      ),
       sql` `
     )} END`;
 
@@ -625,10 +617,7 @@ export class AssessmentService {
       .then((r) => r[0]);
   }
 
-  async updateTestCase(
-    testCaseId: Id<'questionLibraryTestCase'>,
-    values: UpdateTestCaseSchema
-  ) {
+  async updateTestCase(testCaseId: Id<'questionLibraryTestCase'>, values: UpdateTestCaseSchema) {
     if (values.args !== undefined || values.expectedReturn !== undefined) {
       const tc = await this.db
         .select()

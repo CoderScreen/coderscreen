@@ -51,7 +51,10 @@ export const CreateCandidateDialog = ({ open, onOpenChange }: CreateCandidateDia
           >
             {(field) => (
               <div>
-                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor={field.name}
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Name
                 </Label>
                 <Input
@@ -81,7 +84,10 @@ export const CreateCandidateDialog = ({ open, onOpenChange }: CreateCandidateDia
           >
             {(field) => (
               <div>
-                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor={field.name}
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Email
                 </Label>
                 <Input

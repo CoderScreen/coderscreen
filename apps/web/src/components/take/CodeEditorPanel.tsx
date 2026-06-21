@@ -21,8 +21,16 @@ interface CodeEditorPanelProps {
 }
 
 export const CodeEditorPanel = ({ question }: CodeEditorPanelProps) => {
-  const { getCode, setCode, resetCodeToStarter, submission, assessment, subId, token, saveCurrentCode } =
-    useTakeAssessment();
+  const {
+    getCode,
+    setCode,
+    resetCodeToStarter,
+    submission,
+    assessment,
+    subId,
+    token,
+    saveCurrentCode,
+  } = useTakeAssessment();
   const { changeLanguage } = useChangeLanguage(subId, token);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
 

@@ -428,9 +428,9 @@ export const useUpdateTestCase = (assessmentId: string, questionId: string) => {
       testCaseId: string;
       data: UpdateTestCaseSchema;
     }) => {
-      const response = await apiClient.assessments[':id'].questions[':questionId'][
-        'test-cases'
-      ][':testCaseId'].$patch({
+      const response = await apiClient.assessments[':id'].questions[':questionId']['test-cases'][
+        ':testCaseId'
+      ].$patch({
         param: { id: assessmentId, questionId, testCaseId },
         json: data,
       });
@@ -460,9 +460,9 @@ export const useDeleteTestCase = (assessmentId: string, questionId: string) => {
 
   const mutation = useMutation({
     mutationFn: async (testCaseId: string) => {
-      const response = await apiClient.assessments[':id'].questions[':questionId'][
-        'test-cases'
-      ][':testCaseId'].$delete({
+      const response = await apiClient.assessments[':id'].questions[':questionId']['test-cases'][
+        ':testCaseId'
+      ].$delete({
         param: { id: assessmentId, questionId, testCaseId },
       });
       if (!response.ok) {

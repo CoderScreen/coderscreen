@@ -11,8 +11,12 @@ export const assessmentSubmissionTable = pgTable(
   'assessment_submissions',
   {
     id: text('id').primaryKey().$type<Id<'assessmentSubmission'>>(),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
-    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
     assessmentId: text('assessment_id')
       .notNull()
       .references(() => assessmentTable.id, { onDelete: 'cascade' }),

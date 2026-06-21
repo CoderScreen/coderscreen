@@ -18,6 +18,7 @@ import { HTTPException } from 'hono/http-exception';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
 import { getSession } from '@/lib/session';
+import { resolveStarterCode } from '@/sandbox/harnesses';
 import {
   ChangeLanguageSchema,
   CreateSubmissionSchema,
@@ -25,7 +26,6 @@ import {
   SaveCodeSchema,
   StartAssessmentSchema,
 } from '@/schema/assessment.zod';
-import { resolveStarterCode } from '@/sandbox/harnesses';
 import { AssessmentCodeRunService } from '@/services/AssessmentCodeRun.service';
 
 export class AssessmentSubmissionService {
@@ -301,9 +301,7 @@ export class AssessmentSubmissionService {
         questionLibraryTable,
         eq(assessmentQuestionTable.questionId, questionLibraryTable.id)
       )
-      .where(
-        eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>)
-      )
+      .where(eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>))
       .orderBy(asc(assessmentQuestionTable.position));
 
     const allQuestionSubmissions = await this.db
@@ -323,9 +321,7 @@ export class AssessmentSubmissionService {
         forQuestion
           .filter((qs) => !qs.isDraft)
           .sort(
-            (a, b) =>
-              (b.score ?? -1) - (a.score ?? -1) ||
-              (a.createdAt < b.createdAt ? 1 : -1)
+            (a, b) => (b.score ?? -1) - (a.score ?? -1) || (a.createdAt < b.createdAt ? 1 : -1)
           )[0] ?? null;
       const draft = forQuestion.find((qs) => qs.isDraft) ?? null;
       const chosen = best ?? draft;
@@ -346,9 +342,7 @@ export class AssessmentSubmissionService {
           .select()
           .from(testCaseResultTable)
           .where(eq(testCaseResultTable.questionSubmissionId, best.id));
-        const testCaseIds = results.map(
-          (r) => r.testCaseId as Id<'questionLibraryTestCase'>
-        );
+        const testCaseIds = results.map((r) => r.testCaseId as Id<'questionLibraryTestCase'>);
         const defs =
           testCaseIds.length > 0
             ? await this.db
@@ -517,7 +511,7 @@ export class AssessmentSubmissionService {
         .limit(1)
         .then((r) => (r.length > 0 ? r[0] : null));
 
-      if (bestSubmission && bestSubmission.maxScore && bestSubmission.maxScore > 0) {
+      if (bestSubmission?.maxScore && bestSubmission.maxScore > 0) {
         const ratio = (bestSubmission.score ?? 0) / bestSubmission.maxScore;
         weightedTotal += ratio * aq.points;
       }

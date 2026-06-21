@@ -1,5 +1,5 @@
-import type { AssessmentLanguage } from '@coderscreen/db/assessment.db';
 import type { Signature } from '@coderscreen/common/types';
+import type { AssessmentLanguage } from '@coderscreen/db/assessment.db';
 import * as javascript from './javascript';
 import * as php from './php';
 import * as python from './python';
@@ -43,19 +43,17 @@ export function resolveStarterCode(
     const harness = HARNESSES[lang];
     if (!harness) continue;
     const override = overrides[lang];
-    result[lang] = typeof override === 'string' && override.length > 0
-      ? override
-      : harness.buildStarter(signature);
+    result[lang] =
+      typeof override === 'string' && override.length > 0
+        ? override
+        : harness.buildStarter(signature);
   }
   return result;
 }
 
 // Strip trailing PHP close tag from candidate code so the harness can be
 // appended inside the still-open <?php block. No-op for non-PHP code.
-export function preprocessCandidateCode(
-  code: string,
-  language: AssessmentLanguage
-): string {
+export function preprocessCandidateCode(code: string, language: AssessmentLanguage): string {
   if (language === 'php') {
     return code.replace(/\?>\s*$/, '');
   }

@@ -128,24 +128,6 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     return () => clearInterval(interval);
   }, [data?.submission?.expiresAt, data?.submission?.status]);
 
-  // On expiration: save + submit
-  useEffect(() => {
-    if (!isExpired) return;
-
-    const handleExpire = async () => {
-      try {
-        await flushDirty();
-        await submitAssessment();
-      } catch {
-        // Server will also expire it
-      }
-      refetch();
-    };
-
-    handleExpire();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExpired]);
-
   const flushDirty = useCallback(async () => {
     const dirty = Array.from(dirtyRef.current);
     if (dirty.length === 0) return;
@@ -161,6 +143,24 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     await Promise.all(promises);
     for (const k of dirty) dirtyRef.current.delete(k);
   }, [saveCodeMutation]);
+
+  // On expiration: save + submit. Declared after flushDirty so the dependency
+  // array doesn't reference it before initialization.
+  useEffect(() => {
+    if (!isExpired) return;
+
+    const handleExpire = async () => {
+      try {
+        await flushDirty();
+        await submitAssessment();
+      } catch {
+        // Server will also expire it
+      }
+      refetch();
+    };
+
+    handleExpire();
+  }, [isExpired, flushDirty, refetch, submitAssessment]);
 
   const scheduleSave = useCallback(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -264,9 +264,7 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     ]
   );
 
-  return (
-    <TakeAssessmentContext.Provider value={value}>{children}</TakeAssessmentContext.Provider>
-  );
+  return <TakeAssessmentContext.Provider value={value}>{children}</TakeAssessmentContext.Provider>;
 };
 
 export const useTakeAssessment = () => {

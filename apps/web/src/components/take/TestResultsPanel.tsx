@@ -188,6 +188,8 @@ const TestCasesContent = ({
       <div className='flex items-center gap-1 px-4 pt-3 pb-2'>
         {testCases.map((_, i) => (
           <button
+            type='button'
+            // biome-ignore lint/suspicious/noArrayIndexKey: test cases are a fixed positional list that never reorders
             key={i}
             className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
               i === selectedIndex
@@ -292,6 +294,7 @@ const ResultsContent = ({
                 return (
                   <div key={result.testCaseId}>
                     <button
+                      type='button'
                       className='w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-red-50 cursor-pointer transition-colors'
                       onClick={() => setExpandedCase(isExpanded ? null : result.testCaseId)}
                     >
@@ -357,6 +360,7 @@ const ResultsContent = ({
         {passedCount > 0 && (
           <div className='px-4 pt-3 pb-3'>
             <button
+              type='button'
               className='flex items-center gap-1 text-sm font-medium text-green-600 mb-2 cursor-pointer hover:text-green-700 transition-colors'
               onClick={() => setShowPassed(!showPassed)}
             >
@@ -438,6 +442,7 @@ const HistoryContent = ({
           return (
             <div key={submission.id} className='border-b border-gray-100'>
               <button
+                type='button'
                 className='w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors'
                 onClick={() => setExpandedId(isExpanded ? null : submission.id)}
               >

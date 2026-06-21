@@ -214,7 +214,9 @@ export const useSubmissionHistory = (subId: string, token: string, questionId: s
   const query = useQuery({
     queryKey: ['submission-history', subId, questionId],
     queryFn: async () => {
-      const response = await apiClient.assessments[':subId'].take.questions[':questionId'].history.$get({
+      const response = await apiClient.assessments[':subId'].take.questions[
+        ':questionId'
+      ].history.$get({
         param: { subId, questionId },
         query: { token },
       });

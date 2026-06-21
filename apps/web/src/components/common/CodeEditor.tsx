@@ -1,15 +1,15 @@
-import { useRef, useEffect } from 'react';
-import { EditorView, basicSetup } from 'codemirror';
-import { EditorState } from '@codemirror/state';
-import { python } from '@codemirror/lang-python';
-import { javascript } from '@codemirror/lang-javascript';
-import { java } from '@codemirror/lang-java';
 import { cpp } from '@codemirror/lang-cpp';
-import { rust } from '@codemirror/lang-rust';
 import { go } from '@codemirror/lang-go';
+import { java } from '@codemirror/lang-java';
+import { javascript } from '@codemirror/lang-javascript';
 import { php } from '@codemirror/lang-php';
-import { placeholder as placeholderExt } from '@codemirror/view';
+import { python } from '@codemirror/lang-python';
+import { rust } from '@codemirror/lang-rust';
 import type { Extension } from '@codemirror/state';
+import { EditorState } from '@codemirror/state';
+import { placeholder as placeholderExt } from '@codemirror/view';
+import { basicSetup, EditorView } from 'codemirror';
+import { useEffect, useRef } from 'react';
 import { cx } from '@/lib/utils';
 
 function getLanguageExtension(language?: string): Extension | null {
@@ -58,6 +58,7 @@ export const CodeEditor = ({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: editor is created once per language; value is synced by the effect below and placeholder/readOnly are read only at creation. Adding value here would recreate the editor on every keystroke.
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -116,7 +117,10 @@ export const CodeEditor = ({
   return (
     <div
       ref={containerRef}
-      className={cx('border border-gray-200 rounded-lg overflow-hidden [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-auto', className)}
+      className={cx(
+        'border border-gray-200 rounded-lg overflow-hidden [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-auto',
+        className
+      )}
     />
   );
 };

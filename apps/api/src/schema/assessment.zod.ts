@@ -52,9 +52,7 @@ export const UpdateAssessmentSchema = z.object({
 
 const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
-export const TypeStringSchema = z
-  .string()
-  .regex(/^(string|int|float|bool|null|object|array<.+>)$/);
+export const TypeStringSchema = z.string().regex(/^(string|int|float|bool|null|object|array<.+>)$/);
 
 export const ParameterSchema = z.object({
   name: z.string().min(1).regex(IDENT_RE),

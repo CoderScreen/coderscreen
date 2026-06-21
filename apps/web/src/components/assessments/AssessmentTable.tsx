@@ -21,12 +21,7 @@ import {
 } from '@coderscreen/ui/table';
 import { Tooltip } from '@coderscreen/ui/tooltip';
 import { MutedText } from '@coderscreen/ui/typography';
-import {
-  RiAddLine,
-  RiDeleteBinLine,
-  RiListCheck3,
-  RiMore2Line,
-} from '@remixicon/react';
+import { RiAddLine, RiDeleteBinLine, RiListCheck3, RiMore2Line } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
@@ -59,6 +54,8 @@ const RowActions = ({ assessment }: { assessment: AssessmentSchema }) => {
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: wrapper only stops the parent row's click from firing; it is not itself an interactive control
+    // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation wrapper has no keyboard semantics of its own
     <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -96,51 +93,55 @@ export function AssessmentTable() {
 
   return (
     <>
-    <TableRoot>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableHeaderCell>Title</TableHeaderCell>
-            <TableHeaderCell>Status</TableHeaderCell>
-            <TableHeaderCell>Created</TableHeaderCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {isLoading ? (
-            <TableSkeleton numRows={10} numCols={3} />
-          ) : !assessments || assessments.length === 0 ? (
-            <EmptyTable noAssessments={!!noAssessments} />
-          ) : (
-            assessments.map((assessment) => (
-              <TableRow
-                key={assessment.id}
-                className='group cursor-pointer hover:bg-gray-50'
-                onClick={() =>
-                  navigate({
-                    to: '/assessments/$assessmentId',
-                    params: { assessmentId: assessment.id },
-                  })
-                }
-              >
-                <TableCell>{assessment.title}</TableCell>
-                <TableCell>
-                  <StatusBadge status={assessment.status} />
-                </TableCell>
-                <TableCell className='flex justify-between items-center gap-2 mr-4'>
-                  <Tooltip content={formatDatetime(assessment.createdAt)}>
-                    {formatRelativeDatetime(assessment.createdAt)}
-                  </Tooltip>
-                  <RowActions assessment={assessment} />
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableRoot>
-    {pagination && (
-      <Pagination page={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />
-    )}
+      <TableRoot>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell>Title</TableHeaderCell>
+              <TableHeaderCell>Status</TableHeaderCell>
+              <TableHeaderCell>Created</TableHeaderCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {isLoading ? (
+              <TableSkeleton numRows={10} numCols={3} />
+            ) : !assessments || assessments.length === 0 ? (
+              <EmptyTable noAssessments={!!noAssessments} />
+            ) : (
+              assessments.map((assessment) => (
+                <TableRow
+                  key={assessment.id}
+                  className='group cursor-pointer hover:bg-gray-50'
+                  onClick={() =>
+                    navigate({
+                      to: '/assessments/$assessmentId',
+                      params: { assessmentId: assessment.id },
+                    })
+                  }
+                >
+                  <TableCell>{assessment.title}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={assessment.status} />
+                  </TableCell>
+                  <TableCell className='flex justify-between items-center gap-2 mr-4'>
+                    <Tooltip content={formatDatetime(assessment.createdAt)}>
+                      {formatRelativeDatetime(assessment.createdAt)}
+                    </Tooltip>
+                    <RowActions assessment={assessment} />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableRoot>
+      {pagination && (
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
+      )}
     </>
   );
 }

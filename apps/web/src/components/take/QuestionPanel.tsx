@@ -1,5 +1,5 @@
-import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useEffect } from 'react';
 import { tiptapContentClass } from '@/components/room/tiptap/editorStyles';
 
@@ -29,7 +29,7 @@ export const QuestionPanel = ({ question, questionIndex }: QuestionPanelProps) =
     if (editor && question.description) {
       editor.commands.setContent(question.description);
     }
-  }, [editor, question.id, question.description]);
+  }, [editor, question.description]);
 
   return (
     <div className='h-full overflow-y-auto'>

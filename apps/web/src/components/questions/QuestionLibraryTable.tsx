@@ -19,12 +19,7 @@ import {
 } from '@coderscreen/ui/table';
 import { Tooltip } from '@coderscreen/ui/tooltip';
 import { MutedText } from '@coderscreen/ui/typography';
-import {
-  RiAddLine,
-  RiDeleteBinLine,
-  RiFileTextLine,
-  RiMore2Line,
-} from '@remixicon/react';
+import { RiAddLine, RiDeleteBinLine, RiFileTextLine, RiMore2Line } from '@remixicon/react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
@@ -46,6 +41,8 @@ const RowActions = ({ question }: { question: QuestionLibraryItem }) => {
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: wrapper only stops the parent row's click from firing; it is not itself an interactive control
+    // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation wrapper has no keyboard semantics of its own
     <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -111,9 +108,7 @@ export function QuestionLibraryTable() {
                 <TableCell>{question.title}</TableCell>
                 <TableCell>{question.timesTaken}</TableCell>
                 <TableCell>
-                  {question.avgScore !== null
-                    ? `${Math.round(question.avgScore * 100)}%`
-                    : '—'}
+                  {question.avgScore !== null ? `${Math.round(question.avgScore * 100)}%` : '—'}
                 </TableCell>
                 <TableCell className='flex justify-between items-center gap-2 mr-4'>
                   <Tooltip content={formatDatetime(question.createdAt)}>

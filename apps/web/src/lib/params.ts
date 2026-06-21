@@ -14,7 +14,9 @@ export const useCurrentAssessmentId = (): string => {
   const params = useParams({ strict: false });
 
   if (!params.assessmentId) {
-    throw new Error('useCurrentAssessmentId must be used within a route that has an assessmentId param');
+    throw new Error(
+      'useCurrentAssessmentId must be used within a route that has an assessmentId param'
+    );
   }
 
   return params.assessmentId;

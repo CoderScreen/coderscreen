@@ -50,8 +50,14 @@ export const subscriptionTable = pgTable('subscriptions', {
   stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
   stripeSubscriptionItemId: text('stripe_subscription_item_id').notNull().unique(),
   status: text('status').notNull(), // active, canceled, past_due, etc.
-  currentPeriodStart: timestamp('current_period_start', { mode: 'string', withTimezone: true }).notNull(),
-  currentPeriodEnd: timestamp('current_period_end', { mode: 'string', withTimezone: true }).notNull(),
+  currentPeriodStart: timestamp('current_period_start', {
+    mode: 'string',
+    withTimezone: true,
+  }).notNull(),
+  currentPeriodEnd: timestamp('current_period_end', {
+    mode: 'string',
+    withTimezone: true,
+  }).notNull(),
 });
 
 export type CustomerEntity = typeof customerTable.$inferSelect;

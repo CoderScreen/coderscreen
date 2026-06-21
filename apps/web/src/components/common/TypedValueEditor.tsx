@@ -1,7 +1,7 @@
+import { type TypeString, validateValue } from '@coderscreen/common/types';
 import { Input } from '@coderscreen/ui/input';
 import { Switch } from '@coderscreen/ui/switch';
 import { Textarea } from '@coderscreen/ui/textarea';
-import { type TypeString, validateValue } from '@coderscreen/common/types';
 import { useEffect, useState } from 'react';
 
 interface TypedValueEditorProps {
@@ -49,29 +49,21 @@ export const TypedValueEditor = ({
   // Sync the draft when the upstream value changes outside this editor
   // (e.g. parent reset). Skip when complex and we're already showing an error,
   // so we don't trample the user's mid-edit text.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: compare value by content (JSON), not reference, so a new-but-equal value object on parent re-render doesn't reset the draft mid-edit.
   useEffect(() => {
     if (isComplexType(type)) {
       setDraft(formatForDraft(value, type));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(value), type]);
 
   if (type === 'bool') {
     const checked = value === true;
-    return (
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={(c) => onChange(!!c)}
-      />
-    );
+    return <Switch id={id} checked={checked} onCheckedChange={(c) => onChange(!!c)} />;
   }
 
   if (type === 'null') {
     // Nothing to edit — the only valid value is null. Render a disabled hint.
-    return (
-      <Input id={id} value='null' disabled className='font-mono text-sm' />
-    );
+    return <Input id={id} value='null' disabled className='font-mono text-sm' />;
   }
 
   if (type === 'int' || type === 'float') {

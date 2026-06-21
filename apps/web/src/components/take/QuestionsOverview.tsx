@@ -95,9 +95,7 @@ export const QuestionsOverview = () => {
                   <div className='mt-3 ml-10 flex items-center gap-2'>
                     <span
                       className={`inline-flex items-center text-sm font-medium px-2.5 py-0.5 rounded-full ${
-                        started
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
+                        started ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
                       }`}
                     >
                       {started ? 'Started' : 'Not started'}
@@ -114,10 +112,7 @@ export const QuestionsOverview = () => {
           </div>
 
           <div className='flex justify-end'>
-            <Button
-              icon={RiSendPlaneLine}
-              onClick={() => setShowSubmitDialog(true)}
-            >
+            <Button icon={RiSendPlaneLine} onClick={() => setShowSubmitDialog(true)}>
               Submit Assessment
             </Button>
           </div>
@@ -136,11 +131,7 @@ export const QuestionsOverview = () => {
             <Button variant='secondary' onClick={() => setShowSubmitDialog(false)}>
               Cancel
             </Button>
-            <Button
-              icon={RiSendPlaneLine}
-              onClick={handleSubmit}
-              isLoading={isSubmitting}
-            >
+            <Button icon={RiSendPlaneLine} onClick={handleSubmit} isLoading={isSubmitting}>
               Submit
             </Button>
           </DialogFooter>

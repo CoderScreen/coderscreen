@@ -9,9 +9,7 @@ import { AssessmentLanguageSchema } from './assessment.zod';
 // malformed type (e.g. `array<>` or `tuple<int,int>`). The string-match here
 // only guarantees shape; structural validation of values against types lives
 // in the service layer (see validateValue() in @coderscreen/common/types).
-export const TypeStringSchema = z
-  .string()
-  .regex(/^(string|int|float|bool|null|object|array<.+>)$/);
+export const TypeStringSchema = z.string().regex(/^(string|int|float|bool|null|object|array<.+>)$/);
 
 const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
@@ -109,5 +107,9 @@ export type QuestionLibrarySchema = z.infer<typeof QuestionLibrarySchema>;
 export type CreateQuestionLibrarySchema = z.infer<typeof CreateQuestionLibrarySchema>;
 export type UpdateQuestionLibrarySchema = z.infer<typeof UpdateQuestionLibrarySchema>;
 export type QuestionLibraryTestCaseSchema = z.infer<typeof QuestionLibraryTestCaseSchema>;
-export type CreateQuestionLibraryTestCaseSchema = z.infer<typeof CreateQuestionLibraryTestCaseSchema>;
-export type UpdateQuestionLibraryTestCaseSchema = z.infer<typeof UpdateQuestionLibraryTestCaseSchema>;
+export type CreateQuestionLibraryTestCaseSchema = z.infer<
+  typeof CreateQuestionLibraryTestCaseSchema
+>;
+export type UpdateQuestionLibraryTestCaseSchema = z.infer<
+  typeof UpdateQuestionLibraryTestCaseSchema
+>;

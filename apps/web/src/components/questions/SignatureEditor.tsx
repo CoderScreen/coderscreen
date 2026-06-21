@@ -1,3 +1,9 @@
+import {
+  type FunctionModeLanguage,
+  type Parameter,
+  type Signature,
+  type TypeString,
+} from '@coderscreen/common/types';
 import { Badge } from '@coderscreen/ui/badge';
 import { Button } from '@coderscreen/ui/button';
 import { Input } from '@coderscreen/ui/input';
@@ -11,12 +17,6 @@ import {
 } from '@coderscreen/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@coderscreen/ui/tabs';
 import { Textarea } from '@coderscreen/ui/textarea';
-import {
-  type FunctionModeLanguage,
-  type Parameter,
-  type Signature,
-  type TypeString,
-} from '@coderscreen/common/types';
 import {
   RiAddLine,
   RiAlertLine,
@@ -126,9 +126,7 @@ interface SignatureEditorProps {
   signature: Signature;
   onChange: (next: Signature) => void;
   starterOverrides: Partial<Record<FunctionModeLanguage, string>>;
-  onStarterOverridesChange: (
-    next: Partial<Record<FunctionModeLanguage, string>>
-  ) => void;
+  onStarterOverridesChange: (next: Partial<Record<FunctionModeLanguage, string>>) => void;
 }
 
 export const SignatureEditor = ({
@@ -229,6 +227,7 @@ export const SignatureEditor = ({
         ) : (
           <div className='space-y-2'>
             {signature.parameters.map((p, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: parameters are an ordered, index-addressed list edited in place
               <div key={i} className='grid grid-cols-[1fr_180px_auto] gap-2 items-start'>
                 <Input
                   placeholder='name'

@@ -1,9 +1,9 @@
 import { RiErrorWarningLine, RiLoader4Line } from '@remixicon/react';
 import { createFileRoute, Outlet, useSearch } from '@tanstack/react-router';
+import { AssessmentCompletedView } from '@/components/take/AssessmentCompletedView';
+import { AssessmentStartView } from '@/components/take/AssessmentStartView';
 import { TakeAssessmentProvider, useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 import { useCurrentSubId } from '@/lib/params';
-import { AssessmentStartView } from '@/components/take/AssessmentStartView';
-import { AssessmentCompletedView } from '@/components/take/AssessmentCompletedView';
 
 export const Route = createFileRoute('/take/$subId')({
   beforeLoad: async () => {

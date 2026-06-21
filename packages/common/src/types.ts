@@ -20,14 +20,7 @@ export interface Signature {
   returnType: TypeString;
 }
 
-const BASE_TYPES: readonly BaseType[] = [
-  'string',
-  'int',
-  'float',
-  'bool',
-  'null',
-  'object',
-];
+const BASE_TYPES: readonly BaseType[] = ['string', 'int', 'float', 'bool', 'null', 'object'];
 
 const ARRAY_RE = /^array<(.+)>$/;
 const IDENTIFIER_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
@@ -53,12 +46,7 @@ export function isValidIdentifier(s: string): boolean {
 }
 
 // Languages where the harness/starter codegen is supported in v1.
-export type FunctionModeLanguage =
-  | 'python'
-  | 'javascript'
-  | 'typescript'
-  | 'ruby'
-  | 'php';
+export type FunctionModeLanguage = 'python' | 'javascript' | 'typescript' | 'ruby' | 'php';
 
 // Render a TypeString in a target language's native type syntax.
 // Empty string means "this language does not annotate this position" (e.g. JS, Ruby).
@@ -135,9 +123,7 @@ function formatPhp(t: TypeString): string {
   }
 }
 
-export type ValidationResult =
-  | { ok: true }
-  | { ok: false; reason: string };
+export type ValidationResult = { ok: true } | { ok: false; reason: string };
 
 // Strict structural validation against a TypeString.
 // Used by the API on save (test case args/expectedReturn) and by the frontend

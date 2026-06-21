@@ -2,7 +2,11 @@ import type { Parameter, TypeString } from '@coderscreen/common/types';
 import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
-import { useRunTests, useSubmissionHistory, useSubmitCode } from '@/query/candidateAssessment.query';
+import {
+  useRunTests,
+  useSubmissionHistory,
+  useSubmitCode,
+} from '@/query/candidateAssessment.query';
 import { AssessmentHeader } from './AssessmentHeader';
 import { CodeEditorPanel } from './CodeEditorPanel';
 import { QuestionPanel } from './QuestionPanel';

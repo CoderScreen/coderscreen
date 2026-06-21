@@ -83,6 +83,7 @@ export const AssessmentStartView = () => {
 
           <div className='space-y-4'>
             <div>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: captions a Radix Select (custom control biome can't detect as an input) */}
               <label className='block text-sm font-medium text-gray-700 mb-1.5'>
                 Programming Language
               </label>

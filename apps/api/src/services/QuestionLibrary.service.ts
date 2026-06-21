@@ -112,12 +112,7 @@ export class QuestionLibraryService {
     const question = await this.db
       .select()
       .from(questionLibraryTable)
-      .where(
-        and(
-          eq(questionLibraryTable.id, id),
-          eq(questionLibraryTable.organizationId, orgId)
-        )
-      )
+      .where(and(eq(questionLibraryTable.id, id), eq(questionLibraryTable.organizationId, orgId)))
       .then((r) => (r.length > 0 ? r[0] : null));
 
     if (!question) return null;
@@ -164,9 +159,7 @@ export class QuestionLibraryService {
     const current = await this.db
       .select()
       .from(questionLibraryTable)
-      .where(
-        and(eq(questionLibraryTable.id, id), eq(questionLibraryTable.organizationId, orgId))
-      )
+      .where(and(eq(questionLibraryTable.id, id), eq(questionLibraryTable.organizationId, orgId)))
       .then((r) => (r.length > 0 ? r[0] : null));
     if (!current) {
       throw new HTTPException(404, { message: 'Question not found' });
@@ -197,9 +190,7 @@ export class QuestionLibraryService {
         .set({
           ...values,
           // cast narrows from zod-validated string to literal types
-          parameters: values.parameters
-            ? (values.parameters as Parameter[])
-            : undefined,
+          parameters: values.parameters ? (values.parameters as Parameter[]) : undefined,
           returnType: values.returnType ? (values.returnType as TypeString) : undefined,
           updatedAt: new Date().toISOString(),
         })
@@ -215,12 +206,7 @@ export class QuestionLibraryService {
 
     return this.db
       .delete(questionLibraryTable)
-      .where(
-        and(
-          eq(questionLibraryTable.id, id),
-          eq(questionLibraryTable.organizationId, orgId)
-        )
-      )
+      .where(and(eq(questionLibraryTable.id, id), eq(questionLibraryTable.organizationId, orgId)))
       .returning()
       .then((r) => r[0]);
   }

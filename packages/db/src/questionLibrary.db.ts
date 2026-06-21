@@ -7,9 +7,15 @@ import { organization, user } from './user.db';
 
 export const questionLibraryTable = pgTable('question_library', {
   id: text('id').primaryKey().$type<Id<'questionLibrary'>>(),
-  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
-  organizationId: text('organization_id').references(() => organization.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  organizationId: text('organization_id').references(() => organization.id, {
+    onDelete: 'cascade',
+  }),
   createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   title: text('title').notNull(),
   description: jsonb('description').notNull(),

@@ -196,7 +196,7 @@ export class FileSyncService {
 
       // Update cached paths for children of a renamed folder
       if (entry.type === 'folder') {
-        const prefix = oldPath + '/';
+        const prefix = `${oldPath}/`;
         for (const [childId, childPath] of this.pathCache.entries()) {
           if (childPath.startsWith(prefix)) {
             this.pathCache.set(childId, newPath + childPath.substring(oldPath.length));

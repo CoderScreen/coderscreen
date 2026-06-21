@@ -13,13 +13,13 @@ import { MutedText } from '@coderscreen/ui/typography';
 import { RiAddLine, RiArrowLeftLine, RiSaveLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { Link, useNavigate } from '@tanstack/react-router';
-import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useMemo, useState } from 'react';
-import { tiptapContentClass } from '@/components/room/tiptap/editorStyles';
-import { TipTapHeader } from '@/components/room/tiptap/TipTapHeader';
 import { SignatureEditor } from '@/components/questions/SignatureEditor';
 import { TestCaseRow, type TestCaseRowData } from '@/components/questions/TestCaseRow';
+import { tiptapContentClass } from '@/components/room/tiptap/editorStyles';
+import { TipTapHeader } from '@/components/room/tiptap/TipTapHeader';
 import {
   useCreateQuestion,
   useCreateTestCase,
@@ -245,10 +245,8 @@ export const QuestionEditor = ({
     return await aqDeleteTC.deleteTestCase(id);
   };
 
-  const tcCreating =
-    context === 'library' ? libCreateTC.isLoading : aqCreateTC.isLoading;
-  const tcUpdating =
-    context === 'library' ? libUpdateTC.isLoading : aqUpdateTC.isLoading;
+  const tcCreating = context === 'library' ? libCreateTC.isLoading : aqCreateTC.isLoading;
+  const tcUpdating = context === 'library' ? libUpdateTC.isLoading : aqUpdateTC.isLoading;
 
   const testCases = useMemo(
     () => [...(question?.testCases ?? [])].sort((a, b) => a.position - b.position),
@@ -420,8 +418,8 @@ export const QuestionEditor = ({
         <div>
           <SmallHeader>Function signature</SmallHeader>
           <MutedText>
-            Declare the function the candidate writes. We use this to generate per-language
-            starter code and to type-check the test case args.
+            Declare the function the candidate writes. We use this to generate per-language starter
+            code and to type-check the test case args.
           </MutedText>
         </div>
 
@@ -499,9 +497,7 @@ export const QuestionEditor = ({
               Define the function signature first. Test cases need typed args.
             </MutedPlaceholder>
           ) : testCases.length === 0 ? (
-            <MutedPlaceholder>
-              No test cases yet. Add one to validate solutions.
-            </MutedPlaceholder>
+            <MutedPlaceholder>No test cases yet. Add one to validate solutions.</MutedPlaceholder>
           ) : (
             <div className='space-y-2'>
               {testCases.map((tc, i) => (

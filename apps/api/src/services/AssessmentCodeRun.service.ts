@@ -120,8 +120,9 @@ export class AssessmentCodeRunService {
     // function-mode languages compile, but the branch stays so adding e.g.
     // Java later just requires a harness + supportsFunctionMode=true.
     if (config.compileCommand) {
+      const compileCommand = config.compileCommand;
       const compileResult = await withRetry(() =>
-        sandbox.exec(config.compileCommand!(filePath, outputPath), {
+        sandbox.exec(compileCommand(filePath, outputPath), {
           timeout: EXECUTION_TIMEOUT_MS,
         })
       );
@@ -162,8 +163,7 @@ export class AssessmentCodeRunService {
         // Heuristic: a non-success result that hit the budget is almost always
         // a timeout. Sandbox SDK doesn't always throw — sometimes it sets
         // success=false with a timeout-shaped error.
-        const looksLikeTimeout =
-          !result.success && executionTimeMs >= EXECUTION_TIMEOUT_MS - 250;
+        const looksLikeTimeout = !result.success && executionTimeMs >= EXECUTION_TIMEOUT_MS - 250;
 
         if (!result.success) {
           results.push({
@@ -190,9 +190,7 @@ export class AssessmentCodeRunService {
             passed: false,
             failureReason: 'crash',
             actualOutput: capOutput(result.stdout),
-            stderr: capOutput(
-              result.stderr || 'Could not parse function return value as JSON'
-            ),
+            stderr: capOutput(result.stderr || 'Could not parse function return value as JSON'),
             exitCode: result.exitCode,
             executionTimeMs,
           });

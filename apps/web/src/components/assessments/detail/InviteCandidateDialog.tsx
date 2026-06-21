@@ -59,8 +59,7 @@ export const InviteCandidateDialog = ({
     if (open && hasCandidates && mode === 'new' && !name && !email) {
       setMode('existing');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasCandidates, open]);
+  }, [hasCandidates, open, email, mode, name]);
 
   const filteredCandidates = useMemo(() => {
     const list = candidates ?? [];
@@ -79,6 +78,7 @@ export const InviteCandidateDialog = ({
   );
 
   // Reset to page 1 whenever the search changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: search is the trigger; the effect resets pagination as a side-effect of it changing even though it doesn't read it.
   useEffect(() => {
     setPage(1);
   }, [search]);
@@ -175,8 +175,7 @@ export const InviteCandidateDialog = ({
     );
   }
 
-  const submitDisabled =
-    mode === 'existing' ? !selectedCandidateId : !name.trim() || !email.trim();
+  const submitDisabled = mode === 'existing' ? !selectedCandidateId : !name.trim() || !email.trim();
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -329,7 +328,10 @@ export const InviteCandidateDialog = ({
           ) : (
             <>
               <div>
-                <Label htmlFor='candidateName' className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor='candidateName'
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Name
                 </Label>
                 <Input
@@ -344,7 +346,10 @@ export const InviteCandidateDialog = ({
               </div>
 
               <div>
-                <Label htmlFor='candidateEmail' className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor='candidateEmail'
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Email
                 </Label>
                 <Input

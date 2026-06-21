@@ -15,9 +15,6 @@ function RouteComponent() {
   if (!assessment) return null;
 
   return (
-    <AssessmentQuestionsTab
-      assessment={assessment}
-      onQuestionsPageChange={setQuestionsPage}
-    />
+    <AssessmentQuestionsTab assessment={assessment} onQuestionsPageChange={setQuestionsPage} />
   );
 }

@@ -4,7 +4,12 @@ import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
 import { validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { ChangeLanguageSchema, RunTestsSchema, SaveCodeSchema, StartAssessmentSchema } from '@/schema/assessment.zod';
+import {
+  ChangeLanguageSchema,
+  RunTestsSchema,
+  SaveCodeSchema,
+  StartAssessmentSchema,
+} from '@/schema/assessment.zod';
 import { AssessmentSubmissionService } from '@/services/AssessmentSubmission.service';
 import { AppContext } from '../..';
 
@@ -172,7 +177,8 @@ export const candidateAssessmentRouter = new Hono<AppContext>()
   .post(
     '/:subId/take/submit-code',
     describeRoute({
-      description: 'Submit code for a question (runs all tests including hidden, stores submission)',
+      description:
+        'Submit code for a question (runs all tests including hidden, stores submission)',
       responses: {
         200: { description: 'Code submitted and tested' },
         400: { description: 'Assessment not in progress or expired' },

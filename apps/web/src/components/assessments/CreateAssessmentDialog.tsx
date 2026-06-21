@@ -1,6 +1,6 @@
 import { Button } from '@coderscreen/ui/button';
-import { Input } from '@coderscreen/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@coderscreen/ui/dialog';
+import { Input } from '@coderscreen/ui/input';
 import { Label } from '@coderscreen/ui/label';
 import {
   Select,
@@ -12,9 +12,9 @@ import {
 import { RiArrowRightLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useRouter } from '@tanstack/react-router';
-import { useCreateAssessment } from '@/query/assessment.query';
-import { ASSESSMENT_LANGUAGES } from '@/lib/languages';
 import { LanguageSelector } from '@/components/common/LanguageSelector';
+import { ASSESSMENT_LANGUAGES } from '@/lib/languages';
+import { useCreateAssessment } from '@/query/assessment.query';
 
 interface CreateAssessmentDialogProps {
   open: boolean;
@@ -82,7 +82,10 @@ export const CreateAssessmentDialog = ({ open, onOpenChange }: CreateAssessmentD
           >
             {(field) => (
               <div>
-                <Label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
+                <Label
+                  htmlFor={field.name}
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   Title
                 </Label>
                 <Input
@@ -105,10 +108,7 @@ export const CreateAssessmentDialog = ({ open, onOpenChange }: CreateAssessmentD
             {(field) => (
               <div>
                 <Label className='block text-sm font-medium text-gray-700 mb-2'>Time Limit</Label>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val) => field.handleChange(val)}
-                >
+                <Select value={field.state.value} onValueChange={(val) => field.handleChange(val)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

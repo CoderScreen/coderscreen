@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@coderscreen/ui/dialog';
-import { RiArrowLeftLine, RiArrowGoBackLine, RiLoader4Line, RiTimeLine } from '@remixicon/react';
+import { RiArrowGoBackLine, RiArrowLeftLine, RiLoader4Line, RiTimeLine } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
@@ -75,9 +75,7 @@ export const AssessmentHeader = ({ mode }: AssessmentHeaderProps) => {
           )}
 
           {timeRemainingMs !== null && (
-            <div
-              className={`flex items-center gap-1.5 font-mono font-semibold ${getTimerColor()}`}
-            >
+            <div className={`flex items-center gap-1.5 font-mono font-semibold ${getTimerColor()}`}>
               <RiTimeLine className='size-5' />
               {formatTime(timeRemainingMs)}
             </div>
@@ -90,8 +88,8 @@ export const AssessmentHeader = ({ mode }: AssessmentHeaderProps) => {
           <DialogHeader>
             <DialogTitle>Go back to questions?</DialogTitle>
             <DialogDescription>
-              Submit your code before leaving so your progress is saved. You can always come back and
-              try again.
+              Submit your code before leaving so your progress is saved. You can always come back
+              and try again.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className='mt-4'>

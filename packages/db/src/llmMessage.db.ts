@@ -8,7 +8,9 @@ type LLMRole = 'user' | 'assistant' | 'system';
 
 export const llmMessageTable = pgTable('llm_messages', {
   id: text('id').primaryKey().$type<Id<'llmMessage'>>(),
-  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true }).default(sql`now()`).notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
   organizationId: text('organization_id')
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),

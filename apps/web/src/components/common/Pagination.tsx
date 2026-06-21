@@ -42,18 +42,18 @@ export const Pagination = ({ page, totalPages, onPageChange }: PaginationProps) 
 
       {getPageNumbers().map((p, i) =>
         p === '...' ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: ellipsis markers have no stable id and never reorder
           <span key={`ellipsis-${i}`} className='px-2 text-sm text-gray-400'>
             ...
           </span>
         ) : (
           <button
+            type='button'
             key={p}
             onClick={() => onPageChange(p)}
             className={cx(
               'min-w-[32px] h-8 px-2 text-sm rounded font-medium transition-colors',
-              p === page
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+              p === page ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
             )}
           >
             {p}
