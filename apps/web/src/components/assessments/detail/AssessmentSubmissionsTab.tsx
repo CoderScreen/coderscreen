@@ -28,13 +28,13 @@ import {
   RiMailSendLine,
   RiMore2Line,
 } from '@remixicon/react';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
 import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
 import { useArchiveSubmission, useSubmissions } from '@/query/assessment.query';
 import { InviteCandidateDialog } from './InviteCandidateDialog';
-import { SubmissionDetailDialog } from './SubmissionDetailView';
 
 const SubmissionStatusBadge = ({ status }: { status: string }) => {
   switch (status) {
@@ -59,8 +59,8 @@ interface AssessmentSubmissionsTabProps {
 
 export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissionsTabProps) => {
   const { submissions, isLoading } = useSubmissions(assessmentId);
+  const navigate = useNavigate();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
   const allSubmissions = (submissions ?? []) as Record<string, unknown>[];
@@ -129,7 +129,12 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
                   <TableRow
                     key={sub.id as string}
                     className={`cursor-pointer hover:bg-gray-50 ${isArchived ? 'opacity-60' : ''}`}
-                    onClick={() => setSelectedSubId(sub.id as string)}
+                    onClick={() =>
+                      navigate({
+                        to: '/assessments/$assessmentId/submissions/$subId',
+                        params: { assessmentId, subId: sub.id as string },
+                      })
+                    }
                   >
                     <TableCell>
                       <span className='inline-flex items-center gap-2'>
@@ -185,17 +190,6 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
       />
-
-      {selectedSubId && (
-        <SubmissionDetailDialog
-          assessmentId={assessmentId}
-          subId={selectedSubId}
-          open={!!selectedSubId}
-          onOpenChange={(open) => {
-            if (!open) setSelectedSubId(null);
-          }}
-        />
-      )}
     </div>
   );
 };

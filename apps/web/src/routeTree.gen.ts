@@ -37,6 +37,7 @@ import { Route as AppQuestionsQuestionIdEditRouteImport } from './routes/_app/qu
 import { Route as AppAssessmentsAssessmentIdSettingsRouteImport } from './routes/_app/assessments/$assessmentId/settings'
 import { Route as AppAssessmentsAssessmentIdSubmissionsIndexRouteImport } from './routes/_app/assessments/$assessmentId/submissions.index'
 import { Route as AppAssessmentsAssessmentIdQuestionsIndexRouteImport } from './routes/_app/assessments/$assessmentId/questions.index'
+import { Route as AppAssessmentsAssessmentIdSubmissionsSubIdRouteImport } from './routes/_app/assessments/$assessmentId/submissions.$subId'
 import { Route as AppAssessmentsAssessmentIdQuestionsNewRouteImport } from './routes/_app/assessments/$assessmentId/questions.new'
 import { Route as AppAssessmentsAssessmentIdQuestionsQuestionIdEditRouteImport } from './routes/_app/assessments/$assessmentId/questions.$questionId.edit'
 
@@ -186,6 +187,12 @@ const AppAssessmentsAssessmentIdQuestionsIndexRoute =
     path: '/questions/',
     getParentRoute: () => AppAssessmentsAssessmentIdRoute,
   } as any)
+const AppAssessmentsAssessmentIdSubmissionsSubIdRoute =
+  AppAssessmentsAssessmentIdSubmissionsSubIdRouteImport.update({
+    id: '/submissions/$subId',
+    path: '/submissions/$subId',
+    getParentRoute: () => AppAssessmentsAssessmentIdRoute,
+  } as any)
 const AppAssessmentsAssessmentIdQuestionsNewRoute =
   AppAssessmentsAssessmentIdQuestionsNewRouteImport.update({
     id: '/questions/new',
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/take/$subId/question/$questionId': typeof TakeSubIdQuestionQuestionIdRoute
   '/assessments/$assessmentId/': typeof AppAssessmentsAssessmentIdIndexRoute
   '/assessments/$assessmentId/questions/new': typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  '/assessments/$assessmentId/submissions/$subId': typeof AppAssessmentsAssessmentIdSubmissionsSubIdRoute
   '/assessments/$assessmentId/questions': typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
   '/assessments/$assessmentId/submissions': typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   '/assessments/$assessmentId/questions/$questionId/edit': typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
@@ -255,6 +263,7 @@ export interface FileRoutesByTo {
   '/take/$subId/question/$questionId': typeof TakeSubIdQuestionQuestionIdRoute
   '/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdIndexRoute
   '/assessments/$assessmentId/questions/new': typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  '/assessments/$assessmentId/submissions/$subId': typeof AppAssessmentsAssessmentIdSubmissionsSubIdRoute
   '/assessments/$assessmentId/questions': typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
   '/assessments/$assessmentId/submissions': typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   '/assessments/$assessmentId/questions/$questionId/edit': typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
@@ -288,6 +297,7 @@ export interface FileRoutesById {
   '/take/$subId/question/$questionId': typeof TakeSubIdQuestionQuestionIdRoute
   '/_app/assessments/$assessmentId/': typeof AppAssessmentsAssessmentIdIndexRoute
   '/_app/assessments/$assessmentId/questions/new': typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  '/_app/assessments/$assessmentId/submissions/$subId': typeof AppAssessmentsAssessmentIdSubmissionsSubIdRoute
   '/_app/assessments/$assessmentId/questions/': typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
   '/_app/assessments/$assessmentId/submissions/': typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   '/_app/assessments/$assessmentId/questions/$questionId/edit': typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/take/$subId/question/$questionId'
     | '/assessments/$assessmentId/'
     | '/assessments/$assessmentId/questions/new'
+    | '/assessments/$assessmentId/submissions/$subId'
     | '/assessments/$assessmentId/questions'
     | '/assessments/$assessmentId/submissions'
     | '/assessments/$assessmentId/questions/$questionId/edit'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/take/$subId/question/$questionId'
     | '/assessments/$assessmentId'
     | '/assessments/$assessmentId/questions/new'
+    | '/assessments/$assessmentId/submissions/$subId'
     | '/assessments/$assessmentId/questions'
     | '/assessments/$assessmentId/submissions'
     | '/assessments/$assessmentId/questions/$questionId/edit'
@@ -382,6 +394,7 @@ export interface FileRouteTypes {
     | '/take/$subId/question/$questionId'
     | '/_app/assessments/$assessmentId/'
     | '/_app/assessments/$assessmentId/questions/new'
+    | '/_app/assessments/$assessmentId/submissions/$subId'
     | '/_app/assessments/$assessmentId/questions/'
     | '/_app/assessments/$assessmentId/submissions/'
     | '/_app/assessments/$assessmentId/questions/$questionId/edit'
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssessmentsAssessmentIdQuestionsIndexRouteImport
       parentRoute: typeof AppAssessmentsAssessmentIdRoute
     }
+    '/_app/assessments/$assessmentId/submissions/$subId': {
+      id: '/_app/assessments/$assessmentId/submissions/$subId'
+      path: '/submissions/$subId'
+      fullPath: '/assessments/$assessmentId/submissions/$subId'
+      preLoaderRoute: typeof AppAssessmentsAssessmentIdSubmissionsSubIdRouteImport
+      parentRoute: typeof AppAssessmentsAssessmentIdRoute
+    }
     '/_app/assessments/$assessmentId/questions/new': {
       id: '/_app/assessments/$assessmentId/questions/new'
       path: '/questions/new'
@@ -618,6 +638,7 @@ interface AppAssessmentsAssessmentIdRouteChildren {
   AppAssessmentsAssessmentIdSettingsRoute: typeof AppAssessmentsAssessmentIdSettingsRoute
   AppAssessmentsAssessmentIdIndexRoute: typeof AppAssessmentsAssessmentIdIndexRoute
   AppAssessmentsAssessmentIdQuestionsNewRoute: typeof AppAssessmentsAssessmentIdQuestionsNewRoute
+  AppAssessmentsAssessmentIdSubmissionsSubIdRoute: typeof AppAssessmentsAssessmentIdSubmissionsSubIdRoute
   AppAssessmentsAssessmentIdQuestionsIndexRoute: typeof AppAssessmentsAssessmentIdQuestionsIndexRoute
   AppAssessmentsAssessmentIdSubmissionsIndexRoute: typeof AppAssessmentsAssessmentIdSubmissionsIndexRoute
   AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute: typeof AppAssessmentsAssessmentIdQuestionsQuestionIdEditRoute
@@ -630,6 +651,8 @@ const AppAssessmentsAssessmentIdRouteChildren: AppAssessmentsAssessmentIdRouteCh
     AppAssessmentsAssessmentIdIndexRoute: AppAssessmentsAssessmentIdIndexRoute,
     AppAssessmentsAssessmentIdQuestionsNewRoute:
       AppAssessmentsAssessmentIdQuestionsNewRoute,
+    AppAssessmentsAssessmentIdSubmissionsSubIdRoute:
+      AppAssessmentsAssessmentIdSubmissionsSubIdRoute,
     AppAssessmentsAssessmentIdQuestionsIndexRoute:
       AppAssessmentsAssessmentIdQuestionsIndexRoute,
     AppAssessmentsAssessmentIdSubmissionsIndexRoute:

@@ -42,9 +42,17 @@ interface CodeEditorProps {
   language?: string;
   placeholder?: string;
   className?: string;
+  readOnly?: boolean;
 }
 
-export const CodeEditor = ({ value, onChange, language, placeholder, className }: CodeEditorProps) => {
+export const CodeEditor = ({
+  value,
+  onChange,
+  language,
+  placeholder,
+  className,
+  readOnly = false,
+}: CodeEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
@@ -61,6 +69,10 @@ export const CodeEditor = ({ value, onChange, language, placeholder, className }
         }
       }),
     ];
+
+    if (readOnly) {
+      extensions.push(EditorState.readOnly.of(true), EditorView.editable.of(false));
+    }
 
     if (placeholder) {
       extensions.push(placeholderExt(placeholder));

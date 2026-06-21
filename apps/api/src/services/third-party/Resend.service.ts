@@ -1,13 +1,20 @@
 import { Context } from 'hono';
 import { Resend } from 'resend';
 import { AppContext } from '@/index';
+import { buildAssessmentInvitationEmail } from './emails/assessment-invitation';
 import { buildAssessmentSubmissionEmail } from './emails/assessment-submission';
 import { buildOrgInvitationEmail } from './emails/org-invitation';
 import { buildSignupFeedbackEmail } from './emails/signup-feedback';
+import { buildSubmissionConfirmationEmail } from './emails/submission-confirmation';
 import { buildSupportMessageEmail } from './emails/support-message';
 import { buildVerificationEmail } from './emails/verification';
 
-type TransactionalEmailTypes = 'verification_code' | 'org_invitation' | 'assessment_submission';
+type TransactionalEmailTypes =
+  | 'verification_code'
+  | 'org_invitation'
+  | 'assessment_submission'
+  | 'assessment_invitation'
+  | 'submission_confirmation';
 type TransactionEmailParams = {
   verification_code: {
     params: {
@@ -34,6 +41,21 @@ type TransactionEmailParams = {
       view_link: string;
     };
   };
+  assessment_invitation: {
+    params: {
+      org_name: string;
+      candidate_name: string;
+      assessment_title: string;
+      take_link: string;
+    };
+  };
+  submission_confirmation: {
+    params: {
+      candidate_name: string;
+      assessment_title: string;
+      org_name: string;
+    };
+  };
 };
 
 type TransactionEmailPayload<T extends TransactionalEmailTypes> = T extends TransactionalEmailTypes
@@ -52,6 +74,8 @@ const EMAIL_BUILDERS: {
   verification_code: buildVerificationEmail,
   org_invitation: buildOrgInvitationEmail,
   assessment_submission: buildAssessmentSubmissionEmail,
+  assessment_invitation: buildAssessmentInvitationEmail,
+  submission_confirmation: buildSubmissionConfirmationEmail,
 };
 
 export class ResendService {

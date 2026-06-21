@@ -9,9 +9,9 @@ import { CandidateEntity, candidateTable } from '@coderscreen/db/candidate.db';
 import { questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
 import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTestCase.db';
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
-import { testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
+import { TestCaseResultEntity, testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { member, organization, user } from '@coderscreen/db/user.db';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -185,7 +185,54 @@ export class AssessmentSubmissionService {
       });
     }
 
+    // Email the candidate their invitation (fire-and-forget). The access link is
+    // still returned for the recruiter's manual copy-link fallback, so a failed
+    // send never blocks the invite.
+    this.ctx.executionCtx.waitUntil(
+      this.notifyCandidateOfInvitation({
+        orgId,
+        candidateName: candidate.name,
+        candidateEmail: candidate.email,
+        assessmentTitle: assessment.title,
+        submissionId,
+        accessToken,
+      })
+    );
+
     return { ...submission, candidate };
+  }
+
+  private async notifyCandidateOfInvitation(params: {
+    orgId: string;
+    candidateName: string;
+    candidateEmail: string;
+    assessmentTitle: string;
+    submissionId: string;
+    accessToken: string;
+  }): Promise<void> {
+    try {
+      const org = await this.db
+        .select()
+        .from(organization)
+        .where(eq(organization.id, params.orgId))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!org) return;
+
+      const takeLink = `${this.ctx.env.FE_APP_URL}/take/${params.submissionId}?token=${params.accessToken}`;
+      const { resendService } = this.ctx.get('appFactory');
+
+      await resendService.sendTransactionalEmail('assessment_invitation', params.candidateEmail, {
+        org_name: org.name,
+        candidate_name: params.candidateName,
+        assessment_title: params.assessmentTitle,
+        take_link: takeLink,
+      });
+    } catch (err) {
+      console.error('Failed to send assessment invitation email', {
+        submissionId: params.submissionId,
+        error: err,
+      });
+    }
   }
 
   async listSubmissions(assessmentId: Id<'assessment'>) {
@@ -244,29 +291,103 @@ export class AssessmentSubmissionService {
       .where(eq(candidateTable.id, submission.candidateId))
       .then((r) => (r.length > 0 ? r[0] : null));
 
-    const questionSubmissions = await this.db
+    // All assessment questions (ordered) with their library titles, so the
+    // detail view can list every question even if the candidate never attempted
+    // it.
+    const links = await this.db
+      .select({ link: assessmentQuestionTable, question: questionLibraryTable })
+      .from(assessmentQuestionTable)
+      .innerJoin(
+        questionLibraryTable,
+        eq(assessmentQuestionTable.questionId, questionLibraryTable.id)
+      )
+      .where(
+        eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>)
+      )
+      .orderBy(asc(assessmentQuestionTable.position));
+
+    const allQuestionSubmissions = await this.db
       .select()
       .from(questionSubmissionTable)
       .where(eq(questionSubmissionTable.submissionId, submissionId));
 
-    // Get test case results for each question submission
-    const questionSubmissionsWithResults = [];
-    for (const qs of questionSubmissions) {
-      const results = await this.db
-        .select()
-        .from(testCaseResultTable)
-        .where(eq(testCaseResultTable.questionSubmissionId, qs.id));
+    // One entry per assessment question: the best non-draft submission (the
+    // graded attempt the candidate actually submitted) enriched with the test
+    // case definitions, falling back to the draft (their latest editor code) if
+    // they never submitted.
+    const questions = [];
+    for (const l of links) {
+      const aqId = l.link.id;
+      const forQuestion = allQuestionSubmissions.filter((qs) => qs.questionId === aqId);
+      const best =
+        forQuestion
+          .filter((qs) => !qs.isDraft)
+          .sort(
+            (a, b) =>
+              (b.score ?? -1) - (a.score ?? -1) ||
+              (a.createdAt < b.createdAt ? 1 : -1)
+          )[0] ?? null;
+      const draft = forQuestion.find((qs) => qs.isDraft) ?? null;
+      const chosen = best ?? draft;
 
-      questionSubmissionsWithResults.push({
-        ...qs,
-        testCaseResults: results,
+      // Per-test results, enriched with the test case definition (label, args,
+      // expected) so reviewers can see the inputs behind each pass/fail.
+      let testCaseResults: Array<
+        TestCaseResultEntity & {
+          label: string;
+          args: unknown[];
+          expectedReturn: unknown;
+          isHidden: boolean;
+          position: number;
+        }
+      > = [];
+      if (best) {
+        const results = await this.db
+          .select()
+          .from(testCaseResultTable)
+          .where(eq(testCaseResultTable.questionSubmissionId, best.id));
+        const testCaseIds = results.map((r) => r.testCaseId);
+        const defs =
+          testCaseIds.length > 0
+            ? await this.db
+                .select()
+                .from(questionLibraryTestCaseTable)
+                .where(inArray(questionLibraryTestCaseTable.id, testCaseIds))
+            : [];
+        const defById = new Map(defs.map((d) => [d.id, d]));
+        testCaseResults = results
+          .map((r) => {
+            const def = defById.get(r.testCaseId);
+            return {
+              ...r,
+              label: def?.label ?? '',
+              args: def?.args ?? [],
+              expectedReturn: def?.expectedReturn ?? null,
+              isHidden: def?.isHidden ?? false,
+              position: def?.position ?? 0,
+            };
+          })
+          .sort((a, b) => a.position - b.position);
+      }
+
+      questions.push({
+        assessmentQuestionId: aqId,
+        title: l.question.title,
+        position: l.link.position,
+        points: l.link.points,
+        status: best ? 'submitted' : draft?.code ? 'draft' : 'not_attempted',
+        code: chosen?.code ?? '',
+        language: best?.language ?? draft?.language ?? submission.selectedLanguage ?? null,
+        score: best?.score ?? null,
+        maxScore: best?.maxScore ?? null,
+        testCaseResults,
       });
     }
 
     return {
       ...submission,
       candidate,
-      questionSubmissions: questionSubmissionsWithResults,
+      questions,
     };
   }
 
@@ -960,7 +1081,7 @@ export class AssessmentSubmissionService {
       .returning()
       .then((r) => r[0]);
 
-    this.ctx.executionCtx.waitUntil(this.notifyOrgOfSubmission(updated.id));
+    this.ctx.executionCtx.waitUntil(this.dispatchSubmissionNotifications(updated.id));
 
     return {
       ...updated,
@@ -969,7 +1090,9 @@ export class AssessmentSubmissionService {
     };
   }
 
-  private async notifyOrgOfSubmission(submissionId: Id<'assessmentSubmission'>): Promise<void> {
+  private async dispatchSubmissionNotifications(
+    submissionId: Id<'assessmentSubmission'>
+  ): Promise<void> {
     try {
       const submission = await this.db
         .select()
@@ -999,19 +1122,38 @@ export class AssessmentSubmissionService {
         .then((r) => (r.length > 0 ? r[0] : null));
       if (!org) return;
 
+      const { resendService } = this.ctx.get('appFactory');
+      const viewLink = `${this.ctx.env.FE_APP_URL}/assessments/${assessment.id}/submissions/${submission.id}`;
+
+      const sends: Promise<void>[] = [];
+
+      // Receipt confirmation to the candidate (no score — results stay private
+      // to the org).
+      sends.push(
+        resendService
+          .sendTransactionalEmail('submission_confirmation', candidate.email, {
+            candidate_name: candidate.name,
+            assessment_title: assessment.title,
+            org_name: org.name,
+          })
+          .catch((err) => {
+            console.error('Failed to send submission confirmation email', {
+              recipient: candidate.email,
+              submissionId,
+              error: err,
+            });
+          })
+      );
+
+      // Notify each org member that a submission came in.
       const recipients = await this.db
         .select({ email: user.email })
         .from(member)
         .innerJoin(user, eq(user.id, member.userId))
         .where(eq(member.organizationId, submission.organizationId));
 
-      if (recipients.length === 0) return;
-
-      const viewLink = `${this.ctx.env.FE_APP_URL}/assessments/${assessment.id}/submissions`;
-      const { resendService } = this.ctx.get('appFactory');
-
-      await Promise.all(
-        recipients.map((r) =>
+      for (const r of recipients) {
+        sends.push(
           resendService
             .sendTransactionalEmail('assessment_submission', r.email, {
               org_name: org.name,
@@ -1030,8 +1172,10 @@ export class AssessmentSubmissionService {
                 error: err,
               });
             })
-        )
-      );
+        );
+      }
+
+      await Promise.all(sends);
     } catch (err) {
       console.error('Failed to dispatch assessment submission notifications', {
         submissionId,
