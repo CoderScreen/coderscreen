@@ -346,7 +346,9 @@ export class AssessmentSubmissionService {
           .select()
           .from(testCaseResultTable)
           .where(eq(testCaseResultTable.questionSubmissionId, best.id));
-        const testCaseIds = results.map((r) => r.testCaseId);
+        const testCaseIds = results.map(
+          (r) => r.testCaseId as Id<'questionLibraryTestCase'>
+        );
         const defs =
           testCaseIds.length > 0
             ? await this.db
@@ -357,7 +359,7 @@ export class AssessmentSubmissionService {
         const defById = new Map(defs.map((d) => [d.id, d]));
         testCaseResults = results
           .map((r) => {
-            const def = defById.get(r.testCaseId);
+            const def = defById.get(r.testCaseId as Id<'questionLibraryTestCase'>);
             return {
               ...r,
               label: def?.label ?? '',
