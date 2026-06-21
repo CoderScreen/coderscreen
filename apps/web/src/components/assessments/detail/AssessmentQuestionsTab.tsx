@@ -46,12 +46,13 @@ interface QuestionItem {
   position: number;
   points: number;
   timeLimitSeconds: number | null;
-  starterCode: string;
+  // Per-language map (function-mode languages have entries).
+  starterCode: Record<string, string>;
   testCases?: {
     id: string;
     label: string;
-    input: string;
-    expectedOutput: string;
+    args: unknown[];
+    expectedReturn: unknown;
     isHidden: boolean;
     position: number;
   }[];

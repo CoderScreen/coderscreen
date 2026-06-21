@@ -16,11 +16,21 @@ import {
 
 type AssessmentData = NonNullable<ReturnType<typeof useCandidateAssessment>['data']>;
 
+// Per-language code buffer. Keyed by questionId then language. Initialized
+// lazily — entries for languages the candidate hasn't visited stay missing and
+// fall back to the question's resolvedStarterCode at read time.
+type CodeBuffers = Record<string, Record<string, string>>;
+
 interface TakeAssessmentContextType {
   assessment: AssessmentData['assessment'] | undefined;
   submission: AssessmentData['submission'] | undefined;
-  codeMap: Record<string, string>;
+  // Returns the candidate's current draft for (questionId, currently selected
+  // language), falling back to the resolved starter for that language.
+  getCode: (questionId: string) => string;
   setCode: (questionId: string, code: string) => void;
+  // Resets the buffer for (questionId, currently selected language) back to
+  // the resolved starter.
+  resetCodeToStarter: (questionId: string) => void;
   timeRemainingMs: number | null;
   isExpired: boolean;
   isSaving: boolean;
@@ -52,29 +62,45 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
   const { saveCode: saveCodeMutation, isSaving } = useSaveCode(subId, token);
   const { submitAssessment } = useSubmitAssessment(subId, token);
 
-  const [codeMap, setCodeMap] = useState<Record<string, string>>({});
+  const [codeBuffers, setCodeBuffers] = useState<CodeBuffers>({});
   const [timeRemainingMs, setTimeRemainingMs] = useState<number | null>(null);
   const [isExpired, setIsExpired] = useState(false);
 
+  const selectedLanguage = data?.submission?.selectedLanguage ?? '';
+
+  // Dirty set keyed as `${questionId}::${language}` — auto-save only flushes
+  // entries that are still dirty.
   const dirtyRef = useRef<Set<string>>(new Set());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const codeMapRef = useRef(codeMap);
-  codeMapRef.current = codeMap;
+  const codeBuffersRef = useRef(codeBuffers);
+  codeBuffersRef.current = codeBuffers;
 
-  // Initialize codeMap from API response
+  // Seed each question's buffer for the currently selected language using the
+  // server-side state: persisted code if any, else the resolved starter.
   useEffect(() => {
-    if (!data?.assessment?.questions) return;
+    if (!data?.assessment?.questions || !selectedLanguage) return;
 
-    setCodeMap((prev) => {
-      const next = { ...prev };
+    setCodeBuffers((prev) => {
+      let changed = false;
+      const next: CodeBuffers = { ...prev };
       for (const q of data.assessment.questions) {
-        if (!(q.id in next)) {
-          next[q.id] = q.questionSubmission?.code ?? q.starterCode ?? '';
-        }
+        const existing = next[q.id] ?? {};
+        if (existing[selectedLanguage] !== undefined) continue;
+        const starter =
+          (q as { resolvedStarterCode?: Record<string, string> }).resolvedStarterCode?.[
+            selectedLanguage
+          ] ?? '';
+        // The draft questionSubmission row is pre-created at invite time with
+        // an empty `code`, so an empty string means "nothing written yet" —
+        // fall back to the resolved starter rather than seeding a blank editor.
+        const savedCode = q.questionSubmission?.code;
+        const seed = savedCode && savedCode.length > 0 ? savedCode : starter;
+        next[q.id] = { ...existing, [selectedLanguage]: seed };
+        changed = true;
       }
-      return next;
+      return changed ? next : prev;
     });
-  }, [data?.assessment?.questions]);
+  }, [data?.assessment?.questions, selectedLanguage]);
 
   // Timer logic
   useEffect(() => {
@@ -124,31 +150,69 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     const dirty = Array.from(dirtyRef.current);
     if (dirty.length === 0) return;
 
-    const promises = dirty.map((questionId) =>
-      saveCodeMutation({ questionId, code: codeMapRef.current[questionId] ?? '' }).catch(() => {})
-    );
+    const promises = dirty.map((key) => {
+      const [questionId, lang] = key.split('::');
+      const code = codeBuffersRef.current[questionId]?.[lang] ?? '';
+      return saveCodeMutation({
+        questionId: questionId as `aq_${string}`,
+        code,
+      }).catch(() => {});
+    });
     await Promise.all(promises);
-    for (const id of dirty) {
-      dirtyRef.current.delete(id);
-    }
+    for (const k of dirty) dirtyRef.current.delete(k);
   }, [saveCodeMutation]);
 
   const scheduleSave = useCallback(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
       flushDirty();
     }, AUTO_SAVE_DELAY);
   }, [flushDirty]);
 
+  const getCode = useCallback(
+    (questionId: string) => {
+      if (!selectedLanguage) return '';
+      const buffer = codeBuffers[questionId]?.[selectedLanguage];
+      if (buffer !== undefined) return buffer;
+      const q = data?.assessment?.questions.find((x) => x.id === questionId);
+      const starter =
+        (q as { resolvedStarterCode?: Record<string, string> } | undefined)?.resolvedStarterCode?.[
+          selectedLanguage
+        ] ?? '';
+      return starter;
+    },
+    [codeBuffers, selectedLanguage, data?.assessment?.questions]
+  );
+
   const setCode = useCallback(
     (questionId: string, code: string) => {
-      setCodeMap((prev) => ({ ...prev, [questionId]: code }));
-      dirtyRef.current.add(questionId);
+      if (!selectedLanguage) return;
+      setCodeBuffers((prev) => ({
+        ...prev,
+        [questionId]: { ...(prev[questionId] ?? {}), [selectedLanguage]: code },
+      }));
+      dirtyRef.current.add(`${questionId}::${selectedLanguage}`);
       scheduleSave();
     },
-    [scheduleSave]
+    [scheduleSave, selectedLanguage]
+  );
+
+  const resetCodeToStarter = useCallback(
+    (questionId: string) => {
+      if (!selectedLanguage) return;
+      const q = data?.assessment?.questions.find((x) => x.id === questionId);
+      const starter =
+        (q as { resolvedStarterCode?: Record<string, string> } | undefined)?.resolvedStarterCode?.[
+          selectedLanguage
+        ] ?? '';
+      setCodeBuffers((prev) => ({
+        ...prev,
+        [questionId]: { ...(prev[questionId] ?? {}), [selectedLanguage]: starter },
+      }));
+      dirtyRef.current.add(`${questionId}::${selectedLanguage}`);
+      scheduleSave();
+    },
+    [data?.assessment?.questions, scheduleSave, selectedLanguage]
   );
 
   const saveCurrentCode = useCallback(async () => {
@@ -168,8 +232,9 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     () => ({
       assessment: data?.assessment,
       submission: data?.submission,
-      codeMap,
+      getCode,
       setCode,
+      resetCodeToStarter,
       timeRemainingMs,
       isExpired,
       isSaving,
@@ -183,8 +248,9 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     }),
     [
       data,
-      codeMap,
+      getCode,
       setCode,
+      resetCodeToStarter,
       timeRemainingMs,
       isExpired,
       isSaving,

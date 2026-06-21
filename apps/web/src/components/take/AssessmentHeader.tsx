@@ -14,11 +14,9 @@ import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 
 interface AssessmentHeaderProps {
   mode: 'overview' | 'coding';
-  question?: { id: string; title: string };
-  questionIndex?: number;
 }
 
-export const AssessmentHeader = ({ mode, question, questionIndex }: AssessmentHeaderProps) => {
+export const AssessmentHeader = ({ mode }: AssessmentHeaderProps) => {
   const { assessment, submission, timeRemainingMs, isSaving, saveCurrentCode, subId, token } =
     useTakeAssessment();
   const [showBackDialog, setShowBackDialog] = useState(false);
@@ -60,16 +58,10 @@ export const AssessmentHeader = ({ mode, question, questionIndex }: AssessmentHe
           {mode === 'overview' ? (
             <span className='font-semibold text-gray-900'>{assessment?.title}</span>
           ) : (
-            <>
-              <Button variant='secondary' onClick={() => setShowBackDialog(true)}>
-                <RiArrowLeftLine className='size-4' />
-                <span>Questions</span>
-              </Button>
-              <span className='font-semibold text-gray-900'>
-                {questionIndex !== undefined ? `${questionIndex + 1}. ` : ''}
-                {question?.title}
-              </span>
-            </>
+            <Button variant='secondary' onClick={() => setShowBackDialog(true)}>
+              <RiArrowLeftLine className='size-4' />
+              <span>Questions</span>
+            </Button>
           )}
         </div>
 

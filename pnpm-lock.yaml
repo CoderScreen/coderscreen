@@ -259,6 +259,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.38.1
         version: 6.38.1
+      '@coderscreen/common':
+        specifier: workspace:^
+        version: link:../../packages/common
       '@coderscreen/ui':
         specifier: workspace:^
         version: link:../../packages/ui

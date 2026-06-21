@@ -133,9 +133,8 @@ export const InviteCandidateDialog = ({
 
   const handleSuccess = (result: unknown) => {
     if (result && typeof result === 'object' && 'accessToken' in result) {
-      const token = (result as { accessToken: string }).accessToken;
-      const id = (result as { id: string }).id;
-      setAccessLink(`${window.location.origin}/take/${id}?token=${token}`);
+      const { id, accessToken } = result as { id: string; accessToken: string };
+      setAccessLink(`${window.location.origin}/take/${id}?token=${accessToken}`);
     }
   };
 

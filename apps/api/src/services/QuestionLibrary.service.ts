@@ -1,4 +1,5 @@
 import { generateId, Id } from '@coderscreen/common/id';
+import type { Parameter, TypeString } from '@coderscreen/common/types';
 import { assessmentQuestionTable } from '@coderscreen/db/assessmentQuestion.db';
 import { assessmentSubmissionTable } from '@coderscreen/db/assessmentSubmission.db';
 import { questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
@@ -11,6 +12,10 @@ import { HTTPException } from 'hono/http-exception';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
 import { getSession } from '@/lib/session';
+import {
+  signatureChangesInvalidateTestCases,
+  validateTestCaseShape,
+} from '@/sandbox/validateTestCase';
 import {
   CreateQuestionLibrarySchema,
   CreateQuestionLibraryTestCaseSchema,
@@ -141,6 +146,9 @@ export class QuestionLibraryService {
         organizationId: orgId,
         createdByUserId: user.id,
         ...values,
+        // zod-validated; cast narrows from `string` to `TypeString` literal.
+        parameters: values.parameters as Parameter[],
+        returnType: values.returnType as TypeString,
       })
       .returning()
       .then((r) => r[0]);
@@ -149,20 +157,57 @@ export class QuestionLibraryService {
   async updateQuestion(id: Id<'questionLibrary'>, values: UpdateQuestionLibrarySchema) {
     const { orgId } = getSession(this.ctx);
 
-    return this.db
-      .update(questionLibraryTable)
-      .set({
-        ...values,
-        updatedAt: new Date().toISOString(),
-      })
+    // Detect signature change. If the function name, parameter list, or return
+    // type changes, existing test cases no longer make sense (args may not
+    // match new parameter count/types) — delete them in the same transaction
+    // so we never leave a question with mismatched cases.
+    const current = await this.db
+      .select()
+      .from(questionLibraryTable)
       .where(
-        and(
-          eq(questionLibraryTable.id, id),
-          eq(questionLibraryTable.organizationId, orgId)
-        )
+        and(eq(questionLibraryTable.id, id), eq(questionLibraryTable.organizationId, orgId))
       )
-      .returning()
-      .then((r) => r[0]);
+      .then((r) => (r.length > 0 ? r[0] : null));
+    if (!current) {
+      throw new HTTPException(404, { message: 'Question not found' });
+    }
+
+    const nextSignature = {
+      functionName: values.functionName ?? current.functionName,
+      parameters: (values.parameters ?? current.parameters) as Parameter[],
+      returnType: (values.returnType ?? current.returnType) as TypeString,
+    };
+    const sigChanged = signatureChangesInvalidateTestCases(
+      {
+        functionName: current.functionName,
+        parameters: current.parameters,
+        returnType: current.returnType,
+      },
+      nextSignature
+    );
+
+    return this.db.transaction(async (tx) => {
+      if (sigChanged) {
+        await tx
+          .delete(questionLibraryTestCaseTable)
+          .where(eq(questionLibraryTestCaseTable.questionId, id));
+      }
+      const updated = await tx
+        .update(questionLibraryTable)
+        .set({
+          ...values,
+          // cast narrows from zod-validated string to literal types
+          parameters: values.parameters
+            ? (values.parameters as Parameter[])
+            : undefined,
+          returnType: values.returnType ? (values.returnType as TypeString) : undefined,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(questionLibraryTable.id, id))
+        .returning()
+        .then((r) => r[0]);
+      return updated;
+    });
   }
 
   async deleteQuestion(id: Id<'questionLibrary'>) {
@@ -186,6 +231,19 @@ export class QuestionLibraryService {
     questionId: Id<'questionLibrary'>,
     values: CreateQuestionLibraryTestCaseSchema
   ) {
+    const question = await this.db
+      .select()
+      .from(questionLibraryTable)
+      .where(eq(questionLibraryTable.id, questionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+    if (!question) throw new HTTPException(404, { message: 'Question not found' });
+
+    validateTestCaseShape(
+      { parameters: question.parameters, returnType: question.returnType },
+      values.args,
+      values.expectedReturn
+    );
+
     return this.db
       .insert(questionLibraryTestCaseTable)
       .values({
@@ -203,6 +261,28 @@ export class QuestionLibraryService {
     testCaseId: Id<'questionLibraryTestCase'>,
     values: UpdateQuestionLibraryTestCaseSchema
   ) {
+    // If args/expectedReturn are being changed, re-validate against the parent
+    // signature so the change can't accidentally invalidate the test case.
+    if (values.args !== undefined || values.expectedReturn !== undefined) {
+      const tc = await this.db
+        .select()
+        .from(questionLibraryTestCaseTable)
+        .where(eq(questionLibraryTestCaseTable.id, testCaseId))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!tc) throw new HTTPException(404, { message: 'Test case not found' });
+      const question = await this.db
+        .select()
+        .from(questionLibraryTable)
+        .where(eq(questionLibraryTable.id, tc.questionId as Id<'questionLibrary'>))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!question) throw new HTTPException(404, { message: 'Question not found' });
+      validateTestCaseShape(
+        { parameters: question.parameters, returnType: question.returnType },
+        values.args ?? tc.args,
+        values.expectedReturn !== undefined ? values.expectedReturn : tc.expectedReturn
+      );
+    }
+
     return this.db
       .update(questionLibraryTestCaseTable)
       .set({

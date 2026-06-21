@@ -517,6 +517,54 @@ export const assessmentRouter = new Hono<AppContext>()
       const result = await service.gradeSubmission(subId, body);
       return ctx.json(result);
     }
+  )
+  // POST /assessments/:id/submissions/:subId/archive - Archive a submission
+  .post(
+    '/:id/submissions/:subId/archive',
+    describeRoute({
+      description: 'Archive a submission (hides it from the default list)',
+      responses: {
+        200: { description: 'Submission archived' },
+        404: { description: 'Submission not found' },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        id: idString('assessment'),
+        subId: idString('assessmentSubmission'),
+      })
+    ),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const result = await service.setSubmissionArchived(subId, true);
+      return ctx.json(result);
+    }
+  )
+  // POST /assessments/:id/submissions/:subId/unarchive - Unarchive a submission
+  .post(
+    '/:id/submissions/:subId/unarchive',
+    describeRoute({
+      description: 'Unarchive a submission (restores it to the default list)',
+      responses: {
+        200: { description: 'Submission unarchived' },
+        404: { description: 'Submission not found' },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        id: idString('assessment'),
+        subId: idString('assessmentSubmission'),
+      })
+    ),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const result = await service.setSubmissionArchived(subId, false);
+      return ctx.json(result);
+    }
   );
 
 // === Candidate Router (separate, mounted at /candidates) ===

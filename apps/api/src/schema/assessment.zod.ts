@@ -50,6 +50,25 @@ export const UpdateAssessmentSchema = z.object({
 
 // === Question ===
 
+const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+export const TypeStringSchema = z
+  .string()
+  .regex(/^(string|int|float|bool|null|object|array<.+>)$/);
+
+export const ParameterSchema = z.object({
+  name: z.string().min(1).regex(IDENT_RE),
+  type: TypeStringSchema,
+});
+
+export const SignatureSchema = z.object({
+  functionName: z.string().min(1).regex(IDENT_RE),
+  parameters: z.array(ParameterSchema).max(10),
+  returnType: TypeStringSchema,
+});
+
+export const StarterCodeMapSchema = z.record(AssessmentLanguageSchema, z.string());
+
 export const AssessmentQuestionSchema = z.object({
   id: idString('assessmentQuestion'),
   createdAt: z.string(),
@@ -61,7 +80,10 @@ export const AssessmentQuestionSchema = z.object({
   // Flattened from library question
   title: z.string().min(1).max(200),
   description: z.record(z.any()),
-  starterCode: z.string(),
+  functionName: z.string(),
+  parameters: z.array(ParameterSchema),
+  returnType: TypeStringSchema,
+  starterCode: StarterCodeMapSchema,
   timeLimitSeconds: z.number().int().positive().nullable(),
 });
 
@@ -71,7 +93,10 @@ export const CreateQuestionSchema = z.object({
   position: z.number().int().min(0),
   points: z.number().int().min(0).max(10000).optional().default(100),
   timeLimitSeconds: z.number().int().positive().nullable().optional().default(null),
-  starterCode: z.string().optional().default(''),
+  functionName: z.string().min(1).regex(IDENT_RE),
+  parameters: z.array(ParameterSchema).max(10).optional().default([]),
+  returnType: TypeStringSchema,
+  starterCode: StarterCodeMapSchema.optional().default({}),
 });
 
 export const UpdateQuestionSchema = z.object({
@@ -80,7 +105,10 @@ export const UpdateQuestionSchema = z.object({
   position: z.number().int().min(0).optional(),
   points: z.number().int().min(0).max(10000).optional(),
   timeLimitSeconds: z.number().int().positive().nullable().optional(),
-  starterCode: z.string().optional(),
+  functionName: z.string().min(1).regex(IDENT_RE).optional(),
+  parameters: z.array(ParameterSchema).max(10).optional(),
+  returnType: TypeStringSchema.optional(),
+  starterCode: StarterCodeMapSchema.optional(),
 });
 
 export const ReorderQuestionsSchema = z.object({
@@ -100,24 +128,24 @@ export const TestCaseSchema = z.object({
   updatedAt: z.string(),
   questionId: idString('questionLibrary'),
   label: z.string(),
-  input: z.string(),
-  expectedOutput: z.string(),
+  args: z.array(z.unknown()),
+  expectedReturn: z.unknown(),
   isHidden: z.boolean(),
   position: z.number().int().min(0),
 });
 
 export const CreateTestCaseSchema = z.object({
   label: z.string().optional().default(''),
-  input: z.string(),
-  expectedOutput: z.string(),
+  args: z.array(z.unknown()),
+  expectedReturn: z.unknown(),
   isHidden: z.boolean().optional().default(false),
   position: z.number().int().min(0).optional().default(0),
 });
 
 export const UpdateTestCaseSchema = z.object({
   label: z.string().optional(),
-  input: z.string().optional(),
-  expectedOutput: z.string().optional(),
+  args: z.array(z.unknown()).optional(),
+  expectedReturn: z.unknown().optional(),
   isHidden: z.boolean().optional(),
   position: z.number().int().min(0).optional(),
 });
@@ -162,6 +190,7 @@ export const SubmissionSchema = z.object({
   maxScore: z.number().int().nullable(),
   gradingNotes: z.string(),
   accessToken: z.string(),
+  isArchived: z.boolean(),
 });
 
 export const CreateSubmissionSchema = z.union([
@@ -223,6 +252,10 @@ export type LinkQuestionSchema = z.infer<typeof LinkQuestionSchema>;
 export type StartAssessmentSchema = z.infer<typeof StartAssessmentSchema>;
 export type SaveCodeSchema = z.infer<typeof SaveCodeSchema>;
 export type RunTestsSchema = z.infer<typeof RunTestsSchema>;
+export type TypeStringSchema = z.infer<typeof TypeStringSchema>;
+export type ParameterSchema = z.infer<typeof ParameterSchema>;
+export type SignatureSchema = z.infer<typeof SignatureSchema>;
+export type StarterCodeMapSchema = z.infer<typeof StarterCodeMapSchema>;
 export type AssessmentSchema = z.infer<typeof AssessmentSchema>;
 export type CreateAssessmentSchema = z.infer<typeof CreateAssessmentSchema>;
 export type UpdateAssessmentSchema = z.infer<typeof UpdateAssessmentSchema>;

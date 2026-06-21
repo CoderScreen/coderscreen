@@ -17,6 +17,7 @@ import { Route as TakeSubIdRouteImport } from './routes/take/$subId'
 import { Route as AcceptInvitationInvIdRouteImport } from './routes/accept-invitation/$invId'
 import { Route as AppRoomsRouteImport } from './routes/_app/rooms'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCandidatesRouteImport } from './routes/_app/candidates'
 import { Route as authRegisterRouteImport } from './routes/(auth)/register'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
@@ -76,6 +77,11 @@ const AppRoomsRoute = AppRoomsRouteImport.update({
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCandidatesRoute = AppCandidatesRouteImport.update({
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof authLoginRoute
   '/register': typeof authRegisterRoute
   '/candidates': typeof AppCandidatesRoute
+  '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/login': typeof authLoginRoute
   '/register': typeof authRegisterRoute
   '/candidates': typeof AppCandidatesRoute
+  '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
   '/rooms': typeof AppRoomsRoute
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/register': typeof authRegisterRoute
   '/_app/candidates': typeof AppCandidatesRoute
+  '/_app/dashboard': typeof AppDashboardRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/rooms': typeof AppRoomsRoute
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/candidates'
+    | '/dashboard'
     | '/profile'
     | '/rooms'
     | '/accept-invitation/$invId'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/candidates'
+    | '/dashboard'
     | '/profile'
     | '/rooms'
     | '/accept-invitation/$invId'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/(auth)/login'
     | '/(auth)/register'
     | '/_app/candidates'
+    | '/_app/dashboard'
     | '/_app/profile'
     | '/_app/rooms'
     | '/accept-invitation/$invId'
@@ -443,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/candidates': {
@@ -626,6 +645,7 @@ const AppAssessmentsAssessmentIdRouteWithChildren =
 
 interface AppRouteChildren {
   AppCandidatesRoute: typeof AppCandidatesRoute
+  AppDashboardRoute: typeof AppDashboardRoute
   AppProfileRoute: typeof AppProfileRoute
   AppRoomsRoute: typeof AppRoomsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -641,6 +661,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCandidatesRoute: AppCandidatesRoute,
+  AppDashboardRoute: AppDashboardRoute,
   AppProfileRoute: AppProfileRoute,
   AppRoomsRoute: AppRoomsRoute,
   AppIndexRoute: AppIndexRoute,

@@ -1,6 +1,6 @@
 import { RiLoader4Line } from '@remixicon/react';
 import { createFileRoute } from '@tanstack/react-router';
-import { QuestionEditor } from '@/components/assessments/detail/QuestionEditor';
+import { QuestionEditor } from '@/components/questions/QuestionEditor';
 import { useAssessment } from '@/query/assessment.query';
 
 export const Route = createFileRoute('/_app/assessments/$assessmentId/questions/$questionId/edit')({
@@ -21,5 +21,13 @@ function RouteComponent() {
     );
   }
 
-  return <QuestionEditor assessmentId={assessmentId} mode='edit' question={question} />;
+  // Cast at the boundary: the Hono RPC client erases literal-type narrowing.
+  return (
+    <QuestionEditor
+      context='assessment'
+      mode='edit'
+      assessmentId={assessmentId}
+      question={question as Parameters<typeof QuestionEditor>[0]['question']}
+    />
+  );
 }

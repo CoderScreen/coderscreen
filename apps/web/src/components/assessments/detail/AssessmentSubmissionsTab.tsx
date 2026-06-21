@@ -22,8 +22,9 @@ import { Tooltip } from '@coderscreen/ui/tooltip';
 import { MutedText } from '@coderscreen/ui/typography';
 import {
   RiAddLine,
-  RiEyeLine,
+  RiArchiveLine,
   RiFileCopyLine,
+  RiInboxUnarchiveLine,
   RiMailSendLine,
   RiMore2Line,
 } from '@remixicon/react';
@@ -31,7 +32,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
 import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
-import { useSubmissions } from '@/query/assessment.query';
+import { useArchiveSubmission, useSubmissions } from '@/query/assessment.query';
 import { InviteCandidateDialog } from './InviteCandidateDialog';
 import { SubmissionDetailDialog } from './SubmissionDetailView';
 
@@ -60,21 +61,26 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
   const { submissions, isLoading } = useSubmissions(assessmentId);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+
+  const allSubmissions = (submissions ?? []) as Record<string, unknown>[];
+  const archivedCount = allSubmissions.filter((s) => s.isArchived === true).length;
+  const visibleSubmissions = showArchived
+    ? allSubmissions
+    : allSubmissions.filter((s) => s.isArchived !== true);
 
   return (
     <div className='py-6'>
       <div className='flex items-center justify-between mb-4'>
         <MutedText>
-          {submissions?.length ?? 0} submission{(submissions?.length ?? 0) !== 1 ? 's' : ''}
+          {visibleSubmissions.length} submission{visibleSubmissions.length !== 1 ? 's' : ''}
         </MutedText>
         <div className='flex items-center gap-2'>
-          <Button
-            variant='secondary'
-            icon={RiEyeLine}
-            onClick={() => window.open(`/assessments/${assessmentId}/preview`, '_blank')}
-          >
-            Preview
-          </Button>
+          {archivedCount > 0 && (
+            <Button variant='secondary' onClick={() => setShowArchived((v) => !v)}>
+              {showArchived ? 'Hide archived' : `Show archived (${archivedCount})`}
+            </Button>
+          )}
           <Button icon={RiMailSendLine} onClick={() => setInviteDialogOpen(true)}>
             Invite Candidate
           </Button>
@@ -97,7 +103,7 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
           <TableBody>
             {isLoading ? (
               <TableSkeleton numRows={5} numCols={7} />
-            ) : !submissions || submissions.length === 0 ? (
+            ) : visibleSubmissions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7}>
                   <div className='flex flex-col items-center justify-center py-12 px-4'>
@@ -116,15 +122,21 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
                 </TableCell>
               </TableRow>
             ) : (
-              submissions.map((sub: Record<string, unknown>) => {
+              visibleSubmissions.map((sub: Record<string, unknown>) => {
                 const candidate = sub.candidate as Record<string, unknown>;
+                const isArchived = sub.isArchived === true;
                 return (
                   <TableRow
                     key={sub.id as string}
-                    className='cursor-pointer hover:bg-gray-50'
+                    className={`cursor-pointer hover:bg-gray-50 ${isArchived ? 'opacity-60' : ''}`}
                     onClick={() => setSelectedSubId(sub.id as string)}
                   >
-                    <TableCell>{candidate.name as string}</TableCell>
+                    <TableCell>
+                      <span className='inline-flex items-center gap-2'>
+                        {candidate.name as string}
+                        {isArchived && <Badge variant='neutral'>Archived</Badge>}
+                      </span>
+                    </TableCell>
                     <TableCell>{candidate.email as string}</TableCell>
                     <TableCell>
                       <SubmissionStatusBadge status={sub.status as string} />
@@ -154,8 +166,10 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
                     </TableCell>
                     <TableCell>
                       <SubmissionRowActions
+                        assessmentId={assessmentId}
                         subId={sub.id as string}
                         accessToken={sub.accessToken as string}
+                        isArchived={isArchived}
                       />
                     </TableCell>
                   </TableRow>
@@ -187,11 +201,20 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
 };
 
 interface SubmissionRowActionsProps {
+  assessmentId: string;
   subId: string;
   accessToken: string;
+  isArchived: boolean;
 }
 
-const SubmissionRowActions = ({ subId, accessToken }: SubmissionRowActionsProps) => {
+const SubmissionRowActions = ({
+  assessmentId,
+  subId,
+  accessToken,
+  isArchived,
+}: SubmissionRowActionsProps) => {
+  const { archiveSubmission, isLoading } = useArchiveSubmission(assessmentId);
+
   const handleCopyLink = () => {
     const link = `${window.location.origin}/take/${subId}?token=${accessToken}`;
     navigator.clipboard.writeText(link);
@@ -202,7 +225,7 @@ const SubmissionRowActions = ({ subId, accessToken }: SubmissionRowActionsProps)
     <div className='flex items-center gap-1' onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant='icon' icon={RiMore2Line} />
+          <Button variant='icon' icon={RiMore2Line} isLoading={isLoading} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuItem onClick={handleCopyLink}>
@@ -210,6 +233,16 @@ const SubmissionRowActions = ({ subId, accessToken }: SubmissionRowActionsProps)
               <RiFileCopyLine className='size-4' />
             </DropdownMenuIconWrapper>
             Copy Invite Link
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => archiveSubmission({ subId, archived: !isArchived })}>
+            <DropdownMenuIconWrapper>
+              {isArchived ? (
+                <RiInboxUnarchiveLine className='size-4' />
+              ) : (
+                <RiArchiveLine className='size-4' />
+              )}
+            </DropdownMenuIconWrapper>
+            {isArchived ? 'Unarchive' : 'Archive'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -25,6 +25,7 @@ import { questionLibraryRouter } from './routes/questionLibrary.routes';
 import { assetRouter } from './routes/asset.routes';
 import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { roomRouter } from './routes/room.routes';
+import { supportRouter } from './routes/support.routes';
 import { SandboxDO as Sandbox } from './sandbox/SandboxDO';
 
 export interface AppContext {
@@ -97,6 +98,7 @@ const app = new Hono<AppContext>()
   .route('/assessments', assessmentRouter)
   .route('/candidates', candidateRouter)
   .route('/questions', questionLibraryRouter)
+  .route('/support', supportRouter)
   .onError((err, ctx) => {
     const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
 

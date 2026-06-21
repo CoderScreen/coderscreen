@@ -5,11 +5,12 @@ import {
   AssessmentSubmissionEntity,
   assessmentSubmissionTable,
 } from '@coderscreen/db/assessmentSubmission.db';
+import { CandidateEntity, candidateTable } from '@coderscreen/db/candidate.db';
 import { questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
 import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTestCase.db';
-import { CandidateEntity, candidateTable } from '@coderscreen/db/candidate.db';
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
+import { member, organization, user } from '@coderscreen/db/user.db';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
@@ -24,6 +25,7 @@ import {
   SaveCodeSchema,
   StartAssessmentSchema,
 } from '@/schema/assessment.zod';
+import { resolveStarterCode } from '@/sandbox/harnesses';
 import { AssessmentCodeRunService } from '@/services/AssessmentCodeRun.service';
 
 export class AssessmentSubmissionService {
@@ -319,6 +321,36 @@ export class AssessmentSubmissionService {
   }
 
   /**
+   * Archive or unarchive a whole assessment submission. Archiving only flags the
+   * submission so it can be hidden from the default list; it does not change the
+   * candidate's score or status, and is fully reversible.
+   */
+  async setSubmissionArchived(submissionId: Id<'assessmentSubmission'>, archived: boolean) {
+    const { orgId } = getSession(this.ctx);
+
+    const updated = await this.db
+      .update(assessmentSubmissionTable)
+      .set({
+        isArchived: archived,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(assessmentSubmissionTable.id, submissionId),
+          eq(assessmentSubmissionTable.organizationId, orgId)
+        )
+      )
+      .returning()
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!updated) {
+      throw new HTTPException(404, { message: 'Submission not found' });
+    }
+
+    return updated;
+  }
+
+  /**
    * Compute weighted assessment score from per-question best submissions:
    *   weightedScore(q) = (bestQS.score / bestQS.maxScore) * aq.points
    *   totalScore       = round(sum(weightedScore))
@@ -374,6 +406,28 @@ export class AssessmentSubmissionService {
     };
   }
 
+  /**
+   * Resolves an `assessmentQuestion.id` to the underlying library question row.
+   * The library question carries the signature (functionName, parameters,
+   * returnType) needed by the runner and the resolved starter code map.
+   */
+  private async resolveLibraryQuestion(assessmentQuestionId: Id<'assessmentQuestion'>) {
+    const row = await this.db
+      .select({ link: assessmentQuestionTable, question: questionLibraryTable })
+      .from(assessmentQuestionTable)
+      .innerJoin(
+        questionLibraryTable,
+        eq(assessmentQuestionTable.questionId, questionLibraryTable.id)
+      )
+      .where(eq(assessmentQuestionTable.id, assessmentQuestionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!row) {
+      throw new HTTPException(404, { message: 'Question not found' });
+    }
+    return row.question;
+  }
+
   // === Candidate-Facing Methods (token-authenticated, no session required) ===
 
   async getSubmissionForToken(token: string): Promise<AssessmentSubmissionEntity | null> {
@@ -423,10 +477,7 @@ export class AssessmentSubmissionService {
       )
       .orderBy(desc(questionSubmissionTable.score));
 
-    const bestByQuestionId = new Map<
-      string,
-      { score: number | null; maxScore: number | null }
-    >();
+    const bestByQuestionId = new Map<string, { score: number | null; maxScore: number | null }>();
     for (const qs of nonDraftSubmissions) {
       if (!bestByQuestionId.has(qs.questionId)) {
         bestByQuestionId.set(qs.questionId, { score: qs.score, maxScore: qs.maxScore });
@@ -460,6 +511,21 @@ export class AssessmentSubmissionService {
 
       const best = bestByQuestionId.get(r.link.id) ?? null;
 
+      const signature = {
+        functionName: r.question.functionName,
+        parameters: r.question.parameters,
+        returnType: r.question.returnType,
+      };
+      // Resolved starter code per allowed language: override if the author set
+      // one, else the auto-generated default from the signature. Restricted to
+      // languages that support function mode (e.g. Java/Go return nothing here
+      // even if listed in allowedLanguages).
+      const resolvedStarterCode = resolveStarterCode(
+        signature,
+        r.question.starterCode,
+        assessment.allowedLanguages
+      );
+
       questionsWithData.push({
         id: r.link.id,
         createdAt: r.link.createdAt,
@@ -470,7 +536,10 @@ export class AssessmentSubmissionService {
         position: r.link.position,
         title: r.question.title,
         description: r.question.description,
-        starterCode: r.question.starterCode,
+        functionName: r.question.functionName,
+        parameters: r.question.parameters,
+        returnType: r.question.returnType,
+        resolvedStarterCode,
         timeLimitSeconds: r.question.timeLimitSeconds,
         testCases,
         questionSubmission,
@@ -627,22 +696,14 @@ export class AssessmentSubmissionService {
       throw new HTTPException(400, { message: 'No language selected' });
     }
 
-    // Resolve assessmentQuestion → library question
-    const link = await this.db
-      .select()
-      .from(assessmentQuestionTable)
-      .where(eq(assessmentQuestionTable.id, params.questionId))
-      .then((r) => (r.length > 0 ? r[0] : null));
-
-    if (!link) {
-      throw new HTTPException(404, { message: 'Question not found' });
-    }
+    // Resolve assessmentQuestion → library question (includes signature)
+    const libraryQuestion = await this.resolveLibraryQuestion(params.questionId);
 
     // Get ALL test cases (visible + hidden) from library
     const testCases = await this.db
       .select()
       .from(questionLibraryTestCaseTable)
-      .where(eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>))
+      .where(eq(questionLibraryTestCaseTable.questionId, libraryQuestion.id))
       .orderBy(asc(questionLibraryTestCaseTable.position));
 
     // Run code against all test cases
@@ -651,6 +712,11 @@ export class AssessmentSubmissionService {
       submissionId,
       code: params.code,
       language: submission.selectedLanguage as AssessmentLanguage,
+      signature: {
+        functionName: libraryQuestion.functionName,
+        parameters: libraryQuestion.parameters,
+        returnType: libraryQuestion.returnType,
+      },
       testCases,
     });
 
@@ -658,41 +724,48 @@ export class AssessmentSubmissionService {
     const passedCount = results.filter((r) => r.passed).length;
     const maxScore = testCases.length;
 
-    // Create NEW questionSubmission record (isDraft=false for actual submission)
+    // Persist questionSubmission + per-test results atomically so a partial
+    // failure can never leave orphan results without a parent submission row.
     const questionSubmissionId = generateId('questionSubmission');
-    const newQuestionSubmission = await this.db
-      .insert(questionSubmissionTable)
-      .values({
-        id: questionSubmissionId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        submissionId: submissionId,
-        questionId: params.questionId,
-        organizationId: submission.organizationId,
-        code: params.code,
-        language: submission.selectedLanguage,
-        isDraft: false,
-        score: passedCount,
-        maxScore: maxScore,
-      })
-      .returning()
-      .then((r) => r[0]);
+    const newQuestionSubmission = await this.db.transaction(async (tx) => {
+      const qs = await tx
+        .insert(questionSubmissionTable)
+        .values({
+          id: questionSubmissionId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          submissionId: submissionId,
+          questionId: params.questionId,
+          organizationId: submission.organizationId,
+          code: params.code,
+          language: submission.selectedLanguage,
+          isDraft: false,
+          score: passedCount,
+          maxScore: maxScore,
+        })
+        .returning()
+        .then((r) => r[0]);
 
-    // Store test results
-    for (const result of results) {
-      await this.db.insert(testCaseResultTable).values({
-        id: generateId('testCaseResult'),
-        createdAt: new Date().toISOString(),
-        questionSubmissionId: questionSubmissionId,
-        testCaseId: result.testCaseId,
-        organizationId: submission.organizationId,
-        passed: result.passed,
-        actualOutput: result.actualOutput,
-        stderr: result.stderr,
-        exitCode: result.exitCode,
-        executionTimeMs: result.executionTimeMs,
-      });
-    }
+      if (results.length > 0) {
+        await tx.insert(testCaseResultTable).values(
+          results.map((result) => ({
+            id: generateId('testCaseResult'),
+            createdAt: new Date().toISOString(),
+            questionSubmissionId: questionSubmissionId,
+            testCaseId: result.testCaseId,
+            organizationId: submission.organizationId,
+            passed: result.passed,
+            failureReason: result.failureReason,
+            actualOutput: result.actualOutput,
+            stderr: result.stderr,
+            exitCode: result.exitCode,
+            executionTimeMs: result.executionTimeMs,
+          }))
+        );
+      }
+
+      return qs;
+    });
 
     // Return results - only show visible test results to candidate
     const visibleResults = results.filter((r) => {
@@ -731,10 +804,7 @@ export class AssessmentSubmissionService {
     return submissions;
   }
 
-  async changeLanguage(
-    submissionId: Id<'assessmentSubmission'>,
-    params: ChangeLanguageSchema
-  ) {
+  async changeLanguage(submissionId: Id<'assessmentSubmission'>, params: ChangeLanguageSchema) {
     const submission = await this.db
       .select()
       .from(assessmentSubmissionTable)
@@ -825,16 +895,8 @@ export class AssessmentSubmissionService {
       throw new HTTPException(400, { message: 'No language selected' });
     }
 
-    // Resolve assessmentQuestion → library question
-    const link = await this.db
-      .select()
-      .from(assessmentQuestionTable)
-      .where(eq(assessmentQuestionTable.id, params.questionId))
-      .then((r) => (r.length > 0 ? r[0] : null));
-
-    if (!link) {
-      throw new HTTPException(404, { message: 'Question not found' });
-    }
+    // Resolve assessmentQuestion → library question (includes signature)
+    const libraryQuestion = await this.resolveLibraryQuestion(params.questionId);
 
     // Get visible test cases from library
     const testCases = await this.db
@@ -842,7 +904,7 @@ export class AssessmentSubmissionService {
       .from(questionLibraryTestCaseTable)
       .where(
         and(
-          eq(questionLibraryTestCaseTable.questionId, link.questionId as Id<'questionLibrary'>),
+          eq(questionLibraryTestCaseTable.questionId, libraryQuestion.id),
           eq(questionLibraryTestCaseTable.isHidden, false)
         )
       )
@@ -857,6 +919,11 @@ export class AssessmentSubmissionService {
       submissionId,
       code: params.code,
       language: submission.selectedLanguage as AssessmentLanguage,
+      signature: {
+        functionName: libraryQuestion.functionName,
+        parameters: libraryQuestion.parameters,
+        returnType: libraryQuestion.returnType,
+      },
       testCases,
     });
 
@@ -893,10 +960,83 @@ export class AssessmentSubmissionService {
       .returning()
       .then((r) => r[0]);
 
+    this.ctx.executionCtx.waitUntil(this.notifyOrgOfSubmission(updated.id));
+
     return {
       ...updated,
       totalScore,
       maxScore,
     };
+  }
+
+  private async notifyOrgOfSubmission(submissionId: Id<'assessmentSubmission'>): Promise<void> {
+    try {
+      const submission = await this.db
+        .select()
+        .from(assessmentSubmissionTable)
+        .where(eq(assessmentSubmissionTable.id, submissionId))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!submission) return;
+
+      const assessment = await this.db
+        .select()
+        .from(assessmentTable)
+        .where(eq(assessmentTable.id, submission.assessmentId as Id<'assessment'>))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!assessment) return;
+
+      const candidate = await this.db
+        .select()
+        .from(candidateTable)
+        .where(eq(candidateTable.id, submission.candidateId))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!candidate) return;
+
+      const org = await this.db
+        .select()
+        .from(organization)
+        .where(eq(organization.id, submission.organizationId))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!org) return;
+
+      const recipients = await this.db
+        .select({ email: user.email })
+        .from(member)
+        .innerJoin(user, eq(user.id, member.userId))
+        .where(eq(member.organizationId, submission.organizationId));
+
+      if (recipients.length === 0) return;
+
+      const viewLink = `${this.ctx.env.FE_APP_URL}/assessments/${assessment.id}/submissions`;
+      const { resendService } = this.ctx.get('appFactory');
+
+      await Promise.all(
+        recipients.map((r) =>
+          resendService
+            .sendTransactionalEmail('assessment_submission', r.email, {
+              org_name: org.name,
+              candidate_name: candidate.name,
+              candidate_email: candidate.email,
+              assessment_title: assessment.title,
+              score: submission.totalScore,
+              max_score: submission.maxScore,
+              submitted_at: submission.submittedAt ?? new Date().toISOString(),
+              view_link: viewLink,
+            })
+            .catch((err) => {
+              console.error('Failed to send assessment submission email', {
+                recipient: r.email,
+                submissionId,
+                error: err,
+              });
+            })
+        )
+      );
+    } catch (err) {
+      console.error('Failed to dispatch assessment submission notifications', {
+        submissionId,
+        error: err,
+      });
+    }
   }
 }

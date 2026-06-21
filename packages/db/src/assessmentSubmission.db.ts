@@ -1,6 +1,6 @@
 import type { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
-import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { assessmentTable } from './assessment.db';
 import { candidateTable } from './candidate.db';
 import { organization } from './user.db';
@@ -32,6 +32,7 @@ export const assessmentSubmissionTable = pgTable(
     maxScore: integer('max_score'),
     gradingNotes: text('grading_notes').notNull().default(''),
     accessToken: text('access_token').notNull().unique(),
+    isArchived: boolean('is_archived').notNull().default(false),
   },
   (t) => [
     index('idx_submission_assessment').on(t.assessmentId),

@@ -14,18 +14,26 @@ import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 import { useSubmitAssessment } from '@/query/candidateAssessment.query';
 
 export const QuestionsOverview = () => {
-  const { assessment, codeMap, saveCurrentCode, subId, token } = useTakeAssessment();
+  const { assessment, submission, getCode, saveCurrentCode, subId, token } = useTakeAssessment();
   const { submitAssessment, isSubmitting } = useSubmitAssessment(subId, token);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const navigate = useNavigate();
 
   const questions = assessment?.questions ?? [];
+  const selectedLanguage = submission?.selectedLanguage ?? '';
 
+  // "Started" means the candidate's current draft for this question diverges
+  // from the starter for the selected language. With per-language buffers, the
+  // comparison happens against the resolved starter for that language.
   const isStarted = (questionId: string) => {
-    const code = codeMap[questionId];
+    if (!selectedLanguage) return false;
+    const code = getCode(questionId);
     if (!code) return false;
     const question = questions.find((q) => q.id === questionId);
-    const starter = question?.starterCode ?? '';
+    const resolved =
+      (question as { resolvedStarterCode?: Record<string, string> } | undefined)
+        ?.resolvedStarterCode ?? {};
+    const starter = resolved[selectedLanguage] ?? '';
     return code !== starter && code.trim().length > 0;
   };
 

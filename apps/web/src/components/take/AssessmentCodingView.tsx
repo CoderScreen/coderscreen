@@ -1,17 +1,21 @@
+import type { Parameter, TypeString } from '@coderscreen/common/types';
 import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
-import { useRunTests, useSubmitCode, useSubmissionHistory } from '@/query/candidateAssessment.query';
+import { useRunTests, useSubmissionHistory, useSubmitCode } from '@/query/candidateAssessment.query';
 import { AssessmentHeader } from './AssessmentHeader';
 import { CodeEditorPanel } from './CodeEditorPanel';
 import { QuestionPanel } from './QuestionPanel';
 import { TestResultsPanel } from './TestResultsPanel';
 
+type TestCaseFailureReason = 'passed' | 'compile' | 'timeout' | 'crash' | 'wrong_output';
+
 interface TestResult {
   testCaseId: string;
   label?: string;
-  input?: string;
-  expectedOutput?: string;
+  args?: unknown[];
+  expectedReturn?: unknown;
+  failureReason?: TestCaseFailureReason;
   actualOutput: string;
   stderr: string;
   passed: boolean;
@@ -23,19 +27,21 @@ interface AssessmentCodingViewProps {
     id: string;
     title: string;
     description: Record<string, unknown>;
-    starterCode: string;
+    functionName: string;
+    parameters: Parameter[];
+    returnType: TypeString;
     testCases?: {
       id: string;
       label?: string;
-      input?: string;
-      expectedOutput?: string;
+      args: unknown[];
+      expectedReturn: unknown;
     }[];
     [key: string]: unknown;
   };
 }
 
 export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) => {
-  const { assessment, codeMap, setCode, subId, token } = useTakeAssessment();
+  const { assessment, getCode, setCode, subId, token } = useTakeAssessment();
   const { runTests, isRunning } = useRunTests(subId, token);
   const { submitCode, isSubmitting } = useSubmitCode(subId, token);
   const { history } = useSubmissionHistory(subId, token, question.id);
@@ -45,8 +51,11 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
   const questionIndex = questions.findIndex((q) => q.id === question.id);
 
   const handleRunTests = useCallback(async () => {
-    const code = codeMap[question.id] ?? '';
-    const result = await runTests({ questionId: question.id, code });
+    const code = getCode(question.id);
+    const result = await runTests({
+      questionId: question.id as `aq_${string}`,
+      code,
+    });
 
     const testCases = question.testCases ?? [];
     const results = (result.results ?? []).map((r: any) => {
@@ -54,22 +63,26 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
       return {
         ...r,
         label: tc?.label,
-        input: tc?.input,
-        expectedOutput: tc?.expectedOutput,
+        args: tc?.args,
+        expectedReturn: tc?.expectedReturn,
       };
     });
 
     setTestResults(results);
-  }, [question, codeMap, runTests]);
+  }, [question, getCode, runTests]);
 
   const handleSubmitCode = useCallback(async () => {
-    const code = codeMap[question.id] ?? '';
-    const result = (await submitCode({ questionId: question.id, code })) as {
+    const code = getCode(question.id);
+    const result = (await submitCode({
+      questionId: question.id as `aq_${string}`,
+      code,
+    })) as {
       visibleResults?: Array<{
         testCaseId: string;
         actualOutput: string;
         stderr: string;
         passed: boolean;
+        failureReason?: TestCaseFailureReason;
         executionTimeMs: number;
       }>;
     };
@@ -81,13 +94,13 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
       return {
         ...r,
         label: tc?.label,
-        input: tc?.input,
-        expectedOutput: tc?.expectedOutput,
+        args: tc?.args,
+        expectedReturn: tc?.expectedReturn,
       };
     });
 
     setTestResults(results);
-  }, [question, codeMap, submitCode]);
+  }, [question, getCode, submitCode]);
 
   const handleRestoreCode = useCallback(
     (code: string) => {
@@ -100,14 +113,14 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
 
   return (
     <div className='h-screen flex flex-col bg-gray-100'>
-      <AssessmentHeader mode='coding' question={question} questionIndex={questionIndex} />
+      <AssessmentHeader mode='coding' />
 
       <div className='flex-1 min-h-0 p-2'>
         <PanelGroup direction='horizontal'>
           {/* Left: Question */}
           <Panel defaultSize={40} minSize={20}>
             <div className='h-full bg-white rounded-lg overflow-hidden border border-gray-200'>
-              <QuestionPanel question={question} />
+              <QuestionPanel question={question} questionIndex={questionIndex} />
             </div>
           </Panel>
 
@@ -130,6 +143,7 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
                 <div className='h-full bg-white rounded-lg overflow-hidden border border-gray-200'>
                   <TestResultsPanel
                     testCases={testCases}
+                    functionName={question.functionName}
                     results={testResults}
                     isRunning={isRunning}
                     onRunTests={handleRunTests}

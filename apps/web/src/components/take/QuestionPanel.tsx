@@ -1,22 +1,25 @@
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { useEffect } from 'react';
+import { tiptapContentClass } from '@/components/room/tiptap/editorStyles';
 
 interface QuestionPanelProps {
   question: {
     id: string;
+    title: string;
     description: Record<string, unknown>;
   };
+  questionIndex?: number;
 }
 
-export const QuestionPanel = ({ question }: QuestionPanelProps) => {
+export const QuestionPanel = ({ question, questionIndex }: QuestionPanelProps) => {
   const editor = useEditor({
     extensions: [StarterKit],
     content: question.description ?? { type: 'doc', content: [{ type: 'paragraph' }] },
     editable: false,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none p-4 focus:outline-none',
+        class: tiptapContentClass('p-4'),
       },
     },
   });
@@ -30,6 +33,12 @@ export const QuestionPanel = ({ question }: QuestionPanelProps) => {
 
   return (
     <div className='h-full overflow-y-auto'>
+      <div className='px-4 pt-4'>
+        <h1 className='text-lg font-semibold text-gray-900'>
+          {questionIndex !== undefined ? `${questionIndex + 1}. ` : ''}
+          {question.title}
+        </h1>
+      </div>
       <EditorContent editor={editor} />
     </div>
   );

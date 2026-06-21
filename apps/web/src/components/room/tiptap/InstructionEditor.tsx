@@ -3,6 +3,7 @@ import {
   useGuestInstructionEditor,
   useInstructionEditor,
 } from '@/query/realtime/instruction.query';
+import { tiptapContentClass } from './editorStyles';
 import { TipTapHeader } from './TipTapHeader';
 
 export const InstructionEditor = (props: { isGuest?: boolean }) => {
@@ -32,7 +33,7 @@ const InstructionBody = ({ editor }: { editor: Editor | null }) => {
       >
         <EditorContent
           editor={editor}
-          className='p-4 h-full min-h-full w-full focus:outline-none focus:ring-0 focus:border-none prose prose-sm max-w-none'
+          className={tiptapContentClass('p-4 h-full min-h-full w-full')}
         />
       </button>
     </div>

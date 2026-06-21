@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { QuestionLibraryEditor } from '@/components/questions/QuestionLibraryEditor';
+import { QuestionEditor } from '@/components/questions/QuestionEditor';
 import { useQuestionLibraryItem } from '@/query/questionLibrary.query';
 
 export const Route = createFileRoute('/_app/questions/$questionId/edit')({
@@ -18,10 +18,13 @@ function RouteComponent() {
     return <div className='w-full px-4 py-8 text-center text-gray-500'>Question not found</div>;
   }
 
+  // Cast at the boundary: the Hono RPC client erases literal-type narrowing.
+  // Runtime shape matches the editor's `question` prop.
   return (
-    <QuestionLibraryEditor
+    <QuestionEditor
+      context='library'
       mode='edit'
-      question={question}
+      question={question as Parameters<typeof QuestionEditor>[0]['question']}
     />
   );
 }

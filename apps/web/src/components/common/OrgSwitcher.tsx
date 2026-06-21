@@ -6,8 +6,8 @@ export const OrgSwitcher = () => {
   const { org, isLoading } = useActiveOrg();
 
   return (
-    <div className='px-2 pt-4'>
-      <div className='flex items-center gap-2 rounded-lg py-1.5 px-2'>
+    <div className='flex h-16 items-center px-2'>
+      <div className='flex items-center gap-2 rounded-lg px-2 w-full'>
         {isLoading || !org ? (
           <div className='flex items-center gap-2 w-full'>
             <Skeleton className='h-8 w-8 rounded-lg' />

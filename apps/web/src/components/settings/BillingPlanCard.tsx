@@ -24,7 +24,9 @@ import {
   RiTeamLine,
   RiTerminalWindowFill,
 } from '@remixicon/react';
+import { useState } from 'react';
 import { cx } from '@/lib/utils';
+import { EnterpriseContactDialog } from './EnterpriseContactDialog';
 
 const LIMIT_MAP = {
   live_interview: {
@@ -173,6 +175,8 @@ export const BillingPlanCard = ({
   isCreatingCheckout?: boolean;
   isLoading?: boolean;
 }) => {
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+
   if (isLoading) {
     return (
       <Card className='relative transition-all duration-200 flex flex-col'>
@@ -205,6 +209,7 @@ export const BillingPlanCard = ({
   const isYearly = mode === 'yearly';
 
   const isCurrentPlan = currentPlanId === plan?.id;
+  const isEnterprise = group === 'enterprise';
 
   // If no plan is available or is free plan, don't render anything
   if (!plan) {
@@ -261,15 +266,17 @@ export const BillingPlanCard = ({
           variant={isPopular ? 'primary' : 'secondary'}
           icon={RiArrowRightLine}
           iconPosition='right'
-          onClick={() => plan && onUpgrade?.(plan)}
-          isLoading={isCreatingCheckout}
+          onClick={() => {
+            if (isEnterprise) {
+              setContactDialogOpen(true);
+            } else if (plan) {
+              onUpgrade?.(plan);
+            }
+          }}
+          isLoading={!isEnterprise && isCreatingCheckout}
           disabled={isCurrentPlan}
         >
-          {isCurrentPlan
-            ? 'Current Plan'
-            : plan.name === 'Enterprise'
-              ? 'Contact Sales'
-              : 'Select Plan'}
+          {isCurrentPlan ? 'Current Plan' : isEnterprise ? 'Contact Sales' : 'Select Plan'}
         </Button>
       </CardHeader>
 
@@ -335,6 +342,10 @@ export const BillingPlanCard = ({
             : 'Select Plan'}
         </Button>
       </CardFooter> */}
+
+      {isEnterprise && (
+        <EnterpriseContactDialog open={contactDialogOpen} onOpenChange={setContactDialogOpen} />
+      )}
     </Card>
   );
 };

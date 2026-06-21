@@ -1,6 +1,6 @@
 import { RiLoader4Line } from '@remixicon/react';
 import { createFileRoute } from '@tanstack/react-router';
-import { QuestionEditor } from '@/components/assessments/detail/QuestionEditor';
+import { QuestionEditor } from '@/components/questions/QuestionEditor';
 import { useAssessment } from '@/query/assessment.query';
 
 export const Route = createFileRoute('/_app/assessments/$assessmentId/questions/new')({
@@ -21,5 +21,12 @@ function RouteComponent() {
 
   const nextPosition = assessment?.questions?.length ?? 0;
 
-  return <QuestionEditor assessmentId={assessmentId} mode='create' nextPosition={nextPosition} />;
+  return (
+    <QuestionEditor
+      context='assessment'
+      mode='create'
+      assessmentId={assessmentId}
+      nextPosition={nextPosition}
+    />
+  );
 }

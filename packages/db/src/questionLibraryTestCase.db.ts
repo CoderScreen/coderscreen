@@ -1,6 +1,6 @@
 import type { Id } from '@coderscreen/common/id';
 import { sql } from 'drizzle-orm';
-import { boolean, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { questionLibraryTable } from './questionLibrary.db';
 
 export const questionLibraryTestCaseTable = pgTable('question_library_test_cases', {
@@ -11,8 +11,11 @@ export const questionLibraryTestCaseTable = pgTable('question_library_test_cases
     .notNull()
     .references(() => questionLibraryTable.id, { onDelete: 'cascade' }),
   label: text('label').notNull().default(''),
-  input: text('input').notNull(),
-  expectedOutput: text('expected_output').notNull(),
+  // Positional arg values, one entry per question parameter. JSON-shaped so
+  // arrays/objects/null/primitives all round-trip. Validated against the
+  // question's parameters[] at save time in the service layer.
+  args: jsonb('args').$type<unknown[]>().notNull().default([]),
+  expectedReturn: jsonb('expected_return').$type<unknown>().notNull().default(null),
   isHidden: boolean('is_hidden').notNull().default(false),
   position: integer('position').notNull().default(0),
 });

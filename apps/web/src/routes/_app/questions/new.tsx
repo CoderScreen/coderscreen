@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { QuestionLibraryEditor } from '@/components/questions/QuestionLibraryEditor';
+import { QuestionEditor } from '@/components/questions/QuestionEditor';
 
 export const Route = createFileRoute('/_app/questions/new')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <QuestionLibraryEditor mode='create' />;
+  return <QuestionEditor context='library' mode='create' />;
 }

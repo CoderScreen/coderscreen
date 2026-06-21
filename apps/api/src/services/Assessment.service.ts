@@ -1,4 +1,5 @@
 import { generateId, Id } from '@coderscreen/common/id';
+import type { Parameter, TypeString } from '@coderscreen/common/types';
 import { assessmentTable } from '@coderscreen/db/assessment.db';
 import { assessmentQuestionTable } from '@coderscreen/db/assessmentQuestion.db';
 import {
@@ -21,7 +22,18 @@ import {
   PaginationQuery,
   paginateQuery,
 } from '@/lib/pagination';
-import { CreateAssessmentSchema, UpdateAssessmentSchema } from '@/schema/assessment.zod';
+import {
+  signatureChangesInvalidateTestCases,
+  validateTestCaseShape,
+} from '@/sandbox/validateTestCase';
+import {
+  CreateAssessmentSchema,
+  CreateQuestionSchema,
+  CreateTestCaseSchema,
+  UpdateAssessmentSchema,
+  UpdateQuestionSchema,
+  UpdateTestCaseSchema,
+} from '@/schema/assessment.zod';
 
 export class AssessmentService {
   private readonly db: PostgresJsDatabase;
@@ -132,6 +144,9 @@ export class AssessmentService {
       points: r.link.points,
       title: r.question.title,
       description: r.question.description,
+      functionName: r.question.functionName,
+      parameters: r.question.parameters,
+      returnType: r.question.returnType,
       starterCode: r.question.starterCode,
       timeLimitSeconds: r.question.timeLimitSeconds,
       testCases: testCasesByQuestion.get(r.question.id) || [],
@@ -270,17 +285,7 @@ export class AssessmentService {
 
   // === Question CRUD ===
 
-  async createQuestion(
-    assessmentId: Id<'assessment'>,
-    values: {
-      title: string;
-      description: Record<string, unknown>;
-      position: number;
-      points?: number;
-      timeLimitSeconds?: number | null;
-      starterCode?: string;
-    }
-  ) {
+  async createQuestion(assessmentId: Id<'assessment'>, values: CreateQuestionSchema) {
     const { user, orgId } = getSession(this.ctx);
 
     // Create library question
@@ -294,7 +299,11 @@ export class AssessmentService {
         createdByUserId: user.id,
         title: values.title,
         description: values.description,
-        starterCode: values.starterCode ?? '',
+        functionName: values.functionName,
+        // zod-validated; cast narrows from `string` to literal types.
+        parameters: values.parameters as Parameter[],
+        returnType: values.returnType as TypeString,
+        starterCode: values.starterCode,
         timeLimitSeconds: values.timeLimitSeconds ?? null,
       })
       .returning()
@@ -321,6 +330,9 @@ export class AssessmentService {
       ...link,
       title: libraryQuestion.title,
       description: libraryQuestion.description,
+      functionName: libraryQuestion.functionName,
+      parameters: libraryQuestion.parameters,
+      returnType: libraryQuestion.returnType,
       starterCode: libraryQuestion.starterCode,
       timeLimitSeconds: libraryQuestion.timeLimitSeconds,
     };
@@ -372,22 +384,15 @@ export class AssessmentService {
       ...link,
       title: libraryQuestion.title,
       description: libraryQuestion.description,
+      functionName: libraryQuestion.functionName,
+      parameters: libraryQuestion.parameters,
+      returnType: libraryQuestion.returnType,
       starterCode: libraryQuestion.starterCode,
       timeLimitSeconds: libraryQuestion.timeLimitSeconds,
     };
   }
 
-  async updateQuestion(
-    questionId: Id<'assessmentQuestion'>,
-    values: {
-      title?: string;
-      description?: Record<string, unknown>;
-      position?: number;
-      points?: number;
-      timeLimitSeconds?: number | null;
-      starterCode?: string;
-    }
-  ) {
+  async updateQuestion(questionId: Id<'assessmentQuestion'>, values: UpdateQuestionSchema) {
     const { orgId } = getSession(this.ctx);
 
     // Get the link row to find library question
@@ -423,20 +428,67 @@ export class AssessmentService {
     if (values.title !== undefined) libraryUpdates.title = values.title;
     if (values.description !== undefined) libraryUpdates.description = values.description;
     if (values.starterCode !== undefined) libraryUpdates.starterCode = values.starterCode;
+    if (values.functionName !== undefined) libraryUpdates.functionName = values.functionName;
+    if (values.parameters !== undefined)
+      libraryUpdates.parameters = values.parameters as Parameter[];
+    if (values.returnType !== undefined)
+      libraryUpdates.returnType = values.returnType as TypeString;
     if (values.timeLimitSeconds !== undefined)
       libraryUpdates.timeLimitSeconds = values.timeLimitSeconds;
 
+    // Detect signature change on the underlying library question. If the
+    // signature has shifted, existing test cases are no longer valid (arg
+    // count / types may not match) — delete them in the same transaction so
+    // we never leave the question in a half-broken state.
     let libraryQuestion: QuestionLibraryEntity;
     if (Object.keys(libraryUpdates).length > 0) {
       libraryUpdates.updatedAt = new Date().toISOString();
-      const updated = await this.db
-        .update(questionLibraryTable)
-        .set(libraryUpdates)
-        .where(eq(questionLibraryTable.id, link.questionId as Id<'questionLibrary'>))
-        .returning()
-        .then((r) => r[0]);
-      if (!updated) throw new HTTPException(404, { message: 'Library question not found' });
-      libraryQuestion = updated;
+      libraryQuestion = await this.db.transaction(async (tx) => {
+        const current = await tx
+          .select()
+          .from(questionLibraryTable)
+          .where(eq(questionLibraryTable.id, link.questionId as Id<'questionLibrary'>))
+          .then((r) => (r.length > 0 ? r[0] : null));
+        if (!current) {
+          throw new HTTPException(404, { message: 'Library question not found' });
+        }
+
+        const nextSignature = {
+          functionName: values.functionName ?? current.functionName,
+          parameters: (values.parameters ?? current.parameters) as Parameter[],
+          returnType: (values.returnType ?? current.returnType) as TypeString,
+        };
+        if (
+          signatureChangesInvalidateTestCases(
+            {
+              functionName: current.functionName,
+              parameters: current.parameters,
+              returnType: current.returnType,
+            },
+            nextSignature
+          )
+        ) {
+          await tx
+            .delete(questionLibraryTestCaseTable)
+            .where(
+              eq(
+                questionLibraryTestCaseTable.questionId,
+                link.questionId as Id<'questionLibrary'>
+              )
+            );
+        }
+
+        const updated = await tx
+          .update(questionLibraryTable)
+          .set(libraryUpdates)
+          .where(eq(questionLibraryTable.id, link.questionId as Id<'questionLibrary'>))
+          .returning()
+          .then((r) => r[0]);
+        if (!updated) {
+          throw new HTTPException(404, { message: 'Library question not found' });
+        }
+        return updated;
+      });
     } else {
       const found = await this.db
         .select()
@@ -458,6 +510,9 @@ export class AssessmentService {
       ...updatedLink,
       title: libraryQuestion.title,
       description: libraryQuestion.description,
+      functionName: libraryQuestion.functionName,
+      parameters: libraryQuestion.parameters,
+      returnType: libraryQuestion.returnType,
       starterCode: libraryQuestion.starterCode,
       timeLimitSeconds: libraryQuestion.timeLimitSeconds,
     };
@@ -539,12 +594,23 @@ export class AssessmentService {
 
   async createTestCase(
     assessmentQuestionId: Id<'assessmentQuestion'>,
-    values: Omit<
-      QuestionLibraryTestCaseEntity,
-      'id' | 'createdAt' | 'updatedAt' | 'questionId'
-    >
+    values: CreateTestCaseSchema
   ) {
     const libraryQuestionId = await this.resolveLibraryQuestionId(assessmentQuestionId);
+
+    const question = await this.db
+      .select()
+      .from(questionLibraryTable)
+      .where(eq(questionLibraryTable.id, libraryQuestionId))
+      .then((r) => (r.length > 0 ? r[0] : null));
+    if (!question) {
+      throw new HTTPException(404, { message: 'Library question not found' });
+    }
+    validateTestCaseShape(
+      { parameters: question.parameters, returnType: question.returnType },
+      values.args,
+      values.expectedReturn
+    );
 
     return this.db
       .insert(questionLibraryTestCaseTable)
@@ -561,8 +627,28 @@ export class AssessmentService {
 
   async updateTestCase(
     testCaseId: Id<'questionLibraryTestCase'>,
-    values: Partial<QuestionLibraryTestCaseEntity>
+    values: UpdateTestCaseSchema
   ) {
+    if (values.args !== undefined || values.expectedReturn !== undefined) {
+      const tc = await this.db
+        .select()
+        .from(questionLibraryTestCaseTable)
+        .where(eq(questionLibraryTestCaseTable.id, testCaseId))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!tc) throw new HTTPException(404, { message: 'Test case not found' });
+      const question = await this.db
+        .select()
+        .from(questionLibraryTable)
+        .where(eq(questionLibraryTable.id, tc.questionId as Id<'questionLibrary'>))
+        .then((r) => (r.length > 0 ? r[0] : null));
+      if (!question) throw new HTTPException(404, { message: 'Library question not found' });
+      validateTestCaseShape(
+        { parameters: question.parameters, returnType: question.returnType },
+        values.args ?? tc.args,
+        values.expectedReturn !== undefined ? values.expectedReturn : tc.expectedReturn
+      );
+    }
+
     return this.db
       .update(questionLibraryTestCaseTable)
       .set({

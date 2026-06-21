@@ -22,11 +22,21 @@ import {
 import { useEffect, useState } from 'react';
 import { formatDatetime } from '@/lib/dateUtils';
 
+export type TestCaseFailureReason = 'passed' | 'compile' | 'timeout' | 'crash' | 'wrong_output';
+
+const FAILURE_LABEL: Record<Exclude<TestCaseFailureReason, 'passed'>, string> = {
+  compile: 'Compile error',
+  timeout: 'Timed out',
+  crash: 'Runtime error',
+  wrong_output: 'Wrong output',
+};
+
 interface TestResult {
   testCaseId: string;
   label?: string;
-  input?: string;
-  expectedOutput?: string;
+  args?: unknown[];
+  expectedReturn?: unknown;
+  failureReason?: TestCaseFailureReason;
   actualOutput: string;
   stderr: string;
   passed: boolean;
@@ -36,8 +46,8 @@ interface TestResult {
 interface TestCase {
   id: string;
   label?: string;
-  input?: string;
-  expectedOutput?: string;
+  args: unknown[];
+  expectedReturn: unknown;
 }
 
 interface SubmissionHistoryItem {
@@ -50,6 +60,7 @@ interface SubmissionHistoryItem {
 
 interface TestResultsPanelProps {
   testCases: TestCase[];
+  functionName: string;
   results: TestResult[] | null;
   isRunning: boolean;
   onRunTests: () => void;
@@ -61,6 +72,7 @@ interface TestResultsPanelProps {
 
 export const TestResultsPanel = ({
   testCases,
+  functionName,
   results,
   isRunning,
   onRunTests,
@@ -115,19 +127,10 @@ export const TestResultsPanel = ({
         </Tabs>
 
         <div className='flex items-center gap-2'>
-          <Button
-            variant='secondary'
-            icon={RiPlayLine}
-            onClick={onRunTests}
-            isLoading={isRunning}
-          >
+          <Button variant='secondary' icon={RiPlayLine} onClick={onRunTests} isLoading={isRunning}>
             Run
           </Button>
-          <Button
-            icon={RiSendPlaneLine}
-            onClick={onSubmitCode}
-            isLoading={isSubmitting}
-          >
+          <Button icon={RiSendPlaneLine} onClick={onSubmitCode} isLoading={isSubmitting}>
             Submit
           </Button>
         </div>
@@ -136,9 +139,9 @@ export const TestResultsPanel = ({
       {/* Tab content */}
       <div className='flex-1 overflow-y-auto'>
         {activeTab === 'testCases' ? (
-          <TestCasesContent testCases={testCases} />
+          <TestCasesContent testCases={testCases} functionName={functionName} />
         ) : activeTab === 'results' ? (
-          <ResultsContent results={results} isRunning={isRunning} />
+          <ResultsContent results={results} isRunning={isRunning} functionName={functionName} />
         ) : (
           <HistoryContent history={history} onRestoreCode={onRestoreCode} />
         )}
@@ -147,7 +150,26 @@ export const TestResultsPanel = ({
   );
 };
 
-const TestCasesContent = ({ testCases }: { testCases: TestCase[] }) => {
+const formatCall = (functionName: string, args: unknown[]): string => {
+  const formatted = args.map((a) => JSON.stringify(a)).join(', ');
+  return `${functionName}(${formatted})`;
+};
+
+const formatReturn = (value: unknown): string => {
+  try {
+    return JSON.stringify(value, null, 0);
+  } catch {
+    return String(value);
+  }
+};
+
+const TestCasesContent = ({
+  testCases,
+  functionName,
+}: {
+  testCases: TestCase[];
+  functionName: string;
+}) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (testCases.length === 0) {
@@ -179,23 +201,23 @@ const TestCasesContent = ({ testCases }: { testCases: TestCase[] }) => {
         ))}
       </div>
 
-      {/* Selected case fields */}
+      {/* Selected case rendered as function call → expected return */}
       <div className='flex-1 overflow-y-auto px-4 pb-4 space-y-4'>
-        {selected?.input && (
-          <div>
-            <p className='text-sm text-gray-500 mb-1.5'>Input =</p>
-            <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900'>
-              {selected.input}
+        {selected && (
+          <>
+            <div>
+              <p className='text-sm text-gray-500 mb-1.5'>Call</p>
+              <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900 whitespace-pre-wrap break-all'>
+                {formatCall(functionName, selected.args)}
+              </div>
             </div>
-          </div>
-        )}
-        {selected?.expectedOutput && (
-          <div>
-            <p className='text-sm text-gray-500 mb-1.5'>Expected Output =</p>
-            <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900'>
-              {selected.expectedOutput}
+            <div>
+              <p className='text-sm text-gray-500 mb-1.5'>Expected return</p>
+              <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900 whitespace-pre-wrap break-all'>
+                {formatReturn(selected.expectedReturn)}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -205,9 +227,11 @@ const TestCasesContent = ({ testCases }: { testCases: TestCase[] }) => {
 const ResultsContent = ({
   results,
   isRunning,
+  functionName,
 }: {
   results: TestResult[] | null;
   isRunning: boolean;
+  functionName: string;
 }) => {
   const [expandedCase, setExpandedCase] = useState<string | null>(null);
   const [showPassed, setShowPassed] = useState(false);
@@ -275,6 +299,11 @@ const ResultsContent = ({
                       <span className='flex-1 text-left text-sm text-gray-700'>
                         Case {index + 1}
                       </span>
+                      {result.failureReason && result.failureReason !== 'passed' && (
+                        <span className='text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700'>
+                          {FAILURE_LABEL[result.failureReason]}
+                        </span>
+                      )}
 
                       {isExpanded ? (
                         <RiArrowDownSLine className='size-4 text-gray-400' />
@@ -285,32 +314,32 @@ const ResultsContent = ({
 
                     {isExpanded && (
                       <div className='pl-9 pr-3 pb-3 pt-1 space-y-3'>
-                        {result.input && (
+                        {result.args !== undefined && (
                           <div>
-                            <p className='text-sm text-gray-500 mb-1.5'>Input =</p>
-                            <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900'>
-                              {result.input}
+                            <p className='text-sm text-gray-500 mb-1.5'>Call</p>
+                            <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900 whitespace-pre-wrap break-all'>
+                              {formatCall(functionName, result.args)}
                             </div>
                           </div>
                         )}
-                        {result.expectedOutput && (
+                        {result.expectedReturn !== undefined && (
                           <div>
-                            <p className='text-sm text-gray-500 mb-1.5'>Expected Output =</p>
-                            <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900'>
-                              {result.expectedOutput}
+                            <p className='text-sm text-gray-500 mb-1.5'>Expected return</p>
+                            <div className='bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm text-gray-900 whitespace-pre-wrap break-all'>
+                              {formatReturn(result.expectedReturn)}
                             </div>
                           </div>
                         )}
                         <div>
-                          <p className='text-sm text-gray-500 mb-1.5'>Your Output =</p>
-                          <div className='bg-red-50 rounded-lg px-4 py-3 font-mono text-sm text-red-700'>
-                            {result.actualOutput || '(empty)'}
+                          <p className='text-sm text-gray-500 mb-1.5'>Your return</p>
+                          <div className='bg-red-50 rounded-lg px-4 py-3 font-mono text-sm text-red-700 whitespace-pre-wrap break-all'>
+                            {result.actualOutput || '(no output)'}
                           </div>
                         </div>
                         {result.stderr && (
                           <div>
-                            <p className='text-sm text-gray-500 mb-1.5'>Stderr =</p>
-                            <div className='bg-red-50 rounded-lg px-4 py-3 font-mono text-sm text-red-700'>
+                            <p className='text-sm text-gray-500 mb-1.5'>Stderr</p>
+                            <div className='bg-red-50 rounded-lg px-4 py-3 font-mono text-sm text-red-700 whitespace-pre-wrap break-all'>
                               {result.stderr}
                             </div>
                           </div>
@@ -438,10 +467,7 @@ const HistoryContent = ({
 
               {isExpanded && (
                 <div className='px-4 pb-4 pt-1'>
-                  <Button
-                    variant='secondary'
-                    onClick={() => setPendingRestore(submission)}
-                  >
+                  <Button variant='secondary' onClick={() => setPendingRestore(submission)}>
                     <RiArrowGoBackLine className='size-4 mr-1.5' />
                     Restore this code
                   </Button>

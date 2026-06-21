@@ -605,6 +605,40 @@ export const useGradeSubmission = (assessmentId: string) => {
   };
 };
 
+export const useArchiveSubmission = (assessmentId: string) => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ subId, archived }: { subId: string; archived: boolean }) => {
+      const endpoint = archived
+        ? apiClient.assessments[':id'].submissions[':subId'].archive
+        : apiClient.assessments[':id'].submissions[':subId'].unarchive;
+      const response = await endpoint.$post({
+        param: { id: assessmentId, subId },
+      });
+      if (!response.ok) {
+        await throwApiError(response);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['assessments', assessmentId, 'submissions'],
+      });
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Submission updated',
+      ERROR_MESSAGE: 'Failed to update submission',
+    },
+  });
+
+  return {
+    archiveSubmission: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
 // ============================================================
 // Candidates
 // ============================================================
