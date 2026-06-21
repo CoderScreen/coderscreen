@@ -7,7 +7,7 @@ export const customerTable = pgTable('customers', {
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' })
     .primaryKey(),
-  createdAt: timestamp('created_at', { mode: 'string' })
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
     .$defaultFn(() => new Date().toISOString())
     .notNull(),
   stripeCustomerId: text('stripe_customer_id').notNull().unique(),
@@ -18,7 +18,7 @@ type AllUsageTypes = 'live_interview' | 'team_members';
 
 export const planTable = pgTable('plans', {
   id: text('id').primaryKey().$type<string>(),
-  createdAt: timestamp('created_at', { mode: 'string' })
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
     .$defaultFn(() => new Date().toISOString())
     .notNull(),
   name: text('name').notNull(),
@@ -37,10 +37,10 @@ export const planTable = pgTable('plans', {
 
 export const subscriptionTable = pgTable('subscriptions', {
   id: text('id').primaryKey().$type<Id<'subscription'>>(),
-  createdAt: timestamp('created_at', { mode: 'string' })
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
     .$defaultFn(() => new Date().toISOString())
     .notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' })
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
     .$defaultFn(() => new Date().toISOString())
     .notNull(),
   planId: text('plan_id')
@@ -50,8 +50,14 @@ export const subscriptionTable = pgTable('subscriptions', {
   stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
   stripeSubscriptionItemId: text('stripe_subscription_item_id').notNull().unique(),
   status: text('status').notNull(), // active, canceled, past_due, etc.
-  currentPeriodStart: timestamp('current_period_start', { mode: 'string' }).notNull(),
-  currentPeriodEnd: timestamp('current_period_end', { mode: 'string' }).notNull(),
+  currentPeriodStart: timestamp('current_period_start', {
+    mode: 'string',
+    withTimezone: true,
+  }).notNull(),
+  currentPeriodEnd: timestamp('current_period_end', {
+    mode: 'string',
+    withTimezone: true,
+  }).notNull(),
 });
 
 export type CustomerEntity = typeof customerTable.$inferSelect;

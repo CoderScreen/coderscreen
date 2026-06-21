@@ -1,11 +1,20 @@
 import { Context } from 'hono';
 import { Resend } from 'resend';
 import { AppContext } from '@/index';
+import { buildAssessmentInvitationEmail } from './emails/assessment-invitation';
+import { buildAssessmentSubmissionEmail } from './emails/assessment-submission';
 import { buildOrgInvitationEmail } from './emails/org-invitation';
 import { buildSignupFeedbackEmail } from './emails/signup-feedback';
+import { buildSubmissionConfirmationEmail } from './emails/submission-confirmation';
+import { buildSupportMessageEmail } from './emails/support-message';
 import { buildVerificationEmail } from './emails/verification';
 
-type TransactionalEmailTypes = 'verification_code' | 'org_invitation';
+type TransactionalEmailTypes =
+  | 'verification_code'
+  | 'org_invitation'
+  | 'assessment_submission'
+  | 'assessment_invitation'
+  | 'submission_confirmation';
 type TransactionEmailParams = {
   verification_code: {
     params: {
@@ -20,6 +29,33 @@ type TransactionEmailParams = {
       invite_link: string;
     };
   };
+  assessment_submission: {
+    params: {
+      org_name: string;
+      candidate_name: string;
+      candidate_email: string;
+      assessment_title: string;
+      score: number | null;
+      max_score: number | null;
+      submitted_at: string;
+      view_link: string;
+    };
+  };
+  assessment_invitation: {
+    params: {
+      org_name: string;
+      candidate_name: string;
+      assessment_title: string;
+      take_link: string;
+    };
+  };
+  submission_confirmation: {
+    params: {
+      candidate_name: string;
+      assessment_title: string;
+      org_name: string;
+    };
+  };
 };
 
 type TransactionEmailPayload<T extends TransactionalEmailTypes> = T extends TransactionalEmailTypes
@@ -27,6 +63,7 @@ type TransactionEmailPayload<T extends TransactionalEmailTypes> = T extends Tran
   : never;
 
 const FROM_ADDRESS = 'CoderScreen <team@coderscreen.com>';
+const SUPPORT_ADDRESS = 'team@coderscreen.com';
 
 const EMAIL_BUILDERS: {
   [K in TransactionalEmailTypes]: (params: TransactionEmailPayload<K>) => {
@@ -36,6 +73,9 @@ const EMAIL_BUILDERS: {
 } = {
   verification_code: buildVerificationEmail,
   org_invitation: buildOrgInvitationEmail,
+  assessment_submission: buildAssessmentSubmissionEmail,
+  assessment_invitation: buildAssessmentInvitationEmail,
+  submission_confirmation: buildSubmissionConfirmationEmail,
 };
 
 export class ResendService {
@@ -72,6 +112,38 @@ export class ResendService {
     if (error) {
       console.error('Failed to send email:', error);
       throw new Error(`Failed to send email: ${error.message}`);
+    }
+  }
+
+  async sendSupportMessage(params: {
+    user_name: string;
+    user_email: string;
+    user_id: string;
+    org_id: string | null;
+    message: string;
+  }): Promise<void> {
+    const { subject, html } = buildSupportMessageEmail(params);
+
+    if (this.ctx.env.NODE_ENV === 'development') {
+      console.log('Skipping support message email in development. Details:', {
+        to: SUPPORT_ADDRESS,
+        subject,
+        params,
+      });
+      return;
+    }
+
+    const { error } = await this.client.emails.send({
+      from: FROM_ADDRESS,
+      replyTo: `${params.user_name} <${params.user_email}>`,
+      to: SUPPORT_ADDRESS,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('Failed to send support message:', error);
+      throw new Error(`Failed to send support message: ${error.message}`);
     }
   }
 

@@ -4,6 +4,8 @@
 @source "packages/ui/src/**/*.{ts,tsx}";
 
 @theme {
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 
@@ -281,11 +283,42 @@
 }
 
 .tiptap {
+  /* All editors render in monospace for a consistent code-style look. Everything
+     inside inherits this (body, headings, lists); code blocks set their own below. */
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+
+  p {
+    margin: 0.5rem 0;
+  }
+
+  ul,
+  ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--color-gray-300, #d1d5db);
+    margin: 1rem 0;
+    padding-left: 1rem;
+    color: var(--color-gray-600, #4b5563);
+  }
+
   pre {
     background: #1e1e1e;
     border-radius: 0.5rem;
     color: #fff;
-    font-family: "JetBrainsMono", monospace;
+    font-family: var(--font-mono);
     margin: 1.5rem 0;
     padding: 0.75rem 1rem;
 

@@ -1,4 +1,3 @@
-import { RoomSchema } from '@coderscreen/api/schema/room';
 import { WorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
 
 // TypeScript single file template

@@ -50,32 +50,63 @@ export const UpdateAssessmentSchema = z.object({
 
 // === Question ===
 
+const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+export const TypeStringSchema = z.string().regex(/^(string|int|float|bool|null|object|array<.+>)$/);
+
+export const ParameterSchema = z.object({
+  name: z.string().min(1).regex(IDENT_RE),
+  type: TypeStringSchema,
+});
+
+export const SignatureSchema = z.object({
+  functionName: z.string().min(1).regex(IDENT_RE),
+  parameters: z.array(ParameterSchema).max(10),
+  returnType: TypeStringSchema,
+});
+
+export const StarterCodeMapSchema = z.record(AssessmentLanguageSchema, z.string());
+
 export const AssessmentQuestionSchema = z.object({
   id: idString('assessmentQuestion'),
   createdAt: z.string(),
   updatedAt: z.string(),
   assessmentId: idString('assessment'),
+  questionId: idString('questionLibrary'),
+  position: z.number().int().min(0),
+  points: z.number().int().min(0).max(10000),
+  // Flattened from library question
   title: z.string().min(1).max(200),
   description: z.record(z.any()),
-  position: z.number().int().min(0),
+  functionName: z.string(),
+  parameters: z.array(ParameterSchema),
+  returnType: TypeStringSchema,
+  starterCode: StarterCodeMapSchema,
   timeLimitSeconds: z.number().int().positive().nullable(),
-  starterCode: z.string(),
 });
 
 export const CreateQuestionSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.record(z.any()),
   position: z.number().int().min(0),
+  points: z.number().int().min(0).max(10000).optional().default(100),
   timeLimitSeconds: z.number().int().positive().nullable().optional().default(null),
-  starterCode: z.string().optional().default(''),
+  functionName: z.string().min(1).regex(IDENT_RE),
+  parameters: z.array(ParameterSchema).max(10).optional().default([]),
+  returnType: TypeStringSchema,
+  starterCode: StarterCodeMapSchema.optional().default({}),
 });
 
 export const UpdateQuestionSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.record(z.any()).optional(),
   position: z.number().int().min(0).optional(),
+  points: z.number().int().min(0).max(10000).optional(),
   timeLimitSeconds: z.number().int().positive().nullable().optional(),
-  starterCode: z.string().optional(),
+  functionName: z.string().min(1).regex(IDENT_RE).optional(),
+  parameters: z.array(ParameterSchema).max(10).optional(),
+  returnType: TypeStringSchema.optional(),
+  starterCode: StarterCodeMapSchema.optional(),
 });
 
 export const ReorderQuestionsSchema = z.object({
@@ -90,29 +121,29 @@ export const ReorderQuestionsSchema = z.object({
 // === Test Case ===
 
 export const TestCaseSchema = z.object({
-  id: idString('assessmentTestCase'),
+  id: idString('questionLibraryTestCase'),
   createdAt: z.string(),
   updatedAt: z.string(),
-  questionId: idString('assessmentQuestion'),
+  questionId: idString('questionLibrary'),
   label: z.string(),
-  input: z.string(),
-  expectedOutput: z.string(),
+  args: z.array(z.unknown()),
+  expectedReturn: z.unknown(),
   isHidden: z.boolean(),
   position: z.number().int().min(0),
 });
 
 export const CreateTestCaseSchema = z.object({
   label: z.string().optional().default(''),
-  input: z.string(),
-  expectedOutput: z.string(),
+  args: z.array(z.unknown()),
+  expectedReturn: z.unknown(),
   isHidden: z.boolean().optional().default(false),
   position: z.number().int().min(0).optional().default(0),
 });
 
 export const UpdateTestCaseSchema = z.object({
   label: z.string().optional(),
-  input: z.string().optional(),
-  expectedOutput: z.string().optional(),
+  args: z.array(z.unknown()).optional(),
+  expectedReturn: z.unknown().optional(),
   isHidden: z.boolean().optional(),
   position: z.number().int().min(0).optional(),
 });
@@ -157,13 +188,18 @@ export const SubmissionSchema = z.object({
   maxScore: z.number().int().nullable(),
   gradingNotes: z.string(),
   accessToken: z.string(),
+  isArchived: z.boolean(),
 });
 
-export const CreateSubmissionSchema = z.object({
-  candidateId: idString('candidate').optional(),
-  candidateName: z.string().min(1).optional(),
-  candidateEmail: z.string().email().optional(),
-});
+export const CreateSubmissionSchema = z.union([
+  z.object({
+    candidateId: idString('candidate'),
+  }),
+  z.object({
+    candidateName: z.string().min(1),
+    candidateEmail: z.string().email(),
+  }),
+]);
 
 export const GradeSubmissionSchema = z.object({
   gradingNotes: z.string().optional(),
@@ -193,11 +229,31 @@ export const RunTestsSchema = z.object({
   code: z.string(),
 });
 
+export const ChangeLanguageSchema = z.object({
+  selectedLanguage: AssessmentLanguageSchema,
+});
+
+export type ChangeLanguageSchema = z.infer<typeof ChangeLanguageSchema>;
+
+// === Link Existing Library Question ===
+
+export const LinkQuestionSchema = z.object({
+  libraryQuestionId: idString('questionLibrary'),
+  position: z.number().int().min(0),
+  points: z.number().int().min(0).max(10000).optional().default(100),
+});
+
+export type LinkQuestionSchema = z.infer<typeof LinkQuestionSchema>;
+
 // === Types ===
 
 export type StartAssessmentSchema = z.infer<typeof StartAssessmentSchema>;
 export type SaveCodeSchema = z.infer<typeof SaveCodeSchema>;
 export type RunTestsSchema = z.infer<typeof RunTestsSchema>;
+export type TypeStringSchema = z.infer<typeof TypeStringSchema>;
+export type ParameterSchema = z.infer<typeof ParameterSchema>;
+export type SignatureSchema = z.infer<typeof SignatureSchema>;
+export type StarterCodeMapSchema = z.infer<typeof StarterCodeMapSchema>;
 export type AssessmentSchema = z.infer<typeof AssessmentSchema>;
 export type CreateAssessmentSchema = z.infer<typeof CreateAssessmentSchema>;
 export type UpdateAssessmentSchema = z.infer<typeof UpdateAssessmentSchema>;

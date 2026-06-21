@@ -23,8 +23,12 @@ type RoomStatus = 'active' | 'scheduled' | 'completed' | 'archived';
 export const roomTable = pgTable('rooms', {
   id: text('id').primaryKey().$type<Id<'room'>>(),
   title: text('title').notNull(),
-  createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).default(sql`now()`).notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
   language: text('language').$type<RoomLanguage>().notNull(),
   status: text('status').$type<RoomStatus>().notNull(),
   notes: text('notes').notNull().default(''),

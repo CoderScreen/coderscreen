@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "run": "bun run"
+    "run": "bun run",
+    "sync-resend-audience": "bun run src/sync-resend-audience.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "@coderscreen/db": "workspace:*",
     "@fal-ai/client": "^1.9.3",
     "drizzle-orm": "^0.44.3",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "resend": "^6.9.2"
   }
 }

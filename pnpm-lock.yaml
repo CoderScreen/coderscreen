@@ -259,12 +259,12 @@ importers:
       '@codemirror/view':
         specifier: ^6.38.1
         version: 6.38.1
+      '@coderscreen/common':
+        specifier: workspace:^
+        version: link:../../packages/common
       '@coderscreen/ui':
         specifier: workspace:^
         version: link:../../packages/ui
-      '@monaco-editor/react':
-        specifier: ^4.7.0
-        version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@radix-ui/react-accordion':
         specifier: ^1.2.3
         version: 1.2.11(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -406,6 +406,9 @@ importers:
       '@xterm/xterm':
         specifier: ^6.0.0
         version: 6.0.0
+      agentation:
+        specifier: ^2.3.3
+        version: 2.3.3(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       better-auth:
         specifier: ^1.2.10
         version: 1.3.4(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -433,9 +436,6 @@ importers:
       hono:
         specifier: ^4.7.11
         version: 4.8.9
-      monaco-editor:
-        specifier: ^0.52.2
-        version: 0.52.2
       motion:
         specifier: ^12.23.6
         version: 12.23.9(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -496,9 +496,6 @@ importers:
       y-codemirror.next:
         specifier: ^0.3.5
         version: 0.3.5(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)(yjs@13.6.27)
-      y-monaco:
-        specifier: ^0.1.6
-        version: 0.1.6(monaco-editor@0.52.2)(yjs@13.6.27)
       y-partykit:
         specifier: ^0.0.33
         version: 0.0.33(react@19.2.1)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
@@ -606,6 +603,9 @@ importers:
       postgres:
         specifier: ^3.4.7
         version: 3.4.7
+      resend:
+        specifier: ^6.9.2
+        version: 6.9.2
     devDependencies:
       '@types/node':
         specifier: ^24.1.0
@@ -3080,16 +3080,6 @@ packages:
   '@mjackson/node-fetch-server@0.6.1':
     resolution: {integrity: sha512-9ZJnk/DJjt805uv5PPv11haJIW+HHf3YEEyVXv+8iLQxLD/iXA68FH220XoiTPBC4gCg5q+IMadDw8qPqlA5wg==}
 
-  '@monaco-editor/loader@1.5.0':
-    resolution: {integrity: sha512-hKoGSM+7aAc7eRTRjpqAZucPmoNOC4UUbknb/VNoTkEIkCPhqV8LfbsgM1webRM7S/z21eHEx9Fkwx8Z/C/+Xw==}
-
-  '@monaco-editor/react@4.7.0':
-    resolution: {integrity: sha512-cyzXQCtO47ydzxpQtCGSQGOC8Gk3ZUeBXFAxD+CWXYFo5OqZyZUonFl0DwUlTyAfRHntBfw2p3w4s9R6oe1eCA==}
-    peerDependencies:
-      monaco-editor: '>= 0.25.0 < 1'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   '@msgpack/msgpack@3.1.3':
     resolution: {integrity: sha512-47XIizs9XZXvuJgoaJUIE2lFoID8ugvc0jzSHP+Ptfk8nTbnR8g788wv48N03Kx0UkAv559HWRQ3yzOgzlRNUA==}
     engines: {node: '>= 18'}
@@ -5383,6 +5373,17 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
+
+  agentation@2.3.3:
+    resolution: {integrity: sha512-AUZgFCdBQ/nAohlFsHByM9S2Dp7ECMNqVjlOke4hv/90v+wTiwrGladEkgWS60RDQp+CJ5p97meeCthYgTFlKQ==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -7731,9 +7732,6 @@ packages:
   mlly@1.7.4:
     resolution: {integrity: sha512-qmdSIPC4bDJXgZTCR7XosJiNKySV7O215tsPtDN9iEO/7q/76b/ijtgRu/+epFXSJhijtTCCGp3DWS549P3xKw==}
 
-  monaco-editor@0.52.2:
-    resolution: {integrity: sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==}
-
   morgan@1.10.1:
     resolution: {integrity: sha512-223dMRJtI/l25dJKWpgij2cMtywuG/WiUKXdvwfbhGKBhy1puASqXwFzmWZ7+K73vUPoR7SS2Qz2cI/g9MKw0A==}
     engines: {node: '>= 0.8.0'}
@@ -8345,6 +8343,7 @@ packages:
   recharts@2.15.4:
     resolution: {integrity: sha512-UT/q6fwS3c1dHbXv2uFgYJ9BMFHu3fwnd7AYZaEQhXuYQ4hgsxLvsUXzGdKeZrW5xopzDCvuA2N41WJ88I7zIw==}
     engines: {node: '>=14'}
+    deprecated: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -8656,9 +8655,6 @@ packages:
 
   standardwebhooks@1.0.0:
     resolution: {integrity: sha512-BbHGOQK9olHPMvQNHWul6MYlrRTAOKn03rOe4A8O3CLWhNf4YHBqq2HJKKC+sfqpxiBY52pNeesD6jIiLDz8jg==}
-
-  state-local@1.0.7:
-    resolution: {integrity: sha512-HTEHMNieakEnoe33shBYcZ7NX83ACUjCu8c40iOGEZsngj9zRnkqS9j1pqQPXwobB0ZcVTk27REb7COQ0UR59w==}
 
   statuses@2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
@@ -9129,6 +9125,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@11.1.0:
@@ -9137,6 +9134,7 @@ packages:
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   vary@1.1.2:
@@ -9419,13 +9417,6 @@ packages:
       '@codemirror/state': ^6.0.0
       '@codemirror/view': ^6.0.0
       yjs: ^13.5.6
-
-  y-monaco@0.1.6:
-    resolution: {integrity: sha512-sYRywMmcylt+Nupl+11AvizD2am06ST8lkVbUXuaEmrtV6Tf+TD4rsEm6u9YGGowYue+Vfg1IJ97SUP2J+PVXg==}
-    engines: {node: '>=12.0.0', npm: '>=6.0.0'}
-    peerDependencies:
-      monaco-editor: '>=0.20.0'
-      yjs: ^13.3.1
 
   y-partykit@0.0.33:
     resolution: {integrity: sha512-TqM2H/C1fBZbFjL9kpBLC3EWWaizBUYdFzW5DMGmcZYfQv5tYYIBTqUW4eCZOXHkhNLTEA+s2ydSKGYi8u1+sg==}
@@ -12050,17 +12041,6 @@ snapshots:
   '@mjackson/node-fetch-server@0.2.0': {}
 
   '@mjackson/node-fetch-server@0.6.1': {}
-
-  '@monaco-editor/loader@1.5.0':
-    dependencies:
-      state-local: 1.0.7
-
-  '@monaco-editor/react@4.7.0(monaco-editor@0.52.2)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
-    dependencies:
-      '@monaco-editor/loader': 1.5.0
-      monaco-editor: 0.52.2
-      react: 19.2.1
-      react-dom: 19.2.1(react@19.2.1)
 
   '@msgpack/msgpack@3.1.3': {}
 
@@ -15158,6 +15138,11 @@ snapshots:
 
   agent-base@7.1.4: {}
 
+  agentation@2.3.3(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+    optionalDependencies:
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+
   ajv@6.12.6:
     dependencies:
       fast-deep-equal: 3.1.3
@@ -17961,8 +17946,6 @@ snapshots:
       pkg-types: 1.3.1
       ufo: 1.6.1
 
-  monaco-editor@0.52.2: {}
-
   morgan@1.10.1:
     dependencies:
       basic-auth: 2.0.1
@@ -19259,8 +19242,6 @@ snapshots:
       '@stablelib/base64': 1.0.1
       fast-sha256: 1.3.0
 
-  state-local@1.0.7: {}
-
   statuses@2.0.1: {}
 
   std-env@3.9.0: {}
@@ -20101,12 +20082,6 @@ snapshots:
       '@codemirror/state': 6.5.2
       '@codemirror/view': 6.38.1
       lib0: 0.2.114
-      yjs: 13.6.27
-
-  y-monaco@0.1.6(monaco-editor@0.52.2)(yjs@13.6.27):
-    dependencies:
-      lib0: 0.2.114
-      monaco-editor: 0.52.2
       yjs: 13.6.27
 
   y-partykit@0.0.33(react@19.2.1)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27):

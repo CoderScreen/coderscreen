@@ -16,10 +16,12 @@ export const Entities = {
   candidate: 'cand',
   assessment: 'as',
   assessmentQuestion: 'aq',
-  assessmentTestCase: 'atc',
+
   assessmentSubmission: 'asub',
   questionSubmission: 'qs',
   testCaseResult: 'tcr',
+  questionLibrary: 'ql',
+  questionLibraryTestCase: 'qltc',
 } as const;
 
 type Entities = typeof Entities;
@@ -42,7 +44,7 @@ export const idString = <T extends keyof Entities>(
     .transform((id: string) => id as Id<T>);
 };
 
-const idGen = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 32);
+const idGen = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 16);
 export const generateId = <T extends keyof Entities>(entity: T): Id<T> => {
   return `${Entities[entity]}_${idGen()}` as Id<T>;
 };

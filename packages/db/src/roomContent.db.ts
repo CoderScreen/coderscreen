@@ -16,8 +16,12 @@ export const roomContentTable = pgTable('room_contents', {
     .primaryKey()
     .$type<Id<'room'>>()
     .references(() => roomTable.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at', { mode: 'string' }).default(sql`now()`).notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).default(sql`now()`).notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
   organizationId: text('organization_id')
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),

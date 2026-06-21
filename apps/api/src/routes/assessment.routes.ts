@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
+import { PaginationQuerySchema } from '@/lib/pagination';
 import {
   AssessmentQuestionSchema,
   AssessmentSchema,
@@ -13,6 +14,7 @@ import {
   CreateSubmissionSchema,
   CreateTestCaseSchema,
   GradeSubmissionSchema,
+  LinkQuestionSchema,
   ReorderQuestionsSchema,
   TestCaseSchema,
   UpdateAssessmentSchema,
@@ -40,9 +42,11 @@ export const assessmentRouter = new Hono<AppContext>()
         },
       },
     }),
+    zValidator('query', PaginationQuerySchema),
     async (ctx) => {
       const service = new AssessmentService(ctx);
-      const assessments = await service.listAssessments();
+      const query = ctx.req.valid('query');
+      const assessments = await service.listAssessments(query);
       return ctx.json(assessments);
     }
   )
@@ -85,10 +89,12 @@ export const assessmentRouter = new Hono<AppContext>()
       },
     }),
     zValidator('param', z.object({ id: idString('assessment') })),
+    zValidator('query', PaginationQuerySchema.optional()),
     async (ctx) => {
       const service = new AssessmentService(ctx);
       const { id } = ctx.req.valid('param');
-      const result = await service.getAssessmentWithQuestions(id);
+      const query = ctx.req.valid('query');
+      const result = await service.getAssessmentWithQuestions(id, query);
 
       if (!result) {
         return ctx.json({ error: 'Assessment not found' }, 404);
@@ -213,6 +219,32 @@ export const assessmentRouter = new Hono<AppContext>()
       const { id } = ctx.req.valid('param');
       const body = ctx.req.valid('json');
       const result = await service.createQuestion(id, body);
+      return ctx.json(result, 201);
+    }
+  )
+  // POST /assessments/:id/questions/link - Link an existing library question
+  .post(
+    '/:id/questions/link',
+    describeRoute({
+      description: 'Link an existing library question to an assessment',
+      responses: {
+        201: {
+          description: 'Question linked successfully',
+          content: {
+            'application/json': {
+              schema: resolver(AssessmentQuestionSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator('param', z.object({ id: idString('assessment') })),
+    zValidator('json', LinkQuestionSchema),
+    async (ctx) => {
+      const service = new AssessmentService(ctx);
+      const { id } = ctx.req.valid('param');
+      const body = ctx.req.valid('json');
+      const result = await service.linkExistingQuestion(id, body);
       return ctx.json(result, 201);
     }
   )
@@ -347,7 +379,7 @@ export const assessmentRouter = new Hono<AppContext>()
       z.object({
         id: idString('assessment'),
         questionId: idString('assessmentQuestion'),
-        testCaseId: idString('assessmentTestCase'),
+        testCaseId: idString('questionLibraryTestCase'),
       })
     ),
     zValidator('json', UpdateTestCaseSchema),
@@ -375,7 +407,7 @@ export const assessmentRouter = new Hono<AppContext>()
       z.object({
         id: idString('assessment'),
         questionId: idString('assessmentQuestion'),
-        testCaseId: idString('assessmentTestCase'),
+        testCaseId: idString('questionLibraryTestCase'),
       })
     ),
     async (ctx) => {
@@ -483,6 +515,54 @@ export const assessmentRouter = new Hono<AppContext>()
       const { subId } = ctx.req.valid('param');
       const body = ctx.req.valid('json');
       const result = await service.gradeSubmission(subId, body);
+      return ctx.json(result);
+    }
+  )
+  // POST /assessments/:id/submissions/:subId/archive - Archive a submission
+  .post(
+    '/:id/submissions/:subId/archive',
+    describeRoute({
+      description: 'Archive a submission (hides it from the default list)',
+      responses: {
+        200: { description: 'Submission archived' },
+        404: { description: 'Submission not found' },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        id: idString('assessment'),
+        subId: idString('assessmentSubmission'),
+      })
+    ),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const result = await service.setSubmissionArchived(subId, true);
+      return ctx.json(result);
+    }
+  )
+  // POST /assessments/:id/submissions/:subId/unarchive - Unarchive a submission
+  .post(
+    '/:id/submissions/:subId/unarchive',
+    describeRoute({
+      description: 'Unarchive a submission (restores it to the default list)',
+      responses: {
+        200: { description: 'Submission unarchived' },
+        404: { description: 'Submission not found' },
+      },
+    }),
+    zValidator(
+      'param',
+      z.object({
+        id: idString('assessment'),
+        subId: idString('assessmentSubmission'),
+      })
+    ),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      const result = await service.setSubmissionArchived(subId, false);
       return ctx.json(result);
     }
   );

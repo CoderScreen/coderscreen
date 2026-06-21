@@ -22,8 +22,10 @@ import { PrivateRoomServer } from './partykit/privateRoom.do';
 import { candidateAssessmentRouter } from './routes/assessment/candidateAssessment.routes';
 import { assessmentRouter, candidateRouter } from './routes/assessment.routes';
 import { assetRouter } from './routes/asset.routes';
+import { questionLibraryRouter } from './routes/questionLibrary.routes';
 import { publicRoomRouter } from './routes/room/publicRoom.routes';
 import { roomRouter } from './routes/room.routes';
+import { supportRouter } from './routes/support.routes';
 import { SandboxDO as Sandbox } from './sandbox/SandboxDO';
 
 export interface AppContext {
@@ -95,6 +97,8 @@ const app = new Hono<AppContext>()
   .route('/assessments', candidateAssessmentRouter)
   .route('/assessments', assessmentRouter)
   .route('/candidates', candidateRouter)
+  .route('/questions', questionLibraryRouter)
+  .route('/support', supportRouter)
   .onError((err, ctx) => {
     const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
 

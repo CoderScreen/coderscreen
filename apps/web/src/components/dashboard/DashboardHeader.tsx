@@ -39,7 +39,7 @@ export function DashboardHeader() {
     <div className='flex items-center justify-between py-4'>
       <div className='flex flex-col'>
         <SmallHeader>Interviews</SmallHeader>
-        <MutedText>Manage your live interviews</MutedText>
+        <MutedText>Conduct real-time coding interviews with candidates</MutedText>
       </div>
 
       <div className='flex items-center gap-2'>

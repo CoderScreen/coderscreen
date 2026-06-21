@@ -1,5 +1,6 @@
 import { EditorContent } from '@tiptap/react';
 import { useNotesEditor } from '@/query/realtime/notes.query';
+import { tiptapContentClass } from './editorStyles';
 import { TipTapHeader } from './TipTapHeader';
 
 export const NotesEditor = () => {
@@ -27,7 +28,7 @@ export const NotesEditor = () => {
       >
         <EditorContent
           editor={editor}
-          className='px-2 py-4 h-full min-h-full w-full focus:outline-none focus:ring-0 focus:border-none prose prose-sm max-w-none'
+          className={tiptapContentClass('px-2 py-4 h-full min-h-full w-full')}
         />
       </div>
     </div>

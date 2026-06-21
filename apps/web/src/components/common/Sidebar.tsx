@@ -10,10 +10,8 @@ import {
   RiBuildingLine,
   RiCloseLine,
   RiCodeBoxLine,
-  RiDashboardLine,
   RiExternalLinkLine,
-  RiFeedbackLine,
-  RiHomeOfficeLine,
+  RiFileTextLine,
   RiListCheck3,
   RiMenuLine,
   RiMoneyDollarBoxLine,
@@ -24,9 +22,10 @@ import {
   RiUserStarLine,
 } from '@remixicon/react';
 import { Link, useLocation } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { OrgSwitcher } from '@/components/common/OrgSwitcher';
 import { SidebarProfile } from '@/components/common/SidebarProfile';
+import { SupportDialog } from '@/components/common/SupportDialog';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { siteConfig } from '@/lib/siteConfig';
 import { cx, focusRing } from '@/lib/utils';
@@ -59,25 +58,28 @@ const MAIN_NAVIGATION: {
     titleKey: 'Assessments',
     href: siteConfig.routes.assessments,
     icon: RiListCheck3,
-    comingSoon: true,
   },
   {
-    titleKey: 'Take-Homes',
-    href: siteConfig.routes.takeHomes,
-    icon: RiHomeOfficeLine,
-    comingSoon: true,
+    titleKey: 'Questions',
+    href: siteConfig.routes.questions,
+    icon: RiFileTextLine,
   },
-  {
-    titleKey: 'Templates',
-    href: siteConfig.routes.rooms,
-    icon: RiDashboardLine,
-    comingSoon: true,
-  },
+  // {
+  //   titleKey: 'Take-Homes',
+  //   href: siteConfig.routes.takeHomes,
+  //   icon: RiHomeOfficeLine,
+  //   comingSoon: true,
+  // },
+  // {
+  //   titleKey: 'Templates',
+  //   href: siteConfig.routes.rooms,
+  //   icon: RiDashboardLine,
+  //   comingSoon: true,
+  // },
   {
     titleKey: 'Candidates',
     href: siteConfig.routes.candidates,
     icon: RiUserStarLine,
-    comingSoon: true,
   },
   {
     titleKey: 'Settings',
@@ -156,8 +158,19 @@ export default function Sidebar() {
   );
 }
 
-const isActive = (itemHref: string, pathname: string) => {
-  return pathname === itemHref;
+const isActive = (
+  itemHref: string,
+  pathname: string,
+  options?: {
+    isExact?: boolean;
+  }
+) => {
+  if (options?.isExact) {
+    return pathname === itemHref;
+  }
+
+  if (itemHref === '/') return pathname === '/';
+  return pathname === itemHref || pathname.startsWith(`${itemHref}/`);
 };
 
 const isMenuActive = (itemHref: string, pathname: string) => {
@@ -238,9 +251,12 @@ const renderExternalNavItem = (item: (typeof MAIN_NAVIGATION)[number]) => {
 
 const renderChildNavItem = (
   item: NonNullable<(typeof MAIN_NAVIGATION)[number]['children']>[number],
-  pathname: string
+  pathname: string,
+  options?: {
+    isExact?: boolean;
+  }
 ) => {
-  const active = isActive(item.href, pathname);
+  const active = isActive(item.href, pathname, options);
 
   return (
     <li key={item.href}>
@@ -291,7 +307,7 @@ const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number], pathname: str
           )}
         >
           <ul className='space-y-1 ml-4 pl-2 mt-1 border-l border-gray-200'>
-            {item.children.map((child) => renderChildNavItem(child, pathname))}
+            {item.children.map((child) => renderChildNavItem(child, pathname, { isExact: true }))}
           </ul>
         </div>
       )}
@@ -302,12 +318,14 @@ const renderNavMenuItem = (item: (typeof MAIN_NAVIGATION)[number], pathname: str
 const SidebarBody = () => {
   const location = useLocation();
   const pathname = location.pathname;
+  const { isCollapsed } = useSidebar();
+  const [supportOpen, setSupportOpen] = useState(false);
 
   return (
     <div className='flex flex-col h-full'>
-      <OrgSwitcher />
-
-      {/* <Divider className='my-2' /> */}
+      <div className='border-b border-gray-200'>
+        <OrgSwitcher />
+      </div>
 
       {/* Navigation */}
       <nav className='mt-4 flex-1 px-2 space-y-6 overflow-y-auto'>
@@ -364,10 +382,34 @@ const SidebarBody = () => {
         </div> */}
       </nav>
 
+      {/* Support */}
+      <div className='px-2 pb-1'>
+        <Button
+          className={cx(
+            SidebarItemClassNames.base,
+            SidebarItemClassNames.inactive,
+            'w-full justify-start',
+            focusRing,
+            isCollapsed && 'justify-center px-2'
+          )}
+          variant='ghost'
+          onClick={() => setSupportOpen(true)}
+          title={isCollapsed ? 'Support' : undefined}
+        >
+          <RiQuestionAnswerLine
+            className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
+            aria-hidden='true'
+          />
+          {!isCollapsed && <span className='truncate'>Support</span>}
+        </Button>
+      </div>
+
       {/* User Info */}
-      <div className='p-2'>
+      <div className='p-2 border-t border-gray-200'>
         <SidebarProfile />
       </div>
+
+      <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
     </div>
   );
 };
@@ -406,6 +448,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
   const location = useLocation();
   const pathname = location.pathname;
   const { user, isLoading } = useSession();
+  const [supportOpen, setSupportOpen] = useState(false);
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -494,22 +537,7 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
                     focusRing
                   )}
                   variant='ghost'
-                >
-                  <RiFeedbackLine
-                    className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
-                    aria-hidden='true'
-                  />
-                  <span className='truncate'>Feedback</span>
-                </Button>
-
-                <Button
-                  className={cx(
-                    SidebarItemClassNames.base,
-                    SidebarItemClassNames.inactive,
-                    'w-full justify-start',
-                    focusRing
-                  )}
-                  variant='ghost'
+                  onClick={() => setSupportOpen(true)}
                 >
                   <RiQuestionAnswerLine
                     className={cx(SidebarItemClassNames.icon, SidebarItemClassNames.inactiveIcon)}
@@ -570,6 +598,8 @@ export const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
           </div>
         </div>
       </div>
+
+      <SupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
     </div>
   );
 };

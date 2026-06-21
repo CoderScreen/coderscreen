@@ -4,6 +4,7 @@ export const siteConfig = {
     rooms: '/rooms',
     room: (id: string) => `/rooms/${id}`,
     assessments: '/assessments',
+    questions: '/questions',
     takeHomes: '/take-homes',
     candidates: '/candidates',
     settings: '/settings',
@@ -16,5 +17,6 @@ export const siteConfig = {
     contactSupport: 'mailto:support@coderscreen.com?subject=Support%20Request',
     contactSales: 'mailto:team@coderscreen.com?subject=Enterprise%20Plan%20Request',
     documentation: 'https://mintlify.com',
+    discord: 'https://discord.gg/coderscreen',
   },
 };

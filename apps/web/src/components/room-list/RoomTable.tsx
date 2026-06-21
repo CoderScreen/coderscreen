@@ -25,7 +25,6 @@ import {
   RiAddLine,
   RiCornerDownRightLine,
   RiDeleteBinLine,
-  RiFileCopyLine,
   RiLink,
   RiMore2Line,
   RiSearchLine,
@@ -70,7 +69,7 @@ const RowActions = ({ room }: { room: RoomSchema }) => {
     toast.success('Room link copied to clipboard');
   };
 
-  const handleDuplicateRoom = () => {
+  const _handleDuplicateRoom = () => {
     // TODO: Implement duplicate room functionality
     console.log('Duplicate room:', room.id);
   };
