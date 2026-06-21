@@ -1,4 +1,4 @@
-import { emailButton, emailLayout } from './layout';
+import { emailButton, emailLayout } from '@coderscreen/email/layout';
 
 interface OrgInvitationEmailParams {
   invited_by_username: string;

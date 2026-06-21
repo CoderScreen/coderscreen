@@ -29,6 +29,9 @@ importers:
       '@coderscreen/db':
         specifier: workspace:^
         version: link:../../packages/db
+      '@coderscreen/email':
+        specifier: workspace:^
+        version: link:../../packages/email
       '@daytonaio/sdk':
         specifier: 0.21.1
         version: 0.21.1(@babel/core@7.28.0)(typescript@5.8.3)
@@ -586,6 +589,8 @@ importers:
         specifier: ^24.0.3
         version: 24.1.0
 
+  packages/email: {}
+
   packages/scripts:
     dependencies:
       '@coderscreen/common':
@@ -594,6 +599,9 @@ importers:
       '@coderscreen/db':
         specifier: workspace:*
         version: link:../db
+      '@coderscreen/email':
+        specifier: workspace:*
+        version: link:../email
       '@fal-ai/client':
         specifier: ^1.9.3
         version: 1.9.3

@@ -52,7 +52,8 @@
 		"y-protocols": "^1.0.6",
 		"yjs": "^13.6.27",
 		"zod": "^3.25.67",
-		"zod-openapi": "^4.2.4"
+		"zod-openapi": "^4.2.4",
+		"@coderscreen/email": "workspace:^"
 	},
 	"exports": {
 		".": "./dist/src/index.d.ts"
