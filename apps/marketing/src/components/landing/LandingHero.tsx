@@ -59,7 +59,7 @@ export const LandingHero = () => {
           <div className='max-w-5xl mx-auto'>
             <div className='rounded-t-xl bg-background shadow-2xl overflow-hidden ring-1 ring-white/15'>
               <Image
-                src='/features/editor.png'
+                src='/coderscreen-hero.webp'
                 alt='CoderScreen coding interview platform'
                 width={1920}
                 height={1080}
