@@ -1,4 +1,4 @@
-import { emailLayout } from './layout';
+import { emailLayout } from '@coderscreen/email/layout';
 
 interface SupportMessageEmailParams {
   user_name: string;

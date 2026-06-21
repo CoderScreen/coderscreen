@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "run": "bun run",
-    "sync-resend-audience": "bun run src/sync-resend-audience.ts"
+    "sync-resend-audience": "bun run src/sync-resend-audience.ts",
+    "send-assessments-email": "bun run src/send-assessments-email.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "@fal-ai/client": "^1.9.3",
     "drizzle-orm": "^0.44.3",
     "postgres": "^3.4.7",
-    "resend": "^6.9.2"
+    "resend": "^6.9.2",
+    "@coderscreen/email": "workspace:*"
   }
 }

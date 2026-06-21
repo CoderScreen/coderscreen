@@ -1,0 +1,18 @@
+{
+  "name": "@coderscreen/email",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shared email layout + templates for CoderScreen",
+  "scripts": {
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "exports": {
+    "./layout": "./src/layout.ts",
+    "./marketing/assessments-launch": "./src/marketing/assessments-launch.ts"
+  }
+}

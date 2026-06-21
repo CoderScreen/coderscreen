@@ -1,4 +1,4 @@
-import { emailButton, emailLayout } from './layout';
+import { emailButton, emailLayout } from '@coderscreen/email/layout';
 
 interface AssessmentSubmissionEmailParams {
   org_name: string;

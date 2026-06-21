@@ -59,13 +59,20 @@ export const MarketingFooter: React.FC = () => {
             <h4 className='text-lg font-semibold mb-4 text-gray-900'>Product</h4>
             <ul className='space-y-2'>
               <li>
-                <button
-                  onClick={() => scrollToSection('features')}
-                  className='text-gray-600 hover:text-gray-900 transition-colors text-left w-full'
-                  type='button'
+                <a
+                  href='/live-interviews'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
                 >
-                  Features
-                </button>
+                  Live Interviews
+                </a>
+              </li>
+              <li>
+                <a
+                  href='/assessments'
+                  className='text-gray-600 hover:text-gray-900 transition-colors cursor-pointer'
+                >
+                  Assessments
+                </a>
               </li>
               <li>
                 <button

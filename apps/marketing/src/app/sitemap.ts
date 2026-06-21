@@ -25,6 +25,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    // Feature pages
+    {
+      url: `${baseUrl}/live-interviews`,
+      lastModified: today,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/assessments`,
+      lastModified: today,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
   ];
 
   // Alternative pages (dynamic from config)
