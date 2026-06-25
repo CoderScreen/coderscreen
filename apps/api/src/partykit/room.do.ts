@@ -381,6 +381,29 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     ]);
   }
 
+  /**
+   * Re-write the current Y.Doc workspace to the sandbox filesystem.
+   *
+   * The sandbox container is ephemeral (`SandboxDO.sleepAfter`), so it can be
+   * evicted mid-interview and lose everything under `/workspace`. `syncAllFiles`
+   * only runs once in `onLoad`, and `startObserving` only writes on subsequent
+   * edits — so a candidate who clicks "Run" after the container was reclaimed
+   * (without typing since) hits a missing file and execution fails. Calling this
+   * right before a run guarantees the entry file is present. For single-file
+   * languages (the only ones with a Run button) this is a single writeFile.
+   */
+  async ensureWorkspaceSynced(): Promise<void> {
+    if (!this.fileSyncService) {
+      const sandbox = getSandbox(this.env.SANDBOX, getSandboxId(this.name as Id<'room'>), {
+        normalizeId: true,
+      });
+      this.fileSyncService = new FileSyncService(sandbox, this.document);
+      this.fileSyncService.startObserving();
+    }
+
+    await this.fileSyncService.syncAllFiles();
+  }
+
   async handleStatusUpdate(status: RoomEntity['status']) {
     this.document.transact(() => {
       const statusText = this.document.getText('status');
