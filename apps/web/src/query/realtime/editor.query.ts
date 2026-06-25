@@ -1,6 +1,16 @@
 import { indentWithTab } from '@codemirror/commands';
+import { cpp } from '@codemirror/lang-cpp';
+import { css } from '@codemirror/lang-css';
+import { go } from '@codemirror/lang-go';
+import { html } from '@codemirror/lang-html';
+import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
-import { EditorState } from '@codemirror/state';
+import { json } from '@codemirror/lang-json';
+import { markdown } from '@codemirror/lang-markdown';
+import { php } from '@codemirror/lang-php';
+import { python } from '@codemirror/lang-python';
+import { rust } from '@codemirror/lang-rust';
+import { EditorState, type Extension } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import type { RoomSchema } from '@coderscreen/api/schema/room';
 import { basicSetup, EditorView } from 'codemirror';
@@ -111,6 +121,50 @@ export const getFileTypeFromPath = (path: string): FileType => {
       return 'svelte';
     default:
       return 'unknown';
+  }
+};
+
+// Map a file's detected type to its CodeMirror language extension so each file
+// is highlighted/edited with the correct grammar. Previously every file was
+// loaded with the JS/TS extension, so Python, Go, Rust, etc. were rendered (and
+// auto-indented) as TypeScript. Types without an installed grammar (e.g. ruby,
+// bash) fall back to plain text rather than the wrong language.
+const getLanguageExtension = (fileType: FileType): Extension => {
+  switch (fileType) {
+    case 'javascript':
+    case 'jsx':
+      return javascript({ jsx: true });
+    case 'typescript':
+    case 'tsx':
+      return javascript({ jsx: true, typescript: true });
+    case 'python':
+      return python();
+    case 'java':
+      return java();
+    case 'c':
+    case 'c++':
+      return cpp();
+    case 'go':
+      return go();
+    case 'rust':
+      return rust();
+    case 'php':
+      return php();
+    case 'css':
+      return css();
+    case 'html':
+      return html();
+    case 'json':
+      return json();
+    case 'markdown':
+      return markdown();
+    // No dedicated grammar installed — HTML is the closest fit for the
+    // template-based frameworks, everything else stays plain text.
+    case 'vue':
+    case 'svelte':
+      return html();
+    default:
+      return [];
   }
 };
 
@@ -231,6 +285,11 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     (fileId: string) => {
       const ytext = provider.doc.getText(getFileKey(fileId));
 
+      // Resolve the file's language from its path so it gets the right grammar.
+      const fsMap = provider.doc.getMap<FSEntry>(FS_MAP_KEY);
+      const filePath = getPathFromId(fsMap, fileId);
+      const fileType = getFileTypeFromPath(filePath);
+
       const undoManager = new Y.UndoManager(ytext);
 
       // Set up observer for text changes to increment counter
@@ -249,10 +308,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
           basicSetup,
           yCollab(ytext, null, { undoManager }),
           keymap.of([indentWithTab]),
-          javascript({
-            jsx: true,
-            typescript: true,
-          }),
+          getLanguageExtension(fileType),
         ],
       });
 

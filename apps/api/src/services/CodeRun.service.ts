@@ -31,7 +31,11 @@ export class CodeRunService {
     const sandboxId = getSandboxId(roomId);
     const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
 
-    const filePath = `/workspace/main${config.extension}`;
+    // Re-sync the workspace from the Y.Doc in case the container was reclaimed
+    // since the last edit, otherwise the entry file may be missing.
+    await this.ensureWorkspaceSynced(roomId);
+
+    const filePath = `/workspace/${config.fileName}`;
     const outputPath = '/workspace/main_out';
 
     try {
@@ -54,6 +58,23 @@ export class CodeRunService {
     } catch (error) {
       console.error('Error streaming code:', error);
       return this.sseErrorStream(error instanceof Error ? error.message : 'Error running code');
+    }
+  }
+
+  /**
+   * Ask the room's durable object to re-write its Y.Doc workspace to the
+   * sandbox filesystem before running. The container is ephemeral and may have
+   * been reclaimed since the candidate's last edit, which would otherwise leave
+   * the entry file missing and the run failing with a "file not found" error.
+   * Best-effort: a sync failure shouldn't block the run attempt itself.
+   */
+  private async ensureWorkspaceSynced(roomId: Id<'room'>): Promise<void> {
+    try {
+      const roomName = this.ctx.env.Room.idFromName(roomId);
+      const roomStub = this.ctx.env.Room.get(roomName);
+      await roomStub.ensureWorkspaceSynced();
+    } catch (error) {
+      console.error('Failed to ensure workspace synced before run:', error);
     }
   }
 
@@ -89,7 +110,11 @@ export class CodeRunService {
     const sandboxId = getSandboxId(roomId);
     const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
 
-    const filePath = `/workspace/main${config.extension}`;
+    // Re-sync the workspace from the Y.Doc in case the container was reclaimed
+    // since the last edit, otherwise the entry file may be missing.
+    await this.ensureWorkspaceSynced(roomId);
+
+    const filePath = `/workspace/${config.fileName}`;
     const outputPath = '/workspace/main_out';
 
     try {
