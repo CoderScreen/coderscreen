@@ -24,6 +24,7 @@ export class FileSyncService {
 
   /** Initial full sync — writes all folders and files to the sandbox */
   async syncAllFiles(): Promise<void> {
+    const t0 = Date.now();
     const fsMap = this.doc.getMap<FSEntry>(FS_MAP_KEY);
 
     const folders: string[] = [];
@@ -45,6 +46,7 @@ export class FileSyncService {
     // Sort folders by depth so parents are created before children
     folders.sort((a, b) => a.split('/').length - b.split('/').length);
 
+    const mkdirStart = Date.now();
     for (const path of folders) {
       try {
         await this.sandbox.mkdir(`/workspace/${path}`, { recursive: true });
@@ -53,6 +55,7 @@ export class FileSyncService {
       }
     }
 
+    const writeStart = Date.now();
     for (const { id, path } of files) {
       try {
         const content = this.doc.getText(`file:${id}`).toJSON();
@@ -61,6 +64,17 @@ export class FileSyncService {
         console.error(`[FileSyncService] writeFile failed: ${path}`, e);
       }
     }
+
+    console.log(
+      `[sandbox-timing] ${JSON.stringify({
+        method: 'syncAllFiles',
+        folders: folders.length,
+        files: files.length,
+        mkdirMs: writeStart - mkdirStart,
+        writeMs: Date.now() - writeStart,
+        totalMs: Date.now() - t0,
+      })}`
+    );
   }
 
   /** Start observing Y.Doc for changes and syncing them to the sandbox */

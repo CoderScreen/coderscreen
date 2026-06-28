@@ -28,22 +28,28 @@ export class CodeRunService {
       );
     }
 
+    const t0 = Date.now();
     const sandboxId = getSandboxId(roomId);
     const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+    const tStub = Date.now();
 
     // Re-sync the workspace from the Y.Doc in case the container was reclaimed
     // since the last edit, otherwise the entry file may be missing.
     await this.ensureWorkspaceSynced(roomId);
+    const tSync = Date.now();
 
     const filePath = `/workspace/${config.fileName}`;
     const outputPath = '/workspace/main_out';
 
     try {
       // Compile step for compiled languages
+      let compileMs = 0;
       if (config.compileCommand) {
+        const compileStart = Date.now();
         const compileResult = await sandbox.exec(config.compileCommand(filePath, outputPath), {
           timeout: EXECUTION_TIMEOUT_MS,
         });
+        compileMs = Date.now() - compileStart;
 
         if (!compileResult.success) {
           return this.sseErrorStream(compileResult.stderr || compileResult.stdout);
@@ -52,9 +58,22 @@ export class CodeRunService {
 
       // Stream the run step
       const runTarget = config.compileCommand ? outputPath : filePath;
-      return await sandbox.execStream(config.runCommand(runTarget), {
+      const streamStart = Date.now();
+      const stream = await sandbox.execStream(config.runCommand(runTarget), {
         timeout: EXECUTION_TIMEOUT_MS,
       });
+
+      // Note: streamStartMs is the time to dispatch the exec and get the stream
+      // back, not the time the program takes to run (that is streamed out).
+      this.logTimings('runCodeStream', roomId, language, {
+        stubMs: tStub - t0,
+        ensureSyncMs: tSync - tStub,
+        compileMs,
+        streamStartMs: Date.now() - streamStart,
+        totalMs: Date.now() - t0,
+      });
+
+      return stream;
     } catch (error) {
       console.error('Error streaming code:', error);
       return this.sseErrorStream(error instanceof Error ? error.message : 'Error running code');
@@ -76,6 +95,21 @@ export class CodeRunService {
     } catch (error) {
       console.error('Failed to ensure workspace synced before run:', error);
     }
+  }
+
+  /**
+   * Emit a single structured timing line per run so the slowest phase is easy
+   * to spot in `wrangler tail` / local dev logs. Grep for `[sandbox-timing]`.
+   * Durations are in ms: stubMs (get sandbox stub), ensureSyncMs (Y.Doc ->
+   * sandbox re-sync), compileMs, runMs / streamStartMs, totalMs.
+   */
+  private logTimings(
+    method: string,
+    roomId: Id<'room'>,
+    language: RoomEntity['language'],
+    timings: Record<string, number>
+  ): void {
+    console.log(`[sandbox-timing] ${JSON.stringify({ method, roomId, language, ...timings })}`);
   }
 
   private sseErrorStream(message: string): ReadableStream<Uint8Array> {
@@ -107,12 +141,15 @@ export class CodeRunService {
       };
     }
 
+    const t0 = Date.now();
     const sandboxId = getSandboxId(roomId);
     const sandbox = getSandbox(this.ctx.env.SANDBOX, sandboxId, { normalizeId: true });
+    const tStub = Date.now();
 
     // Re-sync the workspace from the Y.Doc in case the container was reclaimed
     // since the last edit, otherwise the entry file may be missing.
     await this.ensureWorkspaceSynced(roomId);
+    const tSync = Date.now();
 
     const filePath = `/workspace/${config.fileName}`;
     const outputPath = '/workspace/main_out';
@@ -129,6 +166,14 @@ export class CodeRunService {
         compileTime = Date.now() - start;
 
         if (!compileResult.success) {
+          this.logTimings('runCode', roomId, language, {
+            stubMs: tStub - t0,
+            ensureSyncMs: tSync - tStub,
+            compileMs: compileTime,
+            runMs: 0,
+            totalMs: Date.now() - t0,
+            outcome: -1, // compile failure
+          });
           return {
             success: false,
             stdout: compileResult.stdout,
@@ -143,8 +188,19 @@ export class CodeRunService {
 
       // Run the code
       const runTarget = config.compileCommand ? outputPath : filePath;
+      const runStart = Date.now();
       const result = await sandbox.exec(config.runCommand(runTarget), {
         timeout: EXECUTION_TIMEOUT_MS,
+      });
+      const runMs = Date.now() - runStart;
+
+      this.logTimings('runCode', roomId, language, {
+        stubMs: tStub - t0,
+        ensureSyncMs: tSync - tStub,
+        compileMs: compileTime ?? 0,
+        runMs,
+        totalMs: Date.now() - t0,
+        outcome: result.success ? 1 : 0,
       });
 
       return {

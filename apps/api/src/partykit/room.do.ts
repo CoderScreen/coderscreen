@@ -393,15 +393,29 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
    * languages (the only ones with a Run button) this is a single writeFile.
    */
   async ensureWorkspaceSynced(): Promise<void> {
+    const t0 = Date.now();
+    let constructedService = false;
     if (!this.fileSyncService) {
       const sandbox = getSandbox(this.env.SANDBOX, getSandboxId(this.name as Id<'room'>), {
         normalizeId: true,
       });
       this.fileSyncService = new FileSyncService(sandbox, this.document);
       this.fileSyncService.startObserving();
+      constructedService = true;
     }
 
     await this.fileSyncService.syncAllFiles();
+
+    console.log(
+      `[sandbox-timing] ${JSON.stringify({
+        method: 'ensureWorkspaceSynced',
+        roomId: this.name,
+        // True when the DO had no live sync service — a signal the room DO was
+        // itself cold-started for this request.
+        constructedService,
+        totalMs: Date.now() - t0,
+      })}`
+    );
   }
 
   async handleStatusUpdate(status: RoomEntity['status']) {
