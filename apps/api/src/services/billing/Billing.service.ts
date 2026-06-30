@@ -27,12 +27,16 @@ export class BillingService {
     this.db = useDb(this.ctx);
   }
 
-  async createCustomerForOrganization(params: { organizationId: string; email: string }) {
-    const { organizationId, email } = params;
+  async createCustomerForOrganization(params: {
+    organizationId: string;
+    organizationName: string;
+    email: string;
+  }) {
+    const { organizationId, organizationName, email } = params;
 
     // Create Stripe customer
     const stripeCustomer = await this.stripeService.createCustomer({
-      name: `Org: ${organizationId}`,
+      name: organizationName,
       email,
       metadata: {
         organizationId,

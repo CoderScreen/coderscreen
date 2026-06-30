@@ -117,6 +117,7 @@ export const useAuth: (
             // Create customer for the organization
             await billingService.createCustomerForOrganization({
               organizationId: org.id,
+              organizationName: org.name,
               email: orgUser.email,
             });
           },
