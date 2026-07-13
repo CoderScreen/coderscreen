@@ -36,10 +36,10 @@ const MODEL_OPTIONS: {
   value: SupportedModels;
   icon: RemixiconComponentType;
 }[] = [
-  { label: 'Claude 3.7 Sonnet', value: 'anthropic/claude-3.7-sonnet', icon: RiClaudeLine },
-  { label: 'Claude Sonnet 4', value: 'anthropic/claude-sonnet-4', icon: RiClaudeLine },
-  { label: 'GPT-4.1 Mini', value: 'openai/gpt-4.1-mini', icon: RiOpenaiFill },
-  { label: 'GPT-4o', value: 'openai/gpt-4o', icon: RiOpenaiFill },
+  { label: 'Claude Haiku 4.5', value: 'anthropic/claude-haiku-4.5', icon: RiClaudeLine },
+  { label: 'Claude Sonnet 4.5', value: 'anthropic/claude-sonnet-4.5', icon: RiClaudeLine },
+  { label: 'GPT-5 Mini', value: 'openai/gpt-5-mini', icon: RiOpenaiFill },
+  { label: 'GPT-5', value: 'openai/gpt-5', icon: RiOpenaiFill },
   { label: 'Gemini 2.5 Flash', value: 'google/gemini-2.5-flash', icon: RiGoogleLine },
   { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro', icon: RiGoogleLine },
   { label: 'DeepSeek Chat V3', value: 'deepseek/deepseek-chat-v3-0324', icon: RiAiGenerate2 },

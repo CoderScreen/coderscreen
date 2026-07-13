@@ -39,7 +39,7 @@ export function useAIChat() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [config, setConfig] = useState<AIConfig>({
-    model: 'openai/gpt-4.1-mini',
+    model: 'openai/gpt-5-mini',
   });
   const [pastConversations, setPastConversations] = useState<ChatMessage[][]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string>('');

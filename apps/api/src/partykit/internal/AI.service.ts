@@ -85,7 +85,7 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
      */
 
     const aiConfig = this.document.getMap(AIService.configKey);
-    const defaultModel: SupportedModels = 'openai/gpt-4.1-mini';
+    const defaultModel: SupportedModels = 'openai/gpt-5-mini';
     aiConfig.set(AIService.configKeys.model, defaultModel);
 
     const conversationId = this.document.getText(AIService.conversationIdKey);
