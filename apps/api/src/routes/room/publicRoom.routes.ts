@@ -124,7 +124,11 @@ export const publicRoomRouter = new Hono<AppContext>()
     const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
     const cols = parseInt(ctx.req.query('cols') || '80');
     const rows = parseInt(ctx.req.query('rows') || '24');
-    return proxyTerminal(sandbox, 'default', ctx.req.raw, { cols, rows });
+    // Client picks the PTY session id so it can rotate to a fresh session (and
+    // thus a fresh shell) after the previous shell exits, instead of endlessly
+    // reconnecting to a dead session.
+    const sessionId = ctx.req.query('sessionId') || 'default';
+    return proxyTerminal(sandbox, sessionId, ctx.req.raw, { cols, rows });
   })
   .post(
     '/preview/start',
