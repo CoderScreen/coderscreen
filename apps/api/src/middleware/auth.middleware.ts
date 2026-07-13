@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/cloudflare';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import { AppContext } from '@/index';
@@ -17,5 +18,10 @@ export const authMiddleware = createMiddleware<AppContext>(async (ctx, next) => 
   ctx.set('user', session.user);
   // @ts-ignore since better auth type inference broke
   ctx.set('session', session.session);
+
+  // Attach the authenticated user to the current request's Sentry scope so
+  // reported errors are tied to who hit them.
+  Sentry.setUser({ id: session.user.id, email: session.user.email });
+
   return next();
 });

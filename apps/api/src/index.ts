@@ -1,5 +1,7 @@
+import type { DurableObject } from 'cloudflare:workers';
 import { switchPort } from '@cloudflare/containers';
 import { getSandbox } from '@cloudflare/sandbox';
+import * as Sentry from '@sentry/cloudflare';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Hono } from 'hono';
 import { except } from 'hono/combine';
@@ -8,6 +10,7 @@ import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 import { openAPISpecs } from 'hono-openapi';
 import { useAuth } from '@/lib/auth';
+import { getSentryOptions } from '@/lib/sentry';
 import { getBilling } from '@/lib/session';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { RoomServer as PartyServer } from '@/partykit/room.do';
@@ -103,6 +106,7 @@ const app = new Hono<AppContext>()
     const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
 
     if (err instanceof HTTPException) {
+      // Intentional HTTP errors (4xx/expected 5xx) — don't report to Sentry.
       return ctx.json(
         {
           id: cfRayId,
@@ -112,6 +116,10 @@ const app = new Hono<AppContext>()
         err.status
       );
     } else if (err instanceof Error) {
+      // Unexpected error: Hono handles it here (so the Worker never sees it as
+      // unhandled), so report it explicitly. `cfRayId` is echoed to the client
+      // and tagged here so support requests can be traced back to the event.
+      Sentry.captureException(err, { tags: { cfRayId } });
       return ctx.json(
         {
           id: cfRayId,
@@ -121,6 +129,7 @@ const app = new Hono<AppContext>()
         500
       );
     } else {
+      Sentry.captureException(err, { tags: { cfRayId } });
       return ctx.json(
         {
           id: cfRayId,
@@ -194,13 +203,49 @@ async function proxyToSandbox(request: Request, env: Env): Promise<Response | nu
   }
 }
 
-export default {
+export default Sentry.withSentry(getSentryOptions, {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
     const previewResponse = await proxyToSandbox(request, env);
     if (previewResponse) return previewResponse;
     return app.fetch(request, env, ctx);
   },
-};
+});
 
 export type AppRouter = typeof app;
-export { Sandbox, PartyServer, PrivateRoomServer, WhiteboardDurableObject };
+
+// Wrap the collaboration Durable Objects so unhandled errors and traces inside
+// them (websocket message handlers, alarms) are reported to Sentry too. Each is
+// cast back to its original class type: the instrumentation widens the
+// constructor type, which would otherwise flow into the generated `env.*` DO
+// bindings and collapse their RPC return types to `unknown`.
+//
+// `Sandbox` (the @cloudflare/sandbox container class) is intentionally left
+// uninstrumented: wrapping it makes TS unable to resolve the `getSandbox()` RPC
+// stub types, breaking type inference across every sandbox call site. Its
+// errors still surface through the instrumented API request path, console logs,
+// and Cloudflare's own observability.
+const InstrumentedPartyServer = Sentry.instrumentDurableObjectWithSentry(
+  getSentryOptions,
+  PartyServer
+) as typeof PartyServer;
+const InstrumentedPrivateRoomServer = Sentry.instrumentDurableObjectWithSentry(
+  getSentryOptions,
+  PrivateRoomServer
+) as typeof PrivateRoomServer;
+// WhiteboardDurableObject doesn't extend the `DurableObject` base class, but it
+// has the required `(state, env)` constructor and `fetch` handler, so it's a
+// valid DO at runtime — cast it to satisfy the instrumentation's constraint.
+const InstrumentedWhiteboardDurableObject = Sentry.instrumentDurableObjectWithSentry(
+  getSentryOptions,
+  WhiteboardDurableObject as unknown as new (
+    state: DurableObjectState,
+    env: Env
+  ) => DurableObject<Env>
+) as unknown as typeof WhiteboardDurableObject;
+
+export {
+  Sandbox,
+  InstrumentedPartyServer as PartyServer,
+  InstrumentedPrivateRoomServer as PrivateRoomServer,
+  InstrumentedWhiteboardDurableObject as WhiteboardDurableObject,
+};

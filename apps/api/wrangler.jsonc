@@ -27,6 +27,7 @@
 		"ASSETS_URL": "https://assets.coderscreen.com",
 		"FREE_PLAN_ID": "free",
 		"PREVIEW_HOSTNAME": "api.coderscreen.com",
+		"SENTRY_DSN": "https://1d20b5b852150ec8e49ef047d7e08df2@o4510473855959040.ingest.us.sentry.io/4511725501743104",
 	},
 	"containers": [
 		{
@@ -93,6 +94,7 @@
 				"ASSETS_URL": "https://assets.coderscreen.com",
 				"FREE_PLAN_ID": "free",
 				"PREVIEW_HOSTNAME": "staging-api.coderscreen.com",
+				"SENTRY_DSN": "https://1d20b5b852150ec8e49ef047d7e08df2@o4510473855959040.ingest.us.sentry.io/4511725501743104",
 			},
 			"r2_buckets": [
 				{

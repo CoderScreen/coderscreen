@@ -18,10 +18,11 @@
   "dependencies": {
     "@coderscreen/common": "workspace:*",
     "@coderscreen/db": "workspace:*",
+    "@coderscreen/email": "workspace:*",
     "@fal-ai/client": "^1.9.3",
+    "@opentelemetry/api": "^1.9.1",
     "drizzle-orm": "^0.44.3",
     "postgres": "^3.4.7",
-    "resend": "^6.9.2",
-    "@coderscreen/email": "workspace:*"
+    "resend": "^6.9.2"
   }
 }

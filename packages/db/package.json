@@ -24,6 +24,7 @@
     "postgres": "^3.4.7"
   },
   "devDependencies": {
+    "@opentelemetry/api": "^1.9.1",
     "@types/node": "^24.0.3"
   },
   "exports": {
