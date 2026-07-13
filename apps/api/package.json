@@ -31,8 +31,10 @@
 		"@cloudflare/sandbox": "^0.7.0",
 		"@coderscreen/common": "workspace:^",
 		"@coderscreen/db": "workspace:^",
+		"@coderscreen/email": "workspace:^",
 		"@daytonaio/sdk": "0.21.1",
 		"@hono/zod-validator": "^0.7.0",
+		"@sentry/cloudflare": "10.65.0",
 		"@tldraw/sync-core": "^3.14.0",
 		"@tldraw/tlschema": "^3.14.0",
 		"better-auth": "^1.2.10",
@@ -52,8 +54,7 @@
 		"y-protocols": "^1.0.6",
 		"yjs": "^13.6.27",
 		"zod": "^3.25.67",
-		"zod-openapi": "^4.2.4",
-		"@coderscreen/email": "workspace:^"
+		"zod-openapi": "^4.2.4"
 	},
 	"exports": {
 		".": "./dist/src/index.d.ts"

@@ -24,7 +24,8 @@
   // !!need to add these to buildtime vars in cloudflare!!
   "vars": {
     "VITE_APP_URL": "https://app.coderscreen.com",
-    "VITE_API_URL": "https://api.coderscreen.com"
+    "VITE_API_URL": "https://api.coderscreen.com",
+    "VITE_SENTRY_DSN": "https://d3de88682d569cc42655cfd5bc148001@o4510473855959040.ingest.us.sentry.io/4511725503512576"
   },
   "env": {
     "staging": {
@@ -37,7 +38,8 @@
       ],
       "vars": {
         "VITE_APP_URL": "https://staging.coderscreen.com",
-        "VITE_API_URL": "https://staging-api.coderscreen.com"
+        "VITE_API_URL": "https://staging-api.coderscreen.com",
+        "VITE_SENTRY_DSN": "https://d3de88682d569cc42655cfd5bc148001@o4510473855959040.ingest.us.sentry.io/4511725503512576"
       }
     }
   }
