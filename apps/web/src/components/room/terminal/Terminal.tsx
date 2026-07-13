@@ -14,6 +14,10 @@ export const Terminal = () => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerminal | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
+  // PTY session id. Rotated whenever the backing shell exits (e.g. you exit the
+  // shell with Ctrl-D) so we spawn a fresh shell instead of endlessly
+  // reconnecting to a now-dead session.
+  const [sessionId, setSessionId] = useState('default');
 
   useEffect(() => {
     if (!terminalRef.current) return;
@@ -53,17 +57,25 @@ export const Terminal = () => {
     const sandboxAddon = new SandboxAddon({
       getWebSocketUrl: () => {
         const wsUrl = API_URL.replace(/^http/, 'ws');
-        return `${wsUrl}/rooms/${roomId}/public/terminal`;
+        return `${wsUrl}/rooms/${roomId}/public/terminal?sessionId=${encodeURIComponent(sessionId)}`;
       },
       reconnect: true,
-      onStateChange: (state) => setConnectionState(state),
+      onStateChange: (state, error) => {
+        setConnectionState(state);
+        // The shell process ended (e.g. you exited the shell with Ctrl-D).
+        // Reconnecting to the same session just loops, so start a fresh one,
+        // which remounts this effect and spawns a new shell.
+        if (error && /exited/i.test(error.message)) {
+          setSessionId(`default-${crypto.randomUUID()}`);
+        }
+      },
     });
     term.loadAddon(sandboxAddon);
 
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    sandboxAddon.connect({ sandboxId: `s_${roomId}` });
+    sandboxAddon.connect({ sandboxId: `s_${roomId}`, sessionId });
 
     // Register programmatic input method for Run button
     terminalInputRef.current = (cmd: string) => {
@@ -82,7 +94,7 @@ export const Terminal = () => {
       term.dispose();
       xtermRef.current = null;
     };
-  }, [roomId, terminalInputRef]);
+  }, [roomId, terminalInputRef, sessionId]);
 
   return (
     <div className='relative h-full w-full'>
