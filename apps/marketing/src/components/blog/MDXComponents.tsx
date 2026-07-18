@@ -44,10 +44,18 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </blockquote>
     ),
-    code: ({ children }) => (
-      <code className='rounded px-1.5 py-0.5 text-sm font-mono'>{children}</code>
+    code: ({ className, children }) => (
+      <code
+        className={`${className ?? ''} rounded-md border border-gray-200 bg-gray-100 px-[0.4em] py-[0.15em] font-mono text-[0.85em] font-medium text-gray-800 before:content-none after:content-none`}
+      >
+        {children}
+      </code>
     ),
-    pre: ({ children }) => <pre className='bg-gray-900 rounded-lg overflow-x-auto'>{children}</pre>,
+    pre: ({ children }) => (
+      <pre className='my-6 overflow-x-auto rounded-lg border border-gray-800 bg-gray-900 p-4 font-mono text-sm leading-relaxed text-gray-100 [&_code]:border-0 [&_code]:bg-transparent [&_code]:p-0 [&_code]:font-normal [&_code]:text-inherit [&_code]:text-[0.95em]'>
+        {children}
+      </pre>
+    ),
     img: ({ src, alt }) => {
       if (!src) return null;
       // Use Next.js Image for optimized loading

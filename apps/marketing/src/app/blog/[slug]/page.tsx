@@ -10,6 +10,44 @@ import { getAllBlogSlugs, getBlogPost, getRelatedPosts } from '@/lib/blog';
 import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
 import 'highlight.js/styles/github-dark.css';
 
+const AUTHOR_AVATARS: Record<string, string> = {
+  'Kuba Rogut': '/blog/author/kuba_rogut.png',
+};
+
+function AuthorAvatar({ name }: { name: string }) {
+  const avatar = AUTHOR_AVATARS[name];
+
+  if (avatar) {
+    return (
+      <Image
+        src={avatar}
+        alt={name}
+        width={44}
+        height={44}
+        className='h-11 w-11 flex-shrink-0 rounded-full object-cover'
+      />
+    );
+  }
+
+  const initials = name
+    .split(' ')
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase();
+
+  return (
+    <span className='flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white'>
+      {initials}
+    </span>
+  );
+}
+
+function getReadingTime(content: string): number {
+  const words = content.trim().split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
 function RelatedArticles({ slug, tags }: { slug: string; tags?: string[] }) {
   const related = getRelatedPosts(slug, tags, 3);
 
@@ -66,7 +104,12 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://coderscreen.com';
   const postUrl = `${siteUrl}/blog/${slug}`;
-  const imageUrl = post.image || `${siteUrl}/og-image.png`;
+  // Use the post's thumbnail as the OpenGraph/Twitter image (absolute URL for scrapers).
+  const imageUrl = post.image
+    ? post.image.startsWith('http')
+      ? post.image
+      : `${siteUrl}${post.image}`
+    : `${siteUrl}/og-image.png`;
 
   // Generate keywords from tags and extract key terms from title
   const keywords = [
@@ -82,8 +125,8 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
     title: `${post.title} | CoderScreen`,
     description: post.description || post.title,
     keywords,
-    authors: [{ name: post.author || 'CoderScreen Team' }],
-    creator: post.author || 'CoderScreen Team',
+    authors: [{ name: post.author || 'Kuba Rogut' }],
+    creator: post.author || 'Kuba Rogut',
     publisher: 'CoderScreen',
 
     // Open Graph metadata for social sharing
@@ -103,7 +146,7 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
       ],
       publishedTime: post.date,
       modifiedTime: post.updatedAt || post.date,
-      authors: [post.author || 'CoderScreen Team'],
+      authors: [post.author || 'Kuba Rogut'],
       tags: post.tags || [],
     },
 
@@ -139,7 +182,7 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
     other: {
       'article:published_time': post.date,
       'article:modified_time': post.updatedAt || post.date,
-      'article:author': post.author || 'CoderScreen Team',
+      'article:author': post.author || 'Kuba Rogut',
       'article:section': 'Technology',
       'article:tag': post.tags?.join(', ') || '',
     },
@@ -156,7 +199,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://coderscreen.com';
   const postUrl = `${siteUrl}/blog/${slug}`;
-  const imageUrl = post.image || `${siteUrl}/og-image.png`;
+  // Use the post's thumbnail as the OpenGraph/Twitter image (absolute URL for scrapers).
+  const imageUrl = post.image
+    ? post.image.startsWith('http')
+      ? post.image
+      : `${siteUrl}${post.image}`
+    : `${siteUrl}/og-image.png`;
+  const author = post.author || 'Kuba Rogut';
+  const readingTime = getReadingTime(post.content);
 
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: 'Home', href: '/' },
@@ -174,7 +224,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     dateModified: post.updatedAt || post.date,
     author: {
       '@type': 'Person',
-      name: post.author || 'CoderScreen Team',
+      name: post.author || 'Kuba Rogut',
     },
     publisher: {
       '@type': 'Organization',
@@ -225,43 +275,25 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           Back to Blog
         </Link>
 
-        <header className='mb-8'>
-          <h1 className='text-5xl font-bold text-gray-900 mb-4'>{post.title}</h1>
-          <div className='flex items-center gap-4 text-gray-600'>
-            <time dateTime={post.date}>{dayjs(post.date).format('MMMM D, YYYY')}</time>
-            {post.author && (
-              <>
-                <span>•</span>
-                <span>{post.author}</span>
-              </>
-            )}
-          </div>
-          {post.tags && post.tags.length > 0 && (
-            <div className='flex flex-wrap gap-2 mt-4'>
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className='inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm'
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+        <header className='mb-10'>
+          <h1 className='text-4xl sm:text-5xl font-bold tracking-tight leading-tight text-gray-900'>
+            {post.title}
+          </h1>
+          {post.description && (
+            <p className='mt-5 text-xl leading-8 text-gray-600'>{post.description}</p>
           )}
-        </header>
-
-        {post.image && (
-          <div className='mb-12 overflow-hidden rounded-lg'>
-            <Image
-              src={post.image}
-              alt={post.title}
-              width={1200}
-              height={630}
-              className='w-full h-auto object-cover'
-              priority
-            />
+          <div className='mt-8 flex items-center gap-3'>
+            <AuthorAvatar name={author} />
+            <div className='text-sm'>
+              <p className='font-semibold text-gray-900'>{author}</p>
+              <div className='flex items-center gap-2 text-gray-500'>
+                <time dateTime={post.date}>{dayjs(post.date).format('MMMM D, YYYY')}</time>
+                <span aria-hidden='true'>·</span>
+                <span>{readingTime} min read</span>
+              </div>
+            </div>
           </div>
-        )}
+        </header>
 
         <div className='prose prose-lg max-w-none'>
           <MDXRemote
@@ -275,6 +307,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             }}
           />
         </div>
+
+        {post.tags && post.tags.length > 0 && (
+          <footer className='mt-12 border-t border-gray-200 pt-8'>
+            <h2 className='mb-3 text-sm font-semibold text-gray-900'>Topics</h2>
+            <div className='flex flex-wrap gap-2'>
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className='inline-flex items-center rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600'
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </footer>
+        )}
       </article>
 
       <RelatedArticles slug={slug} tags={post.tags} />
