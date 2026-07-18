@@ -16,7 +16,6 @@ export function BlogPostGrid({ posts }: { posts: BlogPostMetadata[] }) {
   const loadMore = () => setVisibleCount((count) => Math.min(count + PAGE_SIZE, posts.length));
 
   // Infinite scroll: reveal the next page as the sentinel nears the viewport.
-  // Re-runs on visibleCount so it keeps loading while the sentinel stays in view.
   useEffect(() => {
     if (!hasMore || typeof IntersectionObserver === 'undefined') return;
     const el = sentinelRef.current;
@@ -24,13 +23,15 @@ export function BlogPostGrid({ posts }: { posts: BlogPostMetadata[] }) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) loadMore();
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((count) => Math.min(count + PAGE_SIZE, posts.length));
+        }
       },
       { rootMargin: '600px 0px' }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, visibleCount, posts.length]);
+  }, [hasMore, posts.length]);
 
   return (
     <div className='border-t border-gray-200 pt-12'>
