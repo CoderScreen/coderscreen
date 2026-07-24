@@ -1,0 +1,41 @@
+<svg width="780" height="260" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" viewBox="0 0 780 260">
+<rect width="780" height="260" x="0" y="0" fill="#fff"></rect>
+<path d="M90.5 66L90.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<path d="M191.5 66L191.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<path d="M293.5 66L293.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<path d="M395.5 66L395.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<path d="M496.5 66L496.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<path d="M598.5 66L598.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<path d="M700.5 66L700.5 236" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr5-cls-30"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(82 94.3333)" fill="#0F172A">1 to 10</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(82 151)" fill="#0F172A">11 to 50</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(82 207.6667)" fill="#0F172A">51 to 200</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(90 244)" fill="#64748B">0%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(191.6667 244)" fill="#64748B">5%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(293.3333 244)" fill="#64748B">10%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(395 244)" fill="#64748B">15%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(496.6667 244)" fill="#64748B">20%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(598.3333 244)" fill="#64748B">25%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(700 244)" fill="#64748B">30%</text>
+<path d="M90 79.6L695 79.6A3 3 0 0 1 698 82.6L698 106.1A3 3 0 0 1 695 109.1L90 109.1L90 79.6Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" class="zr5-cls-31"></path>
+<path d="M90 136.3L440.8 136.3A3 3 0 0 1 443.8 139.3L443.8 162.7A3 3 0 0 1 440.8 165.7L90 165.7L90 136.3Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="1" ecmeta_ssr_type="chart" class="zr5-cls-31"></path>
+<path d="M90 192.9L390 192.9A3 3 0 0 1 393 195.9L393 219.4A3 3 0 0 1 390 222.4L90 222.4L90 192.9Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="2" ecmeta_ssr_type="chart" class="zr5-cls-31"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;font-weight:600;" transform="translate(702.9667 94.3333)" fill="#0F172A">29.9%</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;font-weight:600;" transform="translate(448.8 151)" fill="#0F172A">17.4%</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;font-weight:600;" transform="translate(397.9667 207.6667)" fill="#0F172A">14.9%</text>
+<path d="M-5 -5l398 0l0 48l-398 0Z" transform="translate(13 11)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr5-cls-30"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:16px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;font-weight:700;" xml:space="preserve" y="8" transform="translate(13 11)" fill="#3c3c41">Smaller companies hire more juniors</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" y="32" transform="translate(13 11)" fill="#64748B">Share of engineering roles open to new grads, grouped by company size</text>
+<style ><![CDATA[
+.zr5-cls-30:hover {
+pointer-events:none;
+}
+.zr5-cls-31:hover {
+cursor:pointer;
+fill:rgba(56,71,93,1);
+}
+
+]]>
+
+</style>
+<g opacity="0.9"><g transform="translate(608,12) scale(0.1)"><path fill="#1860fb" d="m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z"/><path fill="#1860fb" d="m33 60.6l51.8 28.7v100.7l-51.8-28.7z"/><path fill="#1860fb" d="m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z"/><path fill="#1860fb" d="m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z"/></g><text x="634" y="22" dominant-baseline="central" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#1860fb">CoderScreen</text></g></svg>

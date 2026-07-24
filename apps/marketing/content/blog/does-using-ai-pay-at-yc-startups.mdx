@@ -1,0 +1,129 @@
+---
+title: 'I checked whether “using AI” actually pays at YC startups. It doesn’t'
+date: '2026-07-24'
+description: "We scraped every open engineering role at around 1,400 YC startups. Requiring engineers to 'use AI' pays almost nothing once you control for seniority, while infrastructure and ML systems skills like Terraform, CUDA, and PyTorch pay a real premium."
+author: 'Kuba Rogut'
+tags: ['Data', 'Hiring', 'Compensation', 'Engineering-Careers', 'Startups', 'YC']
+image: '/blog/does-using-ai-pay-at-yc-startups.webp'
+---
+
+There is a specific anxiety running under a lot of engineering-career talk right now: do you need "AI" on your resume to keep getting paid? CoderScreen builds coding interviews, so rather than guess, I went and checked. I scraped every open engineering role on Y Combinator's Work at a Startup, 2,652 jobs across roughly 1,400 startups, with the salary, equity, required experience, and full description for each, then looked at what the roles asking for AI actually pay.
+
+The lazy version of that check says AI pays. Jobs that lean on "AI-native" language come in about 9% higher, and I almost wrote that down as the finding. But pull the numbers apart properly and the premium evaporates. Naming Cursor or an OpenAI API in your stack turns out to be worth almost nothing. What actually pays is the hard stuff underneath the AI: infrastructure and machine-learning systems. Getting to that answer meant first working out how these startups pay at all, and that was the more surprising part. Salary barely moves between roles. The real money is in equity, and it is wildly uneven.
+
+A few things to keep honest before the numbers. This is one snapshot from July 2026, not a trend over time, so every comparison here is between roles as they are right now, not across years. YC startups skew early stage and AI forward, so read this as a leading indicator rather than the whole market. And equity here is a percentage with no valuation attached, so I only ever talk about the spread and the direction, never dollars. A bigger slice of an unknown number is not automatically more money.
+
+With that out of the way, here is what 2,652 job posts say about how startups actually pay engineers, and why "knows AI" is not the line that moves the number.
+
+## Almost every role pays about $170K
+
+Here is the median base salary by role, for the jobs that list one in dollars.
+
+![Bar chart of median base salary by role at YC startups. Backend and machine learning sit at $175K, full-stack at $170K, frontend and DevOps at $155K, and engineering manager stands out at $239K.](/blog/yc-skills-pay/salary-wall.svg)
+
+*Median base salary by role. Ignore the managers and every individual-contributor role fits inside a $20K band.*
+
+Set the engineering managers aside, since they are the only group that clearly breaks the pattern, and the entire spread of IC salaries is about $20K. Backend and machine learning sit at $175K, full-stack at $170K on a big sample of 1,177 roles, frontend and DevOps at $155K. Whether you are the ML person or the frontend person, the number a startup quotes you lands in the same narrow band.
+
+There is one asterisk worth naming and not leaning on. Remote roles run about $25K lower than onsite ones, $150K against $175K at the median. That is real, but it is tangled up with geography and role mix, so I would not read it as a clean "remote penalty."
+
+The takeaway is almost dull: the kind of engineer you are barely moves your cash. So if salary is this flat, the differentiation has to be hiding somewhere else. I sorted the same jobs by their equity grant.
+
+## The real variable is equity
+
+To take salary out of the picture, I looked only at the jobs paying between $150K and $185K, so cash is roughly held constant, and then looked at nothing but their equity. There were 407 of them.
+
+![Bar chart of equity percentiles within a single salary band. Equity runs from 0.1% at the 2nd percentile to 2.3% at the 98th percentile, a roughly 40x spread on the same salary.](/blog/yc-skills-pay/equity-spread.svg)
+
+*Equity offered inside one salary band. Same paycheck, and the grant runs from 0.1% to 2.3%.*
+
+From 0.1% to 2.3%, roughly a 40x spread among people earning the same salary. The cash barely varies and the ownership varies by a factor of forty. To say it plainly, since this is a percentage with no valuation behind it: I am not claiming the 2.3% person is forty times richer. I am saying the thing startups actually differentiate on is equity, not cash, and they differentiate on it enormously.
+
+A range that wide is not random noise. It is structure, and most of it comes down to two things.
+
+## Two words move your equity more than any negotiation
+
+The first is a single word in the job title. Roles with "founding" in them pay the same base as everyone else and hand out exactly twice the equity.
+
+| Title | Median base | Median equity |
+| --- | --- | --- |
+| Has "founding" in it | $170K | 1.0% |
+| Everything else | $170K | 0.5% |
+
+Same cash, double the ownership. That one word is worth more than any salary negotiation you are likely to win.
+
+The second lever is the one nobody expects. More seniority does not just raise your cash, it lowers your equity.
+
+| Experience asked for | Median base | Median equity |
+| --- | --- | --- |
+| New grads OK | $155K | 0.8% |
+| 6+ years | $190K | 0.3% |
+
+Going from new grad to senior adds about $35K in salary and cuts your equity by more than half. Put together, juniors get the lottery ticket and seniors get the paycheck. The early-career engineer is being paid in a bet, and the senior engineer has quietly traded that bet for a bigger, safer number.
+
+The junior end is also more open than the "no one hires juniors anymore" story suggests, at least at the smallest companies.
+
+![Bar chart of the share of engineering roles open to new grads by company size. It falls from 29.9% at companies of 1 to 10 people, to 17.4% at 11 to 50, to 14.9% at 51 to 200.](/blog/yc-skills-pay/new-grads-by-size.svg)
+
+*Share of roles open to new grads, by company size. The smallest startups are about twice as junior-friendly as the ones a rung up.*
+
+## Whether they even tell you
+
+Here is the part that makes equity feel like a black box. Whether a company prints the number at all depends on how far along it is, and it goes the opposite way you would expect.
+
+| Stage | Lists a salary | Lists equity |
+| --- | --- | --- |
+| Early | 93% | 62% |
+| Growth | 72% | 15% |
+
+Bigger, more established startups are less transparent, not more. By growth stage, only 15% of postings put an equity number on the page. The conversation has moved off the posting and into the room, right as the stakes get more legible. So if a posting is quiet about equity, that quiet is itself a signal about the stage of the company.
+
+## What they actually screen for
+
+Comp is one half of what a posting tells you. The other half is what the company wants you to know, so before asking which skills pay, it helps to see which skills are even asked for. This is where our day job comes in: turning 2,652 free-text descriptions into clean, comparable skills is exactly the kind of thing we do to score interviews. I ran each description through a language model that pulled out every named skill, tagged whether it was required or nice to have, and quoted the exact line it came from so I could check its work.
+
+![Bar chart of the most-demanded skills at YC startups. Python leads at 48.6%, then TypeScript at 40.5%, React at 35.7%, AWS at 28.5%, and PostgreSQL at 25.5%, each mostly listed as required.](/blog/yc-skills-pay/skill-demand.svg)
+
+*Share of engineering jobs that ask for each skill. The number in parentheses is how often it is a hard requirement rather than a nice-to-have.*
+
+Nothing shocking at the top: Python, TypeScript, React, AWS, PostgreSQL. The more useful detail is the second number. Across the top of the list, roughly 80% of mentions are hard requirements, not nice-to-haves. These are gates, not bonus points. Which sets up the real question. Of all the skills a startup can ask for, which ones actually come with more money?
+
+## The skills that actually pay, and it is not "using AI"
+
+My first pass at this was lazy, and it is worth showing because the lazy answer was wrong in an interesting way. I counted keywords. Jobs whose descriptions used "AI-native" or "AI-first" language paid about 9% more than the ones that did not. Clean, quotable, and exactly the headline everyone expects: AI pays. I almost stopped there.
+
+Then I did it properly. Instead of matching keywords in the raw text, I used the extracted, deduplicated skills, and I controlled for the obvious confound: senior roles pay more and also tend to mention more of everything, so any skill that skews senior will look like it pays a premium on its own. Once I compared skill against skill within the same experience band, the tidy "AI pays 9% more" number fell apart. Here is what was actually underneath it.
+
+![Diverging bar chart of how much each skill pays relative to the $170K median. Infrastructure and ML systems skills like Temporal, Terraform, CUDA, Datadog, and PyTorch sit at the top around +6 to +9%. AI-usage skills like Cursor, Claude Code, OpenAI, and Anthropic sit right at the line. Commodity skills like Java, JavaScript, React Native, Git, and CSS pay a discount down to -18%.](/blog/yc-skills-pay/skills-that-pay.svg)
+
+*How much each skill pays compared to the $170K median. The amber-outlined bars are the AI and ML skills.*
+
+The skills that pay a premium are all infrastructure and machine-learning systems. Temporal, Terraform, CUDA, Datadog, and PyTorch sit at the top, 6 to 9% above the median, and the strongest of them hold their premium even when you compare only senior roles to senior roles. Temporal roles pay about 12% more inside the senior band, Terraform about 6%. This is depth, the hard stuff underneath a product: orchestration, infrastructure as code, GPUs, observability.
+
+Now look at where "using AI" lands. Cursor and Claude Code, the coding tools everyone is talking about, come in at about +3%. The OpenAI and Anthropic API skills sit slightly below the median. Naming an LLM in your stack is worth essentially nothing at the pay level. And the commodity front-end and glue skills, the CSS and Git and React Native of the world, actually pay a discount, as much as 18% below the median.
+
+The "does AI pay" question has a cleaner version too. I split every job by whether it requires at least one real AI or ML skill and compared the salaries.
+
+![Bar chart comparing median salary for jobs that require an AI or ML skill ($175K) against jobs that do not ($165K), about 6% higher overall.](/blog/yc-skills-pay/ai-premium.svg)
+
+*Jobs requiring an AI or ML skill pay about 6% more, but most of that gap is seniority, not the skill.*
+
+Jobs that require an AI or ML skill do pay about 6% more, $175K against $165K. But hold experience constant and that gap shrinks to about 3%. Most of the apparent "AI premium" is just that AI roles skew senior, not that the skill itself pays.
+
+I want to be honest about the limits here. Even comparing within an experience band is a partial control, not a full one. Some of these premiums surely still carry the fingerprint of the kind of company that hires for them, since a well-funded infrastructure-heavy startup pays more for reasons that have nothing to do with the skill on the page. And this is a percentage-of-company world with no valuation attached, so the equity numbers are about spread and direction only. What survives all of that is a simple, slightly uncomfortable pattern: the market is paying for systems depth, and it is not paying extra for being able to call an API that a model sits behind.
+
+## What this means if you are hunting for a startup job
+
+If you are reading a YC job post, a few things fall out of the data:
+
+- The base is a near-fixed anchor around $170K. Negotiate equity and title, not salary, because that is what actually varies.
+- "Founding" in the title is worth roughly double the equity at the same cash. More seniority trades equity down for cash up.
+- If a posting does not print an equity number, that quiet is a stage signal. Ask early.
+- The skills that move pay are infrastructure and ML systems: orchestration, IaC, GPUs, observability, real model training. Not another web framework, and not "we use Cursor."
+- Knowing how to use AI is table stakes now, not a premium. Knowing how to build and run the systems underneath it still is.
+
+None of this makes the buzzword skills useless. It just means the market is quietly pricing depth over trend, and the job post is where it tells on itself.
+
+This came out of building [CoderScreen](/), where we bet that watching someone build and reason about a real system tells you more than a puzzle does. Turns out most of these startups are paying for the same thing. If you run technical interviews, give it a try, and tell us what breaks.
+
+*Thanks for reading.*
