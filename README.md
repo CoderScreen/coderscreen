@@ -30,34 +30,26 @@
   </p>
 </div>
 
-<br/>
-
-<!-- TODO: swap this for a real product screenshot or short GIF. It's the first thing people see — make it count. -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/CoderScreen/coderscreen/refs/heads/main/content/logo.png" alt="CoderScreen product screenshot" width="800">
-</p>
-
-<br/>
 
 ## Why we built this
 
-Hiring engineers is hard enough without fighting your tools. Most interview platforms are closed boxes: you can't see how they run candidate code, you can't shape them to your process, and you're stuck stitching together one tool for live interviews, another for take-homes, and a spreadsheet for everything else.
+Hiring engineers is hard, and the tools don't help. Most interview platforms are closed boxes. You can't see how they run candidate code, you can't change them to fit how you work, and you end up using one tool for live interviews, another for take-homes, and a spreadsheet to track it all.
 
-We wanted something different — a single platform that does live interviews, async screening, and take-homes, that runs candidate code transparently, and that you can read, fork, and host on your own infrastructure. So we built CoderScreen and made it open source.
+We wanted one platform that does all of it: live interviews, async screening, and take-homes. One that runs candidate code out in the open, and that you can read, fork, and host yourself. So we built CoderScreen and made it open source.
 
-If you've ever spent an evening reading through half-finished take-homes, or run an hour-long interview with someone who couldn't get past FizzBuzz, this is for you.
+If you've ever spent a night reading half-finished take-homes, or sat through an hour-long interview with someone who couldn't get past FizzBuzz, this is for you.
 
 ## What you get
 
-**A real-time editor candidates actually enjoy.** Multiplayer editing with live cursors, powered by Yjs. Candidates join from a link — no accounts, no downloads, no "can you share your screen?"
+**A live editor candidates actually like.** Everyone codes in the same editor in real time, with live cursors. Candidates just click a link to join. No accounts, no downloads, no "can you share your screen?"
 
-**Code that runs, right there.** Execute in a secure sandbox and see `stdout`, `stderr`, and exit codes instantly. 20+ languages including TypeScript, Python, Go, Rust, Java, and C++, with multi-file projects and live browser previews for React, Vue, and Svelte.
+**Code that actually runs.** Run code in a secure sandbox and see the output right away: `stdout`, `stderr`, and exit codes. It works with 20+ languages like TypeScript, Python, Go, Rust, Java, and C++. Multi-file projects work too, and you get live browser previews for React, Vue, and Svelte.
 
-**Screening that grades itself.** Build a coding assessment once, send candidates a link, and get scored results back automatically. Reuse questions from a shared library, weight the hard ones so they count for more, and get a single clear score per candidate — no rubric-wrangling.
+**Screening that grades itself.** Build a coding test once and send candidates a link. Results come back scored automatically. Pull questions from a shared library, make the hard ones worth more, and get one clear score per candidate. No rubrics to argue over.
 
-**A window into how they think.** Replay every keystroke with code playback to see how a candidate got to their answer, not just where they landed. And since AI is part of real work now, you can watch how they prompt and iterate with the built-in assistant.
+**See how they think.** Replay every keystroke to see how a candidate got to their answer, not just where they ended up. AI is part of real work now, so you can also watch how they prompt and iterate with the built-in assistant.
 
-**Made yours.** Add your logo and colors, then track hiring metrics and spot where your process slows down.
+**Make it yours.** Add your logo and colors, then track your hiring metrics to see where things slow down.
 
 ## Self-hosting
 
@@ -92,7 +84,6 @@ CoderScreen is a [pnpm](https://pnpm.io) monorepo built with React, TypeScript, 
 | `email`       | Shared email templates.                                                        |
 | `common`      | Shared utilities and types.                                                    |
 | `scripts`     | Operational and maintenance scripts.                                           |
-| `sandbox-sdk` | Code execution SDK for the sandbox (a fork of Cloudflare's sandbox-sdk).        |
 
 ## Contributing
 
