@@ -9,9 +9,41 @@ import type {
   UpdateQuestionSchema,
   UpdateTestCaseSchema,
 } from '@coderscreen/api/schema/assessment';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { throwApiError } from '@/query/error.query';
 import { apiClient } from './client';
+
+// Surgically update the cached assessment(s) for `assessmentId` without a
+// refetch. `useAssessment` caches under `['assessments', id, { ...pagination }]`,
+// so we match every pagination variant by predicate and rewrite its `questions`
+// array. This keeps test-case edits from re-pulling the entire assessment
+// (all questions + all test cases) on every keystroke-level save.
+// biome-ignore lint/suspicious/noExplicitAny: cache payloads are loosely typed here (see useAssessment)
+type CachedQuestion = any;
+// Minimal shape of a test case as we manipulate it in the cache. The RPC client
+// infers these mutation responses imprecisely (the resolved type collapses to
+// `never` for the PATCH endpoint), so we pin the fields the cache operations
+// actually read.
+type CachedTestCase = { id: string; position: number };
+const patchAssessmentQuestions = (
+  queryClient: QueryClient,
+  assessmentId: string,
+  updater: (questions: CachedQuestion[]) => CachedQuestion[]
+) => {
+  queryClient.setQueriesData(
+    {
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === 'assessments' &&
+        query.queryKey[1] === assessmentId,
+    },
+    // biome-ignore lint/suspicious/noExplicitAny: cache payloads are loosely typed here
+    (old: any) => {
+      if (!old || !Array.isArray(old.questions)) return old;
+      return { ...old, questions: updater(old.questions) };
+    }
+  );
+};
 
 // ============================================================
 // Assessments
@@ -336,8 +368,28 @@ export const useReorderQuestions = (assessmentId: string) => {
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId] });
+    // Reorder is client-authoritative (only `position` changes, nothing is
+    // server-derived), so apply it optimistically and skip the refetch. On
+    // error we roll back to the pre-drag snapshot.
+    onMutate: async (order) => {
+      const predicate = (query: { queryKey: unknown }) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === 'assessments' &&
+        query.queryKey[1] === assessmentId;
+      await queryClient.cancelQueries({ predicate });
+      const snapshots = queryClient.getQueriesData({ predicate });
+
+      const positionById = new Map(order.map((o) => [o.id, o.position]));
+      patchAssessmentQuestions(queryClient, assessmentId, (questions) =>
+        questions
+          .map((q) => (positionById.has(q.id) ? { ...q, position: positionById.get(q.id) } : q))
+          .sort((a, b) => a.position - b.position)
+      );
+
+      return { snapshots };
+    },
+    onError: (_err, _order, context) => {
+      context?.snapshots?.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
     meta: {
       ERROR_MESSAGE: 'Failed to reorder questions',
@@ -399,10 +451,21 @@ export const useCreateTestCase = (assessmentId: string, questionId: string) => {
       if (!response.ok) {
         await throwApiError(response);
       }
-      return response.json();
+      return (await response.json()) as unknown as CachedTestCase;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId] });
+    onSuccess: (newTestCase) => {
+      patchAssessmentQuestions(queryClient, assessmentId, (questions) =>
+        questions.map((q) =>
+          q.id === questionId
+            ? {
+                ...q,
+                testCases: [...(q.testCases ?? []), newTestCase].sort(
+                  (a: CachedTestCase, b: CachedTestCase) => a.position - b.position
+                ),
+              }
+            : q
+        )
+      );
     },
     meta: {
       SUCCESS_MESSAGE: 'Test case added',
@@ -437,10 +500,23 @@ export const useUpdateTestCase = (assessmentId: string, questionId: string) => {
       if (!response.ok) {
         await throwApiError(response);
       }
-      return response.json();
+      return (await response.json()) as unknown as CachedTestCase;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId] });
+    onSuccess: (updatedTestCase) => {
+      patchAssessmentQuestions(queryClient, assessmentId, (questions) =>
+        questions.map((q) =>
+          q.id === questionId
+            ? {
+                ...q,
+                testCases: (q.testCases ?? [])
+                  .map((tc: CachedTestCase) =>
+                    tc.id === updatedTestCase.id ? updatedTestCase : tc
+                  )
+                  .sort((a: CachedTestCase, b: CachedTestCase) => a.position - b.position),
+              }
+            : q
+        )
+      );
     },
     meta: {
       SUCCESS_MESSAGE: 'Test case updated',
@@ -470,8 +546,17 @@ export const useDeleteTestCase = (assessmentId: string, questionId: string) => {
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId] });
+    onSuccess: (_data, testCaseId) => {
+      patchAssessmentQuestions(queryClient, assessmentId, (questions) =>
+        questions.map((q) =>
+          q.id === questionId
+            ? {
+                ...q,
+                testCases: (q.testCases ?? []).filter((tc: { id: string }) => tc.id !== testCaseId),
+              }
+            : q
+        )
+      );
     },
     meta: {
       SUCCESS_MESSAGE: 'Test case deleted',
