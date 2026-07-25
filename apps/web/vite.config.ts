@@ -29,9 +29,7 @@ export default defineConfig({
       process.env.VITE_SENTRY_DSN ??
         'https://d3de88682d569cc42655cfd5bc148001@o4510473855959040.ingest.us.sentry.io/4511725503512576'
     ),
-    // PostHog project API keys are public (shipped in the client bundle), but we
-    // intentionally keep the key env-var only with no baked default so PostHog
-    // stays off unless VITE_PUBLIC_POSTHOG_KEY is set at build time.
+    // Env-var only, no default: PostHog stays off unless the key is set.
     'import.meta.env.VITE_PUBLIC_POSTHOG_KEY': JSON.stringify(
       process.env.VITE_PUBLIC_POSTHOG_KEY ?? ''
     ),
