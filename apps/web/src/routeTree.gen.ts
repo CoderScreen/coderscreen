@@ -29,6 +29,7 @@ import { Route as AppAssessmentsIndexRouteImport } from './routes/_app/assessmen
 import { Route as RoomRoomIdSummaryRouteImport } from './routes/room/$roomId/summary'
 import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
 import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing'
+import { Route as AppSettingsApiKeysRouteImport } from './routes/_app/settings/api-keys'
 import { Route as AppQuestionsNewRouteImport } from './routes/_app/questions/new'
 import { Route as AppAssessmentsAssessmentIdRouteImport } from './routes/_app/assessments/$assessmentId'
 import { Route as AppAssessmentsAssessmentIdIndexRouteImport } from './routes/_app/assessments/$assessmentId/index'
@@ -140,6 +141,11 @@ const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
   path: '/settings/billing',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsApiKeysRoute = AppSettingsApiKeysRouteImport.update({
+  id: '/settings/api-keys',
+  path: '/settings/api-keys',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppQuestionsNewRoute = AppQuestionsNewRouteImport.update({
   id: '/questions/new',
   path: '/questions/new',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdRouteWithChildren
   '/questions/new': typeof AppQuestionsNewRoute
+  '/settings/api-keys': typeof AppSettingsApiKeysRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/accept-invitation/$invId': typeof AcceptInvitationInvIdRoute
   '/': typeof AppIndexRoute
   '/questions/new': typeof AppQuestionsNewRoute
+  '/settings/api-keys': typeof AppSettingsApiKeysRoute
   '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/assessments/$assessmentId': typeof AppAssessmentsAssessmentIdRouteWithChildren
   '/_app/questions/new': typeof AppQuestionsNewRoute
+  '/_app/settings/api-keys': typeof AppSettingsApiKeysRoute
   '/_app/settings/billing': typeof AppSettingsBillingRoute
   '/_app/settings/team': typeof AppSettingsTeamRoute
   '/room/$roomId/summary': typeof RoomRoomIdSummaryRoute
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/'
     | '/assessments/$assessmentId'
     | '/questions/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/team'
     | '/room/$roomId/summary'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/accept-invitation/$invId'
     | '/'
     | '/questions/new'
+    | '/settings/api-keys'
     | '/settings/billing'
     | '/settings/team'
     | '/room/$roomId/summary'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/assessments/$assessmentId'
     | '/_app/questions/new'
+    | '/_app/settings/api-keys'
     | '/_app/settings/billing'
     | '/_app/settings/team'
     | '/room/$roomId/summary'
@@ -554,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBillingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings/api-keys': {
+      id: '/_app/settings/api-keys'
+      path: '/settings/api-keys'
+      fullPath: '/settings/api-keys'
+      preLoaderRoute: typeof AppSettingsApiKeysRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/questions/new': {
       id: '/_app/questions/new'
       path: '/questions/new'
@@ -674,6 +693,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAssessmentsAssessmentIdRoute: typeof AppAssessmentsAssessmentIdRouteWithChildren
   AppQuestionsNewRoute: typeof AppQuestionsNewRoute
+  AppSettingsApiKeysRoute: typeof AppSettingsApiKeysRoute
   AppSettingsBillingRoute: typeof AppSettingsBillingRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppAssessmentsIndexRoute: typeof AppAssessmentsIndexRoute
@@ -690,6 +710,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAssessmentsAssessmentIdRoute: AppAssessmentsAssessmentIdRouteWithChildren,
   AppQuestionsNewRoute: AppQuestionsNewRoute,
+  AppSettingsApiKeysRoute: AppSettingsApiKeysRoute,
   AppSettingsBillingRoute: AppSettingsBillingRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppAssessmentsIndexRoute: AppAssessmentsIndexRoute,

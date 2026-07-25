@@ -56,6 +56,10 @@
 				"name": "WHITEBOARD_DO",
 				"class_name": "WhiteboardDurableObject",
 			},
+			{
+				"name": "CODERSCREEN_MCP",
+				"class_name": "CoderScreenMcp",
+			},
 		],
 	},
 	"migrations": [
@@ -67,6 +71,10 @@
 				"PrivateRoomServer",
 				"WhiteboardDurableObject",
 			],
+		},
+		{
+			"tag": "v2",
+			"new_sqlite_classes": ["CoderScreenMcp"],
 		},
 	],
 	"r2_buckets": [

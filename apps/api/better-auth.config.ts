@@ -2,7 +2,7 @@ import { env } from 'node:process';
 import * as schema from '@coderscreen/db/user.db';
 import { BetterAuthOptions, betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { organization } from 'better-auth/plugins';
+import { apiKey, organization } from 'better-auth/plugins';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -57,7 +57,20 @@ export const betterAuthConfig: BetterAuthOptions = {
       },
     },
   },
-  plugins: [organization()],
+  plugins: [
+    organization(),
+    apiKey({
+      // Store the org an API key acts for (and its creator) in metadata so the
+      // v1 middleware can rebuild the tenant context on each request.
+      enableMetadata: true,
+      // Sensible default cap; keys can be created with a custom expiry.
+      rateLimit: {
+        enabled: true,
+        timeWindow: 1000 * 60 * 60 * 24, // 1 day
+        maxRequests: 5000,
+      },
+    }),
+  ],
 } satisfies BetterAuthOptions;
 
 export const auth: ReturnType<typeof betterAuth<typeof betterAuthConfig>> = betterAuth({
