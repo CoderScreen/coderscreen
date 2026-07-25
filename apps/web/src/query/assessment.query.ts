@@ -20,6 +20,11 @@ import { apiClient } from './client';
 // (all questions + all test cases) on every keystroke-level save.
 // biome-ignore lint/suspicious/noExplicitAny: cache payloads are loosely typed here (see useAssessment)
 type CachedQuestion = any;
+// Minimal shape of a test case as we manipulate it in the cache. The RPC client
+// infers these mutation responses imprecisely (the resolved type collapses to
+// `never` for the PATCH endpoint), so we pin the fields the cache operations
+// actually read.
+type CachedTestCase = { id: string; position: number };
 const patchAssessmentQuestions = (
   queryClient: QueryClient,
   assessmentId: string,
@@ -446,7 +451,7 @@ export const useCreateTestCase = (assessmentId: string, questionId: string) => {
       if (!response.ok) {
         await throwApiError(response);
       }
-      return response.json();
+      return (await response.json()) as unknown as CachedTestCase;
     },
     onSuccess: (newTestCase) => {
       patchAssessmentQuestions(queryClient, assessmentId, (questions) =>
@@ -455,7 +460,7 @@ export const useCreateTestCase = (assessmentId: string, questionId: string) => {
             ? {
                 ...q,
                 testCases: [...(q.testCases ?? []), newTestCase].sort(
-                  (a, b) => a.position - b.position
+                  (a: CachedTestCase, b: CachedTestCase) => a.position - b.position
                 ),
               }
             : q
@@ -495,7 +500,7 @@ export const useUpdateTestCase = (assessmentId: string, questionId: string) => {
       if (!response.ok) {
         await throwApiError(response);
       }
-      return response.json();
+      return (await response.json()) as unknown as CachedTestCase;
     },
     onSuccess: (updatedTestCase) => {
       patchAssessmentQuestions(queryClient, assessmentId, (questions) =>
@@ -504,12 +509,10 @@ export const useUpdateTestCase = (assessmentId: string, questionId: string) => {
             ? {
                 ...q,
                 testCases: (q.testCases ?? [])
-                  .map((tc: { id: string }) =>
+                  .map((tc: CachedTestCase) =>
                     tc.id === updatedTestCase.id ? updatedTestCase : tc
                   )
-                  .sort(
-                    (a: { position: number }, b: { position: number }) => a.position - b.position
-                  ),
+                  .sort((a: CachedTestCase, b: CachedTestCase) => a.position - b.position),
               }
             : q
         )
