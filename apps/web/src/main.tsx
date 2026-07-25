@@ -11,6 +11,7 @@ import './App.css';
 import NotFound from '@/components/common/NotFound.tsx';
 import { PendingView } from '@/components/common/PendingView.tsx';
 import { AuthContext, AuthProvider, useAuth } from '@/contexts/AuthContext.tsx';
+import { initPostHog, isPostHogEnabled, posthog } from '@/lib/posthog.ts';
 import { TanstackQueryClient } from '@/query/client.ts';
 import reportWebVitals from './reportWebVitals.ts';
 
@@ -48,6 +49,10 @@ Sentry.init({
   sendDefaultPii: true,
 });
 
+// Initialize PostHog analytics + session replay. Disabled in local dev and when
+// no project key is configured (see @/lib/posthog).
+initPostHog();
+
 const authClient = Promise.withResolvers<AuthContext>();
 
 function InnerApp() {
@@ -60,6 +65,21 @@ function InnerApp() {
 
     // Tie Sentry events to the current user (cleared on sign-out).
     Sentry.setUser(auth.user ? { id: auth.user.id, email: auth.user.email } : null);
+
+    // Tie PostHog events + session replays to the current user (reset on sign-out).
+    if (isPostHogEnabled) {
+      if (auth.user) {
+        posthog.identify(auth.user.id, {
+          email: auth.user.email,
+          name: auth.user.name,
+        });
+        if (auth.session?.activeOrganizationId) {
+          posthog.group('organization', auth.session.activeOrganizationId);
+        }
+      } else {
+        posthog.reset();
+      }
+    }
 
     authClient.resolve(auth);
   }, [auth, auth.isInitalLoading]);
