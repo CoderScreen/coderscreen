@@ -166,23 +166,27 @@ export class AssessmentSubmissionService {
       .returning()
       .then((r) => r[0]);
 
-    // Create questionSubmission rows for each assessment question link
+    // Create questionSubmission rows for each assessment question link in a
+    // single batch insert rather than one round-trip per question.
     const questions = await this.db
       .select()
       .from(assessmentQuestionTable)
       .where(eq(assessmentQuestionTable.assessmentId, assessmentId))
       .orderBy(asc(assessmentQuestionTable.position));
 
-    for (const q of questions) {
-      await this.db.insert(questionSubmissionTable).values({
-        id: generateId('questionSubmission'),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        submissionId: submissionId,
-        questionId: q.id,
-        organizationId: orgId,
-        isDraft: true,
-      });
+    if (questions.length > 0) {
+      const now = new Date().toISOString();
+      await this.db.insert(questionSubmissionTable).values(
+        questions.map((q) => ({
+          id: generateId('questionSubmission'),
+          createdAt: now,
+          updatedAt: now,
+          submissionId: submissionId,
+          questionId: q.id,
+          organizationId: orgId,
+          isDraft: true,
+        }))
+      );
     }
 
     // Email the candidate their invitation (fire-and-forget). The access link is
@@ -249,17 +253,16 @@ export class AssessmentSubmissionService {
       )
       .orderBy(desc(assessmentSubmissionTable.createdAt));
 
-    // Join with candidates
+    // Join with candidates. Fetch every referenced candidate in a single query
+    // rather than one round-trip per submission.
     const candidateIds = [...new Set(submissions.map((s) => s.candidateId))] as Id<'candidate'>[];
-    const candidates: CandidateEntity[] = [];
-    for (const cId of candidateIds) {
-      const c = await this.db
-        .select()
-        .from(candidateTable)
-        .where(eq(candidateTable.id, cId))
-        .then((r) => (r.length > 0 ? r[0] : null));
-      if (c) candidates.push(c);
-    }
+    const candidates: CandidateEntity[] =
+      candidateIds.length > 0
+        ? await this.db
+            .select()
+            .from(candidateTable)
+            .where(inArray(candidateTable.id, candidateIds))
+        : [];
 
     const candidateMap = new Map(candidates.map((c) => [c.id, c]));
 
@@ -309,12 +312,9 @@ export class AssessmentSubmissionService {
       .from(questionSubmissionTable)
       .where(eq(questionSubmissionTable.submissionId, submissionId));
 
-    // One entry per assessment question: the best non-draft submission (the
-    // graded attempt the candidate actually submitted) enriched with the test
-    // case definitions, falling back to the draft (their latest editor code) if
-    // they never submitted.
-    const questions = [];
-    for (const l of links) {
+    // Resolve the best/draft submission per assessment question up front so we
+    // know which questionSubmission rows carry test results worth fetching.
+    const perQuestion = links.map((l) => {
       const aqId = l.link.id;
       const forQuestion = allQuestionSubmissions.filter((qs) => qs.questionId === aqId);
       const best =
@@ -324,6 +324,48 @@ export class AssessmentSubmissionService {
             (a, b) => (b.score ?? -1) - (a.score ?? -1) || (a.createdAt < b.createdAt ? 1 : -1)
           )[0] ?? null;
       const draft = forQuestion.find((qs) => qs.isDraft) ?? null;
+      return { link: l, best, draft };
+    });
+
+    // Batch-fetch every test result for all "best" submissions in one query,
+    // then the test case definitions they reference in a second query, rather
+    // than two round-trips per question.
+    const bestIds = perQuestion
+      .map((p) => p.best?.id)
+      .filter((id): id is Id<'questionSubmission'> => Boolean(id));
+    const allResults =
+      bestIds.length > 0
+        ? await this.db
+            .select()
+            .from(testCaseResultTable)
+            .where(inArray(testCaseResultTable.questionSubmissionId, bestIds))
+        : [];
+
+    const allDefIds = [
+      ...new Set(allResults.map((r) => r.testCaseId as Id<'questionLibraryTestCase'>)),
+    ];
+    const allDefs =
+      allDefIds.length > 0
+        ? await this.db
+            .select()
+            .from(questionLibraryTestCaseTable)
+            .where(inArray(questionLibraryTestCaseTable.id, allDefIds))
+        : [];
+    const defById = new Map(allDefs.map((d) => [d.id, d]));
+
+    const resultsByQuestionSubmissionId = new Map<string, TestCaseResultEntity[]>();
+    for (const r of allResults) {
+      const existing = resultsByQuestionSubmissionId.get(r.questionSubmissionId) || [];
+      existing.push(r);
+      resultsByQuestionSubmissionId.set(r.questionSubmissionId, existing);
+    }
+
+    // One entry per assessment question: the best non-draft submission (the
+    // graded attempt the candidate actually submitted) enriched with the test
+    // case definitions, falling back to the draft (their latest editor code) if
+    // they never submitted.
+    const questions = perQuestion.map(({ link: l, best, draft }) => {
+      const aqId = l.link.id;
       const chosen = best ?? draft;
 
       // Per-test results, enriched with the test case definition (label, args,
@@ -338,19 +380,7 @@ export class AssessmentSubmissionService {
         }
       > = [];
       if (best) {
-        const results = await this.db
-          .select()
-          .from(testCaseResultTable)
-          .where(eq(testCaseResultTable.questionSubmissionId, best.id));
-        const testCaseIds = results.map((r) => r.testCaseId as Id<'questionLibraryTestCase'>);
-        const defs =
-          testCaseIds.length > 0
-            ? await this.db
-                .select()
-                .from(questionLibraryTestCaseTable)
-                .where(inArray(questionLibraryTestCaseTable.id, testCaseIds))
-            : [];
-        const defById = new Map(defs.map((d) => [d.id, d]));
+        const results = resultsByQuestionSubmissionId.get(best.id) ?? [];
         testCaseResults = results
           .map((r) => {
             const def = defById.get(r.testCaseId as Id<'questionLibraryTestCase'>);
@@ -366,7 +396,7 @@ export class AssessmentSubmissionService {
           .sort((a, b) => a.position - b.position);
       }
 
-      questions.push({
+      return {
         assessmentQuestionId: aqId,
         title: l.question.title,
         position: l.link.position,
@@ -377,8 +407,8 @@ export class AssessmentSubmissionService {
         score: best?.score ?? null,
         maxScore: best?.maxScore ?? null,
         testCaseResults,
-      });
-    }
+      };
+    });
 
     return {
       ...submission,
@@ -491,25 +521,33 @@ export class AssessmentSubmissionService {
       .from(assessmentQuestionTable)
       .where(eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>));
 
+    // Fetch every non-draft submission for this attempt in one query (ordered
+    // by score desc), then keep the highest-scoring one per question in memory.
+    const nonDraftSubmissions = await this.db
+      .select()
+      .from(questionSubmissionTable)
+      .where(
+        and(
+          eq(questionSubmissionTable.submissionId, submissionId),
+          eq(questionSubmissionTable.isDraft, false)
+        )
+      )
+      .orderBy(desc(questionSubmissionTable.score));
+
+    const bestByQuestionId = new Map<string, (typeof nonDraftSubmissions)[number]>();
+    for (const qs of nonDraftSubmissions) {
+      if (!bestByQuestionId.has(qs.questionId)) {
+        bestByQuestionId.set(qs.questionId, qs);
+      }
+    }
+
     let weightedTotal = 0;
     let weightedMax = 0;
 
     for (const aq of assessmentQuestions) {
       weightedMax += aq.points;
 
-      const bestSubmission = await this.db
-        .select()
-        .from(questionSubmissionTable)
-        .where(
-          and(
-            eq(questionSubmissionTable.submissionId, submissionId),
-            eq(questionSubmissionTable.questionId, aq.id),
-            eq(questionSubmissionTable.isDraft, false)
-          )
-        )
-        .orderBy(desc(questionSubmissionTable.score))
-        .limit(1)
-        .then((r) => (r.length > 0 ? r[0] : null));
+      const bestSubmission = bestByQuestionId.get(aq.id) ?? null;
 
       if (bestSubmission?.maxScore && bestSubmission.maxScore > 0) {
         const ratio = (bestSubmission.score ?? 0) / bestSubmission.maxScore;
@@ -582,49 +620,59 @@ export class AssessmentSubmissionService {
       .where(eq(assessmentQuestionTable.assessmentId, assessment.id))
       .orderBy(asc(assessmentQuestionTable.position));
 
-    // Best non-draft submission per assessment question for this submission (highest score wins)
-    const nonDraftSubmissions = await this.db
+    // All question submissions for this attempt in one query. Used both to pick
+    // the best non-draft per question (highest score wins) and to surface the
+    // candidate's current submission row per question.
+    const allSubmissions = await this.db
       .select()
       .from(questionSubmissionTable)
-      .where(
-        and(
-          eq(questionSubmissionTable.submissionId, submission.id),
-          eq(questionSubmissionTable.isDraft, false)
-        )
-      )
+      .where(eq(questionSubmissionTable.submissionId, submission.id))
       .orderBy(desc(questionSubmissionTable.score));
 
     const bestByQuestionId = new Map<string, { score: number | null; maxScore: number | null }>();
-    for (const qs of nonDraftSubmissions) {
-      if (!bestByQuestionId.has(qs.questionId)) {
+    const submissionByQuestionId = new Map<string, (typeof allSubmissions)[number]>();
+    for (const qs of allSubmissions) {
+      if (!qs.isDraft && !bestByQuestionId.has(qs.questionId)) {
         bestByQuestionId.set(qs.questionId, { score: qs.score, maxScore: qs.maxScore });
       }
+      // Surface the draft row (the candidate's live editor code) when present,
+      // otherwise fall back to any submission for the question.
+      const existing = submissionByQuestionId.get(qs.questionId);
+      if (!existing || (qs.isDraft && !existing.isDraft)) {
+        submissionByQuestionId.set(qs.questionId, qs);
+      }
+    }
+
+    // All visible test cases for every question on the assessment in one query,
+    // grouped by library question id.
+    const libraryQuestionIds = rows.map((r) => r.question.id);
+    const allVisibleTestCases =
+      libraryQuestionIds.length > 0
+        ? await this.db
+            .select()
+            .from(questionLibraryTestCaseTable)
+            .where(
+              and(
+                inArray(questionLibraryTestCaseTable.questionId, libraryQuestionIds),
+                eq(questionLibraryTestCaseTable.isHidden, false)
+              )
+            )
+            .orderBy(asc(questionLibraryTestCaseTable.position))
+        : [];
+
+    const testCasesByQuestionId = new Map<string, typeof allVisibleTestCases>();
+    for (const tc of allVisibleTestCases) {
+      const existing = testCasesByQuestionId.get(tc.questionId) || [];
+      existing.push(tc);
+      testCasesByQuestionId.set(tc.questionId, existing);
     }
 
     const questionsWithData = [];
     for (const r of rows) {
       // Only visible test cases for candidate
-      const testCases = await this.db
-        .select()
-        .from(questionLibraryTestCaseTable)
-        .where(
-          and(
-            eq(questionLibraryTestCaseTable.questionId, r.question.id),
-            eq(questionLibraryTestCaseTable.isHidden, false)
-          )
-        )
-        .orderBy(asc(questionLibraryTestCaseTable.position));
+      const testCases = testCasesByQuestionId.get(r.question.id) ?? [];
 
-      const questionSubmission = await this.db
-        .select()
-        .from(questionSubmissionTable)
-        .where(
-          and(
-            eq(questionSubmissionTable.submissionId, submission.id),
-            eq(questionSubmissionTable.questionId, r.link.id)
-          )
-        )
-        .then((rows) => (rows.length > 0 ? rows[0] : null));
+      const questionSubmission = submissionByQuestionId.get(r.link.id) ?? null;
 
       const best = bestByQuestionId.get(r.link.id) ?? null;
 
