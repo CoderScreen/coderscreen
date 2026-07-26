@@ -12,10 +12,15 @@ import { openAPISpecs } from 'hono-openapi';
 import { useAuth } from '@/lib/auth';
 import { getSentryOptions } from '@/lib/sentry';
 import { getBilling } from '@/lib/session';
+import { CoderScreenMcp } from '@/mcp/agent';
+import { handleMcpSSE, handleMcpStreamable } from '@/mcp/handler';
+import { apiKeyMiddleware } from '@/middleware/apiKey.middleware';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { RoomServer as PartyServer } from '@/partykit/room.do';
+import { apiKeyRouter } from '@/routes/apiKey.routes';
 import { billingRouter } from '@/routes/billing.routes';
 import { templateRouter } from '@/routes/template.routes';
+import { publicApiRouter } from '@/routes/v1';
 import { webhookRouter } from '@/routes/webhook.routes';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { AppFactory, appFactoryMiddleware } from '@/services/AppFactory';
@@ -83,6 +88,11 @@ const app = new Hono<AppContext>()
     except(
       [
         '/webhook/*',
+        '/v1/*',
+        '/mcp',
+        '/mcp/*',
+        '/sse',
+        '/sse/*',
         '/rooms/:roomId/public/*',
         '/assessments/:subId/take',
         '/assessments/:subId/take/*',
@@ -91,6 +101,17 @@ const app = new Hono<AppContext>()
       authMiddleware
     )
   )
+  // Public API: separate surface authenticated with an org API key (never a
+  // session cookie), so keys can't reach the internal routes below.
+  .use('/v1/*', apiKeyMiddleware)
+  .route('/v1', publicApiRouter)
+  // Hosted MCP server wrapping /v1 (same API-key auth). Handlers verify the key
+  // then hand off to the CoderScreenMcp Durable Object.
+  .all('/mcp', handleMcpStreamable)
+  .all('/mcp/*', handleMcpStreamable)
+  .all('/sse', handleMcpSSE)
+  .all('/sse/*', handleMcpSSE)
+  .route('/api-keys', apiKeyRouter)
   .route('/webhook', webhookRouter)
   .route('/rooms/:roomId/public', publicRoomRouter)
   .route('/assets', assetRouter)
@@ -245,6 +266,7 @@ const InstrumentedWhiteboardDurableObject = Sentry.instrumentDurableObjectWithSe
 
 export {
   Sandbox,
+  CoderScreenMcp,
   InstrumentedPartyServer as PartyServer,
   InstrumentedPrivateRoomServer as PrivateRoomServer,
   InstrumentedWhiteboardDurableObject as WhiteboardDurableObject,

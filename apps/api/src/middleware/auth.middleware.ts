@@ -4,6 +4,11 @@ import { HTTPException } from 'hono/http-exception';
 import { AppContext } from '@/index';
 import { useAuth } from '@/lib/auth';
 
+/**
+ * Session-cookie auth for the internal (web app) API. Programmatic access uses
+ * an API key against the separate public `/v1` surface (see
+ * apiKey.middleware.ts) so a key can never reach internal-only routes.
+ */
 export const authMiddleware = createMiddleware<AppContext>(async (ctx, next) => {
   const auth = useAuth(ctx);
   const session = await auth.api.getSession({ headers: ctx.req.raw.headers });

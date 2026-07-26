@@ -12,6 +12,7 @@ import {
   RiCodeBoxLine,
   RiExternalLinkLine,
   RiFileTextLine,
+  RiKey2Line,
   RiListCheck3,
   RiMenuLine,
   RiMoneyDollarBoxLine,
@@ -96,11 +97,11 @@ const MAIN_NAVIGATION: {
         href: siteConfig.routes.billing,
         icon: RiMoneyDollarBoxLine,
       },
-      // {
-      //   titleKey: 'API Keys',
-      //   href: siteConfig.routes.apiKeys,
-      //   icon: RiKey2Line,
-      // },
+      {
+        titleKey: 'API',
+        href: siteConfig.routes.apiKeys,
+        icon: RiKey2Line,
+      },
       {
         titleKey: 'Team',
         href: siteConfig.routes.team,
