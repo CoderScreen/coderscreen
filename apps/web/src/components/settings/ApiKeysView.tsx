@@ -88,7 +88,7 @@ export const ApiKeysView = () => {
   const [revokeKey, setRevokeKey] = useState<ApiKey | null>(null);
 
   return (
-    <div className='min-h-screen flex flex-col p-4 max-w-4xl'>
+    <div className='min-h-screen flex flex-col p-4'>
       <div className='flex items-start justify-between'>
         <div>
           <SmallHeader>API Keys</SmallHeader>
@@ -171,9 +171,7 @@ export const ApiKeysView = () => {
         </Table>
       </TableRoot>
 
-      <Divider />
-
-      <div>
+      <div className='mt-10'>
         <SmallHeader>Connect via MCP</SmallHeader>
         <MutedText>
           Use CoderScreen from AI tools like Claude, Cursor, and VS Code over the Model Context

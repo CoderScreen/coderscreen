@@ -2,7 +2,7 @@ import * as schema from '@coderscreen/db/user.db';
 import { BetterAuthOptions, betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError } from 'better-auth/api';
-import { apiKey, createAuthMiddleware, organization } from 'better-auth/plugins';
+import { createAuthMiddleware, organization } from 'better-auth/plugins';
 import { desc, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
@@ -121,17 +121,6 @@ export const useAuth: (
               email: orgUser.email,
             });
           },
-        },
-      }),
-      // Keep in sync with better-auth.config.ts. This local plugins array
-      // overrides the spread config, so apiKey must be listed here too or the
-      // public /v1 API loses key verification.
-      apiKey({
-        enableMetadata: true,
-        rateLimit: {
-          enabled: true,
-          timeWindow: 1000 * 60 * 60 * 24,
-          maxRequests: 5000,
         },
       }),
     ],

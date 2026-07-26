@@ -2,14 +2,16 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { AppContext } from '@/index';
 import { extractApiKey, verifyApiKey } from '@/lib/apiKeyAuth';
-import { CoderScreenMcp } from './agent';
+import { CoderScreenMcp, McpProps } from './agent';
 
 const MCP_BINDING = 'CODERSCREEN_MCP';
 
 /**
- * Verify the caller's API key and stash the identity (plus the raw key and this
- * request's origin) on the execution context so the MCP Durable Object can call
- * `/v1` on the caller's behalf. Throws 401 if the key is missing or invalid.
+ * Verify the caller's API key and stash it (plus this request's origin) on the
+ * execution context's `props`. This is how the agents SDK passes per-connection
+ * context to an McpAgent: `McpAgent.serve()` reads `ctx.props` when it spins up
+ * the Durable Object (the same channel `@cloudflare/workers-oauth-provider`
+ * uses after an OAuth flow). Throws 401 if the key is missing or invalid.
  */
 const authenticate = async (c: Context<AppContext>): Promise<void> => {
   const key = extractApiKey(c);
@@ -24,12 +26,10 @@ const authenticate = async (c: Context<AppContext>): Promise<void> => {
     throw new HTTPException(401, { message: 'Invalid API key' });
   }
 
-  (c.executionCtx as unknown as { props: unknown }).props = {
-    apiKey: key,
-    organizationId: identity.organizationId,
-    userId: identity.userId,
-    baseUrl: new URL(c.req.url).origin,
-  };
+  // Only the key and origin are needed; tools re-derive org/user from the key
+  // on each /v1 call.
+  const props: McpProps = { apiKey: key, baseUrl: new URL(c.req.url).origin };
+  c.executionCtx.props = props;
 };
 
 /** Streamable HTTP transport (recommended). Single endpoint at /mcp. */

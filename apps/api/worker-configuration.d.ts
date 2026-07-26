@@ -28,6 +28,7 @@ declare namespace Cloudflare {
 		WHITEBOARD_DO: DurableObjectNamespace<import("./src/index").WhiteboardDurableObject>;
 		ASSETS_BUCKET: R2Bucket;
 		WHITEBOARD_ASSETS_BUCKET: R2Bucket;
+		API_RATE_LIMITER: RateLimit;
 	}
 }
 interface Env extends Cloudflare.Env {}

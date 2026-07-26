@@ -62,6 +62,18 @@
 			},
 		],
 	},
+	"ratelimits": [
+		{
+			// Per-API-key rate limit for the public /v1 API (and the MCP server,
+			// which calls /v1). Limit is per Cloudflare location. Period must be 10 or 60.
+			"name": "API_RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": {
+				"limit": 120,
+				"period": 60,
+			},
+		},
+	],
 	"migrations": [
 		{
 			"tag": "v1",

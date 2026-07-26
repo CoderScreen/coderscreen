@@ -22,6 +22,7 @@ export const Entities = {
   testCaseResult: 'tcr',
   questionLibrary: 'ql',
   questionLibraryTestCase: 'qltc',
+  apiKey: 'apik',
 } as const;
 
 type Entities = typeof Entities;

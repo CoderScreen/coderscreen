@@ -1,5 +1,6 @@
-import { apikey } from '@coderscreen/db/user.db';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { generateId, idString } from '@coderscreen/common/id';
+import { apikey } from '@coderscreen/db/apikey.db';
+import { and, desc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
@@ -7,7 +8,7 @@ import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
-import { useAuth } from '@/lib/auth';
+import { generateApiKey } from '@/lib/apiKeyAuth';
 import { getSession } from '@/lib/session';
 
 // Public-safe view of an API key. The secret is only ever returned once, at
@@ -28,8 +29,6 @@ const CreatedApiKeySchema = ApiKeySchema.extend({
   // Full plaintext key. Shown once and never retrievable again.
   key: z.string(),
 });
-
-const orgFilter = (orgId: string) => sql`${apikey.metadata}::jsonb ->> 'organizationId' = ${orgId}`;
 
 const toSafe = (row: typeof apikey.$inferSelect) => ({
   id: row.id,
@@ -67,7 +66,7 @@ export const apiKeyRouter = new Hono<AppContext>()
       const rows = await db
         .select()
         .from(apikey)
-        .where(orgFilter(orgId))
+        .where(eq(apikey.organizationId, orgId))
         .orderBy(desc(apikey.createdAt));
 
       return ctx.json(rows.map(toSafe));
@@ -99,38 +98,32 @@ export const apiKeyRouter = new Hono<AppContext>()
     async (ctx) => {
       const { user, orgId } = getSession(ctx);
       const { name, expiresInDays } = ctx.req.valid('json');
+      const db = useDb(ctx);
 
-      // apiKey plugin methods aren't on the widened useAuth return type; narrow
-      // the surface we use.
-      const api = useAuth(ctx).api as unknown as {
-        createApiKey: (opts: {
-          body: {
-            name: string;
-            prefix?: string;
-            userId: string;
-            expiresIn?: number;
-            metadata?: Record<string, unknown>;
-          };
-        }) => Promise<typeof apikey.$inferSelect & { key: string }>;
-      };
+      const { key, keyHash, prefix, start } = await generateApiKey();
+      const expiresAt = expiresInDays
+        ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
 
-      const created = await api.createApiKey({
-        body: {
+      const created = await db
+        .insert(apikey)
+        .values({
+          id: generateId('apiKey'),
+          organizationId: orgId,
+          createdBy: user.id,
           name,
-          prefix: 'cs',
-          userId: user.id,
-          expiresIn: expiresInDays ? expiresInDays * 24 * 60 * 60 : undefined,
-          metadata: {
-            organizationId: orgId,
-            createdByUserId: user.id,
-          },
-        },
-      });
+          prefix,
+          start,
+          keyHash,
+          expiresAt,
+        })
+        .returning()
+        .then((rows) => rows[0]);
 
       return ctx.json(
         {
           ...toSafe(created),
-          key: created.key,
+          key,
         },
         201
       );
@@ -150,7 +143,7 @@ export const apiKeyRouter = new Hono<AppContext>()
         },
       },
     }),
-    zValidator('param', z.object({ id: z.string() })),
+    zValidator('param', z.object({ id: idString('apiKey') })),
     async (ctx) => {
       const { orgId } = getSession(ctx);
       const { id } = ctx.req.valid('param');
@@ -158,17 +151,14 @@ export const apiKeyRouter = new Hono<AppContext>()
 
       // Scope the delete to the active org so members can only revoke their own
       // organization's keys, regardless of which member created them.
-      const existing = await db
-        .select({ id: apikey.id })
-        .from(apikey)
-        .where(and(eq(apikey.id, id), orgFilter(orgId)))
-        .then((r) => (r.length > 0 ? r[0] : null));
+      const deleted = await db
+        .delete(apikey)
+        .where(and(eq(apikey.id, id), eq(apikey.organizationId, orgId)))
+        .returning({ id: apikey.id });
 
-      if (!existing) {
+      if (deleted.length === 0) {
         throw new HTTPException(404, { message: 'API key not found' });
       }
-
-      await db.delete(apikey).where(eq(apikey.id, id));
 
       return ctx.json(null, 200);
     }
