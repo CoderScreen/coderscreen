@@ -1,13 +1,14 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AlternativePageView } from '@/components/alternative/AlternativePageView';
+import { RoundupPageView } from '@/components/alternative/roundup/RoundupPageView';
 import { competitorData } from '@/lib/alternativeConfig';
 import { buildBreadcrumbSchema } from '@/lib/breadcrumbs';
+import { roundupData } from '@/lib/roundupConfig';
 
 export function generateStaticParams() {
-  return Object.keys(competitorData).map((key) => ({
-    slug: key,
-  }));
+  const slugs = new Set([...Object.keys(competitorData), ...Object.keys(roundupData)]);
+  return Array.from(slugs).map((slug) => ({ slug }));
 }
 
 interface AlternativeCompetitorPageProps {
@@ -18,9 +19,13 @@ export async function generateMetadata({
   params,
 }: AlternativeCompetitorPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const roundup = roundupData[slug];
   const competitor = competitorData[slug];
 
-  if (!competitor) {
+  // Prefer the roundup SEO when this slug has been upgraded to a roundup page.
+  const seo = roundup?.seo ?? competitor?.seo;
+
+  if (!seo) {
     return {
       title: 'Not Found',
     };
@@ -28,17 +33,22 @@ export async function generateMetadata({
 
   const siteUrl = 'https://coderscreen.com';
   const pageUrl = `${siteUrl}/${slug}`;
+  const ogAlt = roundup
+    ? roundup.seo.title
+    : competitor
+      ? `CoderScreen vs ${competitor.displayName}`
+      : 'CoderScreen';
 
   return {
-    title: competitor.seo.title,
-    description: competitor.seo.description,
-    keywords: competitor.seo.keywords,
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords,
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      title: competitor.seo.title,
-      description: competitor.seo.description,
+      title: seo.title,
+      description: seo.description,
       url: pageUrl,
       siteName: 'CoderScreen',
       type: 'website',
@@ -47,14 +57,14 @@ export async function generateMetadata({
           url: `${siteUrl}/og-image.png`,
           width: 1200,
           height: 630,
-          alt: `CoderScreen vs ${competitor.displayName}`,
+          alt: ogAlt,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: competitor.seo.title,
-      description: competitor.seo.description,
+      title: seo.title,
+      description: seo.description,
       images: [`${siteUrl}/og-image.png`],
     },
     robots: {
@@ -76,14 +86,20 @@ export default async function AlternativeCompetitorPage({
 }: AlternativeCompetitorPageProps) {
   const { slug } = await params;
 
+  const roundup = roundupData[slug];
   const competitor = competitorData[slug];
-  if (!competitor) {
+
+  if (!roundup && !competitor) {
     notFound();
   }
 
+  const breadcrumbLabel = roundup
+    ? `${roundup.competitorName} Alternatives`
+    : `${competitor?.displayName} Alternative`;
+
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: 'Home', href: '/' },
-    { name: `${competitor.displayName} Alternative`, href: `/${slug}` },
+    { name: breadcrumbLabel, href: `/${slug}` },
   ]);
 
   return (
@@ -93,7 +109,11 @@ export default async function AlternativeCompetitorPage({
         // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for SEO schema
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <AlternativePageView competitor={competitor} />
+      {roundup ? (
+        <RoundupPageView roundup={roundup} />
+      ) : (
+        competitor && <AlternativePageView competitor={competitor} />
+      )}
     </>
   );
 }
