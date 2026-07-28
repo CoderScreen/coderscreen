@@ -99,6 +99,9 @@
 			"bucket_name": "coderscreen-whiteboard",
 		},
 	],
+	"hyperdrive": [
+	  { "binding": "HYPERDRIVE", "id": "c205221f01db4e28bcc6ba8c2a1798a2" },
+	],
 	"env": {
 		"staging": {
 			"name": "coderscreen-api-staging",
