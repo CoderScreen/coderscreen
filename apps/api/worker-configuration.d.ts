@@ -29,6 +29,7 @@ declare namespace Cloudflare {
 		ASSETS_BUCKET: R2Bucket;
 		WHITEBOARD_ASSETS_BUCKET: R2Bucket;
 		API_RATE_LIMITER: RateLimit;
+		HYPERDRIVE?: Hyperdrive;
 	}
 }
 interface Env extends Cloudflare.Env {}
