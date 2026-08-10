@@ -8,6 +8,9 @@ import { useCurrentRoomId } from '@/lib/params';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Drop an idle terminal so it stops cold-booting the container.
+const IDLE_DISCONNECT_MS = 3 * 60 * 1000;
+
 export const Terminal = () => {
   const roomId = useCurrentRoomId();
   const { terminalInputRef } = useRoomContext();
@@ -20,7 +23,8 @@ export const Terminal = () => {
   const [sessionId, setSessionId] = useState('default');
 
   useEffect(() => {
-    if (!terminalRef.current) return;
+    const el = terminalRef.current;
+    if (!el) return;
 
     const term = new XTerminal({
       cursorBlink: true,
@@ -72,22 +76,74 @@ export const Terminal = () => {
     });
     term.loadAddon(sandboxAddon);
 
-    term.open(terminalRef.current);
+    term.open(el);
     fitAddon.fit();
 
-    sandboxAddon.connect({ sandboxId: `s_${roomId}`, sessionId });
+    // Only stay connected while the terminal is used in a foreground tab.
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearIdleTimer = () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+        idleTimer = null;
+      }
+    };
+
+    const disconnect = () => {
+      clearIdleTimer();
+      sandboxAddon.disconnect();
+    };
+
+    const armIdleTimer = () => {
+      clearIdleTimer();
+      idleTimer = setTimeout(disconnect, IDLE_DISCONNECT_MS);
+    };
+
+    const connect = () => {
+      // Never open the socket from a hidden tab: a backgrounded room shouldn't
+      // be booting containers.
+      if (document.visibilityState !== 'visible') return;
+      sandboxAddon.connect({ sandboxId: `s_${roomId}`, sessionId });
+      armIdleTimer();
+    };
+
+    // Any interaction with the terminal keeps it alive and reconnects it if it
+    // had gone idle/disconnected.
+    const dataSub = term.onData(() => {
+      connect();
+      armIdleTimer();
+    });
+    const onPointerDown = () => connect();
+    el.addEventListener('pointerdown', onPointerDown);
+
+    // Pause when the tab is backgrounded, resume when it comes back.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        connect();
+      } else {
+        disconnect();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    connect();
 
     // Register programmatic input method for Run button
     terminalInputRef.current = (cmd: string) => {
+      connect();
       term.input(cmd, true);
     };
 
     const observer = new ResizeObserver(() => {
       fitAddon.fit();
     });
-    observer.observe(terminalRef.current);
+    observer.observe(el);
 
     return () => {
+      clearIdleTimer();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      el.removeEventListener('pointerdown', onPointerDown);
+      dataSub.dispose();
       observer.disconnect();
       terminalInputRef.current = null;
       sandboxAddon.dispose();
@@ -105,7 +161,7 @@ export const Terminal = () => {
               connectionState === 'connecting' ? 'bg-yellow-400 animate-pulse' : 'bg-red-400'
             }`}
           />
-          {connectionState === 'connecting' ? 'Connecting...' : 'Disconnected'}
+          {connectionState === 'connecting' ? 'Connecting...' : 'Disconnected — click to reconnect'}
         </div>
       )}
       <div ref={terminalRef} className='h-full w-full' />
