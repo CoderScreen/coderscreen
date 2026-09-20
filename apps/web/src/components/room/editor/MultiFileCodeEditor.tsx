@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useMultiFileCodeEditor } from '@/query/realtime/editor.query';
 import { EditorHeader } from './EditorHeader';
-import { FileExplorer } from './FileExplorer';
+import { PierreFileExplorer } from './PierreFileExplorer';
 
 interface MultiFileCodeEditorProps {
   className?: string;
@@ -37,7 +37,7 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
         <PanelGroup direction='horizontal'>
           {/* File Explorer */}
           <Panel defaultSize={20} minSize={15} maxSize={590}>
-            <FileExplorer
+            <PierreFileExplorer
               files={files}
               selectedFile={selectedFile}
               onFileSelect={(file) => setSelectedFile(file.id)}
