@@ -14,6 +14,7 @@ import {
   RiArrowRightSLine,
   RiCheckboxCircleLine,
   RiCloseLine,
+  RiErrorWarningLine,
   RiFileCopyLine,
   RiMailSendLine,
   RiSearchLine,
@@ -53,6 +54,9 @@ export const InviteCandidateDialog = ({
   const [errors, setErrors] = useState<{ name?: string; email?: string; pick?: string }>({});
 
   const [accessLink, setAccessLink] = useState<string | null>(null);
+  // null = the API didn't report a delivery result (older response shape).
+  const [emailSent, setEmailSent] = useState<boolean | null>(null);
+  const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
 
   // Re-default mode when candidate list loads after the dialog opens
   useEffect(() => {
@@ -91,6 +95,8 @@ export const InviteCandidateDialog = ({
     setEmail('');
     setErrors({});
     setAccessLink(null);
+    setEmailSent(null);
+    setInvitedEmail(null);
     setMode(hasCandidates ? 'existing' : 'new');
   };
 
@@ -133,8 +139,20 @@ export const InviteCandidateDialog = ({
 
   const handleSuccess = (result: unknown) => {
     if (result && typeof result === 'object' && 'accessToken' in result) {
-      const { id, accessToken } = result as { id: string; accessToken: string };
+      const {
+        id,
+        accessToken,
+        emailSent: sent,
+        candidate,
+      } = result as {
+        id: string;
+        accessToken: string;
+        emailSent?: boolean;
+        candidate?: { email?: string } | null;
+      };
       setAccessLink(`${window.location.origin}/take/${id}?token=${accessToken}`);
+      setEmailSent(sent ?? null);
+      setInvitedEmail(candidate?.email ?? null);
     }
   };
 
@@ -151,13 +169,33 @@ export const InviteCandidateDialog = ({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className='sm:max-w-md'>
           <div className='text-center py-4'>
-            <div className='inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-50 mb-4'>
-              <RiCheckboxCircleLine className='w-6 h-6 text-green-600' />
+            <div
+              className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                emailSent === false ? 'bg-amber-50' : 'bg-green-50'
+              }`}
+            >
+              {emailSent === false ? (
+                <RiErrorWarningLine className='w-6 h-6 text-amber-600' />
+              ) : (
+                <RiCheckboxCircleLine className='w-6 h-6 text-green-600' />
+              )}
             </div>
             <h3 className='text-lg font-semibold text-gray-900 mb-1'>Invitation Created</h3>
-            <p className='text-sm text-gray-500 mb-6'>
-              Share this link with the candidate to start the assessment.
-            </p>
+            {emailSent === false ? (
+              <p className='text-sm text-amber-700 mb-6'>
+                We could not email {invitedEmail ?? 'the candidate'}. Nothing has been sent to them,
+                so share this link directly.
+              </p>
+            ) : emailSent ? (
+              <p className='text-sm text-gray-500 mb-6'>
+                We emailed this link to {invitedEmail ?? 'the candidate'}. They still need to open
+                it and press Start before the timer begins.
+              </p>
+            ) : (
+              <p className='text-sm text-gray-500 mb-6'>
+                Share this link with the candidate to start the assessment.
+              </p>
+            )}
 
             <div className='bg-gray-50 rounded-lg p-3 mb-4'>
               <Input value={accessLink} readOnly className='text-xs font-mono bg-white' />

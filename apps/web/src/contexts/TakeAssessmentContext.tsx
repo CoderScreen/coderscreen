@@ -53,6 +53,11 @@ interface TakeAssessmentProviderProps {
 
 const AUTO_SAVE_DELAY = 3000;
 
+// Once the deadline passes the server rejects saves, so the debounced auto-save
+// has to be flushed before then or the candidate's last edits are lost. Flush
+// with enough margin to cover the debounce plus the round-trip.
+const FINAL_SAVE_LEAD_MS = 10_000;
+
 export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
   subId,
   token,
@@ -60,11 +65,13 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
 }) => {
   const { data, isLoading, isError, error, refetch } = useCandidateAssessment(subId, token);
   const { saveCode: saveCodeMutation, isSaving } = useSaveCode(subId, token);
-  const { submitAssessment } = useSubmitAssessment(subId, token);
+  const { submitAssessment } = useSubmitAssessment(subId, token, { silent: true });
 
   const [codeBuffers, setCodeBuffers] = useState<CodeBuffers>({});
   const [timeRemainingMs, setTimeRemainingMs] = useState<number | null>(null);
   const [isExpired, setIsExpired] = useState(false);
+  const [shouldFinalSave, setShouldFinalSave] = useState(false);
+  const finalSaveTriggeredRef = useRef(false);
 
   const selectedLanguage = data?.submission?.selectedLanguage ?? '';
 
@@ -115,6 +122,10 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
 
     const tick = () => {
       const remaining = expiresAt - Date.now();
+      if (remaining <= FINAL_SAVE_LEAD_MS && !finalSaveTriggeredRef.current) {
+        finalSaveTriggeredRef.current = true;
+        setShouldFinalSave(true);
+      }
       if (remaining <= 0) {
         setTimeRemainingMs(0);
         setIsExpired(true);
@@ -144,8 +155,19 @@ export const TakeAssessmentProvider: React.FC<TakeAssessmentProviderProps> = ({
     for (const k of dirty) dirtyRef.current.delete(k);
   }, [saveCodeMutation]);
 
-  // On expiration: save + submit. Declared after flushDirty so the dependency
-  // array doesn't reference it before initialization.
+  // Flush the debounced buffer while the deadline is still in the future. Past
+  // it every candidate route 400s, so anything unsaved at that point is gone.
+  // Declared after flushDirty so the dependency array doesn't reference it
+  // before initialization.
+  useEffect(() => {
+    if (!shouldFinalSave) return;
+    flushDirty();
+  }, [shouldFinalSave, flushDirty]);
+
+  // On expiration: try to save + submit. Both calls race the server's own
+  // expiry check and will 400 once it wins. That is fine: the server scores
+  // the attempt from the per-question submissions when it expires it. The
+  // refetch is what moves the candidate to the completed screen either way.
   useEffect(() => {
     if (!isExpired) return;
 

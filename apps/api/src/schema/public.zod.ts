@@ -94,13 +94,20 @@ export const PublicSubmissionSchema = z.object({
   takeUrl: z.string(),
   // Recruiter-facing link to review results in the app.
   resultsUrl: z.string(),
+  // Only set on the invite response: whether the invitation email was accepted
+  // for delivery. `false` means nobody has been told about `takeUrl` yet and
+  // the caller needs to send it themselves.
+  emailSent: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 export type PublicSubmission = z.infer<typeof PublicSubmissionSchema>;
 
 export const toPublicSubmission = (
-  submission: AssessmentSubmissionEntity & { candidate?: CandidateEntity | null },
+  submission: AssessmentSubmissionEntity & {
+    candidate?: CandidateEntity | null;
+    emailSent?: boolean;
+  },
   feUrl: string
 ): PublicSubmission => ({
   id: submission.id,
@@ -115,6 +122,7 @@ export const toPublicSubmission = (
   maxScore: submission.maxScore,
   takeUrl: `${feUrl}/take/${submission.id}?token=${submission.accessToken}`,
   resultsUrl: `${feUrl}/assessments/${submission.assessmentId}/submissions/${submission.id}`,
+  emailSent: submission.emailSent,
   createdAt: submission.createdAt,
   updatedAt: submission.updatedAt,
 });

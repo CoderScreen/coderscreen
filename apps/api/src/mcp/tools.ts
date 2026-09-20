@@ -78,7 +78,7 @@ export const TOOLS: McpToolDef[] = [
   {
     name: 'invite_candidate',
     description:
-      'Invite a candidate to an assessment by email. Returns the submission with a take link to send them.',
+      'Invite a candidate to an assessment. Emails them a link to start it, and returns the submission including that link (takeUrl) plus `emailSent`. If `emailSent` is false the email did not go out and you must send takeUrl to the candidate yourself. The candidate still has to open the link and press Start before the timer begins.',
     input: {
       assessmentId: z.string().describe('Assessment ID (starts with as_)'),
       candidateName: z.string().describe('Candidate full name'),

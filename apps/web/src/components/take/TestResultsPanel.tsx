@@ -130,8 +130,10 @@ export const TestResultsPanel = ({
           <Button variant='secondary' icon={RiPlayLine} onClick={onRunTests} isLoading={isRunning}>
             Run
           </Button>
+          {/* Scoped to this question on purpose. "Submit" alone reads as
+              "finish the assessment", which it is not. */}
           <Button icon={RiSendPlaneLine} onClick={onSubmitCode} isLoading={isSubmitting}>
-            Submit
+            Submit answer
           </Button>
         </div>
       </div>
