@@ -14,7 +14,8 @@ import { useTakeAssessment } from '@/contexts/TakeAssessmentContext';
 import { useSubmitAssessment } from '@/query/candidateAssessment.query';
 
 export const QuestionsOverview = () => {
-  const { assessment, submission, getCode, saveCurrentCode, subId, token } = useTakeAssessment();
+  const { assessment, submission, getCode, saveCurrentCode, refetch, subId, token } =
+    useTakeAssessment();
   const { submitAssessment, isSubmitting } = useSubmitAssessment(subId, token);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const navigate = useNavigate();
@@ -47,8 +48,16 @@ export const QuestionsOverview = () => {
   };
 
   const handleSubmit = async () => {
-    await saveCurrentCode();
-    await submitAssessment();
+    try {
+      await saveCurrentCode();
+      await submitAssessment();
+    } catch {
+      // The mutation already toasts the reason. Close regardless and refetch:
+      // a submit only fails when the attempt is no longer in progress (expired,
+      // or already submitted in another tab), and leaving the dialog open just
+      // invites the candidate to keep clicking a button that cannot succeed.
+      refetch();
+    }
     setShowSubmitDialog(false);
   };
 
@@ -124,7 +133,8 @@ export const QuestionsOverview = () => {
           <DialogHeader>
             <DialogTitle>Submit Assessment?</DialogTitle>
             <DialogDescription>
-              This will run all test cases (including hidden ones) and cannot be undone.
+              This ends the assessment for good. It will run all test cases (including hidden ones)
+              and you will not be able to come back to any question.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -189,23 +189,24 @@ export class AssessmentSubmissionService {
       );
     }
 
-    // Email the candidate their invitation (fire-and-forget). The access link is
-    // still returned for the recruiter's manual copy-link fallback, so a failed
-    // send never blocks the invite.
-    this.ctx.executionCtx.waitUntil(
-      this.notifyCandidateOfInvitation({
-        orgId,
-        candidateName: candidate.name,
-        candidateEmail: candidate.email,
-        assessmentTitle: assessment.title,
-        submissionId,
-        accessToken,
-      })
-    );
+    // Awaited rather than fire-and-forget so the caller can be told whether the
+    // invite actually went out. A silent failure here reads to the recruiter as
+    // "the candidate was emailed" when they weren't, and the candidate is left
+    // waiting on a link that never arrives. A failed send still never fails the
+    // invite: the access link comes back either way for the copy-link fallback.
+    const emailSent = await this.notifyCandidateOfInvitation({
+      orgId,
+      candidateName: candidate.name,
+      candidateEmail: candidate.email,
+      assessmentTitle: assessment.title,
+      submissionId,
+      accessToken,
+    });
 
-    return { ...submission, candidate };
+    return { ...submission, candidate, emailSent };
   }
 
+  /** Returns whether the invitation email was accepted for delivery. */
   private async notifyCandidateOfInvitation(params: {
     orgId: string;
     candidateName: string;
@@ -213,14 +214,14 @@ export class AssessmentSubmissionService {
     assessmentTitle: string;
     submissionId: string;
     accessToken: string;
-  }): Promise<void> {
+  }): Promise<boolean> {
     try {
       const org = await this.db
         .select()
         .from(organization)
         .where(eq(organization.id, params.orgId))
         .then((r) => (r.length > 0 ? r[0] : null));
-      if (!org) return;
+      if (!org) return false;
 
       const takeLink = `${this.ctx.env.FE_APP_URL}/take/${params.submissionId}?token=${params.accessToken}`;
       const { resendService } = this.ctx.get('appFactory');
@@ -231,11 +232,14 @@ export class AssessmentSubmissionService {
         assessment_title: params.assessmentTitle,
         take_link: takeLink,
       });
+
+      return true;
     } catch (err) {
       console.error('Failed to send assessment invitation email', {
         submissionId: params.submissionId,
         error: err,
       });
+      return false;
     }
   }
 
@@ -1025,13 +1029,28 @@ export class AssessmentSubmissionService {
       submission.expiresAt &&
       new Date(submission.expiresAt) < new Date()
     ) {
+      // Running out of time still ends the attempt, but it should not throw the
+      // work away: score whatever the candidate already submitted per question
+      // so an expired attempt shows up with a real score instead of a blank one.
+      const { totalScore, maxScore } = await this.computeWeightedAggregate(submissionId);
+
+      // Every candidate route calls this, so concurrent requests can race here.
+      // Gating the update on the status still being 'in_progress' means exactly
+      // one of them wins and the rest no-op.
       await this.db
         .update(assessmentSubmissionTable)
         .set({
           status: 'expired',
+          totalScore,
+          maxScore,
           updatedAt: new Date().toISOString(),
         })
-        .where(eq(assessmentSubmissionTable.id, submissionId));
+        .where(
+          and(
+            eq(assessmentSubmissionTable.id, submissionId),
+            eq(assessmentSubmissionTable.status, 'in_progress')
+          )
+        );
       return true;
     }
 

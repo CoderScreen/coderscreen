@@ -142,8 +142,18 @@ export const useChangeLanguage = (subId: string, token: string) => {
   };
 };
 
-export const useSubmitAssessment = (subId: string, token: string) => {
+/**
+ * `silent` drops the toasts. Used by the timer's auto-submit on expiry, where a
+ * 400 ("Assessment has expired") is the expected outcome of racing the server's
+ * own expiry check and shouldn't be shown to the candidate as a failure.
+ */
+export const useSubmitAssessment = (
+  subId: string,
+  token: string,
+  options?: { silent?: boolean }
+) => {
   const queryClient = useQueryClient();
+  const silent = options?.silent ?? false;
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -160,10 +170,12 @@ export const useSubmitAssessment = (subId: string, token: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidate-assessment', subId, token] });
     },
-    meta: {
-      SUCCESS_MESSAGE: 'Assessment submitted',
-      ERROR_MESSAGE: 'Failed to submit assessment',
-    },
+    meta: silent
+      ? {}
+      : {
+          SUCCESS_MESSAGE: 'Assessment submitted',
+          ERROR_MESSAGE: 'Failed to submit assessment',
+        },
   });
 
   return {
