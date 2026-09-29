@@ -9,6 +9,7 @@ import {
   RiArrowRightLine,
   RiBaseStationLine,
   RiCustomerServiceLine,
+  RiFileList3Line,
   RiGlobalLine,
   RiHistoryLine,
   RiLockPasswordLine,
@@ -26,6 +27,11 @@ const LIMIT_MAP = {
   live_interviews: {
     icon: RiTerminalWindowFill,
     label: 'Live Interview',
+    renews: true,
+  },
+  assessment_invites: {
+    icon: RiFileList3Line,
+    label: 'Assessment Invite',
     renews: true,
   },
   team_members: {
@@ -155,6 +161,7 @@ const PRICING_PLANS: {
   limit: {
     team_members: number;
     live_interviews: number;
+    assessment_invites: number;
   };
 }[] = [
   {
@@ -176,6 +183,7 @@ const PRICING_PLANS: {
     limit: {
       team_members: 1,
       live_interviews: 3,
+      assessment_invites: 5,
     },
   },
   {
@@ -198,6 +206,7 @@ const PRICING_PLANS: {
     limit: {
       team_members: 5,
       live_interviews: 20,
+      assessment_invites: 25,
     },
   },
   {
@@ -220,6 +229,7 @@ const PRICING_PLANS: {
     limit: {
       team_members: -1,
       live_interviews: 200,
+      assessment_invites: 150,
     },
   },
   {
@@ -243,6 +253,7 @@ const PRICING_PLANS: {
     limit: {
       team_members: -1,
       live_interviews: -1,
+      assessment_invites: -1,
     },
   },
 ];

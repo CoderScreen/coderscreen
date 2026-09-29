@@ -14,7 +14,7 @@ export const customerTable = pgTable('customers', {
   email: text('email').notNull(),
 });
 
-type AllUsageTypes = 'live_interview' | 'team_members';
+type AllUsageTypes = 'live_interview' | 'assessment_invite' | 'team_members';
 
 export const planTable = pgTable('plans', {
   id: text('id').primaryKey().$type<string>(),
@@ -30,6 +30,7 @@ export const planTable = pgTable('plans', {
   isActive: boolean('is_active').default(true).notNull(),
   limits: jsonb('limits').$type<Record<AllUsageTypes, number>>().notNull().default({
     live_interview: 10,
+    assessment_invite: 10,
     team_members: 10,
   }),
   liveMode: boolean('live_mode').default(false).notNull(),

@@ -14,6 +14,7 @@ const PLANS_TO_CREATE: Pick<
   | 'isActive'
   | 'limits'
 >[] = [
+  // Limits match production. Yearly plans get 12x the monthly amount.
   {
     id: 'free',
     name: 'Free',
@@ -24,7 +25,8 @@ const PLANS_TO_CREATE: Pick<
     group: 'free',
     isActive: true,
     limits: {
-      live_interview: 1,
+      live_interview: 3,
+      assessment_invite: 5,
       team_members: 1,
     },
   },
@@ -38,7 +40,8 @@ const PLANS_TO_CREATE: Pick<
     group: 'starter',
     isActive: true,
     limits: {
-      live_interview: 10,
+      live_interview: 20,
+      assessment_invite: 25,
       team_members: 5,
     },
   },
@@ -52,7 +55,8 @@ const PLANS_TO_CREATE: Pick<
     group: 'starter',
     isActive: true,
     limits: {
-      live_interview: 10,
+      live_interview: 240,
+      assessment_invite: 300,
       team_members: 5,
     },
   },
@@ -66,7 +70,8 @@ const PLANS_TO_CREATE: Pick<
     group: 'scale',
     isActive: true,
     limits: {
-      live_interview: 50,
+      live_interview: 200,
+      assessment_invite: 150,
       team_members: 25,
     },
   },
@@ -80,7 +85,8 @@ const PLANS_TO_CREATE: Pick<
     group: 'scale',
     isActive: true,
     limits: {
-      live_interview: 50,
+      live_interview: 2400,
+      assessment_invite: 1800,
       team_members: 25,
     },
   },

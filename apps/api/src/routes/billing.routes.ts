@@ -175,7 +175,10 @@ export const billingRouter = new Hono<AppContext>()
         },
       },
     }),
-    zValidator('param', z.object({ eventType: z.enum(['team_members', 'live_interview']) })),
+    zValidator(
+      'param',
+      z.object({ eventType: z.enum(['team_members', 'live_interview', 'assessment_invite']) })
+    ),
     async (ctx) => {
       const usageService = new UsageService(ctx);
       const { eventType } = ctx.req.valid('param');

@@ -20,9 +20,12 @@ import {
   RiSearchLine,
   RiUserAddLine,
 } from '@remixicon/react';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { siteConfig } from '@/lib/siteConfig';
 import { useCandidates, useInviteCandidate } from '@/query/assessment.query';
+import { useUsage } from '@/query/billing.query';
 
 interface InviteCandidateDialogProps {
   assessmentId: string;
@@ -42,6 +45,7 @@ export const InviteCandidateDialog = ({
 }: InviteCandidateDialogProps) => {
   const { inviteCandidate, isLoading } = useInviteCandidate(assessmentId);
   const { candidates } = useCandidates();
+  const { usage } = useUsage('assessment_invite');
 
   const hasCandidates = (candidates?.length ?? 0) > 0;
   const [mode, setMode] = useState<Mode>(hasCandidates ? 'existing' : 'new');
@@ -57,6 +61,7 @@ export const InviteCandidateDialog = ({
   // null = the API didn't report a delivery result (older response shape).
   const [emailSent, setEmailSent] = useState<boolean | null>(null);
   const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
+  const [alreadyInvited, setAlreadyInvited] = useState(false);
 
   // Re-default mode when candidate list loads after the dialog opens
   useEffect(() => {
@@ -97,6 +102,7 @@ export const InviteCandidateDialog = ({
     setAccessLink(null);
     setEmailSent(null);
     setInvitedEmail(null);
+    setAlreadyInvited(false);
     setMode(hasCandidates ? 'existing' : 'new');
   };
 
@@ -143,16 +149,19 @@ export const InviteCandidateDialog = ({
         id,
         accessToken,
         emailSent: sent,
+        alreadyInvited: existing,
         candidate,
       } = result as {
         id: string;
         accessToken: string;
         emailSent?: boolean;
+        alreadyInvited?: boolean;
         candidate?: { email?: string } | null;
       };
       setAccessLink(`${window.location.origin}/take/${id}?token=${accessToken}`);
       setEmailSent(sent ?? null);
       setInvitedEmail(candidate?.email ?? null);
+      setAlreadyInvited(existing ?? false);
     }
   };
 
@@ -180,8 +189,15 @@ export const InviteCandidateDialog = ({
                 <RiCheckboxCircleLine className='w-6 h-6 text-green-600' />
               )}
             </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-1'>Invitation Created</h3>
-            {emailSent === false ? (
+            <h3 className='text-lg font-semibold text-gray-900 mb-1'>
+              {alreadyInvited ? 'Already Invited' : 'Invitation Created'}
+            </h3>
+            {alreadyInvited ? (
+              <p className='text-sm text-gray-500 mb-6'>
+                {invitedEmail ?? 'This candidate'} already has an open invite for this assessment,
+                so no new email was sent. Share this link if they need it again.
+              </p>
+            ) : emailSent === false ? (
               <p className='text-sm text-amber-700 mb-6'>
                 We could not email {invitedEmail ?? 'the candidate'}. Nothing has been sent to them,
                 so share this link directly.
@@ -401,6 +417,19 @@ export const InviteCandidateDialog = ({
                 {errors.email && <p className='text-sm text-red-600 mt-1'>{errors.email}</p>}
               </div>
             </>
+          )}
+
+          {usage?.exceeded && (
+            <div className='px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg'>
+              <p className='text-sm text-amber-800'>
+                You've used all {usage.limit} assessment invites included in your plan this billing
+                period.{' '}
+                <Link to={siteConfig.routes.billing} className='font-medium underline'>
+                  Upgrade your plan
+                </Link>{' '}
+                to invite more candidates.
+              </p>
+            </div>
           )}
 
           <div className='flex justify-end gap-3 pt-4'>

@@ -14,6 +14,9 @@ const USAGE_TYPE_MAP = {
   live_interview: {
     label: 'Live Interviews',
   },
+  assessment_invite: {
+    label: 'Assessment Invites',
+  },
   team_members: {
     label: 'Team Members',
   },
@@ -42,7 +45,8 @@ export const UsageCard = ({
   if (!usage) return null;
 
   const usageInfo = USAGE_TYPE_MAP[usage.eventType];
-  const percent = Math.round((usage.count / usage.limit) * 100);
+  const isUnlimited = usage.limit < 0;
+  const percent = isUnlimited ? 0 : Math.round((usage.count / usage.limit) * 100);
 
   return (
     <Card
@@ -63,7 +67,7 @@ export const UsageCard = ({
           variant={percent > 80 ? (usage.exceeded ? 'error' : 'warning') : 'default'}
         /> */}
         <p className={USAGE_VALUE_STYLES}>
-          {usage.count} / {usage.limit}
+          {usage.count} / {isUnlimited ? 'Unlimited' : usage.limit}
         </p>
       </CardContent>
     </Card>

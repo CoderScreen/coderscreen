@@ -455,7 +455,7 @@ export const assessmentRouter = new Hono<AppContext>()
       const { id } = ctx.req.valid('param');
       const body = ctx.req.valid('json');
       const result = await service.inviteCandidate(id, body);
-      return ctx.json(result, 201);
+      return ctx.json(result, result.alreadyInvited ? 200 : 201);
     }
   )
   // GET /assessments/:id/submissions/:subId - Get submission details

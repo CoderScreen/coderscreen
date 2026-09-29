@@ -29,7 +29,7 @@ import { getBilling, getSession } from '@/lib/session';
  *   metadata: { duration: 30 }
  * });
  *
- * if (result.exceeded) {
+ * if (!result.allowed) {
  *   // Handle limit exceeded
  *   throw new Error('Interview limit reached');
  * }
@@ -56,9 +56,21 @@ export interface TrackEventParams {
 export interface UsageResult {
   eventType: AllUsageTypes;
   count: number;
+  // -1 means unlimited
   limit: number;
+  // true once count has reached the limit
   exceeded: boolean;
 }
+
+export interface TrackEventResult extends UsageResult {
+  // false when the event would go over the limit (nothing is recorded)
+  allowed: boolean;
+}
+
+// The base db or a transaction, so usage can be tracked atomically with the caller's writes
+type DbExecutor = Pick<PostgresJsDatabase, 'select' | 'insert' | 'update'>;
+
+const isLimitReached = (count: number, limit: number) => limit >= 0 && count >= limit;
 
 export class UsageService {
   private readonly db: PostgresJsDatabase;
@@ -71,40 +83,53 @@ export class UsageService {
    * Track an event and check if it exceeds the limit
    * This is the main method you'll call whenever a billable event occurs
    */
-  async trackEvent(params: TrackEventParams): Promise<UsageResult> {
+  async trackEvent(params: TrackEventParams, db: DbExecutor = this.db): Promise<TrackEventResult> {
     const { eventType, resource, amount = 1, metadata } = params;
     const { orgId, user } = getSession(this.ctx);
 
-    // Get or create usage record for current cycle
-    const usage = await this.getOrCreateUsage(eventType);
+    // Make sure the usage row for this cycle exists before incrementing it
+    const usage = await this.getOrCreateUsage(eventType, db);
+    const cycleStart = await this.getCycleStart();
 
-    // Check if already or will be exceeded
-    if (usage.count + amount > usage.limit) {
-      return {
-        eventType: usage.eventType,
-        count: usage.count,
-        limit: usage.limit,
-        exceeded: true,
-      };
+    // Check and increment atomically so concurrent requests can't exceed the limit
+    const updated = await db
+      .update(eventUsageTable)
+      .set({
+        count: sql`${eventUsageTable.count} + ${amount}`,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(eventUsageTable.organizationId, orgId),
+          eq(eventUsageTable.eventType, eventType),
+          eq(eventUsageTable.cycleStart, cycleStart),
+          sql`(${eventUsageTable.limit} < 0 OR ${eventUsageTable.count} + ${amount} <= ${eventUsageTable.limit})`
+        )
+      )
+      .returning({ count: eventUsageTable.count, limit: eventUsageTable.limit })
+      .then((res) => (res.length > 0 ? res[0] : null));
+
+    if (!updated) {
+      return { ...usage, exceeded: true, allowed: false };
     }
 
-    await Promise.all([
-      this.incrementUsage(orgId, eventType, amount),
-      this.logEvent({
-        organizationId: orgId,
-        eventType,
-        amount,
-        userId: user.id,
-        metadata: {
-          ...metadata,
-          resource,
-        },
-      }),
-    ]);
+    await this.logEvent(db, {
+      organizationId: orgId,
+      eventType,
+      amount,
+      userId: user.id,
+      metadata: {
+        ...metadata,
+        resource,
+      },
+    });
+
     return {
-      ...usage,
-      count: usage.count + amount,
-      exceeded: usage.count + amount >= usage.limit,
+      eventType,
+      count: updated.count,
+      limit: updated.limit,
+      exceeded: isLimitReached(updated.count, updated.limit),
+      allowed: true,
     };
   }
 
@@ -129,6 +154,7 @@ export class UsageService {
       [key in AllUsageTypes]: UsageResult;
     } = {
       live_interview: getFallBackUsage('live_interview'),
+      assessment_invite: getFallBackUsage('assessment_invite'),
       team_members: getFallBackUsage('team_members'),
     };
 
@@ -148,7 +174,10 @@ export class UsageService {
   /**
    * Get or create usage record for current billing cycle
    */
-  private async getOrCreateUsage(rawEventType: AllUsageTypes): Promise<UsageResult> {
+  private async getOrCreateUsage(
+    rawEventType: AllUsageTypes,
+    db: DbExecutor = this.db
+  ): Promise<UsageResult> {
     const { orgId } = getSession(this.ctx);
 
     if (CUSTOM_USAGE_EVENT_TYPES.includes(rawEventType as CustomUsageType)) {
@@ -159,7 +188,7 @@ export class UsageService {
     const cycleStart = await this.getCycleStart();
 
     // Try to get existing usage
-    const existing = await this.db
+    const existing = await db
       .select()
       .from(eventUsageTable)
       .where(
@@ -176,11 +205,13 @@ export class UsageService {
         eventType,
         count: existing.count,
         limit: existing.limit,
-        exceeded: existing.count >= existing.limit,
+        exceeded: isLimitReached(existing.count, existing.limit),
       };
     }
 
     const billing = await getBilling(this.ctx);
+    // Plans without a limit for this type are treated as unlimited
+    const limit = billing.plan.limits[eventType] ?? -1;
 
     // Create new usage record with default limits
     const newUsage: EventUsageEntity = {
@@ -190,44 +221,18 @@ export class UsageService {
       organizationId: orgId,
       eventType,
       count: 0,
-      limit: billing.plan.limits[eventType],
+      limit,
       cycleStart,
     };
 
-    await this.db.insert(eventUsageTable).values(newUsage);
+    // A concurrent request may have created the row first; that row wins
+    await db.insert(eventUsageTable).values(newUsage).onConflictDoNothing();
     return {
       eventType,
       count: newUsage.count,
-      limit: billing.plan.limits[eventType],
-      exceeded: false,
+      limit,
+      exceeded: isLimitReached(newUsage.count, limit),
     };
-  }
-
-  /**
-   * Increment usage count atomically
-   */
-  private async incrementUsage(orgId: string, rawEventType: AllUsageTypes, amount: number) {
-    // if eventType is a custom usage type, we don't increment since tracked in a custom way
-    if (CUSTOM_USAGE_EVENT_TYPES.includes(rawEventType as CustomUsageType)) {
-      return;
-    }
-
-    const eventType = rawEventType as EventType;
-    const cycleStart = await this.getCycleStart();
-
-    await this.db
-      .update(eventUsageTable)
-      .set({
-        count: sql`${eventUsageTable.count} + ${amount}`,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(
-        and(
-          eq(eventUsageTable.organizationId, orgId),
-          eq(eventUsageTable.eventType, eventType),
-          eq(eventUsageTable.cycleStart, cycleStart)
-        )
-      );
   }
 
   /**
@@ -241,14 +246,14 @@ export class UsageService {
   /**
    * Log event for analytics (optional)
    */
-  private async logEvent(params: Omit<EventLogEntity, 'id' | 'createdAt'>) {
+  private async logEvent(db: DbExecutor, params: Omit<EventLogEntity, 'id' | 'createdAt'>) {
     const logEntry = {
       id: generateId('eventLog'),
       createdAt: new Date().toISOString(),
       ...params,
     };
 
-    await this.db.insert(eventLogTable).values(logEntry);
+    await db.insert(eventLogTable).values(logEntry);
   }
 
   private async getCustomUsage(eventType: CustomUsageType): Promise<UsageResult> {
@@ -270,7 +275,7 @@ export class UsageService {
           eventType: 'team_members',
           count: memberCount.count,
           limit,
-          exceeded: memberCount.count >= limit,
+          exceeded: isLimitReached(memberCount.count, limit),
         };
       }
       default:

@@ -641,6 +641,7 @@ export const useInviteCandidate = (assessmentId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['assessments', assessmentId, 'submissions'],
       });
+      queryClient.invalidateQueries({ queryKey: ['billing', 'usage'] });
     },
     meta: {
       SUCCESS_MESSAGE: 'Candidate invited',
