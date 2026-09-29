@@ -2,7 +2,7 @@ import { Id } from '@coderscreen/common/id';
 import { integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { organization } from './user.db';
 
-export type EventType = 'live_interview';
+export type EventType = 'live_interview' | 'assessment_invite';
 
 // TODO: figure out better way of tracking usage relative to a cycle
 

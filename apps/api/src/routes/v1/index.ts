@@ -168,11 +168,19 @@ export const publicApiRouter = new Hono<AppContext>()
   .post(
     '/assessments/:id/invites',
     describeRoute({
-      description: 'Invite a candidate to an assessment. Returns the submission (with take link).',
+      description:
+        'Invite a candidate to an assessment. Returns the submission (with take link), or the existing open invite with a 200.',
       responses: {
+        200: {
+          description: 'Existing open invite returned',
+          content: { 'application/json': { schema: resolver(PublicSubmissionSchema) } },
+        },
         201: {
           description: 'Candidate invited',
           content: { 'application/json': { schema: resolver(PublicSubmissionSchema) } },
+        },
+        403: {
+          description: 'Plan invite limit reached',
         },
       },
     }),
@@ -182,7 +190,10 @@ export const publicApiRouter = new Hono<AppContext>()
       const { id } = ctx.req.valid('param');
       const body = ctx.req.valid('json');
       const submission = await new AssessmentSubmissionService(ctx).inviteCandidate(id, body);
-      return ctx.json(toPublicSubmission(submission, ctx.env.FE_APP_URL), 201);
+      return ctx.json(
+        toPublicSubmission(submission, ctx.env.FE_APP_URL),
+        submission.alreadyInvited ? 200 : 201
+      );
     }
   )
   // --- Submissions ----------------------------------------------------------

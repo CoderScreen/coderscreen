@@ -131,11 +131,12 @@
 
 ## Phase 6: Billing & Email Integration
 
-- [ ] Add `'assessment_completion'` to `EventType` in `packages/db/src/usage.db.ts`
-- [ ] Add `'assessment_completion'` to `AllUsageTypes` in `packages/db/src/billing.db.ts`
-- [ ] Add usage tracking to `inviteCandidate()` (same pattern as `RoomService.createRoom`)
-- [ ] Create assessment invitation email template in `apps/api/src/services/third-party/emails/`
-- [ ] Update `ResendService` with `'assessment_invitation'` type
-- [ ] Wire email sending into `inviteCandidate()`
+- [x] Add `'assessment_invite'` to `EventType` in `packages/db/src/usage.db.ts`
+- [x] Add `'assessment_invite'` to `AllUsageTypes` in `packages/db/src/billing.db.ts`
+- [x] Add usage tracking to `inviteCandidate()` (same pattern as `RoomService.createRoom`). Counted once per candidate per assessment; re-inviting a candidate with an open invite returns that invite instead of creating a new one
+- [x] Add `assessment_invite` limits to plans (`packages/scripts/src/add-assessment-invite-limits.ts`): Free 5, Starter 25, Scale 150 per month, yearly plans 12x
+- [x] Create assessment invitation email template in `apps/api/src/services/third-party/emails/`
+- [x] Update `ResendService` with `'assessment_invitation'` type
+- [x] Wire email sending into `inviteCandidate()`
 
 **How to test:** Invite candidate — verify usage event tracked and email sent. Hit usage limit — verify 403 on next invite.

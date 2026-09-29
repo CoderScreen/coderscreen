@@ -183,6 +183,7 @@ export const BillingView = () => {
                 limits: {
                   team_members: -1,
                   live_interview: -1,
+                  assessment_invite: -1,
                 },
               }}
               yearly={null}

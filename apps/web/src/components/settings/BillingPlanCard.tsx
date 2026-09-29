@@ -15,6 +15,7 @@ import {
   RiArrowRightLine,
   RiBaseStationLine,
   RiCustomerServiceLine,
+  RiFileList3Line,
   RiGlobalLine,
   RiHistoryLine,
   RiLockPasswordLine,
@@ -32,6 +33,11 @@ const LIMIT_MAP = {
   live_interview: {
     icon: RiTerminalWindowFill,
     label: 'Live Interviews',
+    renews: true,
+  },
+  assessment_invite: {
+    icon: RiFileList3Line,
+    label: 'Assessment Invites',
     renews: true,
   },
   team_members: {
@@ -284,6 +290,8 @@ export const BillingPlanCard = ({
         <ul className='space-y-4'>
           {Object.entries(LIMIT_MAP).map(([key, { icon: IconComponent, label, renews }]) => {
             const rawValue = plan.limits[key as keyof PlanSchema['limits']];
+            // Plans that predate a usage type have no limit for it
+            if (rawValue === undefined) return null;
             const value = rawValue === -1 ? 'Custom' : rawValue;
 
             return (

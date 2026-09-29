@@ -34,7 +34,7 @@ export class RoomService {
       },
     });
 
-    if (usageResult.exceeded) {
+    if (!usageResult.allowed) {
       throw new HTTPException(403, {
         message: 'You have reached the limit of live interviews',
       });

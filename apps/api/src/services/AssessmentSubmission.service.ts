@@ -27,12 +27,15 @@ import {
   StartAssessmentSchema,
 } from '@/schema/assessment.zod';
 import { AssessmentCodeRunService } from '@/services/AssessmentCodeRun.service';
+import { UsageService } from '@/services/billing/Usage.service';
 
 export class AssessmentSubmissionService {
   private readonly db: PostgresJsDatabase;
+  private readonly usageService: UsageService;
 
   constructor(private readonly ctx: Context<AppContext>) {
     this.db = useDb(ctx);
+    this.usageService = new UsageService(ctx);
   }
 
   // === Candidate CRUD ===
@@ -109,6 +112,23 @@ export class AssessmentSubmissionService {
   async inviteCandidate(assessmentId: Id<'assessment'>, params: CreateSubmissionSchema) {
     const { orgId } = getSession(this.ctx);
 
+    // Verify assessment exists and is active
+    const assessment = await this.db
+      .select()
+      .from(assessmentTable)
+      .where(and(eq(assessmentTable.id, assessmentId), eq(assessmentTable.organizationId, orgId)))
+      .then((r) => (r.length > 0 ? r[0] : null));
+
+    if (!assessment) {
+      throw new HTTPException(404, { message: 'Assessment not found' });
+    }
+
+    if (assessment.status !== 'active') {
+      throw new HTTPException(400, {
+        message: 'Assessment must be published before inviting candidates',
+      });
+    }
+
     let candidate: CandidateEntity;
     if ('candidateId' in params) {
       const existing = await this.db
@@ -130,25 +150,57 @@ export class AssessmentSubmissionService {
       });
     }
 
-    // Verify assessment exists and is active
-    const assessment = await this.db
+    const priorSubmissions = await this.db
       .select()
-      .from(assessmentTable)
-      .where(and(eq(assessmentTable.id, assessmentId), eq(assessmentTable.organizationId, orgId)))
-      .then((r) => (r.length > 0 ? r[0] : null));
+      .from(assessmentSubmissionTable)
+      .where(
+        and(
+          eq(assessmentSubmissionTable.assessmentId, assessmentId),
+          eq(assessmentSubmissionTable.candidateId, candidate.id),
+          eq(assessmentSubmissionTable.organizationId, orgId)
+        )
+      );
 
-    if (!assessment) {
-      throw new HTTPException(404, { message: 'Assessment not found' });
+    // Return an open invite instead of creating, billing and emailing a duplicate
+    const now = Date.now();
+    const openSubmission = priorSubmissions.find(
+      (s) =>
+        !s.isArchived &&
+        (s.status === 'not_started' ||
+          (s.status === 'in_progress' && (!s.expiresAt || new Date(s.expiresAt).getTime() > now)))
+    );
+
+    if (openSubmission) {
+      return {
+        ...openSubmission,
+        candidate,
+        emailSent: undefined as boolean | undefined,
+        alreadyInvited: true,
+      };
     }
 
-    if (assessment.status !== 'active') {
-      throw new HTTPException(400, {
-        message: 'Assessment must be published before inviting candidates',
+    const submissionId = generateId('assessmentSubmission');
+
+    // Each candidate counts once per assessment, so retakes are free
+    if (priorSubmissions.length === 0) {
+      const usageResult = await this.usageService.trackEvent({
+        eventType: 'assessment_invite',
+        resource: {
+          id: submissionId,
+          type: 'assessmentSubmission',
+        },
+        metadata: { assessmentId, candidateId: candidate.id },
       });
+
+      if (!usageResult.allowed) {
+        throw new HTTPException(403, {
+          message:
+            'You have reached the assessment invite limit for your plan. Upgrade your plan to invite more candidates.',
+        });
+      }
     }
 
     // Create submission
-    const submissionId = generateId('assessmentSubmission');
     const accessToken = crypto.randomUUID();
 
     const submission = await this.db
@@ -203,7 +255,12 @@ export class AssessmentSubmissionService {
       accessToken,
     });
 
-    return { ...submission, candidate, emailSent };
+    return {
+      ...submission,
+      candidate,
+      emailSent: emailSent as boolean | undefined,
+      alreadyInvited: false,
+    };
   }
 
   /** Returns whether the invitation email was accepted for delivery. */

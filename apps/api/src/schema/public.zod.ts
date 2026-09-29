@@ -98,6 +98,8 @@ export const PublicSubmissionSchema = z.object({
   // for delivery. `false` means nobody has been told about `takeUrl` yet and
   // the caller needs to send it themselves.
   emailSent: z.boolean().optional(),
+  // Only set on the invite response: true when an existing open invite was returned.
+  alreadyInvited: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -107,6 +109,7 @@ export const toPublicSubmission = (
   submission: AssessmentSubmissionEntity & {
     candidate?: CandidateEntity | null;
     emailSent?: boolean;
+    alreadyInvited?: boolean;
   },
   feUrl: string
 ): PublicSubmission => ({
@@ -123,6 +126,7 @@ export const toPublicSubmission = (
   takeUrl: `${feUrl}/take/${submission.id}?token=${submission.accessToken}`,
   resultsUrl: `${feUrl}/assessments/${submission.assessmentId}/submissions/${submission.id}`,
   emailSent: submission.emailSent,
+  alreadyInvited: submission.alreadyInvited,
   createdAt: submission.createdAt,
   updatedAt: submission.updatedAt,
 });
