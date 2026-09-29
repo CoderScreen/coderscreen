@@ -11,7 +11,7 @@ import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTes
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { TestCaseResultEntity, testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { member, organization, user } from '@coderscreen/db/user.db';
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -150,95 +150,110 @@ export class AssessmentSubmissionService {
       });
     }
 
-    const priorSubmissions = await this.db
-      .select()
-      .from(assessmentSubmissionTable)
-      .where(
-        and(
-          eq(assessmentSubmissionTable.assessmentId, assessmentId),
-          eq(assessmentSubmissionTable.candidateId, candidate.id),
-          eq(assessmentSubmissionTable.organizationId, orgId)
-        )
+    // Runs in one transaction so a failed invite leaves nothing behind (no
+    // half-created submission, no usage charged)
+    const { submission, alreadyInvited } = await this.db.transaction(async (tx) => {
+      // Serialize invites for the same candidate so parallel requests can't both create one
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${`${assessmentId}:${candidate.id}`}))`
       );
 
-    // Return an open invite instead of creating, billing and emailing a duplicate
-    const now = Date.now();
-    const openSubmission = priorSubmissions.find(
-      (s) =>
-        !s.isArchived &&
-        (s.status === 'not_started' ||
-          (s.status === 'in_progress' && (!s.expiresAt || new Date(s.expiresAt).getTime() > now)))
-    );
+      const priorSubmissions = await tx
+        .select()
+        .from(assessmentSubmissionTable)
+        .where(
+          and(
+            eq(assessmentSubmissionTable.assessmentId, assessmentId),
+            eq(assessmentSubmissionTable.candidateId, candidate.id),
+            eq(assessmentSubmissionTable.organizationId, orgId)
+          )
+        );
 
-    if (openSubmission) {
+      // Return an open invite instead of creating, billing and emailing a duplicate
+      const now = Date.now();
+      const openSubmission = priorSubmissions.find(
+        (s) =>
+          !s.isArchived &&
+          (s.status === 'not_started' ||
+            (s.status === 'in_progress' && (!s.expiresAt || new Date(s.expiresAt).getTime() > now)))
+      );
+
+      if (openSubmission) {
+        return { submission: openSubmission, alreadyInvited: true };
+      }
+
+      const submissionId = generateId('assessmentSubmission');
+
+      // Each candidate counts once per assessment, so retakes are free
+      if (priorSubmissions.length === 0) {
+        const usageResult = await this.usageService.trackEvent(
+          {
+            eventType: 'assessment_invite',
+            resource: {
+              id: submissionId,
+              type: 'assessmentSubmission',
+            },
+            metadata: { assessmentId, candidateId: candidate.id },
+          },
+          tx
+        );
+
+        if (!usageResult.allowed) {
+          throw new HTTPException(403, {
+            message:
+              'You have reached the assessment invite limit for your plan. Upgrade your plan to invite more candidates.',
+          });
+        }
+      }
+
+      const newSubmission = await tx
+        .insert(assessmentSubmissionTable)
+        .values({
+          id: submissionId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          assessmentId,
+          organizationId: orgId,
+          candidateId: candidate.id,
+          status: 'not_started',
+          accessToken: crypto.randomUUID(),
+        })
+        .returning()
+        .then((r) => r[0]);
+
+      // Create questionSubmission rows for each assessment question link in a
+      // single batch insert rather than one round-trip per question.
+      const questions = await tx
+        .select()
+        .from(assessmentQuestionTable)
+        .where(eq(assessmentQuestionTable.assessmentId, assessmentId))
+        .orderBy(asc(assessmentQuestionTable.position));
+
+      if (questions.length > 0) {
+        const createdAt = new Date().toISOString();
+        await tx.insert(questionSubmissionTable).values(
+          questions.map((q) => ({
+            id: generateId('questionSubmission'),
+            createdAt,
+            updatedAt: createdAt,
+            submissionId,
+            questionId: q.id,
+            organizationId: orgId,
+            isDraft: true,
+          }))
+        );
+      }
+
+      return { submission: newSubmission, alreadyInvited: false };
+    });
+
+    if (alreadyInvited) {
       return {
-        ...openSubmission,
+        ...submission,
         candidate,
         emailSent: undefined as boolean | undefined,
         alreadyInvited: true,
       };
-    }
-
-    const submissionId = generateId('assessmentSubmission');
-
-    // Each candidate counts once per assessment, so retakes are free
-    if (priorSubmissions.length === 0) {
-      const usageResult = await this.usageService.trackEvent({
-        eventType: 'assessment_invite',
-        resource: {
-          id: submissionId,
-          type: 'assessmentSubmission',
-        },
-        metadata: { assessmentId, candidateId: candidate.id },
-      });
-
-      if (!usageResult.allowed) {
-        throw new HTTPException(403, {
-          message:
-            'You have reached the assessment invite limit for your plan. Upgrade your plan to invite more candidates.',
-        });
-      }
-    }
-
-    // Create submission
-    const accessToken = crypto.randomUUID();
-
-    const submission = await this.db
-      .insert(assessmentSubmissionTable)
-      .values({
-        id: submissionId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        assessmentId,
-        organizationId: orgId,
-        candidateId: candidate.id,
-        status: 'not_started',
-        accessToken,
-      })
-      .returning()
-      .then((r) => r[0]);
-
-    // Create questionSubmission rows for each assessment question link in a
-    // single batch insert rather than one round-trip per question.
-    const questions = await this.db
-      .select()
-      .from(assessmentQuestionTable)
-      .where(eq(assessmentQuestionTable.assessmentId, assessmentId))
-      .orderBy(asc(assessmentQuestionTable.position));
-
-    if (questions.length > 0) {
-      const now = new Date().toISOString();
-      await this.db.insert(questionSubmissionTable).values(
-        questions.map((q) => ({
-          id: generateId('questionSubmission'),
-          createdAt: now,
-          updatedAt: now,
-          submissionId: submissionId,
-          questionId: q.id,
-          organizationId: orgId,
-          isDraft: true,
-        }))
-      );
     }
 
     // Awaited rather than fire-and-forget so the caller can be told whether the
@@ -251,8 +266,8 @@ export class AssessmentSubmissionService {
       candidateName: candidate.name,
       candidateEmail: candidate.email,
       assessmentTitle: assessment.title,
-      submissionId,
-      accessToken,
+      submissionId: submission.id,
+      accessToken: submission.accessToken,
     });
 
     return {
