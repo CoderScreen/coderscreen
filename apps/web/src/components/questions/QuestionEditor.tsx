@@ -150,29 +150,34 @@ export const QuestionEditor = ({
       starterCode: starterOverrides,
     };
 
-    if (context === 'library') {
-      const result = await libCreate.createQuestion({
-        ...basePayload,
-        timeLimitSeconds: null,
-      });
-      const newQuestion = result as { id: string };
-      navigate({
-        to: '/questions/$questionId/edit',
-        params: { questionId: newQuestion.id },
-      });
-    } else {
-      if (!assessmentId) return;
-      const result = await aqCreate.createQuestion({
-        ...basePayload,
-        position: nextPosition,
-        points: values.points,
-        timeLimitSeconds: null,
-      });
-      const newQuestion = result as { id: string };
-      navigate({
-        to: '/assessments/$assessmentId/questions/$questionId/edit',
-        params: { assessmentId, questionId: newQuestion.id },
-      });
+    try {
+      if (context === 'library') {
+        const result = await libCreate.createQuestion({
+          ...basePayload,
+          timeLimitSeconds: null,
+        });
+        const newQuestion = result as { id: string };
+        navigate({
+          to: '/questions/$questionId/edit',
+          params: { questionId: newQuestion.id },
+        });
+      } else {
+        if (!assessmentId) return;
+        const result = await aqCreate.createQuestion({
+          ...basePayload,
+          position: nextPosition,
+          points: values.points,
+          timeLimitSeconds: null,
+        });
+        const newQuestion = result as { id: string };
+        navigate({
+          to: '/assessments/$assessmentId/questions/$questionId/edit',
+          params: { assessmentId, questionId: newQuestion.id },
+        });
+      }
+    } catch {
+      // The mutation already toasts the reason (e.g. a validation error);
+      // stay on the form so the user can correct it.
     }
   };
 

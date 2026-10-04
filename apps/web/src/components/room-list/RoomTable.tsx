@@ -173,13 +173,17 @@ const EmptyTable = ({ noRooms }: { noRooms: boolean }) => {
   const handleCreateRoom = async () => {
     const randomTitle = `Interview ${Math.random().toString(36).substring(2, 15)}`;
 
-    const room = await createRoom({
-      title: randomTitle,
-      language: 'typescript',
-      notes: '',
-    });
+    try {
+      const room = await createRoom({
+        title: randomTitle,
+        language: 'typescript',
+        notes: '',
+      });
 
-    router.navigate({ to: `/room/${room.id}` });
+      router.navigate({ to: `/room/${room.id}` });
+    } catch {
+      // The mutation already toasts the reason (e.g. plan limit reached).
+    }
   };
 
   if (noRooms) {
