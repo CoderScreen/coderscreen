@@ -14,13 +14,17 @@ export function DashboardHeader() {
   const handleCreateRoom = useCallback(async () => {
     const randomTitle = `Interview ${Math.random().toString(36).substring(2, 15)}`;
 
-    const room = await createRoom({
-      title: randomTitle,
-      language: 'typescript',
-      notes: '',
-    });
+    try {
+      const room = await createRoom({
+        title: randomTitle,
+        language: 'typescript',
+        notes: '',
+      });
 
-    router.navigate({ to: `/room/${room.id}` });
+      router.navigate({ to: `/room/${room.id}` });
+    } catch {
+      // The mutation already toasts the reason (e.g. plan limit reached).
+    }
   }, [createRoom, router]);
 
   // add keyboard shortcut for CMD + I for new interview
