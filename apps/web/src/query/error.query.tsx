@@ -10,22 +10,46 @@ const apiErrorSchema = z.object({
   message: z.string(),
 });
 
+// Body returned by `zValidator` on the API when request validation fails (400).
+const validationErrorSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    issues: z
+      .array(
+        z.object({
+          path: z.array(z.union([z.string(), z.number()])),
+          message: z.string(),
+        })
+      )
+      .min(1),
+  }),
+});
+
+export const parseApiError = (error: unknown): { id: string; message: string } => {
+  const apiError = apiErrorSchema.safeParse(error);
+  if (apiError.success) {
+    return { id: apiError.data.id, message: apiError.data.message };
+  }
+
+  const validationError = validationErrorSchema.safeParse(error);
+  if (validationError.success) {
+    const message = validationError.data.error.issues
+      .map((issue) =>
+        issue.path.length ? `${issue.path.join('.')}: ${issue.message}` : issue.message
+      )
+      .join('; ');
+    return { id: crypto.randomUUID(), message };
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    message: error instanceof Error ? error.message : 'Unknown error',
+  };
+};
+
 export const handleApiError = (error: unknown, rawTitle?: string) => {
   const title = rawTitle ?? 'Something went wrong!';
-  const parsed = apiErrorSchema.safeParse(error);
-
-  let errorId: string;
-  let errorMessage: string;
-
-  if (parsed.success) {
-    // Handle structured API error
-    errorId = parsed.data.id;
-    errorMessage = parsed.data.message;
-  } else {
-    // Handle regular error or unknown error
-    errorId = crypto.randomUUID();
-    errorMessage = error instanceof Error ? error.message : 'Unknown error';
-  }
+  const { id: errorId, message: errorMessage } = parseApiError(error);
 
   const copyErrorDetails = () => {
     const errorDetails = {
