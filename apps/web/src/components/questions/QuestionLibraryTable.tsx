@@ -65,7 +65,7 @@ const RowActions = ({ question }: { question: QuestionLibraryItem }) => {
         onOpenChange={setDeleteOpen}
         onConfirm={handleDelete}
         title='Delete Question'
-        description='Are you sure you want to delete this question? This will also delete all associated test cases. This action cannot be undone.'
+        description="This deletes the question and its test cases. It can't be undone. Questions still used in an assessment can't be deleted; remove them from the assessment first."
         isLoading={isLoading}
       />
     </div>

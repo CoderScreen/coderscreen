@@ -11,7 +11,7 @@ import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTes
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { TestCaseResultEntity, testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { member, organization, user } from '@coderscreen/db/user.db';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -226,7 +226,12 @@ export class AssessmentSubmissionService {
       const questions = await tx
         .select()
         .from(assessmentQuestionTable)
-        .where(eq(assessmentQuestionTable.assessmentId, assessmentId))
+        .where(
+          and(
+            eq(assessmentQuestionTable.assessmentId, assessmentId),
+            isNull(assessmentQuestionTable.archivedAt)
+          )
+        )
         .orderBy(asc(assessmentQuestionTable.position));
 
       if (questions.length > 0) {
@@ -417,8 +422,14 @@ export class AssessmentSubmissionService {
             .where(inArray(testCaseResultTable.questionSubmissionId, bestIds))
         : [];
 
+    // Results carry a snapshot of their test case. Only rows written before
+    // snapshots existed need the live definition, and only if it still exists.
     const allDefIds = [
-      ...new Set(allResults.map((r) => r.testCaseId as Id<'questionLibraryTestCase'>)),
+      ...new Set(
+        allResults
+          .filter((r) => r.args === null && r.testCaseId)
+          .map((r) => r.testCaseId as Id<'questionLibraryTestCase'>)
+      ),
     ];
     const allDefs =
       allDefIds.length > 0
@@ -459,7 +470,21 @@ export class AssessmentSubmissionService {
         const results = resultsByQuestionSubmissionId.get(best.id) ?? [];
         testCaseResults = results
           .map((r) => {
-            const def = defById.get(r.testCaseId as Id<'questionLibraryTestCase'>);
+            // Prefer the snapshot: it shows the test as the candidate was
+            // graded on it, even if the question has been edited since.
+            if (r.args !== null) {
+              return {
+                ...r,
+                label: r.label ?? '',
+                args: r.args,
+                expectedReturn: r.expectedReturn ?? null,
+                isHidden: r.isHidden ?? false,
+                position: r.position ?? 0,
+              };
+            }
+            const def = r.testCaseId
+              ? defById.get(r.testCaseId as Id<'questionLibraryTestCase'>)
+              : undefined;
             return {
               ...r,
               label: def?.label ?? '',
@@ -477,6 +502,7 @@ export class AssessmentSubmissionService {
         title: l.question.title,
         position: l.link.position,
         points: l.link.points,
+        isArchived: l.link.archivedAt !== null,
         status: best ? 'submitted' : draft?.code ? 'draft' : 'not_attempted',
         code: chosen?.code ?? '',
         language: best?.language ?? draft?.language ?? submission.selectedLanguage ?? null,
@@ -489,7 +515,9 @@ export class AssessmentSubmissionService {
     return {
       ...submission,
       candidate,
-      questions,
+      // Removed questions stay visible where the candidate actually worked on
+      // them; untouched ones are just noise.
+      questions: questions.filter((q) => !q.isArchived || q.status !== 'not_attempted'),
     };
   }
 
@@ -592,10 +620,17 @@ export class AssessmentSubmissionService {
       return { totalScore: 0, maxScore: 0 };
     }
 
+    // Removed questions don't count toward new scores. Scores computed before
+    // a question was removed are stored on the submission and left alone.
     const assessmentQuestions = await this.db
       .select()
       .from(assessmentQuestionTable)
-      .where(eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>));
+      .where(
+        and(
+          eq(assessmentQuestionTable.assessmentId, submission.assessmentId as Id<'assessment'>),
+          isNull(assessmentQuestionTable.archivedAt)
+        )
+      );
 
     // Fetch every non-draft submission for this attempt in one query (ordered
     // by score desc), then keep the highest-scoring one per question in memory.
@@ -693,7 +728,12 @@ export class AssessmentSubmissionService {
         questionLibraryTable,
         eq(assessmentQuestionTable.questionId, questionLibraryTable.id)
       )
-      .where(eq(assessmentQuestionTable.assessmentId, assessment.id))
+      .where(
+        and(
+          eq(assessmentQuestionTable.assessmentId, assessment.id),
+          isNull(assessmentQuestionTable.archivedAt)
+        )
+      )
       .orderBy(asc(assessmentQuestionTable.position));
 
     // All question submissions for this attempt in one query. Used both to pick
@@ -988,20 +1028,31 @@ export class AssessmentSubmissionService {
         .then((r) => r[0]);
 
       if (results.length > 0) {
+        const testCaseById = new Map(testCases.map((tc) => [tc.id, tc]));
         await tx.insert(testCaseResultTable).values(
-          results.map((result) => ({
-            id: generateId('testCaseResult'),
-            createdAt: new Date().toISOString(),
-            questionSubmissionId: questionSubmissionId,
-            testCaseId: result.testCaseId,
-            organizationId: submission.organizationId,
-            passed: result.passed,
-            failureReason: result.failureReason,
-            actualOutput: result.actualOutput,
-            stderr: result.stderr,
-            exitCode: result.exitCode,
-            executionTimeMs: result.executionTimeMs,
-          }))
+          results.map((result) => {
+            // Snapshot the test case so this result still reads correctly
+            // after the question is edited or the test case is deleted.
+            const tc = testCaseById.get(result.testCaseId as Id<'questionLibraryTestCase'>);
+            return {
+              id: generateId('testCaseResult'),
+              createdAt: new Date().toISOString(),
+              questionSubmissionId: questionSubmissionId,
+              testCaseId: result.testCaseId,
+              organizationId: submission.organizationId,
+              passed: result.passed,
+              failureReason: result.failureReason,
+              actualOutput: result.actualOutput,
+              stderr: result.stderr,
+              exitCode: result.exitCode,
+              executionTimeMs: result.executionTimeMs,
+              label: tc?.label ?? '',
+              args: tc?.args ?? [],
+              expectedReturn: tc?.expectedReturn ?? null,
+              isHidden: tc?.isHidden ?? false,
+              position: tc?.position ?? 0,
+            };
+          })
         );
       }
 

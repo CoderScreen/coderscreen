@@ -1,8 +1,9 @@
-import type {
-  FunctionModeLanguage,
-  Parameter,
-  Signature,
-  TypeString,
+import {
+  type FunctionModeLanguage,
+  type Parameter,
+  type Signature,
+  signatureChangesInvalidateTestCases,
+  type TypeString,
 } from '@coderscreen/common/types';
 import { Button } from '@coderscreen/ui/button';
 import { Divider } from '@coderscreen/ui/divider';
@@ -10,12 +11,13 @@ import { SmallHeader } from '@coderscreen/ui/heading';
 import { Input } from '@coderscreen/ui/input';
 import { Label } from '@coderscreen/ui/label';
 import { MutedText } from '@coderscreen/ui/typography';
-import { RiAddLine, RiArrowLeftLine, RiSaveLine } from '@remixicon/react';
+import { RiAddLine, RiAlertLine, RiArrowLeftLine, RiSaveLine } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useMemo, useState } from 'react';
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog';
 import { SignatureEditor } from '@/components/questions/SignatureEditor';
 import { TestCaseRow, type TestCaseRowData } from '@/components/questions/TestCaseRow';
 import { tiptapContentClass } from '@/components/room/tiptap/editorStyles';
@@ -50,6 +52,14 @@ interface QuestionShape {
   returnType: TypeString;
   starterCode: Partial<Record<FunctionModeLanguage, string>>;
   testCases?: TestCaseRowData[];
+  usage?: QuestionUsage;
+}
+
+// Where else this question lives. Library questions are shared by every
+// assessment that uses them, so edits made here land in all of them.
+interface QuestionUsage {
+  assessmentCount: number;
+  candidateCount: number;
 }
 
 interface QuestionEditorProps {
@@ -135,6 +145,8 @@ export const QuestionEditor = ({
 
   // ===== Test case UI state =====
   const [expandedTcId, setExpandedTcId] = useState<string | null>(null);
+  const [pendingDeleteTcId, setPendingDeleteTcId] = useState<string | null>(null);
+  const [confirmSignatureOpen, setConfirmSignatureOpen] = useState(false);
 
   // ===== Create flow (one Save covers all fields) =====
   const handleCreate = async () => {
@@ -198,6 +210,28 @@ export const QuestionEditor = ({
       });
     }
     setDetailsDirty(false);
+  };
+
+  // The server deletes every test case when a signature change makes them
+  // invalid, so confirm before doing that rather than finding out after.
+  const signatureWouldClearTests =
+    !!question &&
+    (question.testCases?.length ?? 0) > 0 &&
+    signatureChangesInvalidateTestCases(
+      {
+        functionName: question.functionName,
+        parameters: question.parameters,
+        returnType: question.returnType,
+      },
+      signature
+    );
+
+  const requestSaveSignature = () => {
+    if (signatureWouldClearTests) {
+      setConfirmSignatureOpen(true);
+      return;
+    }
+    saveSignature();
   };
 
   const saveSignature = async () => {
@@ -301,6 +335,10 @@ export const QuestionEditor = ({
       </div>
 
       <Divider />
+
+      {mode === 'edit' && question?.usage && (
+        <UsageNotice context={context} usage={question.usage} />
+      )}
 
       {/* Question section */}
       <section>
@@ -450,7 +488,7 @@ export const QuestionEditor = ({
                 iconPosition='right'
                 disabled={!signatureDirty}
                 isLoading={isSavingQuestion}
-                onClick={saveSignature}
+                onClick={requestSaveSignature}
               >
                 Save signature
               </Button>
@@ -526,21 +564,77 @@ export const QuestionEditor = ({
                     });
                     setExpandedTcId(null);
                   }}
-                  onDelete={async () => {
-                    await callTestCaseDelete(tc.id);
-                    if (expandedTcId === tc.id) setExpandedTcId(null);
-                  }}
+                  onDelete={async () => setPendingDeleteTcId(tc.id)}
                 />
               ))}
             </div>
           )}
         </div>
       </section>
+
+      <ConfirmDeleteDialog
+        open={confirmSignatureOpen}
+        onOpenChange={setConfirmSignatureOpen}
+        onConfirm={async () => {
+          setConfirmSignatureOpen(false);
+          await saveSignature();
+        }}
+        title='Delete all test cases?'
+        description={`This signature change makes the existing ${pluralize(testCases.length, 'test case')} invalid, so saving deletes them. You'll need to add new ones. Past candidates' results are kept.`}
+        confirmLabel='Save and delete tests'
+        isLoading={isSavingQuestion}
+      />
+
+      <ConfirmDeleteDialog
+        open={pendingDeleteTcId !== null}
+        onOpenChange={(open) => !open && setPendingDeleteTcId(null)}
+        onConfirm={async () => {
+          const id = pendingDeleteTcId;
+          setPendingDeleteTcId(null);
+          if (!id) return;
+          await callTestCaseDelete(id);
+          if (expandedTcId === id) setExpandedTcId(null);
+        }}
+        title='Delete test case?'
+        description="New submissions won't be checked against it. Past candidates' results are kept."
+      />
     </div>
   );
 };
 
 // ===== Sub-components =====
+
+const pluralize = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
+
+const UsageNotice = ({ context, usage }: { context: Context; usage: QuestionUsage }) => {
+  // Inside an assessment the count includes the assessment being edited.
+  const otherAssessments =
+    context === 'assessment' ? usage.assessmentCount - 1 : usage.assessmentCount;
+
+  const sharedText =
+    otherAssessments <= 0
+      ? null
+      : context === 'assessment'
+        ? `This question is also used in ${pluralize(otherAssessments, 'other assessment')}. Changes here apply to all of them and to your question library.`
+        : `This question is used in ${pluralize(otherAssessments, 'assessment')}. Changes here apply to all of them.`;
+
+  const candidatesText =
+    usage.candidateCount > 0
+      ? `${pluralize(usage.candidateCount, 'candidate')} already started an assessment with this question. Their results won't change. Edits only reach candidates who haven't started yet.`
+      : null;
+
+  if (!sharedText && !candidatesText) return null;
+
+  return (
+    <div className='flex items-start gap-2 px-3 py-2 mb-4 rounded border border-amber-200 bg-amber-50 text-sm text-amber-800'>
+      <RiAlertLine className='size-4 mt-0.5 shrink-0' />
+      <div className='space-y-1'>
+        {sharedText && <p>{sharedText}</p>}
+        {candidatesText && <p>{candidatesText}</p>}
+      </div>
+    </div>
+  );
+};
 
 const MutedPlaceholder = ({ children }: { children: React.ReactNode }) => (
   <div className='px-4 py-6 rounded-lg border border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500 text-center'>
