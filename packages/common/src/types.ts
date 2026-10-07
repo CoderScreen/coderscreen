@@ -180,3 +180,20 @@ function describe(v: unknown): string {
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
+
+/**
+ * Returns true if a signature change between the old and new shapes is one
+ * that invalidates existing test cases. Any param add/remove/rename/retype
+ * change, function name change, or return-type change qualifies. Two
+ * signatures with the same JSON-stringified shape are considered equal.
+ */
+export function signatureChangesInvalidateTestCases(prev: Signature, next: Signature): boolean {
+  if (prev.functionName !== next.functionName) return true;
+  if (prev.returnType !== next.returnType) return true;
+  if (prev.parameters.length !== next.parameters.length) return true;
+  for (let i = 0; i < prev.parameters.length; i++) {
+    if (prev.parameters[i].name !== next.parameters[i].name) return true;
+    if (prev.parameters[i].type !== next.parameters[i].type) return true;
+  }
+  return false;
+}

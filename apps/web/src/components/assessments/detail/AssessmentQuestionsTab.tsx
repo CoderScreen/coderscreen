@@ -317,8 +317,9 @@ const QuestionRow = ({ question, index, assessmentId, onEdit }: QuestionRowProps
           deleteQuestion(question.id);
           setDeleteOpen(false);
         }}
-        title='Delete Question'
-        description='Are you sure you want to delete this question and its test cases? This action cannot be undone.'
+        title='Remove question?'
+        description={`New candidates won't see "${question.title}". Candidates who already took it keep their answers and scores. The question stays in your library.`}
+        confirmLabel='Remove'
       />
     </>
   );

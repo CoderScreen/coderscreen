@@ -284,10 +284,11 @@ export const assessmentRouter = new Hono<AppContext>()
   .delete(
     '/:id/questions/:questionId',
     describeRoute({
-      description: 'Delete a question',
+      description:
+        'Remove a question from the assessment. Archives it so past candidate answers are kept.',
       responses: {
         200: {
-          description: 'Question deleted successfully',
+          description: 'Question removed successfully',
         },
       },
     }),
@@ -301,7 +302,7 @@ export const assessmentRouter = new Hono<AppContext>()
     async (ctx) => {
       const service = new AssessmentService(ctx);
       const { questionId } = ctx.req.valid('param');
-      await service.deleteQuestion(questionId);
+      await service.archiveQuestion(questionId);
       return ctx.json(null, 200);
     }
   )

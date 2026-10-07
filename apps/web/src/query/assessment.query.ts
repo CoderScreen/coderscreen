@@ -342,8 +342,8 @@ export const useDeleteQuestion = (assessmentId: string) => {
       queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId] });
     },
     meta: {
-      SUCCESS_MESSAGE: 'Question deleted',
-      ERROR_MESSAGE: 'Failed to delete question',
+      SUCCESS_MESSAGE: 'Question removed',
+      ERROR_MESSAGE: 'Failed to remove question',
     },
   });
 

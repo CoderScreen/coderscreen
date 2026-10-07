@@ -10,6 +10,7 @@ import {
   TableRoot,
   TableRow,
 } from '@coderscreen/ui/table';
+import { Tooltip } from '@coderscreen/ui/tooltip';
 import { MutedText } from '@coderscreen/ui/typography';
 import { RiArrowLeftLine, RiCheckboxCircleLine, RiCloseCircleLine } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
@@ -38,6 +39,7 @@ interface QuestionDetail {
   title: string;
   position: number;
   points: number;
+  isArchived: boolean;
   status: 'submitted' | 'draft' | 'not_attempted';
   code: string;
   language: string | null;
@@ -139,7 +141,7 @@ const formatValue = (v: unknown): string => {
 const formatArgs = (args: unknown[]): string => args.map(formatValue).join(', ');
 
 const QuestionResult = ({ question, index }: { question: QuestionDetail; index: number }) => {
-  const { title, status, code, language, score, maxScore, testCaseResults } = question;
+  const { title, status, code, language, score, maxScore, testCaseResults, isArchived } = question;
   const passed = testCaseResults.filter((r) => r.passed).length;
   const total = testCaseResults.length;
 
@@ -150,6 +152,11 @@ const QuestionResult = ({ question, index }: { question: QuestionDetail; index: 
           <span className='text-gray-500 font-medium'>{index + 1}.</span>
           <span className='font-medium text-gray-900'>{title}</span>
           <QuestionStatusBadge status={status} />
+          {isArchived && (
+            <Tooltip content='Removed from the assessment after this candidate took it. Shown for reference.'>
+              <Badge variant='neutral'>Removed</Badge>
+            </Tooltip>
+          )}
         </div>
         <div className='flex items-center gap-3 text-sm'>
           {language && (

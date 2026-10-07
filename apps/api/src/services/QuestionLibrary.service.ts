@@ -5,7 +5,7 @@ import { assessmentSubmissionTable } from '@coderscreen/db/assessmentSubmission.
 import { questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
 import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTestCase.db';
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -22,6 +22,7 @@ import {
   UpdateQuestionLibrarySchema,
   UpdateQuestionLibraryTestCaseSchema,
 } from '@/schema/questionLibrary.zod';
+import { getQuestionUsage, usageFor } from '@/services/questionUsage';
 
 export class QuestionLibraryService {
   private readonly db: PostgresJsDatabase;
@@ -123,9 +124,12 @@ export class QuestionLibraryService {
       .where(eq(questionLibraryTestCaseTable.questionId, id))
       .orderBy(asc(questionLibraryTestCaseTable.position));
 
+    const usage = await getQuestionUsage(this.db, [id]);
+
     return {
       ...question,
       testCases,
+      usage: usageFor(usage, id),
     };
   }
 
@@ -203,6 +207,45 @@ export class QuestionLibraryService {
 
   async deleteQuestion(id: Id<'questionLibrary'>) {
     const { orgId } = getSession(this.ctx);
+
+    // Deleting a library question cascades through its assessment links into
+    // every candidate's answers to it, so refuse while anything depends on it.
+    const activeLinks = await this.db
+      .select({ count: count() })
+      .from(assessmentQuestionTable)
+      .where(
+        and(
+          eq(assessmentQuestionTable.questionId, id),
+          eq(assessmentQuestionTable.organizationId, orgId),
+          isNull(assessmentQuestionTable.archivedAt)
+        )
+      )
+      .then((r) => r[0]?.count ?? 0);
+
+    if (activeLinks > 0) {
+      throw new HTTPException(409, {
+        message: `This question is used in ${activeLinks} assessment${activeLinks === 1 ? '' : 's'}. Remove it from ${activeLinks === 1 ? 'that assessment' : 'those assessments'} first.`,
+      });
+    }
+
+    // Archived links are fine to cascade away unless a candidate was invited
+    // while the question was live; then it's history for their results.
+    const takenIn = await this.db
+      .select({ id: questionSubmissionTable.id })
+      .from(questionSubmissionTable)
+      .innerJoin(
+        assessmentQuestionTable,
+        eq(questionSubmissionTable.questionId, assessmentQuestionTable.id)
+      )
+      .where(eq(assessmentQuestionTable.questionId, id))
+      .limit(1);
+
+    if (takenIn.length > 0) {
+      throw new HTTPException(409, {
+        message:
+          'Candidates have taken this question in past assessments, so it’s kept for their results and can’t be deleted.',
+      });
+    }
 
     return this.db
       .delete(questionLibraryTable)

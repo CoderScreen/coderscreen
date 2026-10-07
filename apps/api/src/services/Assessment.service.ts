@@ -7,7 +7,7 @@ import {
   QuestionLibraryTestCaseEntity,
   questionLibraryTestCaseTable,
 } from '@coderscreen/db/questionLibraryTestCase.db';
-import { and, asc, count, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -27,6 +27,7 @@ import {
   UpdateQuestionSchema,
   UpdateTestCaseSchema,
 } from '@/schema/assessment.zod';
+import { getQuestionUsage, usageFor } from '@/services/questionUsage';
 
 export class AssessmentService {
   private readonly db: PostgresJsDatabase;
@@ -86,7 +87,12 @@ export class AssessmentService {
         questionLibraryTable,
         eq(assessmentQuestionTable.questionId, questionLibraryTable.id)
       )
-      .where(eq(assessmentQuestionTable.assessmentId, id))
+      .where(
+        and(
+          eq(assessmentQuestionTable.assessmentId, id),
+          isNull(assessmentQuestionTable.archivedAt)
+        )
+      )
       .orderBy(asc(assessmentQuestionTable.position));
 
     let totalQuestions: number | undefined;
@@ -97,7 +103,12 @@ export class AssessmentService {
       totalQuestions = await this.db
         .select({ count: count() })
         .from(assessmentQuestionTable)
-        .where(eq(assessmentQuestionTable.assessmentId, id))
+        .where(
+          and(
+            eq(assessmentQuestionTable.assessmentId, id),
+            isNull(assessmentQuestionTable.archivedAt)
+          )
+        )
         .then((r) => r[0]?.count ?? 0);
 
       questionsQuery = questionsQuery.limit(limit).offset(offset) as typeof questionsQuery;
@@ -126,6 +137,8 @@ export class AssessmentService {
       testCasesByQuestion.set(tc.questionId, existing);
     }
 
+    const usage = await getQuestionUsage(this.db, libraryQuestionIds);
+
     const questions = rows.map((r) => ({
       id: r.link.id,
       createdAt: r.link.createdAt,
@@ -143,6 +156,7 @@ export class AssessmentService {
       starterCode: r.question.starterCode,
       timeLimitSeconds: r.question.timeLimitSeconds,
       testCases: testCasesByQuestion.get(r.question.id) || [],
+      usage: usageFor(usage, r.question.id),
     }));
 
     return {
@@ -224,7 +238,8 @@ export class AssessmentService {
       .where(
         and(
           eq(assessmentQuestionTable.assessmentId, id),
-          eq(assessmentQuestionTable.organizationId, orgId)
+          eq(assessmentQuestionTable.organizationId, orgId),
+          isNull(assessmentQuestionTable.archivedAt)
         )
       );
 
@@ -508,16 +523,24 @@ export class AssessmentService {
     };
   }
 
-  async deleteQuestion(questionId: Id<'assessmentQuestion'>) {
+  /**
+   * Removes a question from an assessment by archiving the link. Candidates'
+   * answers point at this row, so deleting it would take their work with it.
+   * Archived questions drop out of the candidate view, new invites and new
+   * scores; past scores are left as they were. The library question survives.
+   */
+  async archiveQuestion(questionId: Id<'assessmentQuestion'>) {
     const { orgId } = getSession(this.ctx);
+    const now = new Date().toISOString();
 
-    // Delete the link row. Library question survives for reuse.
     return this.db
-      .delete(assessmentQuestionTable)
+      .update(assessmentQuestionTable)
+      .set({ archivedAt: now, updatedAt: now })
       .where(
         and(
           eq(assessmentQuestionTable.id, questionId),
-          eq(assessmentQuestionTable.organizationId, orgId)
+          eq(assessmentQuestionTable.organizationId, orgId),
+          isNull(assessmentQuestionTable.archivedAt)
         )
       )
       .returning()
