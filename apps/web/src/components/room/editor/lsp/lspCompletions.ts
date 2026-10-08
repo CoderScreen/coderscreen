@@ -4,14 +4,17 @@ import {
   type CompletionResult,
   type CompletionSource,
   completeFromList,
+  insertCompletionText,
+  snippet,
 } from '@codemirror/autocomplete';
-import { LSCore, offsetToPos } from '@valtown/codemirror-ls';
+import type { EditorState } from '@codemirror/state';
+import type { EditorView } from '@codemirror/view';
+import { LSCore, offsetToPos, posToOffset } from '@valtown/codemirror-ls';
 import { completions } from '@valtown/codemirror-ls/extensions';
 import type * as LSP from 'vscode-languageserver-protocol';
+import { lspSnippetToTemplate } from './lspSnippet';
 
-// The server's trigger characters minus space, which would ask it for
-// completions after every space.
-const TRIGGER_CHARACTERS = new Set(['.', '"', "'", '`', '/', '@', '<', '#']);
+const INSERT_TEXT_FORMAT_SNIPPET = 2;
 
 const getLspPlugin = (context: CompletionContext) => {
   if (!context.view) return null;
@@ -61,6 +64,56 @@ const boostsBySortText = (items: LSP.CompletionItem[]) => {
   return new Map(groups.map((group, index) => [group, -Math.min(index, 99)]));
 };
 
+const toOffset = (state: EditorState, position: LSP.Position, fallback: number) =>
+  posToOffset(state.doc, position) ?? fallback;
+
+/**
+ * Inserts a completion the way the server describes it. Replaces the one in
+ * @valtown/codemirror-ls, which inserts snippet placeholders like `${1:k}`
+ * literally when they come in a text edit (rust-analyzer, gopls and clangd
+ * all send them that way).
+ *
+ * `getItem` returns the item with whatever `completionItem/resolve` has added
+ * so far, which can include edits elsewhere in the file such as imports.
+ */
+const applyCompletion =
+  (getItem: () => LSP.CompletionItem) =>
+  (view: EditorView, completion: Completion, from: number, to: number) => {
+    const item = getItem();
+    let text = item.insertText ?? item.label;
+    let start = from;
+    let end = to;
+    if (item.textEdit) {
+      const range = 'range' in item.textEdit ? item.textEdit.range : item.textEdit.replace;
+      text = item.textEdit.newText;
+      start = toOffset(view.state, range.start, from);
+      // The range was worked out when the completions were requested. If
+      // more has been typed since, replace that too.
+      end = Math.max(toOffset(view.state, range.end, to), to);
+    }
+
+    // Edits elsewhere in the file, mostly imports. They never overlap the
+    // completion, so apply them first and shift the completion to match.
+    const extraEdits = item.additionalTextEdits ?? [];
+    if (extraEdits.length > 0) {
+      const changes = view.state.changes(
+        extraEdits.map(({ range, newText }) => {
+          const editFrom = toOffset(view.state, range.start, 0);
+          return { from: editFrom, to: toOffset(view.state, range.end, editFrom), insert: newText };
+        })
+      );
+      view.dispatch({ changes });
+      start = changes.mapPos(start, 1);
+      end = changes.mapPos(end, 1);
+    }
+
+    if (item.insertTextFormat === INSERT_TEXT_FORMAT_SNIPPET) {
+      snippet(lspSnippetToTemplate(text))(view, completion, start, end);
+    } else {
+      view.dispatch(insertCompletionText(view.state, text, start, end));
+    }
+  };
+
 /**
  * Completion source for editors connected to a language server, with the
  * language's built-in completions as a fallback. Replaces the one in
@@ -76,7 +129,11 @@ export const lspCompletionSource =
 
     const word = context.matchBefore(/[\w$]+/);
     const charBefore = context.state.sliceDoc(context.pos - 1, context.pos);
-    const triggerCharacter = TRIGGER_CHARACTERS.has(charBefore) ? charBefore : undefined;
+    // Whitespace triggers (jdtls has one) would ask for completions after every space.
+    const triggerCharacter =
+      charBefore.trim() && capabilities.completionProvider.triggerCharacters?.includes(charBefore)
+        ? charBefore
+        : undefined;
     if (!word && !triggerCharacter && !context.explicit) return null;
 
     let response: LSP.CompletionList | LSP.CompletionItem[] | null;
@@ -99,14 +156,22 @@ export const lspCompletionSource =
 
     return {
       from: word?.from ?? context.pos,
-      options: items.map((item) => ({
-        ...completions.toCodemirrorCompletion(item, {
-          hasResolveProvider,
-          resolveItem: async (unresolved) =>
-            (await lsp.requestWithLock('completionItem/resolve', unresolved)) ?? unresolved,
-          render: renderDocs,
-        }),
-        boost: boosts.get(item.sortText ?? item.label),
-      })),
+      options: items.map((item) => {
+        // Resolved when the docs panel shows the item, which can add imports to apply.
+        let resolvedItem = item;
+        return {
+          ...completions.toCodemirrorCompletion(item, {
+            hasResolveProvider,
+            resolveItem: async (unresolved) => {
+              resolvedItem =
+                (await lsp.requestWithLock('completionItem/resolve', unresolved)) ?? unresolved;
+              return resolvedItem;
+            },
+            render: renderDocs,
+          }),
+          apply: applyCompletion(() => resolvedItem),
+          boost: boosts.get(item.sortText ?? item.label),
+        };
+      }),
     };
   };

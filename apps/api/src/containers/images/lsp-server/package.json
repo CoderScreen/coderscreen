@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@types/node": "^20.19.0",
+    "bash-language-server": "5.8.1",
+    "pyright": "1.1.414",
     "typescript": "7.0.2",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageserver-protocol": "^3.17.5",

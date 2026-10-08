@@ -99,6 +99,8 @@ describe('SharedLanguageServer', () => {
 
     shared = new SharedLanguageServer(bridgeServerSide, {
       workspaceUri: WORKSPACE,
+      initializationOptions: { from: 'sandbox' },
+      settings: { python: { analysis: { typeCheckingMode: 'off' } } },
       fileExists: (uri) => existingFiles.has(uri),
       deletionCheckDelayMs: DELETION_CHECK_MS,
     });
@@ -138,6 +140,20 @@ describe('SharedLanguageServer', () => {
       assert.equal(params.processId, null);
       assert.equal(params.rootUri, WORKSPACE);
       assert.deepEqual(params.workspaceFolders, [{ uri: WORKSPACE, name: 'workspace' }]);
+    });
+
+    it('sends the sandbox’s capabilities and options instead of the editor’s', async () => {
+      const a = await connectEditor({ initialize: false });
+      await a.request('initialize', {
+        capabilities: { textDocument: { completion: { dynamicRegistration: true } } },
+        initializationOptions: { from: 'editor' },
+      });
+
+      const [params] = initializeCalls;
+      assert.deepEqual(params.initializationOptions, { from: 'sandbox' });
+      assert.equal(params.capabilities.textDocument.completion.dynamicRegistration, undefined);
+      assert.equal(params.capabilities.textDocument.completion.completionItem.snippetSupport, true);
+      assert.equal(params.capabilities.workspace.configuration, true);
     });
 
     it('tells editors to send whole-file updates', async () => {
@@ -405,12 +421,16 @@ describe('SharedLanguageServer', () => {
       assert.deepEqual(hoverB, { contents: 'hover at 2:2' });
     });
 
-    it('answers configuration requests from the server itself', async () => {
+    it('answers configuration requests from the sandbox’s settings', async () => {
       const config = await languageServer.sendRequest('workspace/configuration', {
-        items: [{ section: 'typescript' }, { section: 'javascript' }],
+        items: [{ section: 'python' }, { section: 'python.analysis' }, { section: 'typescript' }],
       });
 
-      assert.deepEqual(config, [null, null]);
+      assert.deepEqual(config, [
+        { analysis: { typeCheckingMode: 'off' } },
+        { typeCheckingMode: 'off' },
+        null,
+      ]);
     });
 
     it('does not send server notifications to editors', async () => {
