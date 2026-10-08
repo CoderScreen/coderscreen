@@ -44,7 +44,7 @@
 			"@/*": ["./src/*"]
 		}
 	},
-	"exclude": ["test"],
+	"exclude": ["test", "src/containers/images/lsp-server"],
 	"include": [
 		"worker-configuration.d.ts",
 		"src/**/*.ts",

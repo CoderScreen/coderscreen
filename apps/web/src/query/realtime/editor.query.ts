@@ -18,7 +18,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { yCollab } from 'y-codemirror.next';
 import * as Y from 'yjs';
 import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
+import { LspSession } from '@/components/room/editor/lsp/LspSession';
+import { lspExtensions } from '@/components/room/editor/lsp/lspExtensions';
 import { useRoomContext } from '@/contexts/RoomContext';
+import { useCurrentRoomId } from '@/lib/params';
 import {
   addItemToParentById,
   checkPathExists,
@@ -168,6 +171,18 @@ const getLanguageExtension = (fileType: FileType): Extension => {
   }
 };
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Autocomplete from a language server is only wired up for single-file
+// TypeScript/JavaScript rooms so far. Framework rooms (React, Vue, Svelte)
+// also contain .ts files but need their packages installed to be useful.
+const LSP_ROOM_LANGUAGES = new Set<string>(['typescript', 'javascript']);
+
+const getLspLanguageId = (roomLanguage: string, fileType: FileType) => {
+  if (!LSP_ROOM_LANGUAGES.has(roomLanguage)) return null;
+  return fileType === 'typescript' || fileType === 'javascript' ? fileType : null;
+};
+
 // Helper function to create a FsNode from an entry and ID
 const createFsNode = (entry: FSEntry, id: string, fsMap: Y.Map<FSEntry>): FsNode => {
   const path = getPathFromId(fsMap, id);
@@ -248,6 +263,17 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
   const editorViewRef = useRef<EditorView>(null);
 
+  // One language server connection per room, shared by every file's editor
+  // state. It only connects once the editor is actually used.
+  const roomId = useCurrentRoomId();
+  const lspSessionRef = useRef<LspSession | null>(null);
+  const getLspSession = useCallback(() => {
+    lspSessionRef.current ??= new LspSession(
+      `${API_URL.replace(/^http/, 'ws')}/rooms/${roomId}/public/lsp?language=typescript`
+    );
+    return lspSessionRef.current;
+  }, [roomId]);
+
   const getOrCreateView = useCallback(
     (initialState: EditorState) => {
       const viewRef = editorViewRef.current;
@@ -302,6 +328,10 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       // Observe text changes
       ytext.observe(handleTextChange);
 
+      // Read from the doc rather than React state so this callback (and the
+      // editor states it creates) doesn't change identity on language switches.
+      const lspLanguageId = getLspLanguageId(provider.doc.getText('language').toString(), fileType);
+
       const state = EditorState.create({
         doc: ytext.toString(),
         extensions: [
@@ -309,12 +339,15 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
           yCollab(ytext, null, { undoManager }),
           keymap.of([indentWithTab]),
           getLanguageExtension(fileType),
+          lspLanguageId
+            ? lspExtensions(getLspSession(), { path: filePath, languageId: lspLanguageId })
+            : [],
         ],
       });
 
       return state;
     },
-    [provider]
+    [provider, getLspSession]
   );
 
   const switchToFile = useCallback(
@@ -524,6 +557,8 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
     return () => {
       editorViewRef.current?.destroy();
+      lspSessionRef.current?.dispose();
+      lspSessionRef.current = null;
     };
   }, [provider]);
 

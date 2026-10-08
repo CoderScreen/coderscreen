@@ -9,6 +9,7 @@ import { getSandboxId } from '@/lib/sandbox';
 import { partyKitMiddleware } from '@/middleware/partyKit.middleware';
 import { publicRoomMiddleware } from '@/middleware/room.middleware';
 import { whiteboardRouter } from '@/routes/room/whiteboard.router';
+import { ensureLspServer, LSP_PORT, LSP_PROCESS_ID, LspLanguageSchema } from '@/sandbox/lspServer';
 import { PreviewService } from '@/sandbox/PreviewService';
 import { PublicRoomSchema, RoomLanguageSchema } from '@/schema/room.zod';
 import { ExecOutputSchema } from '@/schema/sandbox.zod';
@@ -94,7 +95,10 @@ export const publicRoomRouter = new Hono<AppContext>()
     const sandbox = getSandbox(ctx.env.SANDBOX, sandboxId, { normalizeId: true });
     const processes = await sandbox.listProcesses();
     await Promise.all(
-      processes.filter((p) => p.status === 'running').map((p) => sandbox.killProcess(p.id))
+      processes
+        // Stopping the candidate's code shouldn't take the editor's autocomplete down with it.
+        .filter((p) => p.status === 'running' && p.id !== LSP_PROCESS_ID)
+        .map((p) => sandbox.killProcess(p.id))
     );
     return ctx.json({ success: true });
   })
@@ -130,6 +134,23 @@ export const publicRoomRouter = new Hono<AppContext>()
     const sessionId = ctx.req.query('sessionId') || 'default';
     return proxyTerminal(sandbox, sessionId, ctx.req.raw, { cols, rows });
   })
+  // Editor autocomplete: proxies the editor's WebSocket to the language server
+  // inside the room's sandbox, starting it on first use.
+  .get(
+    '/lsp',
+    zValidator('param', z.object({ roomId: idString('room') })),
+    zValidator('query', z.object({ language: LspLanguageSchema })),
+    async (ctx) => {
+      if (ctx.req.header('Upgrade')?.toLowerCase() !== 'websocket') {
+        throw new HTTPException(426, { message: 'Expected a WebSocket upgrade' });
+      }
+
+      const { roomId } = ctx.req.valid('param');
+      const sandbox = getSandbox(ctx.env.SANDBOX, getSandboxId(roomId), { normalizeId: true });
+      await ensureLspServer(sandbox);
+      return sandbox.wsConnect(ctx.req.raw, LSP_PORT);
+    }
+  )
   .post(
     '/preview/start',
     zValidator('param', z.object({ roomId: idString('room') })),
