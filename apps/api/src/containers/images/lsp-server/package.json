@@ -1,0 +1,22 @@
+{
+  "name": "@coderscreen/lsp-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Language servers for editor autocomplete, served over WebSocket from inside the room sandbox",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "test": "node --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "7.0.2",
+    "vscode-jsonrpc": "^8.2.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

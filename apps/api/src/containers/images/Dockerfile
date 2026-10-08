@@ -38,6 +38,24 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install TypeScript support globally
 RUN npm install -g typescript tsx @types/node && npm cache clean --force
 
+# Editor autocomplete: a WebSocket server that runs language servers for the
+# room (see lsp-server/). The API starts it on demand and proxies to it.
+COPY lsp-server/package.json lsp-server/package-lock.json lsp-server/tsconfig.json /opt/lsp-server/
+COPY lsp-server/src /opt/lsp-server/src
+RUN cd /opt/lsp-server \
+    && npm ci \
+    && npm run build \
+    && npm prune --omit=dev \
+    && npm cache clean --force
+# The TypeScript language server finds this by walking up from /workspace, so
+# the room is one project with Node types without a config file in the
+# candidate's workspace. It's a jsconfig.json because tsx, which runs the
+# candidate's code, only looks for tsconfig.json, so this can't change how
+# their code runs.
+COPY lsp-server/workspace-jsconfig.json /jsconfig.json
+
 RUN mkdir -p /workspace
 WORKDIR /container-server
 EXPOSE 3000
+# Editor autocomplete (lsp-server). wrangler dev only forwards exposed ports.
+EXPOSE 5005
