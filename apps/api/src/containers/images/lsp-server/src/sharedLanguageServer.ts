@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { MessageConnection } from 'vscode-jsonrpc';
 import {
+  type ClientCapabilities,
   type ConfigurationParams,
   type DidChangeTextDocumentParams,
   type DidChangeWatchedFilesParams,
@@ -25,11 +26,56 @@ interface SharedDocument {
 export interface SharedLanguageServerOptions {
   /** The workspace every editor in the room is editing, e.g. `file:///workspace`. */
   workspaceUri: string;
+  /** Sent to the server as `initializationOptions`, in place of the editor's. */
+  initializationOptions?: unknown;
+  /** Answers to `workspace/configuration`, keyed by section (see languages.ts). */
+  settings?: Record<string, unknown>;
   /** Whether the file behind a document URI still exists. Injectable for tests. */
   fileExists?: (uri: string) => boolean;
   /** How long after a document closes to check again whether its file was deleted. */
   deletionCheckDelayMs?: number;
 }
+
+/**
+ * What we tell every language server the editor supports: the three features
+ * we use, with nothing registered dynamically. Editors don't handle
+ * `client/registerCapability`, so a server that registered completions that
+ * way (which several do if the client allows it) would look like it had none.
+ */
+const CLIENT_CAPABILITIES: ClientCapabilities = {
+  general: { positionEncodings: ['utf-16'] },
+  textDocument: {
+    synchronization: { didSave: false, willSave: false, willSaveWaitUntil: false },
+    completion: {
+      completionItem: {
+        snippetSupport: true,
+        documentationFormat: ['markdown', 'plaintext'],
+        resolveSupport: { properties: ['documentation', 'detail', 'additionalTextEdits'] },
+        labelDetailsSupport: true,
+      },
+      contextSupport: true,
+    },
+    hover: { contentFormat: ['markdown', 'plaintext'] },
+    signatureHelp: {
+      signatureInformation: {
+        documentationFormat: ['markdown', 'plaintext'],
+        parameterInformation: { labelOffsetSupport: true },
+        activeParameterSupport: true,
+      },
+    },
+  },
+  workspace: { configuration: true, workspaceFolders: true },
+};
+
+const lookupSection = (settings: Record<string, unknown>, section: string | undefined) => {
+  if (!section) return settings;
+  let value: unknown = settings;
+  for (const key of section.split('.')) {
+    if (typeof value !== 'object' || value === null) return null;
+    value = (value as Record<string, unknown>)[key];
+  }
+  return value ?? null;
+};
 
 const fileExistsOnDisk = (uri: string) => {
   if (!uri.startsWith('file://')) return false;
@@ -57,6 +103,8 @@ const fileExistsOnDisk = (uri: string) => {
  *   When it closes and its file is gone (e.g. a language switch replaced
  *   `main.ts` with `main.js`), the server is told the file was deleted, so
  *   its old contents stop showing up in suggestions.
+ * - Settings belong to the sandbox: the server gets our client capabilities,
+ *   initialization options and configuration, not the first editor's.
  * - `shutdown`/`exit` from one editor would stop the server for the whole
  *   room, so they're ignored.
  * - Server-to-client traffic stops here. We only use completions, hover and
@@ -67,6 +115,7 @@ const fileExistsOnDisk = (uri: string) => {
 export class SharedLanguageServer {
   readonly #server: MessageConnection;
   readonly #workspaceFolder: WorkspaceFolder;
+  readonly #initializationOptions: unknown;
   readonly #fileExists: (uri: string) => boolean;
   readonly #deletionCheckDelayMs: number;
   /** Every open document, including ones opened before the server was ready. */
@@ -79,17 +128,20 @@ export class SharedLanguageServer {
     server: MessageConnection,
     {
       workspaceUri,
+      initializationOptions,
+      settings = {},
       fileExists = fileExistsOnDisk,
       deletionCheckDelayMs = 5_000,
     }: SharedLanguageServerOptions
   ) {
     this.#server = server;
     this.#workspaceFolder = { uri: workspaceUri, name: 'workspace' };
+    this.#initializationOptions = initializationOptions;
     this.#fileExists = fileExists;
     this.#deletionCheckDelayMs = deletionCheckDelayMs;
 
     server.onRequest('workspace/configuration', (params: ConfigurationParams) =>
-      params.items.map(() => null)
+      params.items.map((item) => lookupSection(settings, item.section))
     );
     server.onRequest('workspace/workspaceFolders', () => [this.#workspaceFolder]);
     server.onRequest(() => null);
@@ -158,12 +210,14 @@ export class SharedLanguageServer {
         .sendRequest<InitializeResult>('initialize', {
           ...params,
           // The editors run in browsers, so there's no client process for the
-          // server to watch, and the workspace is the sandbox's, not whatever
-          // the first editor happened to send.
+          // server to watch. The workspace, capabilities and options are the
+          // sandbox's, not whatever the first editor happened to send.
           processId: null,
           rootUri: this.#workspaceFolder.uri,
           rootPath: undefined,
           workspaceFolders: [this.#workspaceFolder],
+          capabilities: CLIENT_CAPABILITIES,
+          initializationOptions: this.#initializationOptions,
         } satisfies InitializeParams)
         .then((result): InitializeResult => {
           this.#notify('initialized', {});

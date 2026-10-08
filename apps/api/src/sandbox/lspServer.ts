@@ -3,8 +3,19 @@ import { z } from 'zod';
 
 type SandboxStub = ReturnType<typeof getSandbox>;
 
-/** Language servers the sandbox can run (see containers/images/lsp-server). */
-export const LspLanguageSchema = z.enum(['typescript']);
+/** Language servers the sandbox can run (see containers/images/lsp-server/src/languages.ts). */
+export const LspLanguageSchema = z.enum([
+  'typescript',
+  'python',
+  'rust',
+  'go',
+  'c',
+  'cpp',
+  'java',
+  'php',
+  'ruby',
+  'bash',
+]);
 
 /** Port the sandbox's language server WebSocket server listens on. */
 export const LSP_PORT = 5005;

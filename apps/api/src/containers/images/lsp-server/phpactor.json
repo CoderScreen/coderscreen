@@ -1,0 +1,3 @@
+{
+  "indexer.stub_paths": ["phar:///usr/local/bin/phpactor/vendor/jetbrains/phpstorm-stubs"]
+}

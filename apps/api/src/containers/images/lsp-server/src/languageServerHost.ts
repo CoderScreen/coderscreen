@@ -67,12 +67,18 @@ export class LanguageServerHost {
     this.#running?.process.kill();
   }
 
+  /** Stops the server now, rather than after the idle timeout, if no editor is using it. */
+  stopIfUnused() {
+    if (this.#editors.size === 0) this.stop();
+  }
+
   #start(): RunningServer {
     if (this.#running) return this.#running;
 
-    const { command, args } = LANGUAGE_SERVERS[this.#id]();
+    const { command, args, env, initializationOptions, settings } = LANGUAGE_SERVERS[this.#id]();
     const child = spawn(command, args, {
       cwd: this.#options.workspaceDir,
+      env: { ...process.env, ...env },
       stdio: ['pipe', 'pipe', 'inherit'],
     });
     const connection = createMessageConnection(
@@ -81,6 +87,8 @@ export class LanguageServerHost {
     );
     const shared = new SharedLanguageServer(connection, {
       workspaceUri: pathToFileURL(this.#options.workspaceDir).href,
+      initializationOptions,
+      settings,
     });
     const running = { process: child, connection, shared };
 

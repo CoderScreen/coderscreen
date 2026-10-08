@@ -20,6 +20,7 @@ import * as Y from 'yjs';
 import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
 import { LspSession } from '@/components/room/editor/lsp/LspSession';
 import { lspExtensions } from '@/components/room/editor/lsp/lspExtensions';
+import { getLspTarget } from '@/components/room/editor/lsp/lspLanguages';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useCurrentRoomId } from '@/lib/params';
 import {
@@ -173,16 +174,6 @@ const getLanguageExtension = (fileType: FileType): Extension => {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Autocomplete from a language server is only wired up for single-file
-// TypeScript/JavaScript rooms so far. Framework rooms (React, Vue, Svelte)
-// also contain .ts files but need their packages installed to be useful.
-const LSP_ROOM_LANGUAGES = new Set<string>(['typescript', 'javascript']);
-
-const getLspLanguageId = (roomLanguage: string, fileType: FileType) => {
-  if (!LSP_ROOM_LANGUAGES.has(roomLanguage)) return null;
-  return fileType === 'typescript' || fileType === 'javascript' ? fileType : null;
-};
-
 // Helper function to create a FsNode from an entry and ID
 const createFsNode = (entry: FSEntry, id: string, fsMap: Y.Map<FSEntry>): FsNode => {
   const path = getPathFromId(fsMap, id);
@@ -266,13 +257,23 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // One language server connection per room, shared by every file's editor
   // state. It only connects once the editor is actually used.
   const roomId = useCurrentRoomId();
-  const lspSessionRef = useRef<LspSession | null>(null);
-  const getLspSession = useCallback(() => {
-    lspSessionRef.current ??= new LspSession(
-      `${API_URL.replace(/^http/, 'ws')}/rooms/${roomId}/public/lsp?language=typescript`
-    );
-    return lspSessionRef.current;
-  }, [roomId]);
+  const lspSessionRef = useRef<{ server: string; session: LspSession } | null>(null);
+  const getLspSession = useCallback(
+    (server: string) => {
+      const current = lspSessionRef.current;
+      if (current?.server === server) return current.session;
+
+      // The room's language changed. The old files' editors are gone, so drop
+      // their connection rather than leave it open until it idles out.
+      current?.session.dispose();
+      const session = new LspSession(
+        `${API_URL.replace(/^http/, 'ws')}/rooms/${roomId}/public/lsp?language=${server}`
+      );
+      lspSessionRef.current = { server, session };
+      return session;
+    },
+    [roomId]
+  );
 
   const getOrCreateView = useCallback(
     (initialState: EditorState) => {
@@ -330,7 +331,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       // Read from the doc rather than React state so this callback (and the
       // editor states it creates) doesn't change identity on language switches.
-      const lspLanguageId = getLspLanguageId(provider.doc.getText('language').toString(), fileType);
+      const lspTarget = getLspTarget(provider.doc.getText('language').toString(), fileType);
 
       const state = EditorState.create({
         doc: ytext.toString(),
@@ -339,8 +340,11 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
           yCollab(ytext, null, { undoManager }),
           keymap.of([indentWithTab]),
           getLanguageExtension(fileType),
-          lspLanguageId
-            ? lspExtensions(getLspSession(), { path: filePath, languageId: lspLanguageId })
+          lspTarget
+            ? lspExtensions(getLspSession(lspTarget.server), {
+                path: filePath,
+                languageId: lspTarget.languageId,
+              })
             : [],
         ],
       });
@@ -557,7 +561,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
     return () => {
       editorViewRef.current?.destroy();
-      lspSessionRef.current?.dispose();
+      lspSessionRef.current?.session.dispose();
       lspSessionRef.current = null;
     };
   }, [provider]);

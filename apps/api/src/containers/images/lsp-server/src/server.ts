@@ -49,6 +49,13 @@ httpServer.on('upgrade', (req, socket, head) => {
     return;
   }
 
+  // A room uses one language at a time. After it switches, stop the old
+  // language's server instead of waiting out the idle timeout, so two heavy
+  // servers (rust-analyzer and jdtls, say) don't sit in memory together.
+  for (const [id, host] of hosts) {
+    if (id !== language) host.stopIfUnused();
+  }
+
   wss.handleUpgrade(req, socket, head, (ws) => {
     const disconnect = getHost(language).connect({
       connection: createWebSocketMessageConnection(ws),
