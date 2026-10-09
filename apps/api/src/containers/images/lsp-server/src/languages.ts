@@ -15,6 +15,12 @@ export interface LanguageServerConfig {
    * that aren't here get null, which servers treat as "use the defaults".
    */
   settings?: Record<string, unknown>;
+  /**
+   * The server sends rust-analyzer's `experimental/serverStatus`, and editors
+   * should show it as loading until it reports itself quiescent rather than
+   * as soon as it has started.
+   */
+  readyWhenQuiescent?: boolean;
 }
 
 /** Path to a file inside one of lsp-server's npm dependencies. */
@@ -50,9 +56,10 @@ const RUST_ANALYZER_SETTINGS = {
   checkOnSave: false,
   cargo: { buildScripts: { enable: false } },
   procMacro: { enable: false },
-  // Index the standard library on demand instead of all at once, and cache
-  // less of it: about 600 MB instead of 700 MB, at no visible cost.
-  cachePriming: { enable: false },
+  // Index the standard library as soon as the project loads, so the first
+  // completion is fast (under 1s instead of 6-10s) once the editor shows
+  // the server as ready. It costs about 75 MB more.
+  cachePriming: { enable: true },
   lru: { capacity: 32 },
   numThreads: 2,
 };
@@ -61,6 +68,9 @@ const rust = (): LanguageServerConfig => ({
   args: [],
   initializationOptions: RUST_ANALYZER_SETTINGS,
   settings: { 'rust-analyzer': RUST_ANALYZER_SETTINGS },
+  // Loading and indexing the standard library takes about 12s on the
+  // sandbox's CPU, and suggestions are empty until it's done.
+  readyWhenQuiescent: true,
 });
 
 // Without a go.mod, gopls treats main.go as a standalone package, which is

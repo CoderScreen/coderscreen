@@ -18,7 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { yCollab } from 'y-codemirror.next';
 import * as Y from 'yjs';
 import { getWorkspaceTemplate } from '@/components/room/editor/lib/languageTemplate';
-import { LspSession } from '@/components/room/editor/lsp/LspSession';
+import { LspSession, type LspStatus } from '@/components/room/editor/lsp/LspSession';
 import { lspExtensions } from '@/components/room/editor/lsp/lspExtensions';
 import { getLspTarget } from '@/components/room/editor/lsp/lspLanguages';
 import { useRoomContext } from '@/contexts/RoomContext';
@@ -258,6 +258,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
   // state. It only connects once the editor is actually used.
   const roomId = useCurrentRoomId();
   const lspSessionRef = useRef<{ server: string; session: LspSession } | null>(null);
+  const [lspStatus, setLspStatus] = useState<LspStatus>('idle');
   const getLspSession = useCallback(
     (server: string) => {
       const current = lspSessionRef.current;
@@ -269,6 +270,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       const session = new LspSession(
         `${API_URL.replace(/^http/, 'ws')}/rooms/${roomId}/public/lsp?language=${server}`
       );
+      session.onStatusChange(setLspStatus);
       lspSessionRef.current = { server, session };
       return session;
     },
@@ -332,6 +334,11 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       // Read from the doc rather than React state so this callback (and the
       // editor states it creates) doesn't change identity on language switches.
       const lspTarget = getLspTarget(provider.doc.getText('language').toString(), fileType);
+      const lspSession = lspTarget ? getLspSession(lspTarget.server) : null;
+      // Slow-starting servers get a head start in live rooms; the rest wait
+      // for the editor to be used. Ended rooms are read-only, so skip them.
+      const isLive = provider.doc.getText('status').toString() === 'active';
+      if (lspTarget?.connectOnOpen && isLive) lspSession?.activate();
 
       const state = EditorState.create({
         doc: ytext.toString(),
@@ -340,8 +347,8 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
           yCollab(ytext, null, { undoManager }),
           keymap.of([indentWithTab]),
           getLanguageExtension(fileType),
-          lspTarget
-            ? lspExtensions(getLspSession(lspTarget.server), {
+          lspTarget && lspSession
+            ? lspExtensions(lspSession, {
                 path: filePath,
                 languageId: lspTarget.languageId,
               })
@@ -612,5 +619,6 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     focusEditor,
     editorVisible: !!editorViewRef.current,
     checkIfPathExists,
+    lspStatus,
   };
 }
