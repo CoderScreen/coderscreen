@@ -34,7 +34,12 @@
 			"max_instances": 5,
 			"name": "sandbox",
 			"class_name": "Sandbox",
-			"image": "./src/containers/images/Dockerfile",
+			// Pinned to a pushed image instead of building the Dockerfile on every
+			// deploy: the ~5 GB push kept failing after the Worker was already
+			// live, and a later deploy rolled the container back to an old image.
+			// After changing the Dockerfile: `wrangler containers build
+			// ./src/containers/images -t sandbox:<tag> -p`, then update the tag.
+			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox:6f618db3",
 			"instance_type": "standard",
 		},
 	],
