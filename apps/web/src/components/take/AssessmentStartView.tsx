@@ -46,7 +46,11 @@ export const AssessmentStartView = () => {
 
   const handleStart = async () => {
     if (!selectedLanguage) return;
-    await startAssessment({ selectedLanguage });
+    try {
+      await startAssessment({ selectedLanguage });
+    } catch {
+      // The mutation already toasts the reason (for example, the link expired).
+    }
   };
 
   return (

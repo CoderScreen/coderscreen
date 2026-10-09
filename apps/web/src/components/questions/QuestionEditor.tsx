@@ -198,18 +198,22 @@ export const QuestionEditor = ({
     if (!question) return;
     const description = editor?.getJSON() ?? {};
     const values = form.state.values;
-    if (context === 'library') {
-      await libUpdate.updateQuestion({
-        id: question.id,
-        data: { title: values.title, description },
-      });
-    } else {
-      await aqUpdate.updateQuestion({
-        questionId: question.id,
-        data: { title: values.title, description, points: values.points },
-      });
+    try {
+      if (context === 'library') {
+        await libUpdate.updateQuestion({
+          id: question.id,
+          data: { title: values.title, description },
+        });
+      } else {
+        await aqUpdate.updateQuestion({
+          questionId: question.id,
+          data: { title: values.title, description, points: values.points },
+        });
+      }
+      setDetailsDirty(false);
+    } catch {
+      // The mutation already toasts the reason (for example, a validation error).
     }
-    setDetailsDirty(false);
   };
 
   // The server deletes every test case when a signature change makes them
@@ -242,12 +246,16 @@ export const QuestionEditor = ({
       returnType: signature.returnType,
       starterCode: starterOverrides,
     };
-    if (context === 'library') {
-      await libUpdate.updateQuestion({ id: question.id, data: payload });
-    } else {
-      await aqUpdate.updateQuestion({ questionId: question.id, data: payload });
+    try {
+      if (context === 'library') {
+        await libUpdate.updateQuestion({ id: question.id, data: payload });
+      } else {
+        await aqUpdate.updateQuestion({ questionId: question.id, data: payload });
+      }
+      setSignatureDirty(false);
+    } catch {
+      // The mutation already toasts the reason (for example, a validation error).
     }
-    setSignatureDirty(false);
   };
 
   // ===== Test case callbacks =====
@@ -515,15 +523,19 @@ export const QuestionEditor = ({
             icon={RiAddLine}
             onClick={async () => {
               if (mode === 'create' || !signatureIsSet) return;
-              const created = await callTestCaseCreate({
-                label: '',
-                args: signature.parameters.map((p) => defaultForType(p.type)),
-                expectedReturn: defaultForType(signature.returnType),
-                isHidden: false,
-                position: testCases.length,
-              });
-              const newId = (created as { id?: string }).id;
-              if (newId) setExpandedTcId(newId);
+              try {
+                const created = await callTestCaseCreate({
+                  label: '',
+                  args: signature.parameters.map((p) => defaultForType(p.type)),
+                  expectedReturn: defaultForType(signature.returnType),
+                  isHidden: false,
+                  position: testCases.length,
+                });
+                const newId = (created as { id?: string }).id;
+                if (newId) setExpandedTcId(newId);
+              } catch {
+                // The mutation already toasts the reason.
+              }
             }}
             disabled={mode === 'create' || !signatureIsSet || tcCreating}
             isLoading={tcCreating}
@@ -558,11 +570,15 @@ export const QuestionEditor = ({
                   onExpand={() => setExpandedTcId(tc.id)}
                   onCollapse={() => setExpandedTcId(null)}
                   onSave={async (draft) => {
-                    await callTestCaseUpdate({
-                      testCaseId: tc.id,
-                      data: draft,
-                    });
-                    setExpandedTcId(null);
+                    try {
+                      await callTestCaseUpdate({
+                        testCaseId: tc.id,
+                        data: draft,
+                      });
+                      setExpandedTcId(null);
+                    } catch {
+                      // The mutation already toasts the reason.
+                    }
                   }}
                   onDelete={async () => setPendingDeleteTcId(tc.id)}
                 />
@@ -592,8 +608,12 @@ export const QuestionEditor = ({
           const id = pendingDeleteTcId;
           setPendingDeleteTcId(null);
           if (!id) return;
-          await callTestCaseDelete(id);
-          if (expandedTcId === id) setExpandedTcId(null);
+          try {
+            await callTestCaseDelete(id);
+            if (expandedTcId === id) setExpandedTcId(null);
+          } catch {
+            // The mutation already toasts the reason.
+          }
         }}
         title='Delete test case?'
         description="New submissions won't be checked against it. Past candidates' results are kept."

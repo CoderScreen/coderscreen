@@ -314,7 +314,7 @@ const QuestionRow = ({ question, index, assessmentId, onEdit }: QuestionRowProps
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onConfirm={() => {
-          deleteQuestion(question.id);
+          deleteQuestion(question.id).catch(() => {});
           setDeleteOpen(false);
         }}
         title='Remove question?'

@@ -120,10 +120,14 @@ export const InviteCandidateDialog = ({
         return;
       }
       setErrors({});
-      const result = await inviteCandidate({
-        candidateId: selectedCandidateId as `cand_${string}`,
-      });
-      handleSuccess(result);
+      try {
+        const result = await inviteCandidate({
+          candidateId: selectedCandidateId as `cand_${string}`,
+        });
+        handleSuccess(result);
+      } catch {
+        // The mutation already toasts the reason (for example, a duplicate invite).
+      }
       return;
     }
 
@@ -136,11 +140,15 @@ export const InviteCandidateDialog = ({
       return;
     }
     setErrors({});
-    const result = await inviteCandidate({
-      candidateName: name.trim(),
-      candidateEmail: email.trim(),
-    });
-    handleSuccess(result);
+    try {
+      const result = await inviteCandidate({
+        candidateName: name.trim(),
+        candidateEmail: email.trim(),
+      });
+      handleSuccess(result);
+    } catch {
+      // The mutation already toasts the reason (for example, a duplicate invite).
+    }
   };
 
   const handleSuccess = (result: unknown) => {

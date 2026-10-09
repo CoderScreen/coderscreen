@@ -230,7 +230,11 @@ const SubmissionRowActions = ({
             </DropdownMenuIconWrapper>
             Copy Invite Link
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => archiveSubmission({ subId, archived: !isArchived })}>
+          <DropdownMenuItem
+            onClick={() => {
+              archiveSubmission({ subId, archived: !isArchived }).catch(() => {});
+            }}
+          >
             <DropdownMenuIconWrapper>
               {isArchived ? (
                 <RiInboxUnarchiveLine className='size-4' />

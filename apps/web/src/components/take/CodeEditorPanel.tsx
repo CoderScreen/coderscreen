@@ -42,8 +42,12 @@ export const CodeEditorPanel = ({ question }: CodeEditorPanelProps) => {
     // Flush the current-language buffer to the server before switching, so the
     // candidate's most recent edits in the current language don't get
     // shadowed by a stale saved blob from a previous session.
-    await saveCurrentCode();
-    await changeLanguage({ selectedLanguage: language });
+    try {
+      await saveCurrentCode();
+      await changeLanguage({ selectedLanguage: language });
+    } catch {
+      // The mutation already toasts the reason (for example, the attempt ended).
+    }
   };
 
   return (

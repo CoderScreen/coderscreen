@@ -41,7 +41,10 @@ export const AssessmentDetailHeader = ({ assessment }: AssessmentDetailHeaderPro
           <Button
             variant='primary'
             icon={RiCheckLine}
-            onClick={() => publishAssessment(assessment.id)}
+            onClick={() => {
+              // A 400 (for example, no test cases yet) is already toasted.
+              publishAssessment(assessment.id).catch(() => {});
+            }}
             isLoading={isPublishing}
           >
             Publish
