@@ -1,5 +1,6 @@
 import { RiLockLine } from '@remixicon/react';
 import { DockviewReact } from 'dockview';
+import { FirstRoomWelcome } from '@/components/room/host/FirstRoomWelcome';
 import { HostRoomHeader } from '@/components/room/host/HostRoomHeader';
 import { RoomFooter } from '@/components/room/RoomFooter';
 import { RoomProvider, useRoomContext } from '@/contexts/RoomContext';
@@ -106,6 +107,7 @@ const HostRoomContent = () => {
         />
       </div>
       <RoomFooter />
+      <FirstRoomWelcome />
     </div>
   );
 };
