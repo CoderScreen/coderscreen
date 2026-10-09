@@ -8,6 +8,12 @@ const MAX_RETRY_DELAY_MS = 60_000;
 
 const WORKSPACE_FOLDER = { uri: 'file:///workspace', name: 'workspace' };
 
+/** Sent by the sandbox's lsp-server (sharedLanguageServer.ts) on connect and when it changes. */
+const STATUS_NOTIFICATION = 'coderscreen/status';
+
+/** `idle` while disconnected; otherwise what the room's language server last reported. */
+export type LspStatus = 'idle' | 'loading' | 'ready';
+
 type RequestHandler = (method: string, params: unknown) => unknown;
 type NotificationHandler = (method: string, params: unknown) => void;
 
@@ -19,7 +25,9 @@ type NotificationHandler = (method: string, params: unknown) => void;
  * Connections follow the same rules as the room terminal (#36):
  *
  * - Connect only when the editor is being used (focused, or asking for
- *   completions/hovers) in a visible tab, never just because it rendered.
+ *   completions/hovers) in a visible tab, not just because it rendered.
+ *   The exception is servers that take long to start (`connectOnOpen` in
+ *   lspLanguages.ts), which are activated when the room opens.
  * - Disconnect after a few idle minutes or when the tab is hidden, and
  *   reconnect on the next interaction.
  * - Back off after failures so a broken server isn't retried on every keystroke.
@@ -38,6 +46,8 @@ export class LspSession implements LSITransport {
   #retryAt = 0;
   #retryDelay = MIN_RETRY_DELAY_MS;
   #disposed = false;
+  #status: LspStatus = 'idle';
+  readonly #statusListeners = new Set<(status: LspStatus) => void>();
 
   readonly #requestHandlers = new Set<RequestHandler>();
   readonly #notificationHandlers = new Set<NotificationHandler>();
@@ -74,6 +84,17 @@ export class LspSession implements LSITransport {
       return;
     }
     this.#connect();
+  }
+
+  get status() {
+    return this.#status;
+  }
+
+  onStatusChange(listener: (status: LspStatus) => void) {
+    this.#statusListeners.add(listener);
+    return () => {
+      this.#statusListeners.delete(listener);
+    };
   }
 
   dispose() {
@@ -157,6 +178,10 @@ export class LspSession implements LSITransport {
       for (const handler of this.#requestHandlers) handler(method, params);
     });
     socket.onNotification((method, params) => {
+      if (method === STATUS_NOTIFICATION) {
+        this.#setStatus((params as { status: 'loading' | 'ready' }).status);
+        return;
+      }
       for (const handler of this.#notificationHandlers) handler(method, params);
     });
     socket.onError((error) => {
@@ -186,6 +211,7 @@ export class LspSession implements LSITransport {
     if (this.#socket !== socket) return;
     this.#socket = null;
     this.client.ready = false;
+    this.#setStatus('idle');
 
     this.#retryAt = Date.now() + this.#retryDelay;
     this.#retryDelay = Math.min(this.#retryDelay * 2, MAX_RETRY_DELAY_MS);
@@ -196,9 +222,16 @@ export class LspSession implements LSITransport {
     if (!socket) return;
     this.#socket = null;
     this.client.ready = false;
+    this.#setStatus('idle');
     // Close the raw socket rather than calling dispose(): the transport's own
     // close handler throws if it's already been disposed.
     socket.connection?.close(1000, 'Editor idle');
+  }
+
+  #setStatus(status: LspStatus) {
+    if (this.#status === status) return;
+    this.#status = status;
+    for (const listener of this.#statusListeners) listener(status);
   }
 
   #onVisibilityChange = () => {

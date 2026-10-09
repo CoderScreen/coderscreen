@@ -9,7 +9,11 @@ import {
   StreamMessageReader,
   StreamMessageWriter,
 } from 'vscode-jsonrpc/node.js';
-import { SharedLanguageServer } from './sharedLanguageServer.ts';
+import {
+  SharedLanguageServer,
+  type SharedLanguageServerOptions,
+  STATUS_NOTIFICATION,
+} from './sharedLanguageServer.ts';
 
 const WORKSPACE = 'file:///workspace';
 const MAIN_TS = 'file:///workspace/main.ts';
@@ -77,12 +81,14 @@ describe('SharedLanguageServer', () => {
   const serverNotifications = (method: string) =>
     received.filter((message) => message.method === method).map((message) => message.params);
 
-  beforeEach(() => {
-    received = [];
-    initializeCalls = [];
-    existingFiles = new Set([MAIN_TS]);
-    connections = [];
+  const statuses = (notifications: Received[]) =>
+    notifications
+      .filter((message) => message.method === STATUS_NOTIFICATION)
+      .map((message) => message.params.status);
 
+  /** Starts the shared server against a fake language server. */
+  const startShared = (options: Partial<SharedLanguageServerOptions> = {}) => {
+    shared?.dispose();
     const [bridgeServerSide, serverSide] = connectionPair();
     languageServer = serverSide;
     connections.push(bridgeServerSide, serverSide);
@@ -103,9 +109,18 @@ describe('SharedLanguageServer', () => {
       settings: { python: { analysis: { typeCheckingMode: 'off' } } },
       fileExists: (uri) => existingFiles.has(uri),
       deletionCheckDelayMs: DELETION_CHECK_MS,
+      ...options,
     });
     bridgeServerSide.listen();
     languageServer.listen();
+  };
+
+  beforeEach(() => {
+    received = [];
+    initializeCalls = [];
+    existingFiles = new Set([MAIN_TS]);
+    connections = [];
+    startShared();
   });
 
   afterEach(() => {
@@ -442,7 +457,62 @@ describe('SharedLanguageServer', () => {
       await languageServer.sendNotification('window/logMessage', { type: 3, message: 'hi' });
       await a.flush();
 
-      assert.deepEqual(a.notifications, []);
+      assert.deepEqual(
+        a.notifications.filter((message) => message.method !== STATUS_NOTIFICATION),
+        []
+      );
+    });
+  });
+
+  describe('status', () => {
+    const quiescent = (value: boolean) =>
+      languageServer.sendNotification('experimental/serverStatus', {
+        health: 'ok',
+        quiescent: value,
+      });
+
+    it('reports loading, then ready once the server has initialized', async () => {
+      const a = await connectEditor({ initialize: false });
+      await a.flush();
+      assert.deepEqual(statuses(a.notifications), ['loading']);
+
+      await a.request('initialize', { capabilities: {} });
+      await a.flush();
+      assert.deepEqual(statuses(a.notifications), ['loading', 'ready']);
+    });
+
+    it('waits for quiescence from servers that report it', async () => {
+      startShared({ readyWhenQuiescent: true });
+      const a = await connectEditor();
+      await quiescent(false);
+      await a.flush();
+      assert.deepEqual(statuses(a.notifications), ['loading']);
+
+      await quiescent(true);
+      await a.flush();
+      assert.deepEqual(statuses(a.notifications), ['loading', 'ready']);
+    });
+
+    it('tells editors that connect later the current status', async () => {
+      startShared({ readyWhenQuiescent: true });
+      const a = await connectEditor();
+      await quiescent(true);
+      await a.flush();
+      const b = await connectEditor();
+      await b.flush();
+
+      assert.deepEqual(statuses(b.notifications), ['ready']);
+    });
+
+    it('stays ready when the server gets busy again', async () => {
+      startShared({ readyWhenQuiescent: true });
+      const a = await connectEditor();
+      await quiescent(true);
+      await quiescent(false);
+      await quiescent(true);
+      await a.flush();
+
+      assert.deepEqual(statuses(a.notifications), ['loading', 'ready']);
     });
   });
 });

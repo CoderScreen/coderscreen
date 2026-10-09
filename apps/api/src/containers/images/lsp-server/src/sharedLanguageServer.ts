@@ -15,6 +15,12 @@ import {
   type WorkspaceFolder,
 } from 'vscode-languageserver-protocol';
 
+/** Whether the server can answer usefully yet. Sent to editors as `coderscreen/status`. */
+export type LanguageServerStatus = 'loading' | 'ready';
+
+/** Notification telling editors the server's status, sent on connect and when it changes. */
+export const STATUS_NOTIFICATION = 'coderscreen/status';
+
 interface SharedDocument {
   languageId: string;
   version: number;
@@ -30,6 +36,8 @@ export interface SharedLanguageServerOptions {
   initializationOptions?: unknown;
   /** Answers to `workspace/configuration`, keyed by section (see languages.ts). */
   settings?: Record<string, unknown>;
+  /** Stay `loading` after initialize until the server reports itself quiescent (see languages.ts). */
+  readyWhenQuiescent?: boolean;
   /** Whether the file behind a document URI still exists. Injectable for tests. */
   fileExists?: (uri: string) => boolean;
   /** How long after a document closes to check again whether its file was deleted. */
@@ -65,6 +73,9 @@ const CLIENT_CAPABILITIES: ClientCapabilities = {
     },
   },
   workspace: { configuration: true, workspaceFolders: true },
+  // rust-analyzer's `experimental/serverStatus`, which says when it has
+  // finished loading. Other servers ignore it.
+  experimental: { serverStatusNotification: true },
 };
 
 const lookupSection = (settings: Record<string, unknown>, section: string | undefined) => {
@@ -107,6 +118,8 @@ const fileExistsOnDisk = (uri: string) => {
  *   initialization options and configuration, not the first editor's.
  * - `shutdown`/`exit` from one editor would stop the server for the whole
  *   room, so they're ignored.
+ * - Editors are told whether the server is still loading (`coderscreen/status`),
+ *   so they can say so instead of showing no suggestions.
  * - Server-to-client traffic stops here. We only use completions, hover and
  *   signature help, which are plain request/response, so server requests get
  *   default answers and server notifications (diagnostics, logs, progress)
@@ -121,8 +134,11 @@ export class SharedLanguageServer {
   /** Every open document, including ones opened before the server was ready. */
   readonly #documents = new Map<string, SharedDocument>();
   readonly #deletionChecks = new Map<string, NodeJS.Timeout>();
+  readonly #editors = new Set<MessageConnection>();
+  readonly #readyWhenQuiescent: boolean;
   #initializeResult: Promise<InitializeResult> | undefined;
   #ready = false;
+  #status: LanguageServerStatus = 'loading';
 
   constructor(
     server: MessageConnection,
@@ -130,6 +146,7 @@ export class SharedLanguageServer {
       workspaceUri,
       initializationOptions,
       settings = {},
+      readyWhenQuiescent = false,
       fileExists = fileExistsOnDisk,
       deletionCheckDelayMs = 5_000,
     }: SharedLanguageServerOptions
@@ -137,6 +154,7 @@ export class SharedLanguageServer {
     this.#server = server;
     this.#workspaceFolder = { uri: workspaceUri, name: 'workspace' };
     this.#initializationOptions = initializationOptions;
+    this.#readyWhenQuiescent = readyWhenQuiescent;
     this.#fileExists = fileExists;
     this.#deletionCheckDelayMs = deletionCheckDelayMs;
 
@@ -144,6 +162,9 @@ export class SharedLanguageServer {
       params.items.map((item) => lookupSection(settings, item.section))
     );
     server.onRequest('workspace/workspaceFolders', () => [this.#workspaceFolder]);
+    server.onNotification('experimental/serverStatus', ({ quiescent }: { quiescent?: boolean }) => {
+      if (quiescent) this.#markReady();
+    });
     server.onRequest(() => null);
     server.onNotification(() => {});
   }
@@ -193,7 +214,11 @@ export class SharedLanguageServer {
       if (this.#ready) this.#notify(method, params);
     });
 
+    this.#editors.add(client);
+    this.#sendStatus(client);
+
     return () => {
+      this.#editors.delete(client);
       for (const uri of this.#documents.keys()) this.#release(editor, uri);
     };
   }
@@ -202,6 +227,19 @@ export class SharedLanguageServer {
     for (const timer of this.#deletionChecks.values()) clearTimeout(timer);
     this.#deletionChecks.clear();
     this.#documents.clear();
+    this.#editors.clear();
+  }
+
+  // Only the first load is worth showing: once ready, later busy spells
+  // (re-reading the file after an edit) stay invisible.
+  #markReady() {
+    if (this.#status === 'ready') return;
+    this.#status = 'ready';
+    for (const editor of this.#editors) this.#sendStatus(editor);
+  }
+
+  #sendStatus(editor: MessageConnection) {
+    editor.sendNotification(STATUS_NOTIFICATION, { status: this.#status }).catch(() => {});
   }
 
   #initialize(params: InitializeParams) {
@@ -222,6 +260,7 @@ export class SharedLanguageServer {
         .then((result): InitializeResult => {
           this.#notify('initialized', {});
           this.#ready = true;
+          if (!this.#readyWhenQuiescent) this.#markReady();
           for (const [uri, doc] of this.#documents) this.#sendOpen(uri, doc);
 
           return {

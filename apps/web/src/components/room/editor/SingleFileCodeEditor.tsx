@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EditorHeader } from '@/components/room/editor/EditorHeader';
 import { getSingleFileTemplateFileName } from '@/components/room/editor/lib/languageTemplate';
+import { LspStatusIndicator } from '@/components/room/editor/lsp/LspStatusIndicator';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useMultiFileCodeEditor } from '@/query/realtime/editor.query';
 import { FS_MAP_KEY, FSEntry, findFileIdByPath } from '@/query/realtime/multi-file/docUtils';
@@ -17,7 +18,8 @@ export function SingleFileCodeEditor(_props: SingleFileCodeEditorProps) {
   const editorElementRef = useRef<HTMLDivElement>(null);
   const [isElementReady, setIsElementReady] = useState(false);
 
-  const { handleWorkspaceReset, setSelectedFile } = useMultiFileCodeEditor(editorElementRef);
+  const { handleWorkspaceReset, setSelectedFile, lspStatus } =
+    useMultiFileCodeEditor(editorElementRef);
 
   const fileId = useMemo(() => {
     if (!currentLanguage) {
@@ -55,6 +57,7 @@ export function SingleFileCodeEditor(_props: SingleFileCodeEditorProps) {
       <EditorHeader handleWorkspaceReset={handleWorkspaceReset} />
 
       <div className='flex-1 min-h-0 w-full overflow-hidden' ref={editorElementRef} />
+      <LspStatusIndicator status={lspStatus} />
     </div>
   );
 }

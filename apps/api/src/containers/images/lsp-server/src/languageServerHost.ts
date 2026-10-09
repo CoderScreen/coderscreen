@@ -75,7 +75,8 @@ export class LanguageServerHost {
   #start(): RunningServer {
     if (this.#running) return this.#running;
 
-    const { command, args, env, initializationOptions, settings } = LANGUAGE_SERVERS[this.#id]();
+    const { command, args, env, initializationOptions, settings, readyWhenQuiescent } =
+      LANGUAGE_SERVERS[this.#id]();
     const child = spawn(command, args, {
       cwd: this.#options.workspaceDir,
       env: { ...process.env, ...env },
@@ -89,6 +90,7 @@ export class LanguageServerHost {
       workspaceUri: pathToFileURL(this.#options.workspaceDir).href,
       initializationOptions,
       settings,
+      readyWhenQuiescent,
     });
     const running = { process: child, connection, shared };
 
