@@ -40,7 +40,7 @@
 			// After changing the Dockerfile: `wrangler containers build
 			// ./src/containers/images -t sandbox:<tag> -p`, then update the tag.
 			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox:6f618db3",
-			"instance_type": "standard",
+			"instance_type": "standard-2",
 		},
 	],
 	"durable_objects": {
