@@ -39,7 +39,7 @@
 			// live, and a later deploy rolled the container back to an old image.
 			// After changing the Dockerfile: `wrangler containers build
 			// ./src/containers/images -t sandbox:<tag> -p`, then update the tag.
-			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox:6f618db3",
+			"image": "registry.cloudflare.com/f05272c4cd62dae246414c758986da79/sandbox:670fe6e",
 			"instance_type": "standard-2",
 		},
 	],
