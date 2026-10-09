@@ -2,11 +2,22 @@ import { Button } from '@coderscreen/ui/button';
 import { SmallHeader } from '@coderscreen/ui/heading';
 import { MutedText } from '@coderscreen/ui/typography';
 import { RiAddLine } from '@remixicon/react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { CreateAssessmentDialog } from '@/components/assessments/CreateAssessmentDialog';
 
 export function AssessmentListHeader() {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const search = useSearch({ from: '/_app/assessments/' });
+  const navigate = useNavigate({ from: '/assessments' });
+  const [dialogOpen, setDialogOpen] = useState(Boolean(search.new));
+
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    // drop ?new so a refresh doesn't reopen the dialog
+    if (!open && search.new) {
+      navigate({ search: {}, replace: true });
+    }
+  };
 
   return (
     <>
@@ -23,7 +34,7 @@ export function AssessmentListHeader() {
         </div>
       </div>
 
-      <CreateAssessmentDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <CreateAssessmentDialog open={dialogOpen} onOpenChange={handleOpenChange} />
     </>
   );
 }
