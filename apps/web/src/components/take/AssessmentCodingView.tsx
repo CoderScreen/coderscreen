@@ -56,31 +56,32 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
 
   const handleRunTests = useCallback(async () => {
     const code = getCode(question.id);
-    const result = await runTests({
-      questionId: question.id as `aq_${string}`,
-      code,
-    });
+    try {
+      const result = await runTests({
+        questionId: question.id as `aq_${string}`,
+        code,
+      });
 
-    const testCases = question.testCases ?? [];
-    const results = (result.results ?? []).map((r: any) => {
-      const tc = testCases.find((t) => t.id === r.testCaseId);
-      return {
-        ...r,
-        label: tc?.label,
-        args: tc?.args,
-        expectedReturn: tc?.expectedReturn,
-      };
-    });
+      const testCases = question.testCases ?? [];
+      const results = (result.results ?? []).map((r: any) => {
+        const tc = testCases.find((t) => t.id === r.testCaseId);
+        return {
+          ...r,
+          label: tc?.label,
+          args: tc?.args,
+          expectedReturn: tc?.expectedReturn,
+        };
+      });
 
-    setTestResults(results);
+      setTestResults(results);
+    } catch {
+      // The mutation already toasts the reason (for example, the attempt ended).
+    }
   }, [question, getCode, runTests]);
 
   const handleSubmitCode = useCallback(async () => {
     const code = getCode(question.id);
-    const result = (await submitCode({
-      questionId: question.id as `aq_${string}`,
-      code,
-    })) as {
+    let result: {
       visibleResults?: Array<{
         testCaseId: string;
         actualOutput: string;
@@ -90,6 +91,15 @@ export const AssessmentCodingView = ({ question }: AssessmentCodingViewProps) =>
         executionTimeMs: number;
       }>;
     };
+    try {
+      result = (await submitCode({
+        questionId: question.id as `aq_${string}`,
+        code,
+      })) as typeof result;
+    } catch {
+      // The mutation already toasts the reason (for example, the attempt ended).
+      return;
+    }
 
     // Show visible test results after submission
     const testCases = question.testCases ?? [];

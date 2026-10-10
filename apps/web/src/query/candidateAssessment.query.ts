@@ -22,6 +22,10 @@ export const useCandidateAssessment = (subId: string, token: string) => {
     },
     enabled: !!subId && !!token,
     retry: false,
+    meta: {
+      // The take page renders its own invalid-link state.
+      SKIP_ERROR_TOAST: true,
+    },
   });
 
   return {

@@ -32,8 +32,11 @@ export const TanstackQueryClient = new QueryClient({
       }
     },
     onError: (error: unknown, query: Query<unknown, unknown, unknown, QueryKey>): void => {
+      // The failure is already on the query (`isError`) for the screen to render.
+      // Rethrowing runs inside the retryer's rejection handler, whose promise
+      // nobody awaits, so every failed fetch became an unhandled rejection.
+      if (query.meta?.SKIP_ERROR_TOAST) return;
       handleApiError(error, query.meta?.ERROR_MESSAGE as string);
-      throw error;
     },
   }),
   mutationCache: new MutationCache({
