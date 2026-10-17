@@ -1,0 +1,12 @@
+---
+title: 'Faster pages and assessment editing'
+date: '2026-07-27'
+summary: 'Database work across the app got quicker, and building an assessment no longer reloads everything on each edit.'
+tags: ['Improved']
+---
+
+A few customers told us CoderScreen felt slow when building tests. We went after the causes.
+
+- Database queries now go through a connection pool close to our servers, which cuts time off nearly every request.
+- Added missing indexes and removed repeated queries behind the assessment, submission and invite pages.
+- Adding, editing or reordering test cases updates the page in place instead of refetching the whole assessment.

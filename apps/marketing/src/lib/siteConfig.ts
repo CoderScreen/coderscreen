@@ -14,5 +14,6 @@ export const siteConfig = {
     // email links
     contactSales: 'mailto:kuba@coderscreen.com?subject=Enterprise%20Plan%20Request',
     contactSupport: 'mailto:kuba@coderscreen.com?subject=Support%20Request',
+    featureRequest: 'mailto:kuba@coderscreen.com?subject=Feature%20Request',
   },
 };

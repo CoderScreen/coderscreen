@@ -1,0 +1,13 @@
+---
+title: 'Editing questions no longer touches past results'
+date: '2026-10-06'
+summary: 'Removing a question or deleting a test case keeps every candidate result that was already graded.'
+tags: ['Fixed']
+---
+
+Removing a question from an assessment, changing its function signature or deleting a test case could wipe out results for candidates who had already taken it. That's fixed.
+
+- Removing a question now archives it. Past submissions still show it with a "Removed" badge.
+- Each graded result keeps a copy of the test it ran against, so later edits can't change a past score.
+- The question editor tells you when a question is shared across assessments or already has candidate answers, and asks before a change would clear its tests.
+- Library questions that are in use can't be deleted.
