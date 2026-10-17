@@ -140,6 +140,8 @@ export const useDeleteRoom = () => {
       queryClient.removeQueries({ queryKey: ['rooms', id] });
       // Invalidate and refetch rooms list
       queryClient.invalidateQueries({ queryKey: ['rooms'] });
+      // Deleting a new room can give its interview back
+      queryClient.invalidateQueries({ queryKey: ['billing', 'usage'] });
     },
     meta: {
       SUCCESS_MESSAGE: 'Room deleted successfully',

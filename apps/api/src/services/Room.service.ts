@@ -12,6 +12,9 @@ import { ChatMessage, User } from '@/partykit/internal/AI.service';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { UsageService } from '@/services/billing/Usage.service';
 
+// Rooms deleted within this long of being created give their interview back
+const ROOM_REFUND_WINDOW_MS = 10 * 60 * 1000;
+
 export class RoomService {
   private readonly db: PostgresJsDatabase;
   private readonly usageService: UsageService;
@@ -118,11 +121,30 @@ export class RoomService {
   async deleteRoom(id: Id<'room'>) {
     const { orgId } = getSession(this.ctx);
 
-    const deletedRoom = await this.db
-      .delete(roomTable)
-      .where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
-      .returning()
-      .then((data) => data[0]);
+    // One transaction so the refund only lands if the delete does. The delete
+    // returns the room to exactly one caller, so it can't be refunded twice.
+    const deletedRoom = await this.db.transaction(async (tx) => {
+      const room = await tx
+        .delete(roomTable)
+        .where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
+        .returning()
+        .then((data) => data[0]);
+
+      // A room deleted shortly after creation was a test or a mistake, not an
+      // interview, so it shouldn't use up the plan's limit
+      if (room && Date.now() - new Date(room.createdAt).getTime() < ROOM_REFUND_WINDOW_MS) {
+        await this.usageService.refundEvent(
+          {
+            eventType: 'live_interview',
+            resource: { id, type: 'room' },
+            trackedAt: room.createdAt,
+          },
+          tx
+        );
+      }
+
+      return room;
+    });
 
     if (deletedRoom) {
       // The live documents are stored in the room's Durable Objects. A purge

@@ -53,6 +53,17 @@ export interface TrackEventParams {
   metadata?: Record<string, unknown>;
 }
 
+export interface RefundEventParams {
+  eventType: EventType;
+  resource: {
+    id: string;
+    type?: string;
+  };
+  // When the event was originally tracked, used to tell if it's in the current cycle
+  trackedAt: string;
+  amount?: number;
+}
+
 export interface UsageResult {
   eventType: AllUsageTypes;
   count: number;
@@ -131,6 +142,57 @@ export class UsageService {
       exceeded: isLimitReached(updated.count, updated.limit),
       allowed: true,
     };
+  }
+
+  /**
+   * Give back an event that shouldn't have counted, e.g. a room deleted right
+   * after it was created. Only events from the current cycle are refunded, since
+   * past cycles are already closed. Returns true if usage was decremented.
+   */
+  async refundEvent(params: RefundEventParams, db: DbExecutor = this.db): Promise<boolean> {
+    const { eventType, resource, trackedAt, amount = 1 } = params;
+    const { orgId, user } = getSession(this.ctx);
+    const cycleStart = await this.getCycleStart();
+
+    if (new Date(trackedAt) < new Date(cycleStart)) {
+      return false;
+    }
+
+    // Gated on count so a refund can never push usage below zero
+    const updated = await db
+      .update(eventUsageTable)
+      .set({
+        count: sql`${eventUsageTable.count} - ${amount}`,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(eventUsageTable.organizationId, orgId),
+          eq(eventUsageTable.eventType, eventType),
+          eq(eventUsageTable.cycleStart, cycleStart),
+          sql`${eventUsageTable.count} >= ${amount}`
+        )
+      )
+      .returning({ id: eventUsageTable.id })
+      .then((res) => res.length > 0);
+
+    if (!updated) {
+      return false;
+    }
+
+    // Logged as a negative amount so summing the log still matches usage
+    await this.logEvent(db, {
+      organizationId: orgId,
+      eventType,
+      amount: -amount,
+      userId: user.id,
+      metadata: {
+        resource,
+        refund: true,
+      },
+    });
+
+    return true;
   }
 
   /**
