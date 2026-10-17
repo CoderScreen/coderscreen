@@ -1,0 +1,13 @@
+---
+title: 'Autocomplete in every room language'
+date: '2026-10-09'
+summary: 'The shared editor now has real language server autocomplete, hover docs and signature help in all 11 room languages.'
+tags: ['New']
+---
+
+The interview editor now runs a real language server for the room's language, the same kind your IDE uses. Candidates get completions, hover docs and signature help while they type, so nobody has to remember whether it's `push` or `append` under pressure.
+
+- Works in TypeScript, JavaScript, Python, Rust, Go, C, C++, Java, PHP, Ruby and Bash.
+- Snippets and auto-imports apply properly, so accepting a completion fills in arguments instead of pasting placeholder text.
+- Switching the room's language swaps the language server right away.
+- Heavier servers like Rust and Java take a few seconds to warm up. The editor shows a small "Loading autocomplete" pill until they're ready.

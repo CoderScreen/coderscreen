@@ -1,13 +1,16 @@
 import { MetadataRoute } from 'next';
 import { competitorData } from '@/lib/alternativeConfig';
 import { getBlogPosts } from '@/lib/blog';
+import { getChangelogEntries } from '@/lib/changelog';
 import { comparisonData } from '@/lib/comparisonConfig';
 import { personaData } from '@/lib/personaConfig';
+import { roadmapUpdatedAt } from '@/lib/roadmapConfig';
 import { roleData } from '@/lib/roleConfig';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://coderscreen.com';
   const today = new Date().toISOString().split('T')[0];
+  const latestChangelogDate = getChangelogEntries()[0]?.date ?? today;
 
   // Base static URLs
   const staticUrls: MetadataRoute.Sitemap = [
@@ -24,6 +27,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: today,
       changeFrequency: 'weekly',
       priority: 0.9,
+    },
+    // Changelog + roadmap
+    {
+      url: `${baseUrl}/changelog`,
+      lastModified: latestChangelogDate,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/roadmap`,
+      lastModified: roadmapUpdatedAt,
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
     // Feature pages
     {

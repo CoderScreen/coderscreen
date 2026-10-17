@@ -1,0 +1,12 @@
+---
+title: 'Correct highlighting and reliable code runs'
+date: '2026-06-25'
+summary: 'Every language gets its own syntax highlighting, and Bash and Java run properly again.'
+tags: ['Fixed']
+---
+
+Three bugs from customer feedback, all fixed:
+
+- The editor highlighted every language as TypeScript. Python, Go, Rust, Java, C, C++, PHP and the rest now get their own highlighting and indentation.
+- Bash and Java files didn't run at all. They do now.
+- If a room's code runner was restarted mid-interview, **Run** could fail until you started a new interview. The runner now restores your files before each run.

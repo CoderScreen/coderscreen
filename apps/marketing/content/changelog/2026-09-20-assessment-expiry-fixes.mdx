@@ -1,0 +1,14 @@
+---
+title: 'Expired assessments get scored'
+date: '2026-09-20'
+summary: 'Candidates who run out of time keep the work they did, and the submit flow no longer gets stuck.'
+tags: ['Fixed']
+---
+
+When a candidate ran out of time, their attempt was marked expired without being scored. Anyone who had answered questions ended up with a blank result.
+
+- Expired attempts are now scored on whatever the candidate submitted.
+- The editor saves the candidate's last changes a few seconds before the deadline, so nothing typed at the end gets lost.
+- Submitting right as time runs out moves the candidate to the completed screen instead of leaving the dialog stuck open.
+- The per-question button is now "Submit answer", so it's clear it doesn't end the whole assessment.
+- The invite dialog and API now tell you if the invitation email failed to send.
