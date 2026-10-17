@@ -10,7 +10,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { php } from '@codemirror/lang-php';
 import { python } from '@codemirror/lang-python';
 import { rust } from '@codemirror/lang-rust';
-import { EditorState, type Extension } from '@codemirror/state';
+import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import type { RoomSchema } from '@coderscreen/api/schema/room';
 import { basicSetup, EditorView } from 'codemirror';
@@ -246,13 +246,25 @@ const buildFileTree = (fsMap: Y.Map<FSEntry>): FsNode[] => {
   return rootNodes;
 };
 
+// Ended interviews are read-only. Both are needed: `readOnly` blocks edits
+// (including undo), `editable` stops the editor taking focus and a caret.
+const readOnlyExtension = (isReadOnly: boolean): Extension => [
+  EditorState.readOnly.of(isReadOnly),
+  EditorView.editable.of(!isReadOnly),
+];
+
 export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElement | null>) {
-  const { provider } = useRoomContext();
+  const { provider, isReadOnly } = useRoomContext();
 
   const [files, setFiles] = useState<FsNode[]>([]);
   const [selectedFile, _setSelectedFile] = useState<string | undefined>();
 
   const editorViewRef = useRef<EditorView>(null);
+
+  // Each file gets its own editor state, so read-only lives in a compartment
+  // that new states start from and the open view is reconfigured through.
+  const readOnlyCompartmentRef = useRef(new Compartment());
+  const isReadOnlyRef = useRef(isReadOnly);
 
   // One language server connection per room, shared by every file's editor
   // state. It only connects once the editor is actually used.
@@ -337,6 +349,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
           yCollab(ytext, null, { undoManager }),
           keymap.of([indentWithTab]),
           getLanguageExtension(fileType),
+          readOnlyCompartmentRef.current.of(readOnlyExtension(isReadOnlyRef.current)),
           lspTarget && lspSession
             ? lspExtensions(lspSession, {
                 path: filePath,
@@ -531,6 +544,14 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
     },
     [createFile, createFolder, provider.doc]
   );
+
+  // Lock or unlock the open file when the interview ends (or the status loads).
+  useEffect(() => {
+    isReadOnlyRef.current = isReadOnly;
+    editorViewRef.current?.dispatch({
+      effects: readOnlyCompartmentRef.current.reconfigure(readOnlyExtension(isReadOnly)),
+    });
+  }, [isReadOnly]);
 
   // #########################################################
   // CLEANUP FUNCTIONS

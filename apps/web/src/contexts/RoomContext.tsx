@@ -146,9 +146,14 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
     };
   }, [provider, handleStatus]);
 
+  // The doc's status can still say "active" for rooms ended before End
+  // Interview reliably saved it, so the database status wins once it is ended.
+  const status: RoomSchema['status'] | undefined =
+    publicRoom?.status === 'completed' ? 'completed' : currentStatus;
+
   const isReadOnly = useMemo(() => {
-    return currentStatus !== 'active';
-  }, [currentStatus]);
+    return status !== 'active';
+  }, [status]);
 
   // Create a wrapper function for subscribeToStatus that can be called from outside
   const subscribeToStatus = useCallback(
@@ -210,7 +215,7 @@ export const RoomProvider: React.FC<RoomProviderProps> = ({ children }) => {
         isConnected,
         provider,
         subscribeToStatus,
-        currentStatus,
+        currentStatus: status,
         currentLanguage,
         setLanguage,
         terminalInputRef,
