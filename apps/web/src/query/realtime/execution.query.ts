@@ -1,5 +1,6 @@
 import { RoomSchema } from '@coderscreen/api/schema/room';
 import { useCallback, useRef, useState } from 'react';
+import * as Y from 'yjs';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useRunRoomCode, useStopRoomCode } from '@/query/publicRoom.query';
 
@@ -12,6 +13,29 @@ export interface ExecOutput {
   elapsedTime: number;
   compileTime?: number;
 }
+
+// Every run is saved in the shared room document, and the output panel only
+// shows the latest one. Cap what each run stores and how many runs are kept so
+// a chatty program can't bloat the document past what the room can save.
+const MAX_STORED_OUTPUT_CHARS = 10_000;
+const MAX_STORED_RUNS = 5;
+
+const truncateOutput = (output: string) =>
+  output.length > MAX_STORED_OUTPUT_CHARS
+    ? `${output.slice(0, MAX_STORED_OUTPUT_CHARS)}\n... output truncated (${output.length - MAX_STORED_OUTPUT_CHARS} more characters)`
+    : output;
+
+const pushExecution = (doc: Y.Doc, result: ExecOutput) => {
+  const history = doc.getArray<ExecOutput>('executionHistory');
+  doc.transact(() => {
+    history.push([
+      { ...result, stdout: truncateOutput(result.stdout), stderr: truncateOutput(result.stderr) },
+    ]);
+    if (history.length > MAX_STORED_RUNS) {
+      history.delete(0, history.length - MAX_STORED_RUNS);
+    }
+  });
+};
 
 export function useCodeExecution() {
   const { provider, isReadOnly } = useRoomContext();
@@ -35,8 +59,7 @@ export function useCodeExecution() {
       if (stoppedRef.current) return;
 
       // Store result in Yjs executionHistory for cross-participant sync
-      const history = provider.doc.getArray<ExecOutput>('executionHistory');
-      history.push([result]);
+      pushExecution(provider.doc, result);
     } catch (error) {
       if (stoppedRef.current) return;
       console.error('Code execution failed:', error);
@@ -51,17 +74,14 @@ export function useCodeExecution() {
 
     // Push a "stopped" entry so the output panel shows it
     if (provider) {
-      const history = provider.doc.getArray<ExecOutput>('executionHistory');
-      history.push([
-        {
-          success: false,
-          timestamp: new Date().toISOString(),
-          stdout: '',
-          stderr: 'Execution stopped by user',
-          exitCode: -1,
-          elapsedTime: -1,
-        },
-      ]);
+      pushExecution(provider.doc, {
+        success: false,
+        timestamp: new Date().toISOString(),
+        stdout: '',
+        stderr: 'Execution stopped by user',
+        exitCode: -1,
+        elapsedTime: -1,
+      });
     }
 
     // Kill processes on the server

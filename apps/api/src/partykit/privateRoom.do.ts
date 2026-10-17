@@ -1,12 +1,13 @@
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
+import { persistWithRetry } from './internal/persist';
 
 export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
   private db: PostgresJsDatabase | null = null;
@@ -42,10 +43,13 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
 
     this.room = data.room;
 
-    if (data.roomContent) {
+    // Notes live in `rawPrivateContent`. It is empty until the first notes
+    // save (the shared room creates the row), and applying an empty update
+    // throws.
+    if (data.roomContent?.rawPrivateContent) {
       Y.applyUpdate(
         this.document,
-        new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
+        new Uint8Array(Buffer.from(data.roomContent.rawPrivateContent, 'base64'))
       );
     } else {
       this.initializeDefaultValues();
@@ -81,16 +85,22 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
       trackedUsers: [],
     };
 
-    await db
-      .insert(roomContentTable)
-      .values(roomContent)
-      .onConflictDoUpdate({
-        target: [roomContentTable.roomId],
-        set: {
-          updatedAt: new Date().toISOString(),
-          rawPrivateContent: roomContent.rawPrivateContent,
-        },
-      });
+    await persistWithRetry({
+      party: 'private-room',
+      roomId: room.id,
+      payloadBytes: roomContent.rawPrivateContent.length,
+      write: () =>
+        db
+          .insert(roomContentTable)
+          .values(roomContent)
+          .onConflictDoUpdate({
+            target: [roomContentTable.roomId],
+            set: {
+              updatedAt: new Date().toISOString(),
+              rawPrivateContent: sql.raw(`excluded."${roomContentTable.rawPrivateContent.name}"`),
+            },
+          }),
+    });
   }
 
   private getDb() {
