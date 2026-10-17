@@ -34,6 +34,8 @@ interface FileExplorerProps {
   onFileRename: (oldPath: string, newPath: string) => void;
   onFolderRename: (oldPath: string, newPath: string) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
+  /** Hide create, rename and delete actions (ended interviews). */
+  readOnly?: boolean;
   className?: string;
 }
 
@@ -71,6 +73,7 @@ const FileTreeItem = ({
   onCancelRename,
   onConfirmRename,
   checkIfPathExists,
+  readOnly,
 }: {
   file: FsNode;
   level?: number;
@@ -88,6 +91,7 @@ const FileTreeItem = ({
   onCancelRename: () => void;
   onConfirmRename: (file: FsNode, newName: string) => void;
   checkIfPathExists: (path: string, type: 'file' | 'folder') => boolean;
+  readOnly?: boolean;
 }) => {
   const isSelected = selectedFile === file.id;
   const isFocused = focusedFile?.id === file.id;
@@ -140,50 +144,52 @@ const FileTreeItem = ({
             <div>{file.name}</div>
           </span>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              className='opacity-0 group-hover:opacity-100 transition-opacity'
-            >
-              <RiMore2Line className='shrink-0 h-3.5 w-3.5 cursor-pointer' />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-              {file.type === 'folder' && (
-                <>
-                  <DropdownMenuItem
-                    className='flex items-center gap-2 text-muted-foreground'
-                    onClick={() => onNewFile(file, false)}
-                  >
-                    <RiFileAddLine className='h-3 w-3' />
-                    <span className='text-xs'>New File</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className='flex items-center gap-2 text-muted-foreground'
-                    onClick={() => onNewFile(file, true)}
-                  >
-                    <RiFolderAddLine className='h-3 w-3' />
-                    <span className='text-xs'>New Folder</span>
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuItem
-                className='flex items-center gap-2 text-muted-foreground'
-                onClick={() => onRenameFile(file)}
+          {!readOnly && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                className='opacity-0 group-hover:opacity-100 transition-opacity'
               >
-                <RiEditLine className='h-3 w-3' />
-                <span className='text-xs'>Rename</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className='flex items-center gap-2 text-muted-foreground'
-                onClick={() => onDeleteFile(file)}
-              >
-                <RiDeleteBinLine className='h-3 w-3 text-red-500' />
-                <span className='text-xs'>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <RiMore2Line className='shrink-0 h-3.5 w-3.5 cursor-pointer' />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                {file.type === 'folder' && (
+                  <>
+                    <DropdownMenuItem
+                      className='flex items-center gap-2 text-muted-foreground'
+                      onClick={() => onNewFile(file, false)}
+                    >
+                      <RiFileAddLine className='h-3 w-3' />
+                      <span className='text-xs'>New File</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className='flex items-center gap-2 text-muted-foreground'
+                      onClick={() => onNewFile(file, true)}
+                    >
+                      <RiFolderAddLine className='h-3 w-3' />
+                      <span className='text-xs'>New Folder</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuItem
+                  className='flex items-center gap-2 text-muted-foreground'
+                  onClick={() => onRenameFile(file)}
+                >
+                  <RiEditLine className='h-3 w-3' />
+                  <span className='text-xs'>Rename</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className='flex items-center gap-2 text-muted-foreground'
+                  onClick={() => onDeleteFile(file)}
+                >
+                  <RiDeleteBinLine className='h-3 w-3 text-red-500' />
+                  <span className='text-xs'>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       )}
 
@@ -208,6 +214,7 @@ const FileTreeItem = ({
               onCancelRename={onCancelRename}
               onConfirmRename={onConfirmRename}
               checkIfPathExists={checkIfPathExists}
+              readOnly={readOnly}
             />
           ))}
 
@@ -239,6 +246,7 @@ export const FileExplorer = ({
   onFileRename,
   onFolderRename,
   checkIfPathExists,
+  readOnly,
   className,
 }: FileExplorerProps) => {
   const [focusedFile, setFocusedFile] = useState<FsNode | null>(null);
@@ -396,27 +404,29 @@ export const FileExplorer = ({
       <div className='flex items-center justify-between pt-2 px-2'>
         <h3 className='text-xs text-muted-foreground'>Files</h3>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
-            <RiMore2Line className='h-3 w-3' />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem
-              className='flex items-center gap-2 text-muted-foreground'
-              onClick={() => handleClickNewFile(focusedFile, false)}
-            >
-              <RiFileAddLine className='h-3 w-3' />
-              <span className='text-xs'>New File</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className='flex items-center gap-2 text-muted-foreground'
-              onClick={() => handleClickNewFile(focusedFile, true)}
-            >
-              <RiFolderAddLine className='h-3 w-3' />
-              <span className='text-xs'>New Folder</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {!readOnly && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className='hover:bg-muted rounded-md p-1 cursor-pointer'>
+              <RiMore2Line className='h-3 w-3' />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+              <DropdownMenuItem
+                className='flex items-center gap-2 text-muted-foreground'
+                onClick={() => handleClickNewFile(focusedFile, false)}
+              >
+                <RiFileAddLine className='h-3 w-3' />
+                <span className='text-xs'>New File</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='flex items-center gap-2 text-muted-foreground'
+                onClick={() => handleClickNewFile(focusedFile, true)}
+              >
+                <RiFolderAddLine className='h-3 w-3' />
+                <span className='text-xs'>New Folder</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* File Tree */}
@@ -445,6 +455,7 @@ export const FileExplorer = ({
                 onCancelRename={handleCancelRename}
                 onConfirmRename={handleConfirmRename}
                 checkIfPathExists={checkIfPathExists}
+                readOnly={readOnly}
               />
             ))}
             {addingItem?.path === '/' && (

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { useRoomContext } from '@/contexts/RoomContext';
 import { useMultiFileCodeEditor } from '@/query/realtime/editor.query';
 import { EditorHeader } from './EditorHeader';
 import { FileExplorer } from './FileExplorer';
@@ -12,6 +13,7 @@ interface MultiFileCodeEditorProps {
 
 export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
   const elementRef = useRef<HTMLDivElement>(null);
+  const { isReadOnly } = useRoomContext();
 
   const {
     files,
@@ -47,6 +49,7 @@ export function MultiFileCodeEditor({ className }: MultiFileCodeEditorProps) {
               onFileRename={renameFile}
               onFolderRename={renameFolder}
               checkIfPathExists={checkIfPathExists}
+              readOnly={isReadOnly}
             />
           </Panel>
 

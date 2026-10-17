@@ -118,11 +118,29 @@ export class RoomService {
   async deleteRoom(id: Id<'room'>) {
     const { orgId } = getSession(this.ctx);
 
-    return this.db
+    const deletedRoom = await this.db
       .delete(roomTable)
       .where(and(eq(roomTable.id, id), eq(roomTable.organizationId, orgId)))
       .returning()
       .then((data) => data[0]);
+
+    if (deletedRoom) {
+      // The live documents are stored in the room's Durable Objects. A purge
+      // that fails here is retried by the object itself: it deletes its
+      // storage the next time it loads and finds the room gone.
+      const env = this.ctx.env;
+      const results = await Promise.allSettled([
+        env.Room.get(env.Room.idFromName(id)).purge(),
+        env.PrivateRoom.get(env.PrivateRoom.idFromName(id)).purge(),
+      ]);
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          console.error(`Failed to purge room ${id} storage:`, result.reason);
+        }
+      }
+    }
+
+    return deletedRoom;
   }
 
   /**
@@ -164,8 +182,8 @@ export class RoomService {
     userMessage: ChatMessage & { user: User };
     assistantMessage: ChatMessage;
   }) {
-    const roomName = this.ctx.env.Room.idFromName(params.roomId);
-    const roomStub = this.ctx.env.Room.get(roomName);
+    // Rooms hibernate, and a plain RPC doesn't load the room's document.
+    const roomStub = await getServerByName(this.ctx.env.Room, params.roomId);
 
     this.ctx.executionCtx.waitUntil(roomStub.handleAiChat(params));
   }
