@@ -4,6 +4,7 @@ import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
 import { eq, sql } from 'drizzle-orm';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Connection } from 'partyserver';
 import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
@@ -12,6 +13,7 @@ import { getSandboxId } from '@/lib/sandbox';
 import { getWorkspaceTemplate } from '@/lib/templates/languageTemplate';
 import { FileSyncService } from '@/sandbox/FileSyncService';
 import { AIService, ChatMessage, User } from './internal/AI.service';
+import { coalesce, DocStore } from './internal/docStore';
 import { persistWithRetry } from './internal/persist';
 import { SandboxService } from './internal/Sandbox.service';
 
@@ -21,6 +23,10 @@ const KEYS = {
 
 // File system constants
 const FS_MAP_KEY = 'fs';
+
+// How often a live room copies its document to Postgres while people edit.
+// Every edit is already saved to the Durable Object's own storage.
+const EXPORT_INTERVAL_MS = 5 * 60 * 1000;
 
 // Helper function to generate unique ID for files and folders
 const generateId = (): string => {
@@ -139,6 +145,10 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
   private fileSyncService: FileSyncService | null = null;
   private room: RoomEntity | null = null;
   private trackedUserIds: Set<string> = new Set();
+  private docStore: DocStore | null = null;
+  private lastExportAt = 0;
+  private purged = false;
+  private exportSnapshot = coalesce(() => this.exportToPostgres());
 
   /* control how often the onSave handler
    * is called with these options */
@@ -160,34 +170,24 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     // when first started, fetch the details of the room associated with this room
     const roomId = this.name as Id<'room'>;
-    const db = this.getDb();
-    const data = await db
-      .select({
-        room: roomTable,
-        roomContent: roomContentTable,
-      })
+    const room = await this.getDb()
+      .select()
       .from(roomTable)
       .where(eq(roomTable.id, roomId))
-      .leftJoin(roomContentTable, eq(roomContentTable.roomId, roomTable.id))
-      .then((res) => (res.length > 0 ? res[0] : null));
+      .then((res) => res[0] ?? null);
 
-    if (!data) {
+    if (!room) {
+      // The room was deleted, so drop this object's copy of the document too.
+      await this.ctx.storage.deleteAll();
       throw new Error('Room not found');
     }
 
-    this.room = data.room;
+    this.room = room;
     this.aiService = new AIService(this.env, this.document, this.room);
+    this.docStore = new DocStore(this.ctx.storage, { party: 'room', roomId });
 
-    // The row can exist with an empty doc when the private (notes) room saved
-    // first, and applying an empty update throws.
-    if (data.roomContent?.rawContent) {
-      Y.applyUpdate(
-        this.document,
-        new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
-      );
-    } else {
-      this.initializeDefaultValues();
-    }
+    await this.loadDocument(roomId);
+    this.lastExportAt = Date.now();
 
     // warm up the sandbox
     this.createNewSandbox();
@@ -208,6 +208,43 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
         this.handleUserJoin(addedUsers);
       }
     );
+  }
+
+  /**
+   * Load order: this object's own storage, then the Postgres copy (rooms last
+   * saved before live state moved into Durable Object storage), then a fresh
+   * workspace.
+   */
+  private async loadDocument(roomId: Id<'room'>) {
+    const docStore = this.getDocStore();
+
+    if (await docStore.load(this.document)) {
+      // An earlier export failed or never ran (e.g. the object was evicted).
+      if (await docStore.hasUnexportedChanges()) {
+        this.ctx.waitUntil(this.exportSnapshot().catch(() => {}));
+      }
+      return;
+    }
+
+    const legacyContent = await this.getDb()
+      .select({ rawContent: roomContentTable.rawContent })
+      .from(roomContentTable)
+      .where(eq(roomContentTable.roomId, roomId))
+      .then((res) => res[0]?.rawContent);
+
+    // The row can exist with an empty doc when the private (notes) room saved
+    // first, and applying an empty update throws.
+    if (legacyContent) {
+      Y.applyUpdate(this.document, new Uint8Array(Buffer.from(legacyContent, 'base64')));
+      // Postgres already holds this state, so it starts out exported.
+      await docStore.markExported(await docStore.save(this.document));
+      return;
+    }
+
+    await this.initializeDefaultValues();
+    // y-partyserver only saves edits made after onLoad. Save the starter
+    // workspace now, or it is lost if the room restarts before anyone types.
+    await docStore.save(this.document);
   }
 
   private async initializeDefaultValues() {
@@ -312,8 +349,71 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
   }
 
   async onSave() {
-    // called every few seconds after edits, and when the room empties
-    // you can use this to write to a database or some external storage
+    // Called a few seconds after edits. The local save is what keeps the work;
+    // Postgres gets a copy every EXPORT_INTERVAL_MS and when the room empties.
+    if (this.purged) {
+      return;
+    }
+
+    await this.getDocStore().save(this.document);
+
+    if (Date.now() - this.lastExportAt >= EXPORT_INTERVAL_MS) {
+      this.ctx.waitUntil(this.exportSnapshot().catch(() => {}));
+    }
+  }
+
+  onClose(connection: Connection, code: number, reason: string, wasClean: boolean) {
+    super.onClose(connection, code, reason, wasClean);
+
+    // Closed sockets are no longer listed, so this is empty once the last
+    // person leaves.
+    const [stillConnected] = this.getConnections();
+    if (!stillConnected) {
+      this.ctx.waitUntil(this.persistNow());
+    }
+  }
+
+  /** Save locally and copy to Postgres right away. Never throws. */
+  private async persistNow() {
+    if (this.purged) {
+      return;
+    }
+
+    try {
+      await this.getDocStore().save(this.document);
+      await this.exportSnapshot();
+    } catch (err) {
+      // Export failures are already reported by persistWithRetry and are
+      // retried on the next load, since the document is safe locally.
+      console.error(`[room] failed to persist ${this.room?.id}:`, err);
+    }
+  }
+
+  /**
+   * Called when the room is deleted: disconnect everyone and drop the stored
+   * document so it stops being billed.
+   */
+  async purge() {
+    this.purged = true;
+    for (const connection of this.getConnections()) {
+      connection.close(1000, 'Room deleted');
+    }
+    await this.ctx.storage.deleteAll();
+  }
+
+  /**
+   * Copy the document to Postgres in the format rooms used before live state
+   * moved into Durable Object storage, so older code and the legacy load path
+   * keep working.
+   */
+  private async exportToPostgres() {
+    if (this.purged) {
+      return;
+    }
+
+    this.lastExportAt = Date.now();
+    const docStore = this.getDocStore();
+    const revision = await docStore.currentRevision();
 
     const db = this.getDb();
     const room = this.getRoom();
@@ -389,6 +489,8 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
         updatedAt: new Date().toISOString(),
       })
       .where(eq(roomTable.id, room.id));
+
+    await docStore.markExported(revision);
   }
 
   /**
@@ -426,15 +528,28 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
       this.room.status = status;
       this.room.updatedAt = new Date().toISOString();
     }
+
+    // Ending the interview should leave the final state in Postgres.
+    await this.persistNow();
   }
 
   private getDb() {
     if (!this.db) {
-      const sql = postgres(this.env.INFISCAL_DATABASE_URL);
+      // Only used on load and for exports now, so keep one connection and
+      // release it when idle instead of holding it for the object's lifetime.
+      const sql = postgres(this.env.INFISCAL_DATABASE_URL, { max: 1, idle_timeout: 20 });
       this.db = drizzle(sql);
     }
 
     return this.db;
+  }
+
+  private getDocStore() {
+    if (!this.docStore) {
+      throw new Error('Document store not initialized');
+    }
+
+    return this.docStore;
   }
 
   private getRoom() {
