@@ -11,12 +11,23 @@ import * as Y from 'yjs';
  * `revision` counts local saves and `exportedRevision` records the last one
  * copied to Postgres. Comparing the two (instead of a boolean dirty flag)
  * keeps an export that started before newer edits from marking them exported.
+ *
+ * Export bookkeeping is stored too, not kept in memory, because hibernation
+ * unloads the object between messages.
  */
 const KEYS = {
   doc: 'doc',
   revision: 'revision',
   exportedRevision: 'exportedRevision',
+  exportedAt: 'exportedAt',
+  exportFailures: 'exportFailures',
 } as const;
+
+// A failed export is retried by alarm, so it lands even if nobody reconnects.
+// Give up after a few tries: the document itself is safe in DO storage, and
+// the next save or load tries again anyway.
+const EXPORT_RETRY_DELAY_MS = 5 * 60 * 1000;
+const MAX_EXPORT_RETRIES = 6;
 
 // DO storage rejects values over 2 MiB. Warn well before that.
 const MAX_VALUE_BYTES = 2 * 1024 * 1024;
@@ -66,8 +77,24 @@ export class DocStore {
   /** Record that everything up to `revision` has been copied to Postgres. */
   async markExported(revision: number): Promise<void> {
     const exported = (await this.storage.get<number>(KEYS.exportedRevision)) ?? 0;
-    if (revision > exported) {
-      await this.storage.put(KEYS.exportedRevision, revision);
+    await this.storage.put<number>({
+      [KEYS.exportedRevision]: Math.max(revision, exported),
+      [KEYS.exportedAt]: Date.now(),
+      [KEYS.exportFailures]: 0,
+    });
+  }
+
+  /** When the document was last copied to Postgres, if ever. */
+  async lastExportedAt(): Promise<number | undefined> {
+    return this.storage.get<number>(KEYS.exportedAt);
+  }
+
+  /** Count a failed export and schedule a retry alarm unless we've given up. */
+  async scheduleExportRetry(): Promise<void> {
+    const failures = ((await this.storage.get<number>(KEYS.exportFailures)) ?? 0) + 1;
+    await this.storage.put(KEYS.exportFailures, failures);
+    if (failures <= MAX_EXPORT_RETRIES) {
+      await this.storage.setAlarm(Date.now() + EXPORT_RETRY_DELAY_MS);
     }
   }
 
@@ -77,6 +104,21 @@ export class DocStore {
       this.storage.get<number>(KEYS.exportedRevision),
     ]);
     return (revision ?? 0) > (exported ?? 0);
+  }
+}
+
+/**
+ * partyserver gets a room's name after a hibernation wake from `ctx.id.name`.
+ * Runtimes older than March 2026 (including local wrangler before then) don't
+ * set it, and partyserver falls back to this storage record, which it only
+ * writes itself when `ctx.id.name` exists. Without it every message that wakes
+ * the room fails, dropping edits and presence.
+ */
+const PARTYSERVER_NAME_KEY = '__ps_name';
+
+export async function rememberServerName(storage: DurableObjectStorage, name: string) {
+  if ((await storage.get<string>(PARTYSERVER_NAME_KEY)) !== name) {
+    await storage.put(PARTYSERVER_NAME_KEY, name);
   }
 }
 

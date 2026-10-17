@@ -8,7 +8,7 @@ import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
-import { coalesce, DocStore } from './internal/docStore';
+import { coalesce, DocStore, rememberServerName } from './internal/docStore';
 import { persistWithRetry } from './internal/persist';
 
 // How often live notes are copied to Postgres while someone edits. Every edit
@@ -23,6 +23,12 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
   private lastExportAt = 0;
   private purged = false;
   private exportSnapshot = coalesce(() => this.exportToPostgres());
+
+  // Hibernate between messages so open notes tabs aren't billed for wall-clock
+  // time. onLoad runs again after each wake, so anything needed across
+  // messages lives in storage. Pending timers (the save debounce) keep the
+  // object awake, so unsaved notes are never dropped.
+  static options = { hibernate: true };
 
   /* control how often the onSave handler
    * is called with these options */
@@ -50,9 +56,11 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
 
     this.room = room;
     this.docStore = new DocStore(this.ctx.storage, { party: 'private-room', roomId });
+    await rememberServerName(this.ctx.storage, roomId);
 
     await this.loadDocument(roomId);
-    this.lastExportAt = Date.now();
+    // Never exported means the first save exports right away.
+    this.lastExportAt = (await this.getDocStore().lastExportedAt()) ?? 0;
   }
 
   /**
@@ -64,8 +72,14 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
 
     if (await docStore.load(this.document)) {
       // An earlier export failed or never ran (e.g. the object was evicted).
-      if (await docStore.hasUnexportedChanges()) {
-        this.ctx.waitUntil(this.exportSnapshot().catch(() => {}));
+      // Hibernation reloads the room often, so only catch up once the export
+      // interval has passed.
+      const exportedAt = (await docStore.lastExportedAt()) ?? 0;
+      if (
+        (await docStore.hasUnexportedChanges()) &&
+        Date.now() - exportedAt >= EXPORT_INTERVAL_MS
+      ) {
+        this.exportInBackground();
       }
       return;
     }
@@ -95,8 +109,20 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
     await this.getDocStore().save(this.document);
 
     if (Date.now() - this.lastExportAt >= EXPORT_INTERVAL_MS) {
-      this.ctx.waitUntil(this.exportSnapshot().catch(() => {}));
+      this.exportInBackground();
     }
+  }
+
+  private exportInBackground() {
+    this.ctx.waitUntil(this.exportSnapshot().catch(() => this.getDocStore().scheduleExportRetry()));
+  }
+
+  /** Retry for an export that failed (see DocStore.scheduleExportRetry). */
+  async onAlarm() {
+    if (this.purged || !(await this.getDocStore().hasUnexportedChanges())) {
+      return;
+    }
+    await this.exportSnapshot().catch(() => this.getDocStore().scheduleExportRetry());
   }
 
   onClose(connection: Connection, code: number, reason: string, wasClean: boolean) {
@@ -120,9 +146,10 @@ export class PrivateRoomServer extends YServer<AppContext['Bindings']> {
       await this.getDocStore().save(this.document);
       await this.exportSnapshot();
     } catch (err) {
-      // Export failures are already reported by persistWithRetry and are
-      // retried on the next load, since the notes are safe locally.
+      // Export failures are already reported by persistWithRetry. The notes
+      // are safe locally, so retry the export later by alarm.
       console.error(`[private-room] failed to persist ${this.room?.id}:`, err);
+      await this.docStore?.scheduleExportRetry().catch(() => {});
     }
   }
 

@@ -4,7 +4,7 @@ import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
 import { eq, sql } from 'drizzle-orm';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Connection } from 'partyserver';
+import type { Connection, ConnectionContext } from 'partyserver';
 import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
@@ -13,7 +13,7 @@ import { getSandboxId } from '@/lib/sandbox';
 import { getWorkspaceTemplate } from '@/lib/templates/languageTemplate';
 import { FileSyncService } from '@/sandbox/FileSyncService';
 import { AIService, ChatMessage, User } from './internal/AI.service';
-import { coalesce, DocStore } from './internal/docStore';
+import { coalesce, DocStore, rememberServerName } from './internal/docStore';
 import { persistWithRetry } from './internal/persist';
 import { SandboxService } from './internal/Sandbox.service';
 
@@ -148,7 +148,15 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
   private docStore: DocStore | null = null;
   private lastExportAt = 0;
   private purged = false;
+  private sandboxPrepared = false;
   private exportSnapshot = coalesce(() => this.exportToPostgres());
+
+  // Hibernate between messages so idle rooms (and tabs left open) aren't billed
+  // for wall-clock time. The object is unloaded after ~10s without activity and
+  // onLoad runs again on the next message, so nothing needed across messages
+  // may live only in memory. Pending timers (the save debounce) keep it awake,
+  // so unsaved edits are never dropped.
+  static options = { hibernate: true };
 
   /* control how often the onSave handler
    * is called with these options */
@@ -185,18 +193,29 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     this.room = room;
     this.aiService = new AIService(this.env, this.document, this.room);
     this.docStore = new DocStore(this.ctx.storage, { party: 'room', roomId });
+    await rememberServerName(this.ctx.storage, roomId);
 
     await this.loadDocument(roomId);
-    this.lastExportAt = Date.now();
+    // Never exported means the first save exports right away.
+    this.lastExportAt = (await this.getDocStore().lastExportedAt()) ?? 0;
 
-    // warm up the sandbox
-    this.createNewSandbox();
+    // Users already recorded in the doc, so a wake doesn't record them again.
+    for (const user of this.document.getArray<User>(KEYS.trackedUsers).toArray()) {
+      this.trackedUserIds.add(user.id);
+    }
 
-    // Start file sync: Yjs document -> sandbox filesystem
+    // Mirror edits to the sandbox filesystem. Observing is free; writing every
+    // file and warming the container waits until someone is connected (see
+    // prepareSandbox), since onLoad also runs for alarms.
     const sandbox = getSandbox(this.env.SANDBOX, getSandboxId(roomId), { normalizeId: true });
     this.fileSyncService = new FileSyncService(sandbox, this.document);
-    this.ctx.waitUntil(this.fileSyncService.syncAllFiles());
     this.fileSyncService.startObserving();
+
+    // Woken from hibernation with people still connected.
+    const [connected] = this.getConnections();
+    if (connected) {
+      this.prepareSandbox();
+    }
 
     this.document.awareness.on(
       'change',
@@ -210,6 +229,28 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     );
   }
 
+  onConnect(connection: Connection, ctx: ConnectionContext) {
+    super.onConnect(connection, ctx);
+    this.prepareSandbox();
+  }
+
+  /**
+   * Warm the container and write every file to it, once per load of this
+   * object and only while someone is connected. Ended rooms are read-only, so
+   * they don't need a sandbox at all.
+   */
+  private prepareSandbox() {
+    if (this.sandboxPrepared || this.getRoom().status === 'completed') {
+      return;
+    }
+    this.sandboxPrepared = true;
+
+    this.createNewSandbox();
+    if (this.fileSyncService) {
+      this.ctx.waitUntil(this.fileSyncService.syncAllFiles());
+    }
+  }
+
   /**
    * Load order: this object's own storage, then the Postgres copy (rooms last
    * saved before live state moved into Durable Object storage), then a fresh
@@ -220,8 +261,14 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     if (await docStore.load(this.document)) {
       // An earlier export failed or never ran (e.g. the object was evicted).
-      if (await docStore.hasUnexportedChanges()) {
-        this.ctx.waitUntil(this.exportSnapshot().catch(() => {}));
+      // Hibernation reloads the room often, so only catch up once the export
+      // interval has passed.
+      const exportedAt = (await docStore.lastExportedAt()) ?? 0;
+      if (
+        (await docStore.hasUnexportedChanges()) &&
+        Date.now() - exportedAt >= EXPORT_INTERVAL_MS
+      ) {
+        this.exportInBackground();
       }
       return;
     }
@@ -358,8 +405,20 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     await this.getDocStore().save(this.document);
 
     if (Date.now() - this.lastExportAt >= EXPORT_INTERVAL_MS) {
-      this.ctx.waitUntil(this.exportSnapshot().catch(() => {}));
+      this.exportInBackground();
     }
+  }
+
+  private exportInBackground() {
+    this.ctx.waitUntil(this.exportSnapshot().catch(() => this.getDocStore().scheduleExportRetry()));
+  }
+
+  /** Retry for an export that failed (see DocStore.scheduleExportRetry). */
+  async onAlarm() {
+    if (this.purged || !(await this.getDocStore().hasUnexportedChanges())) {
+      return;
+    }
+    await this.exportSnapshot().catch(() => this.getDocStore().scheduleExportRetry());
   }
 
   onClose(connection: Connection, code: number, reason: string, wasClean: boolean) {
@@ -383,9 +442,10 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
       await this.getDocStore().save(this.document);
       await this.exportSnapshot();
     } catch (err) {
-      // Export failures are already reported by persistWithRetry and are
-      // retried on the next load, since the document is safe locally.
+      // Export failures are already reported by persistWithRetry. The document
+      // is safe locally, so retry the export later by alarm.
       console.error(`[room] failed to persist ${this.room?.id}:`, err);
+      await this.docStore?.scheduleExportRetry().catch(() => {});
     }
   }
 

@@ -5,6 +5,16 @@ import { partyserverMiddleware } from 'hono-party';
 import { AppContext } from '@/index';
 import { RoomService } from '@/services/Room.service';
 
+/**
+ * partyserver names a room from `ctx.id.name`, which runtimes older than
+ * March 2026 (including local wrangler before that) leave unset. The room
+ * header is its documented fallback, so always send it.
+ */
+const withRoomName = (req: Request, lobby: { name: string }) => {
+  req.headers.set('x-partykit-room', lobby.name);
+  return req;
+};
+
 export const partyKitMiddleware = createMiddleware<AppContext>(async (ctx, next) => {
   const publicRoom = ctx.get('publicRoom');
 
@@ -18,6 +28,8 @@ export const partyKitMiddleware = createMiddleware<AppContext>(async (ctx, next)
   const partyMiddleware = partyserverMiddleware<AppContext>({
     options: {
       prefix: `rooms/${publicRoom.id}/public/connect/parties`,
+      onBeforeConnect: withRoomName,
+      onBeforeRequest: withRoomName,
     },
   });
 
@@ -47,6 +59,8 @@ export const privatePartyKitMiddleware = createMiddleware<AppContext>(async (ctx
   const partyMiddleware = partyserverMiddleware<AppContext>({
     options: {
       prefix: `rooms/${room.id}/connect/parties`,
+      onBeforeConnect: withRoomName,
+      onBeforeRequest: withRoomName,
     },
   });
 

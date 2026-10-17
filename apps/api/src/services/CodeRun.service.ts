@@ -2,6 +2,7 @@ import { getSandbox } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity } from '@coderscreen/db/room.db';
 import { Context } from 'hono';
+import { getServerByName } from 'partyserver';
 import { FormattedOutput, getSandboxId } from '@/lib/sandbox';
 import { LANGUAGE_CONFIG } from '@/sandbox/languageCommands';
 import { AppContext } from '..';
@@ -70,8 +71,9 @@ export class CodeRunService {
    */
   private async ensureWorkspaceSynced(roomId: Id<'room'>): Promise<void> {
     try {
-      const roomName = this.ctx.env.Room.idFromName(roomId);
-      const roomStub = this.ctx.env.Room.get(roomName);
+      // Rooms hibernate, and a plain RPC doesn't load the room's document, so
+      // the sync would write an empty workspace.
+      const roomStub = await getServerByName(this.ctx.env.Room, roomId);
       await roomStub.ensureWorkspaceSynced();
     } catch (error) {
       console.error('Failed to ensure workspace synced before run:', error);

@@ -182,8 +182,8 @@ export class RoomService {
     userMessage: ChatMessage & { user: User };
     assistantMessage: ChatMessage;
   }) {
-    const roomName = this.ctx.env.Room.idFromName(params.roomId);
-    const roomStub = this.ctx.env.Room.get(roomName);
+    // Rooms hibernate, and a plain RPC doesn't load the room's document.
+    const roomStub = await getServerByName(this.ctx.env.Room, params.roomId);
 
     this.ctx.executionCtx.waitUntil(roomStub.handleAiChat(params));
   }
