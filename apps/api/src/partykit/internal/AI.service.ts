@@ -55,6 +55,7 @@ Your role is to:
 Be encouraging but thorough in your evaluation. Focus on understanding their thought process and helping them demonstrate their best work.`;
   static TEMPERATURE = 0.7;
   static MAX_TOKENS = 1000;
+  static STREAM_UPDATE_INTERVAL_MS = 250;
 
   static messagesKey = 'ai_chat_messages';
   static configKey = 'ai_chat_config';
@@ -164,13 +165,27 @@ User's question: ${userMessage.content}
       });
 
       let accumulatedContent = '';
+      // Every doc update rewrites the whole message and leaves a record in the
+      // room document forever, so stream into the doc at a fixed rate instead
+      // of once per token.
+      let lastUpdateAt = 0;
+      let hasPendingUpdate = false;
 
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content;
         if (content) {
           accumulatedContent += content;
-          this.updateStreamingMessage(baseResponseMsg.id, accumulatedContent);
+          hasPendingUpdate = true;
+          if (Date.now() - lastUpdateAt >= AIService.STREAM_UPDATE_INTERVAL_MS) {
+            this.updateStreamingMessage(baseResponseMsg.id, accumulatedContent);
+            lastUpdateAt = Date.now();
+            hasPendingUpdate = false;
+          }
         }
+      }
+
+      if (hasPendingUpdate) {
+        this.updateStreamingMessage(baseResponseMsg.id, accumulatedContent);
       }
 
       result.push({

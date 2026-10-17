@@ -2,7 +2,7 @@ import { getSandbox } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity, roomTable } from '@coderscreen/db/room.db';
 import { RoomContentEntity, roomContentTable } from '@coderscreen/db/roomContent.db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
@@ -12,6 +12,7 @@ import { getSandboxId } from '@/lib/sandbox';
 import { getWorkspaceTemplate } from '@/lib/templates/languageTemplate';
 import { FileSyncService } from '@/sandbox/FileSyncService';
 import { AIService, ChatMessage, User } from './internal/AI.service';
+import { persistWithRetry } from './internal/persist';
 import { SandboxService } from './internal/Sandbox.service';
 
 const KEYS = {
@@ -20,7 +21,6 @@ const KEYS = {
 
 // File system constants
 const FS_MAP_KEY = 'fs';
-const FILE_CHANGE_COUNTER_KEY = '__fileChangeCounter';
 
 // Helper function to generate unique ID for files and folders
 const generateId = (): string => {
@@ -178,7 +178,9 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     this.room = data.room;
     this.aiService = new AIService(this.env, this.document, this.room);
 
-    if (data.roomContent) {
+    // The row can exist with an empty doc when the private (notes) room saved
+    // first, and applying an empty update throws.
+    if (data.roomContent?.rawContent) {
       Y.applyUpdate(
         this.document,
         new Uint8Array(Buffer.from(data.roomContent.rawContent, 'base64'))
@@ -245,10 +247,6 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
 
     // Clear any existing entries
     fsMap.clear();
-
-    // Initialize file change counter
-    const counterMap = this.document.getMap(FILE_CHANGE_COUNTER_KEY);
-    counterMap.set('value', 0);
 
     // Get workspace template for the language
     const template = getWorkspaceTemplate(language);
@@ -355,30 +353,42 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
       trackedUsers,
     };
 
-    await Promise.all([
-      db
-        .insert(roomContentTable)
-        .values(roomContent)
-        .onConflictDoUpdate({
-          target: [roomContentTable.roomId],
-          set: {
-            ...roomContent,
-            roomId: undefined,
-            createdAt: undefined,
-            updatedAt: undefined,
-            userId: undefined,
-            organizationId: undefined,
-            rawPrivateContent: undefined,
-          },
-        }),
-      db
-        .update(roomTable)
-        .set({
-          language: language as RoomEntity['language'],
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(roomTable.id, room.id)),
-    ]);
+    // Reference the inserted row (`excluded`) in the conflict update so the
+    // document is sent once, not twice. Large statements fail to send from the
+    // Worker, and every save after the first failure fails too because the doc
+    // only grows.
+    const excluded = (column: { name: string }) => sql.raw(`excluded."${column.name}"`);
+    await persistWithRetry({
+      party: 'room',
+      roomId: room.id,
+      payloadBytes: JSON.stringify(roomContent).length,
+      write: () =>
+        db
+          .insert(roomContentTable)
+          .values(roomContent)
+          .onConflictDoUpdate({
+            target: [roomContentTable.roomId],
+            set: {
+              status: excluded(roomContentTable.status),
+              code: excluded(roomContentTable.code),
+              language: excluded(roomContentTable.language),
+              instructions: excluded(roomContentTable.instructions),
+              executionHistory: excluded(roomContentTable.executionHistory),
+              trackedUsers: excluded(roomContentTable.trackedUsers),
+              rawContent: excluded(roomContentTable.rawContent),
+            },
+          }),
+    });
+
+    // Only bump the room after the content landed, so `updated_at` reflects
+    // the last successful save instead of hiding failed ones.
+    await db
+      .update(roomTable)
+      .set({
+        language: language as RoomEntity['language'],
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(roomTable.id, room.id));
   }
 
   /**

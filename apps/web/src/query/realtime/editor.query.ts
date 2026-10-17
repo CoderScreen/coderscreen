@@ -321,16 +321,6 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       const undoManager = new Y.UndoManager(ytext);
 
-      // Set up observer for text changes to increment counter
-      const handleTextChange = () => {
-        const counterMap = provider.doc.getMap('__fileChangeCounter');
-        const currentValue = (counterMap.get('value') as number) || 0;
-        counterMap.set('value', currentValue + 1);
-      };
-
-      // Observe text changes
-      ytext.observe(handleTextChange);
-
       // Read from the doc rather than React state so this callback (and the
       // editor states it creates) doesn't change identity on language switches.
       const lspTarget = getLspTarget(provider.doc.getText('language').toString(), fileType);
@@ -397,7 +387,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       // Add to parent folder if it exists
       if (parentId) {
-        addItemToParentById(fsMap, fileId, parentId, provider.doc);
+        addItemToParentById(fsMap, fileId, parentId);
       }
 
       // Create Y.Text for file content
@@ -425,7 +415,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       fsMap.delete(fileId);
 
       // Remove from parent folder
-      removeItemFromParentById(fsMap, fileId, provider.doc);
+      removeItemFromParentById(fsMap, fileId);
     },
     [provider]
   );
@@ -444,7 +434,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       const newName = newPath.split('/').pop() || '';
 
       // Update the file entry
-      renameItemById(fsMap, fileId, newName, provider.doc);
+      renameItemById(fsMap, fileId, newName);
     },
     [provider]
   );
@@ -469,7 +459,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
 
       // Add to parent folder if it exists
       if (parentId) {
-        addItemToParentById(fsMap, folderId, parentId, provider.doc);
+        addItemToParentById(fsMap, folderId, parentId);
       }
     },
     [provider]
@@ -488,7 +478,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       fsMap.delete(folderId);
 
       // Remove from parent folder
-      removeItemFromParentById(fsMap, folderId, provider.doc);
+      removeItemFromParentById(fsMap, folderId);
     },
     [provider]
   );
@@ -506,7 +496,7 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
       const newName = newPath.split('/').pop() || '';
 
       // Update the folder entry
-      renameItemById(fsMap, folderId, newName, provider.doc);
+      renameItemById(fsMap, folderId, newName);
     },
     [provider]
   );
@@ -537,11 +527,6 @@ export function useMultiFileCodeEditor(elementRef: React.RefObject<HTMLDivElemen
             createFile(file.path, file.code);
           }
         });
-
-        // Increment counter for workspace reset
-        const counterMap = provider.doc.getMap('__fileChangeCounter');
-        const currentValue = (counterMap.get('value') as number) || 0;
-        counterMap.set('value', currentValue + 1);
       });
     },
     [createFile, createFolder, provider.doc]

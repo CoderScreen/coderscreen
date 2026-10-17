@@ -4,6 +4,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { getServerByName } from 'partyserver';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
 import { getSession } from '@/lib/session';
@@ -143,8 +144,10 @@ export class RoomService {
   }
 
   async handleStatusUpdate(id: Id<'room'>, status: RoomEntity['status']) {
-    const roomName = this.ctx.env.Room.idFromName(id);
-    const roomStub = this.ctx.env.Room.get(roomName);
+    // A plain RPC call doesn't start the room, so on a cold room the status
+    // would land in an empty doc that never saves. getServerByName loads the
+    // room's document first.
+    const roomStub = await getServerByName(this.ctx.env.Room, id);
     await roomStub.handleStatusUpdate(status);
   }
 
