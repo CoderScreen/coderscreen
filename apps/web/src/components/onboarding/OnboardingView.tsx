@@ -5,10 +5,21 @@ import {
   RemixiconComponentType,
   RiArrowRightLine,
   RiFileList3Line,
+  RiGithubFill,
+  RiGoogleFill,
+  RiLinkedinBoxFill,
+  RiMoreLine,
+  RiNewspaperLine,
+  RiRedditFill,
+  RiSparkling2Line,
   RiTerminalBoxLine,
+  RiTwitterXFill,
+  RiUserHeartLine,
+  RiYoutubeFill,
 } from '@remixicon/react';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
+import { isPostHogEnabled, posthog } from '@/lib/posthog';
 import { cx, focusRing } from '@/lib/utils';
 import { useSession } from '@/query/auth.query';
 import { useCreateOrganization } from '@/query/org.query';
@@ -20,21 +31,31 @@ type OnboardingGoal = 'live_interviews' | 'assessments';
 const GOALS: {
   value: OnboardingGoal;
   label: string;
-  description: string;
   icon: RemixiconComponentType;
 }[] = [
   {
     value: 'live_interviews',
     label: 'Live interviews',
-    description: 'Code with a candidate in real time',
     icon: RiTerminalBoxLine,
   },
   {
     value: 'assessments',
     label: 'Coding assessments',
-    description: 'Send a test that grades itself',
     icon: RiFileList3Line,
   },
+];
+
+const REFERRAL_SOURCES: { label: string; icon: RemixiconComponentType }[] = [
+  { label: 'Google search', icon: RiGoogleFill },
+  { label: 'ChatGPT or another AI', icon: RiSparkling2Line },
+  { label: 'GitHub', icon: RiGithubFill },
+  { label: 'Reddit', icon: RiRedditFill },
+  { label: 'Hacker News', icon: RiNewspaperLine },
+  { label: 'LinkedIn', icon: RiLinkedinBoxFill },
+  { label: 'X / Twitter', icon: RiTwitterXFill },
+  { label: 'YouTube', icon: RiYoutubeFill },
+  { label: 'Friend or colleague', icon: RiUserHeartLine },
+  { label: 'Other', icon: RiMoreLine },
 ];
 
 const PERSONAL_EMAIL_DOMAINS = new Set([
@@ -73,6 +94,37 @@ const companyFromEmail = (email: string | undefined) => {
   return name ? name.charAt(0).toUpperCase() + name.slice(1) : '';
 };
 
+const OptionPill = ({
+  label,
+  icon: Icon,
+  selected,
+  onClick,
+}: {
+  label: string;
+  icon: RemixiconComponentType;
+  selected: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    type='button'
+    aria-pressed={selected}
+    onClick={onClick}
+    className={cx(
+      'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors cursor-pointer',
+      selected
+        ? 'border-primary ring-1 ring-primary bg-primary/5 text-gray-900'
+        : 'border-gray-200 text-gray-700 hover:bg-gray-50',
+      focusRing
+    )}
+  >
+    <Icon
+      className={cx('size-4 shrink-0', selected ? 'text-primary' : 'text-muted-foreground')}
+      aria-hidden='true'
+    />
+    {label}
+  </button>
+);
+
 export const OnboardingView = () => {
   const navigate = useNavigate();
   const { user } = useSession();
@@ -85,13 +137,28 @@ export const OnboardingView = () => {
       name: user?.name || '',
       company: companyFromEmail(user?.email),
       goal: 'live_interviews' as OnboardingGoal,
+      referralSource: '',
+      referralOther: '',
     },
     onSubmit: async ({ value }) => {
       await updateUser({ name: value.name });
 
-      const response = await createOrganization({ name: value.company, goal: value.goal });
+      const referralSource =
+        value.referralSource === 'Other' && value.referralOther.trim()
+          ? `Other: ${value.referralOther.trim()}`
+          : value.referralSource;
+
+      const response = await createOrganization({
+        name: value.company,
+        goal: value.goal,
+        referralSource,
+      });
       if (!response.data) {
         return;
+      }
+
+      if (isPostHogEnabled && referralSource) {
+        posthog.setPersonProperties({ referral_source: referralSource });
       }
 
       // Navigations below reload the page so the app picks up the new active organization.
@@ -201,39 +268,54 @@ export const OnboardingView = () => {
             {(field) => (
               <div>
                 <Label className='block mb-2'>What do you want to do first?</Label>
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                  {GOALS.map((goal) => {
-                    const selected = field.state.value === goal.value;
+                <div className='flex flex-wrap gap-2'>
+                  {GOALS.map((goal) => (
+                    <OptionPill
+                      key={goal.value}
+                      label={goal.label}
+                      icon={goal.icon}
+                      selected={field.state.value === goal.value}
+                      onClick={() => field.handleChange(goal.value)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field name='referralSource'>
+            {(field) => (
+              <div>
+                <Label className='block mb-2'>How did you hear about us?</Label>
+                <div className='flex flex-wrap gap-2'>
+                  {REFERRAL_SOURCES.map((source) => {
+                    const selected = field.state.value === source.label;
                     return (
-                      <button
-                        key={goal.value}
-                        type='button'
-                        aria-pressed={selected}
-                        onClick={() => field.handleChange(goal.value)}
-                        className={cx(
-                          'flex flex-col items-start gap-3 rounded-lg border p-4 text-left transition-colors cursor-pointer',
-                          selected
-                            ? 'border-primary ring-1 ring-primary bg-primary/5'
-                            : 'border-gray-200 hover:bg-gray-50',
-                          focusRing
-                        )}
-                      >
-                        <div
-                          className={cx(
-                            'flex size-9 items-center justify-center rounded-md',
-                            selected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
-                          )}
-                        >
-                          <goal.icon className='size-4.5' aria-hidden='true' />
-                        </div>
-                        <div>
-                          <p className='text-sm font-medium text-gray-900'>{goal.label}</p>
-                          <p className='text-xs text-muted-foreground'>{goal.description}</p>
-                        </div>
-                      </button>
+                      <OptionPill
+                        key={source.label}
+                        label={source.label}
+                        icon={source.icon}
+                        selected={selected}
+                        // clicking the selected option again clears it, the question is optional
+                        onClick={() => field.handleChange(selected ? '' : source.label)}
+                      />
                     );
                   })}
                 </div>
+                {field.state.value === 'Other' && (
+                  <form.Field name='referralOther'>
+                    {(otherField) => (
+                      <Input
+                        placeholder='Where did you find us?'
+                        value={otherField.state.value}
+                        onChange={(e) => otherField.handleChange(e.target.value)}
+                        maxLength={100}
+                        autoFocus
+                        className='mt-3'
+                      />
+                    )}
+                  </form.Field>
+                )}
               </div>
             )}
           </form.Field>
