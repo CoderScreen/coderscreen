@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2168F7"/>
+      <stop offset="1" stop-color="#1450D6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <!-- Y Combinator logo, right side -->
+  <rect x="1440" y="360" width="360" height="360" rx="28" fill="#FB651E"/>
+  <text x="1620" y="548" text-anchor="middle" dominant-baseline="central" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="270" font-weight="700" fill="#FFFFFF">Y</text>
+
+  <!-- logo + wordmark, top-left -->
+  <g transform="translate(128,96) scale(0.34)"><path fill="#FFFFFF" d="m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z"/><path fill="#FFFFFF" d="m33 60.6l51.8 28.7v100.7l-51.8-28.7z"/><path fill="#FFFFFF" d="m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z"/><path fill="#FFFFFF" d="m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z"/></g>
+  <text x="216" y="130" dominant-baseline="central" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="42" font-weight="800" fill="#FFFFFF">CoderScreen</text>
+
+  <!-- title -->
+  <text x="128" y="540" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="150" font-weight="800" fill="#FFFFFF" letter-spacing="-2">Knowing AI</text>
+  <text x="128" y="700" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="150" font-weight="800" fill="#FFFFFF" letter-spacing="-2">Doesn't Pay</text>
+
+  <!-- scope line -->
+  <text x="128" y="812" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="44" font-weight="600" fill="#C7D8FF">2,652 engineering jobs at ~1,400 YC startups</text>
+</svg>
