@@ -74,10 +74,12 @@ export class BillingService {
       throw new Error(`Free plan with id ${freePlanId} not found`);
     }
 
-    await this.stripeService.createSubscription({
+    const stripeSubscription = await this.stripeService.createSubscription({
       customerId: stripeCustomerId,
       priceId: freePlan.stripePriceId,
     });
+
+    await this.upsertSubscription(stripeSubscription);
   }
 
   async createCheckoutSession(params: {
@@ -210,12 +212,15 @@ export class BillingService {
       | Stripe.CustomerSubscriptionCreatedEvent
       | Stripe.CustomerSubscriptionDeletedEvent
   ) {
+    return this.upsertSubscription(event.data.object);
+  }
+
+  async upsertSubscription(stripeSubscription: Stripe.Subscription) {
     const db = useDb(this.ctx);
-    const stripeSubscription = event.data.object;
     const stripeSubscriptionItem = stripeSubscription.items.data[0];
 
     if (!stripeSubscriptionItem) {
-      throw new Error('Stripe subscription item not found in subscription update event');
+      throw new Error('Stripe subscription item not found in subscription');
     }
 
     const stripeCustomerId = (() => {
