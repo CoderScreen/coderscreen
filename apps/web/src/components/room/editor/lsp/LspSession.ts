@@ -1,5 +1,6 @@
 import { LSClient } from '@valtown/codemirror-ls';
 import { type LSITransport, LSWebSocketTransport } from '@valtown/codemirror-ls/transport';
+import { runWithGuardedWebSocket } from './lspSocketGuard';
 
 /** Matches the room terminal: drop an idle connection so it stops keeping the container awake. */
 const IDLE_DISCONNECT_MS = 3 * 60 * 1000;
@@ -189,22 +190,26 @@ export class LspSession implements LSITransport {
     });
     this.#socket = socket;
 
-    socket.connect().then(
-      () => {
-        if (this.#socket !== socket) return;
-        this.#retryDelay = MIN_RETRY_DELAY_MS;
+    // `new WebSocket` happens synchronously inside connect(). Guard that
+    // socket so a close mid-write (leaving the room) can't reject unhandled.
+    runWithGuardedWebSocket(() => {
+      socket.connect().then(
+        () => {
+          if (this.#socket !== socket) return;
+          this.#retryDelay = MIN_RETRY_DELAY_MS;
 
-        const waiting = this.#waitingForSocket;
-        this.#waitingForSocket = [];
-        for (const resolve of waiting) resolve(socket);
+          const waiting = this.#waitingForSocket;
+          this.#waitingForSocket = [];
+          for (const resolve of waiting) resolve(socket);
 
-        // After a reconnect the server may be a fresh process, so initialize
-        // again. The editors re-send their documents once it's done.
-        if (!this.#initializing) this.client.initialize().catch(() => {});
-      },
-      // The close handler cleans up and schedules the retry.
-      () => {}
-    );
+          // After a reconnect the server may be a fresh process, so initialize
+          // again. The editors re-send their documents once it's done.
+          if (!this.#initializing) this.client.initialize().catch(() => {});
+        },
+        // The close handler cleans up and schedules the retry.
+        () => {}
+      );
+    });
   }
 
   #handleClose(socket: LSWebSocketTransport) {
