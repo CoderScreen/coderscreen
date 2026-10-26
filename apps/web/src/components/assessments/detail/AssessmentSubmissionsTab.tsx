@@ -55,13 +55,26 @@ const SubmissionStatusBadge = ({ status }: { status: string }) => {
 
 interface AssessmentSubmissionsTabProps {
   assessmentId: string;
+  assessmentStatus?: 'draft' | 'active' | 'archived';
 }
 
-export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissionsTabProps) => {
+// The API only accepts invites for active assessments.
+const inviteBlockedReason = (status: AssessmentSubmissionsTabProps['assessmentStatus']) => {
+  if (status === 'draft') return 'Publish this assessment before inviting candidates.';
+  if (status === 'archived')
+    return 'This assessment is archived, so it no longer accepts new candidates.';
+  return null;
+};
+
+export const AssessmentSubmissionsTab = ({
+  assessmentId,
+  assessmentStatus,
+}: AssessmentSubmissionsTabProps) => {
   const { submissions, isLoading } = useSubmissions(assessmentId);
   const navigate = useNavigate();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const blockedReason = inviteBlockedReason(assessmentStatus);
 
   const allSubmissions = (submissions ?? []) as Record<string, unknown>[];
   const archivedCount = allSubmissions.filter((s) => s.isArchived === true).length;
@@ -81,11 +94,21 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
               {showArchived ? 'Hide archived' : `Show archived (${archivedCount})`}
             </Button>
           )}
-          <Button icon={RiMailSendLine} onClick={() => setInviteDialogOpen(true)}>
+          <Button
+            icon={RiMailSendLine}
+            onClick={() => setInviteDialogOpen(true)}
+            disabled={!!blockedReason}
+          >
             Invite Candidate
           </Button>
         </div>
       </div>
+
+      {blockedReason && (
+        <div className='mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800'>
+          {blockedReason}
+        </div>
+      )}
 
       <TableRoot>
         <Table>
@@ -115,6 +138,7 @@ export const AssessmentSubmissionsTab = ({ assessmentId }: AssessmentSubmissions
                       icon={RiAddLine}
                       className='mt-4'
                       onClick={() => setInviteDialogOpen(true)}
+                      disabled={!!blockedReason}
                     >
                       Invite Candidate
                     </Button>

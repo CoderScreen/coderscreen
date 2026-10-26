@@ -291,10 +291,14 @@ const QuestionRow = ({ question, index, assessmentId, onEdit }: QuestionRowProps
         <TableCell className='text-gray-500 font-medium'>{index + 1}</TableCell>
         <TableCell>{question.title}</TableCell>
         <TableCell>
-          <span className='inline-flex items-center gap-1 text-gray-500'>
-            <RiCheckboxCircleLine className='size-3.5' />
-            {testCases.length}
-          </span>
+          {testCases.length === 0 ? (
+            <span className='text-amber-700'>None yet</span>
+          ) : (
+            <span className='inline-flex items-center gap-1 text-gray-500'>
+              <RiCheckboxCircleLine className='size-3.5' />
+              {testCases.length}
+            </span>
+          )}
         </TableCell>
         <TableCell className='text-gray-700 font-medium'>{question.points}</TableCell>
         <TableCell>

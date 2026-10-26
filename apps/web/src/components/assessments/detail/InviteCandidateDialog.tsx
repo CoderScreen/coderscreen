@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { siteConfig } from '@/lib/siteConfig';
 import { useCandidates, useInviteCandidate } from '@/query/assessment.query';
 import { useUsage } from '@/query/billing.query';
+import { parseApiError } from '@/query/error.query';
 
 interface InviteCandidateDialogProps {
   assessmentId: string;
@@ -43,7 +44,12 @@ export const InviteCandidateDialog = ({
   open,
   onOpenChange,
 }: InviteCandidateDialogProps) => {
-  const { inviteCandidate, isLoading } = useInviteCandidate(assessmentId);
+  const {
+    inviteCandidate,
+    isLoading,
+    error: inviteError,
+    reset: resetInvite,
+  } = useInviteCandidate(assessmentId);
   const { candidates } = useCandidates();
   const { usage } = useUsage('assessment_invite');
 
@@ -104,6 +110,7 @@ export const InviteCandidateDialog = ({
     setInvitedEmail(null);
     setAlreadyInvited(false);
     setMode(hasCandidates ? 'existing' : 'new');
+    resetInvite();
   };
 
   const handleClose = (openState: boolean) => {
@@ -126,7 +133,7 @@ export const InviteCandidateDialog = ({
         });
         handleSuccess(result);
       } catch {
-        // The mutation already toasts the reason (for example, a duplicate invite).
+        // Rendered inline from `inviteError`.
       }
       return;
     }
@@ -147,7 +154,7 @@ export const InviteCandidateDialog = ({
       });
       handleSuccess(result);
     } catch {
-      // The mutation already toasts the reason (for example, a duplicate invite).
+      // Rendered inline from `inviteError`.
     }
   };
 
@@ -237,7 +244,8 @@ export const InviteCandidateDialog = ({
     );
   }
 
-  const submitDisabled = mode === 'existing' ? !selectedCandidateId : !name.trim() || !email.trim();
+  const submitDisabled =
+    usage?.exceeded || (mode === 'existing' ? !selectedCandidateId : !name.trim() || !email.trim());
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -437,6 +445,12 @@ export const InviteCandidateDialog = ({
                 </Link>{' '}
                 to invite more candidates.
               </p>
+            </div>
+          )}
+
+          {inviteError && (
+            <div className='px-3 py-2 bg-red-50 border border-red-200 rounded-lg'>
+              <p className='text-sm text-red-700'>{parseApiError(inviteError).message}</p>
             </div>
           )}
 
