@@ -41,5 +41,9 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
     },
+    // packages/ui pins an older React, so pnpm gives it its own sonner copy.
+    // Without this the <Toaster> from @coderscreen/ui and our toast() calls
+    // talk to different stores in the production bundle and no toast renders.
+    dedupe: ['sonner'],
   },
 });

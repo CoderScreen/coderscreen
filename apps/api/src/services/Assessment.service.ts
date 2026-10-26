@@ -16,6 +16,7 @@ import { AppContext } from '@/index';
 import { buildPaginatedResponse, PaginationQuery, paginateQuery } from '@/lib/pagination';
 import { getSession } from '@/lib/session';
 import {
+  jsonbValue,
   signatureChangesInvalidateTestCases,
   validateTestCaseShape,
 } from '@/sandbox/validateTestCase';
@@ -635,6 +636,7 @@ export class AssessmentService {
         updatedAt: new Date().toISOString(),
         questionId: libraryQuestionId,
         ...values,
+        expectedReturn: jsonbValue(values.expectedReturn),
       })
       .returning()
       .then((r) => r[0]);
@@ -665,6 +667,7 @@ export class AssessmentService {
       .update(questionLibraryTestCaseTable)
       .set({
         ...values,
+        expectedReturn: jsonbValue(values.expectedReturn),
         updatedAt: new Date().toISOString(),
       })
       .where(eq(questionLibraryTestCaseTable.id, testCaseId))

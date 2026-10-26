@@ -1,4 +1,5 @@
 import { type Parameter, type TypeString, validateValue } from '@coderscreen/common/types';
+import { sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
 /**
@@ -31,6 +32,15 @@ export function validateTestCaseShape(
       message: `Expected return (${signature.returnType}): ${ret.reason}`,
     });
   }
+}
+
+/**
+ * drizzle sends a top-level JS `null` as SQL NULL rather than JSON `null`, and
+ * `expected_return` is `jsonb NOT NULL`. A question returning `null` (the
+ * default return type) would otherwise 500 on every new test case.
+ */
+export function jsonbValue<T>(value: T) {
+  return value === null ? sql`'null'::jsonb` : value;
 }
 
 // Shared with the editor, which warns before a save that would delete tests.

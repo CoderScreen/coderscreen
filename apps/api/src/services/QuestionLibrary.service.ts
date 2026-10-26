@@ -13,6 +13,7 @@ import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
 import { getSession } from '@/lib/session';
 import {
+  jsonbValue,
   signatureChangesInvalidateTestCases,
   validateTestCaseShape,
 } from '@/sandbox/validateTestCase';
@@ -281,6 +282,7 @@ export class QuestionLibraryService {
         updatedAt: new Date().toISOString(),
         questionId,
         ...values,
+        expectedReturn: jsonbValue(values.expectedReturn),
       })
       .returning()
       .then((r) => r[0]);
@@ -316,6 +318,7 @@ export class QuestionLibraryService {
       .update(questionLibraryTestCaseTable)
       .set({
         ...values,
+        expectedReturn: jsonbValue(values.expectedReturn),
         updatedAt: new Date().toISOString(),
       })
       .where(eq(questionLibraryTestCaseTable.id, testCaseId))
