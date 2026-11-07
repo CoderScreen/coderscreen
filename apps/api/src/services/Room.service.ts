@@ -11,7 +11,6 @@ import { getSession } from '@/lib/session';
 import { ChatMessage, User } from '@/partykit/internal/AI.service';
 import { PublicRoomSchema } from '@/schema/room.zod';
 import { UsageService } from '@/services/billing/Usage.service';
-import { selectPublicRoom } from '@/services/publicRoom.query';
 
 // Rooms deleted within this long of being created give their interview back
 const ROOM_REFUND_WINDOW_MS = 10 * 60 * 1000;
@@ -75,7 +74,19 @@ export class RoomService {
       return local;
     }
 
-    return selectPublicRoom(this.db, id);
+    return this.db
+      .select({
+        id: roomTable.id,
+        organizationId: roomTable.organizationId,
+        createdAt: roomTable.createdAt,
+        updatedAt: roomTable.updatedAt,
+        title: roomTable.title,
+        language: roomTable.language,
+        status: roomTable.status,
+      })
+      .from(roomTable)
+      .where(eq(roomTable.id, id))
+      .then((data) => (data.length > 0 ? data[0] : null));
   }
 
   async listRooms() {
