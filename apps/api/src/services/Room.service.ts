@@ -74,25 +74,19 @@ export class RoomService {
       return local;
     }
 
-    const room = await this.db
-      .select()
+    return this.db
+      .select({
+        id: roomTable.id,
+        organizationId: roomTable.organizationId,
+        createdAt: roomTable.createdAt,
+        updatedAt: roomTable.updatedAt,
+        title: roomTable.title,
+        language: roomTable.language,
+        status: roomTable.status,
+      })
       .from(roomTable)
       .where(eq(roomTable.id, id))
       .then((data) => (data.length > 0 ? data[0] : null));
-
-    if (!room) {
-      return null;
-    }
-
-    return {
-      id: room.id,
-      organizationId: room.organizationId,
-      createdAt: room.createdAt,
-      updatedAt: room.updatedAt,
-      title: room.title,
-      language: room.language,
-      status: room.status,
-    };
   }
 
   async listRooms() {
