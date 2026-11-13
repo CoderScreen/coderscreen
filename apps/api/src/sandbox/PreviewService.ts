@@ -2,6 +2,7 @@ import { getSandbox, LogEvent, parseSSEStream } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity } from '@coderscreen/db/room.db';
 import { getSandboxId } from '@/lib/sandbox';
+import { previewInstallFailure } from '@/sandbox/previewInstallError';
 
 const FRAMEWORK_CONFIG: Record<string, { port: number }> = {
   react: { port: 5173 },
@@ -91,7 +92,7 @@ export class PreviewService {
     ]);
 
     if (!installResult.success) {
-      throw new Error(`npm install failed: ${installResult.stderr || installResult.stdout}`);
+      throw previewInstallFailure(installResult.stderr || installResult.stdout || '');
     }
 
     // 4. Start Vite dev server
