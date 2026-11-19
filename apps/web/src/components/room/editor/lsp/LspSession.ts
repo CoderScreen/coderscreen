@@ -5,6 +5,12 @@ import { type LSITransport, LSWebSocketTransport } from '@valtown/codemirror-ls/
 const IDLE_DISCONNECT_MS = 3 * 60 * 1000;
 const MIN_RETRY_DELAY_MS = 2_000;
 const MAX_RETRY_DELAY_MS = 60_000;
+/**
+ * The editor plugins hold a lock around each request and throw if it takes
+ * longer than 5s (a slow server, e.g. jdtls still indexing). Give up just
+ * before that.
+ */
+const REQUEST_TIMEOUT_MS = 4_500;
 
 const WORKSPACE_FOLDER = { uri: 'file:///workspace', name: 'workspace' };
 
@@ -60,14 +66,20 @@ export class LspSession implements LSITransport {
     // Until it has initialized, LSClient holds requests, and the editor
     // plugins give up on them after 5s by throwing, which CodeMirror reports
     // as an uncaught error. Answer them with "nothing" instead, and treat
-    // them as the cue to connect.
+    // them as the cue to connect. Slow answers once connected get the same
+    // treatment (REQUEST_TIMEOUT_MS).
     const request = this.client.request.bind(this.client);
     this.client.request = ((method, params) => {
-      if (method !== 'initialize') {
-        this.activate();
-        if (!this.client.ready) return Promise.resolve(null);
-      }
-      return request(method, params);
+      if (method === 'initialize') return request(method, params);
+
+      this.activate();
+      if (!this.client.ready) return Promise.resolve(null);
+
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), REQUEST_TIMEOUT_MS);
+      });
+      return Promise.race([request(method, params), timeout]).finally(() => clearTimeout(timer));
     }) as LSClient['request'];
 
     document.addEventListener('visibilitychange', this.#onVisibilityChange);

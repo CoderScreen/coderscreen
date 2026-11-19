@@ -1,4 +1,4 @@
-import type { getSandbox } from '@cloudflare/sandbox';
+import { type getSandbox, ProcessExitedBeforeReadyError } from '@cloudflare/sandbox';
 import { z } from 'zod';
 
 type SandboxStub = ReturnType<typeof getSandbox>;
@@ -70,12 +70,35 @@ export async function ensureLspServer(sandbox: SandboxStub) {
   }
 
   try {
-    await process.waitForPort(LSP_PORT, {
-      path: '/health',
-      status: 200,
-      timeout: LSP_START_TIMEOUT_MS,
-    });
+    await waitUntilReady(process);
+  } catch (error) {
+    if (!(error instanceof ProcessExitedBeforeReadyError)) throw error;
+
+    // Lost a start race without startProcess throwing: this process exited
+    // because the winner already holds the port.
+    const winner = await findRunning(sandbox);
+    if (winner) {
+      try {
+        await waitUntilReady(winner);
+        return;
+      } finally {
+        disposeStub(winner);
+      }
+    }
+
+    const { stderr } = await process.getLogs().catch(() => ({ stderr: '' }));
+    if (!stderr) throw error;
+    throw new Error(`${error.message}\n${stderr.slice(-2000)}`);
   } finally {
     disposeStub(process);
   }
 }
+
+type LspProcess = Awaited<ReturnType<SandboxStub['startProcess']>>;
+
+const waitUntilReady = (process: LspProcess) =>
+  process.waitForPort(LSP_PORT, {
+    path: '/health',
+    status: 200,
+    timeout: LSP_START_TIMEOUT_MS,
+  });

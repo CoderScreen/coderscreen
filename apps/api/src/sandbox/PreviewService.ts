@@ -1,6 +1,7 @@
 import { getSandbox, LogEvent, parseSSEStream } from '@cloudflare/sandbox';
 import { Id } from '@coderscreen/common/id';
 import { RoomEntity } from '@coderscreen/db/room.db';
+import { HTTPException } from 'hono/http-exception';
 import { getSandboxId } from '@/lib/sandbox';
 
 const FRAMEWORK_CONFIG: Record<string, { port: number }> = {
@@ -90,8 +91,12 @@ export class PreviewService {
       tunnelUrlPromise,
     ]);
 
+    // Fails on the room's own package.json (bad JSON, unknown packages), so
+    // show npm's output in the preview panel instead of reporting a 500.
     if (!installResult.success) {
-      throw new Error(`npm install failed: ${installResult.stderr || installResult.stdout}`);
+      throw new HTTPException(422, {
+        message: `npm install failed: ${installResult.stderr || installResult.stdout}`,
+      });
     }
 
     // 4. Start Vite dev server

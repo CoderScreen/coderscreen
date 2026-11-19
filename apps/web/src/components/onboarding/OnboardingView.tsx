@@ -141,7 +141,12 @@ export const OnboardingView = () => {
       referralOther: '',
     },
     onSubmit: async ({ value }) => {
-      await updateUser({ name: value.name });
+      try {
+        await updateUser({ name: value.name });
+      } catch {
+        // Already shown as a toast; the form stays open to try again.
+        return;
+      }
 
       const referralSource =
         value.referralSource === 'Other' && value.referralOther.trim()
