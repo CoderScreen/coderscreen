@@ -1,0 +1,25 @@
+diff --git a/dist/transport/LSWebSocketTransport.js b/dist/transport/LSWebSocketTransport.js
+index adf1c57484d28f2ccdbf089920511453a0c23deb..06b4013677734eb3b52db32ddb2b10d5c9e7a7c9 100644
+--- a/dist/transport/LSWebSocketTransport.js
++++ b/dist/transport/LSWebSocketTransport.js
+@@ -54,7 +54,10 @@ export class LSWebSocketTransport {
+     sendNotification(method, params) {
+         this.#errorIfDisposed();
+         if (this.#messageConnection) {
+-            this.#messageConnection.sendNotification(method, params);
++            // Rejects when the socket closes while the message is being
++            // encoded. Nothing awaits it, so it would surface as an unhandled
++            // rejection; the connection's error handlers already hear about it.
++            this.#messageConnection.sendNotification(method, params).catch(() => { });
+         }
+         else {
+             this.#notifyBuffer.push([method, params]);
+@@ -155,7 +158,7 @@ export class LSWebSocketTransport {
+         });
+         this.#messageConnection.listen();
+         for (const [method, params] of this.#notifyBuffer) {
+-            this.#messageConnection.sendNotification(method, params);
++            this.#messageConnection.sendNotification(method, params).catch(() => { });
+         }
+         this.#notifyBuffer = [];
+         for (const [method, params, timeout, resolve, reject] of this

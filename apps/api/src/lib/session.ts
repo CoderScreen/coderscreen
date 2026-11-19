@@ -8,16 +8,14 @@ export const getSession = (ctx: Context<AppContext>, options?: { noActiveOrg?: b
   const user = ctx.get('user');
   const session = ctx.get('session');
 
-  if (!user) {
-    throw new Error('User not found in context');
+  if (!user || !session) {
+    throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
-  if (!session) {
-    throw new Error('Session not found in context');
-  }
-
+  // Happens when someone is removed from their only organization while still
+  // signed in. Their open tabs keep retrying, so this must not be a 500.
   if (!session.activeOrganizationId && !options?.noActiveOrg) {
-    throw new Error('Active organization not found in session');
+    throw new HTTPException(403, { message: 'You are not a member of an organization' });
   }
 
   return {

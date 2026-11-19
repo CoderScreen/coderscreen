@@ -20,7 +20,12 @@ export const SignInView = () => {
   const { signIn, isLoading: isLoadingEmail } = useSignIn();
 
   const handleSignIn = async () => {
-    await signIn({ email, password, callbackURL: searchQuery.callbackUrl });
+    try {
+      await signIn({ email, password, callbackURL: searchQuery.callbackUrl });
+    } catch {
+      // Already shown as a toast (e.g. wrong password).
+      return;
+    }
     navigate({ to: searchQuery.callbackUrl ?? '/' });
   };
 

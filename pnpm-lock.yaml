@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@valtown/codemirror-ls@0.2.5':
+    hash: 6741e2b5323cec51776d3810934d580aba9f37c7cdde3299d5cec742ea33d183
+    path: patches/@valtown__codemirror-ls@0.2.5.patch
+
 importers:
 
   .:
@@ -423,7 +428,7 @@ importers:
         version: 3.14.2(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@valtown/codemirror-ls':
         specifier: 0.2.5
-        version: 0.2.5(@codemirror/autocomplete@6.18.6)(@codemirror/lint@6.8.5)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)(codemirror@6.0.2)
+        version: 0.2.5(patch_hash=6741e2b5323cec51776d3810934d580aba9f37c7cdde3299d5cec742ea33d183)(@codemirror/autocomplete@6.18.6)(@codemirror/lint@6.8.5)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)(codemirror@6.0.2)
       '@xterm/addon-fit':
         specifier: ^0.11.0
         version: 0.11.0
@@ -16468,7 +16473,7 @@ snapshots:
       '@use-gesture/core': 10.3.1
       react: 19.2.1
 
-  '@valtown/codemirror-ls@0.2.5(@codemirror/autocomplete@6.18.6)(@codemirror/lint@6.8.5)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)(codemirror@6.0.2)':
+  '@valtown/codemirror-ls@0.2.5(patch_hash=6741e2b5323cec51776d3810934d580aba9f37c7cdde3299d5cec742ea33d183)(@codemirror/autocomplete@6.18.6)(@codemirror/lint@6.8.5)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)(codemirror@6.0.2)':
     dependencies:
       '@codemirror/autocomplete': 6.18.6
       '@codemirror/lint': 6.8.5

@@ -20,7 +20,12 @@ export const RegisterView = () => {
   const { signUp, isLoading: isLoadingEmail } = useSignUp();
 
   const handleSignUp = async () => {
-    await signUp({ email, password, callbackURL: searchQuery.callbackUrl });
+    try {
+      await signUp({ email, password, callbackURL: searchQuery.callbackUrl });
+    } catch {
+      // Already shown as a toast (e.g. password too short).
+      return;
+    }
     setIsVerificationSent(true);
   };
 
@@ -130,7 +135,7 @@ export const RegisterView = () => {
                 <Input
                   id='password'
                   type='password'
-                  placeholder='Enter your password'
+                  placeholder='At least 8 characters'
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

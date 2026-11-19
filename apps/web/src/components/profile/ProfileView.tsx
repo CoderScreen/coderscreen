@@ -30,7 +30,8 @@ export const ProfileView = () => {
       name: user?.name || '',
     },
     onSubmit: async ({ value }) => {
-      await updateUser(value);
+      // Failures are already shown as a toast.
+      await updateUser(value).catch(() => {});
     },
   });
 

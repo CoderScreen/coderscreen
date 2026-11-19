@@ -3,3 +3,6 @@ packages:
   - packages/*
 
 onlyBuiltDependenciesFile: ''
+
+patchedDependencies:
+  '@valtown/codemirror-ls@0.2.5': patches/@valtown__codemirror-ls@0.2.5.patch

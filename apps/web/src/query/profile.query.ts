@@ -7,7 +7,7 @@ export const useUpdateUser = (options?: { hideSuccessMessage?: boolean }) => {
       const result = await authClient.updateUser(params);
 
       if (result.error) {
-        throw new Error(result.error.message || 'Failed to update user');
+        throw new Error(result.error.message || `Failed to update user (${result.error.status})`);
       }
 
       return result;
