@@ -3,7 +3,7 @@ import { BetterAuthOptions, betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError } from 'better-auth/api';
 import { createAuthMiddleware, organization } from 'better-auth/plugins';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNotNull } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { useDb } from '@/db/client';
@@ -65,16 +65,38 @@ export const useAuth: (
         create: {
           before: async (session) => {
             const db = useDb(ctx);
-            // get first organization id
-            const member = await db
-              .select()
+
+            const memberships = await db
+              .select({
+                organizationId: schema.member.organizationId,
+              })
               .from(schema.member)
               .where(eq(schema.member.userId, session.userId))
-              .orderBy(desc(schema.member.createdAt))
+              .orderBy(desc(schema.member.createdAt));
+
+            // Restore the org the user was last working in. Defaulting to the
+            // newest membership silently moved multi-org users into another org
+            // on every sign-in, so their rooms 404'd until they switched back.
+            const lastSession = await db
+              .select({ activeOrganizationId: schema.session.activeOrganizationId })
+              .from(schema.session)
+              .where(
+                and(
+                  eq(schema.session.userId, session.userId),
+                  isNotNull(schema.session.activeOrganizationId)
+                )
+              )
+              .orderBy(desc(schema.session.updatedAt))
               .limit(1)
               .then((res) => res[0]);
 
-            const activeOrganizationId = member?.organizationId;
+            const stillMember = memberships.some(
+              (m) => m.organizationId === lastSession?.activeOrganizationId
+            );
+
+            const activeOrganizationId = stillMember
+              ? lastSession?.activeOrganizationId
+              : memberships[0]?.organizationId;
 
             return {
               data: {
