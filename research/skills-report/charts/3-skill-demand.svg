@@ -1,0 +1,66 @@
+<svg width="780" height="440" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" viewBox="0 0 780 440">
+<rect width="780" height="440" x="0" y="0" fill="#fff"></rect>
+<path d="M110.5 66L110.5 416" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr2-cls-5"></path>
+<path d="M218.5 66L218.5 416" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr2-cls-5"></path>
+<path d="M326.5 66L326.5 416" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr2-cls-5"></path>
+<path d="M434.5 66L434.5 416" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr2-cls-5"></path>
+<path d="M542.5 66L542.5 416" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr2-cls-5"></path>
+<path d="M650.5 66L650.5 416" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr2-cls-5"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 80.5833)" fill="#0F172A">Python</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 109.75)" fill="#0F172A">TypeScript</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 138.9167)" fill="#0F172A">React</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 168.0833)" fill="#0F172A">AWS</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 197.25)" fill="#0F172A">PostgreSQL</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 226.4167)" fill="#0F172A">Node.js</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 255.5833)" fill="#0F172A">Kubernetes</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 284.75)" fill="#0F172A">Next.js</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 313.9167)" fill="#0F172A">GCP</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 343.0833)" fill="#0F172A">Docker</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 372.25)" fill="#0F172A">JavaScript</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" transform="translate(102 401.4167)" fill="#0F172A">Go</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(110 424)" fill="#64748B">0%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(218 424)" fill="#64748B">10%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(326 424)" fill="#64748B">20%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(434 424)" fill="#64748B">30%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(542 424)" fill="#64748B">40%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(650 424)" fill="#64748B">50%</text>
+<path d="M110 71.5L631.9 71.5A3 3 0 0 1 634.9 74.5L634.9 86.6A3 3 0 0 1 631.9 89.6L110 89.6L110 71.5Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 100.7L544.4 100.7A3 3 0 0 1 547.4 103.7L547.4 115.8A3 3 0 0 1 544.4 118.8L110 118.8L110 100.7Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="1" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 129.9L492.6 129.9A3 3 0 0 1 495.6 132.9L495.6 145A3 3 0 0 1 492.6 148L110 148L110 129.9Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="2" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 159L414.8 159A3 3 0 0 1 417.8 162L417.8 174.1A3 3 0 0 1 414.8 177.1L110 177.1L110 159Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="3" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 188.2L382.4 188.2A3 3 0 0 1 385.4 191.2L385.4 203.3A3 3 0 0 1 382.4 206.3L110 206.3L110 188.2Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="4" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 217.4L302.5 217.4A3 3 0 0 1 305.5 220.4L305.5 232.5A3 3 0 0 1 302.5 235.5L110 235.5L110 217.4Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="5" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 246.5L279.8 246.5A3 3 0 0 1 282.8 249.5L282.8 261.6A3 3 0 0 1 279.8 264.6L110 264.6L110 246.5Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="6" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 275.7L261.4 275.7A3 3 0 0 1 264.4 278.7L264.4 290.8A3 3 0 0 1 261.4 293.8L110 293.8L110 275.7Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="7" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 304.9L258.2 304.9A3 3 0 0 1 261.2 307.9L261.2 320A3 3 0 0 1 258.2 323L110 323L110 304.9Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="8" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 334L256 334A3 3 0 0 1 259 337L259 349.1A3 3 0 0 1 256 352.1L110 352.1L110 334Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="9" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 363.2L234.4 363.2A3 3 0 0 1 237.4 366.2L237.4 378.3A3 3 0 0 1 234.4 381.3L110 381.3L110 363.2Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="10" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<path d="M110 392.4L234.4 392.4A3 3 0 0 1 237.4 395.4L237.4 407.5A3 3 0 0 1 234.4 410.5L110 410.5L110 392.4Z" fill="#334155" ecmeta_series_index="0" ecmeta_data_index="11" ecmeta_ssr_type="chart" class="zr2-cls-6"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(639.88 80.5833)" fill="#64748B">48.6% (87% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(552.4 109.75)" fill="#64748B">40.5% (82% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(500.56 138.9167)" fill="#64748B">35.7% (81% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(422.8 168.0833)" fill="#64748B">28.5% (74% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(390.4 197.25)" fill="#64748B">25.5% (79% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(310.48 226.4167)" fill="#64748B">18.1% (83% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(287.8 255.5833)" fill="#64748B">16% (71% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(269.44 284.75)" fill="#64748B">14.3% (77% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(266.2 313.9167)" fill="#64748B">14% (73% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(264.04 343.0833)" fill="#64748B">13.8% (73% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(242.44 372.25)" fill="#64748B">11.8% (89% required)</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:11px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(242.44 401.4167)" fill="#64748B">11.8% (80% required)</text>
+<path d="M-5 -5l315 0l0 48l-315 0Z" transform="translate(13 11)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr2-cls-5"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:16px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;font-weight:700;" xml:space="preserve" y="8" transform="translate(13 11)" fill="#3c3c41">What YC startups screen for</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" y="32" transform="translate(13 11)" fill="#64748B">Share of engineering jobs that ask for each skill (n=2321)</text>
+<style ><![CDATA[
+.zr2-cls-5:hover {
+pointer-events:none;
+}
+.zr2-cls-6:hover {
+cursor:pointer;
+fill:rgba(56,71,93,1);
+}
+
+]]>
+
+</style>
+<g opacity="0.9"><g transform="translate(608,12) scale(0.1)"><path fill="#1860fb" d="m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z"/><path fill="#1860fb" d="m33 60.6l51.8 28.7v100.7l-51.8-28.7z"/><path fill="#1860fb" d="m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z"/><path fill="#1860fb" d="m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z"/></g><text x="634" y="22" dominant-baseline="central" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#1860fb">CoderScreen</text></g></svg>

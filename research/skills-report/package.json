@@ -1,0 +1,17 @@
+{
+  "name": "skills-report",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Data pipeline for the 'skills startups vs enterprises want' job-postings report",
+  "scripts": {
+    "scrape:yc": "bun run src/scrape-yc.ts",
+    "stats": "bun run src/stats.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "echarts": "^6.1.0"
+  }
+}

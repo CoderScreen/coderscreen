@@ -1,0 +1,226 @@
+<svg width="820" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" viewBox="0 0 820 500">
+<rect width="820" height="500" x="0" y="0" fill="#fff"></rect>
+<path d="M150.5 70L150.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M245.5 70L245.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M340.5 70L340.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M436.5 70L436.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M531.5 70L531.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M626.5 70L626.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M722.5 70L722.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<path d="M760.5 70L760.5 470" fill="none" pointer-events="visible" stroke="#E2E8F0" class="zr3-cls-7"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 83.3333)" fill="#0F172A">Temporal  +9%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 110)" fill="#0F172A">Terraform  +9%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 136.6667)" fill="#0F172A">CUDA  +9%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 163.3333)" fill="#0F172A">Datadog  +9%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 190)" fill="#0F172A">PyTorch  +6%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 216.6667)" fill="#0F172A">Cursor  +3%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 243.3333)" fill="#0F172A">Claude Code  +3%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 270)" fill="#0F172A">React  +0%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 296.6667)" fill="#0F172A">OpenAI  -3%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 323.3333)" fill="#0F172A">Anthropic  -3%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 350)" fill="#0F172A">Java  -5%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 376.6667)" fill="#0F172A">JavaScript  -12%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 403.3333)" fill="#0F172A">React Native  -12%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 430)" fill="#0F172A">Git  -18%</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" transform="translate(142 456.6667)" fill="#0F172A">CSS  -18%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(150 478)" fill="#64748B">-20%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(245.3125 478)" fill="#64748B">-15%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(340.625 478)" fill="#64748B">-10%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(435.9375 478)" fill="#64748B">-5%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(531.25 478)" fill="#64748B">0%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(626.5625 478)" fill="#64748B">5%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(721.875 478)" fill="#64748B">10%</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" y="6" transform="translate(760 478)" fill="#64748B">12%</text>
+<path d="M531.3 75.1l171.6 0l0 16.5l-171.6 0Z" fill="#0F9D8C" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" class="zr3-cls-8 zr3-cls-9"></path>
+<path d="M531.3 101.7l171.6 0l0 16.5l-171.6 0Z" fill="#0F9D8C" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="1" ecmeta_ssr_type="chart" class="zr3-cls-10 zr3-cls-9"></path>
+<path d="M532.5 129.6l169.1 0l0 14l-169.1 0Z" fill="#0F9D8C" stroke="#D97706" stroke-width="2.5" ecmeta_series_index="0" ecmeta_data_index="2" ecmeta_ssr_type="chart" class="zr3-cls-11 zr3-cls-9"></path>
+<path d="M531.3 155.1l171.6 0l0 16.5l-171.6 0Z" fill="#0F9D8C" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="3" ecmeta_ssr_type="chart" class="zr3-cls-12 zr3-cls-9"></path>
+<path d="M532.5 183l111.9 0l0 14l-111.9 0Z" fill="#0F9D8C" stroke="#D97706" stroke-width="2.5" ecmeta_series_index="0" ecmeta_data_index="4" ecmeta_ssr_type="chart" class="zr3-cls-13 zr3-cls-9"></path>
+<path d="M532.5 209.7l54.7 0l0 14l-54.7 0Z" fill="#0F9D8C" stroke="#D97706" stroke-width="2.5" ecmeta_series_index="0" ecmeta_data_index="5" ecmeta_ssr_type="chart" class="zr3-cls-14 zr3-cls-9"></path>
+<path d="M532.5 236.3l54.7 0l0 14l-54.7 0Z" fill="#0F9D8C" stroke="#D97706" stroke-width="2.5" ecmeta_series_index="0" ecmeta_data_index="6" ecmeta_ssr_type="chart" class="zr3-cls-15 zr3-cls-9"></path>
+<path d="M531.3 261.7l0 0l0 16.5l0 0Z" fill="#94A3B8" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="7" ecmeta_ssr_type="chart" class="zr3-cls-16"></path>
+<path d="M530 289.7l-54.7 0l0 14l54.7 0Z" fill="#E05252" stroke="#D97706" stroke-width="2.5" ecmeta_series_index="0" ecmeta_data_index="8" ecmeta_ssr_type="chart" class="zr3-cls-17 zr3-cls-18"></path>
+<path d="M530 316.3l-54.7 0l0 14l54.7 0Z" fill="#E05252" stroke="#D97706" stroke-width="2.5" ecmeta_series_index="0" ecmeta_data_index="9" ecmeta_ssr_type="chart" class="zr3-cls-19 zr3-cls-18"></path>
+<path d="M531.3 341.7l-95.3 0l0 16.5l95.3 0Z" fill="#E05252" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="10" ecmeta_ssr_type="chart" class="zr3-cls-20 zr3-cls-18"></path>
+<path d="M531.3 368.4l-228.7 0l0 16.5l228.8 0Z" fill="#E05252" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="11" ecmeta_ssr_type="chart" class="zr3-cls-21 zr3-cls-18"></path>
+<path d="M531.3 395.1l-228.7 0l0 16.5l228.8 0Z" fill="#E05252" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="12" ecmeta_ssr_type="chart" class="zr3-cls-22 zr3-cls-18"></path>
+<path d="M531.3 421.7l-343.1 0l0 16.5l343.1 0Z" fill="#E05252" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="13" ecmeta_ssr_type="chart" class="zr3-cls-23 zr3-cls-18"></path>
+<path d="M531.3 448.4l-343.1 0l0 16.5l343.1 0Z" fill="#E05252" stroke="none" pointer-events="visible" stroke-width="0" ecmeta_series_index="0" ecmeta_data_index="14" ecmeta_ssr_type="chart" class="zr3-cls-24 zr3-cls-18"></path>
+<path d="M532 70L532 470" fill="none" pointer-events="visible" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,3" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr3-cls-7"></path>
+<path d="M-5 -5l491.1 0l0 48l-491.1 0Z" transform="translate(13 11)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr3-cls-7"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:16px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;font-weight:700;" xml:space="preserve" y="8" transform="translate(13 11)" fill="#3c3c41">Knowing AI doesn&#39;t pay. Building the systems under it does.</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:Inter, system-ui, -apple-system, Segoe UI, sans-serif;" xml:space="preserve" y="32" transform="translate(13 11)" fill="#64748B">How much each skill pays compared to the $170K median. Amber bars are AI or ML skills.</text>
+<style ><![CDATA[
+.zr3-cls-7:hover {
+pointer-events:none;
+}
+.zr3-cls-8 {
+animation:zr3-ani-0 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-9:hover {
+cursor:pointer;
+fill:rgba(16,172,154,1);
+}
+.zr3-cls-10 {
+animation:zr3-ani-1 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-11 {
+animation:zr3-ani-2 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-12 {
+animation:zr3-ani-3 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-13 {
+animation:zr3-ani-4 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-14 {
+animation:zr3-ani-5 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-15 {
+animation:zr3-ani-6 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-16:hover {
+cursor:pointer;
+fill:rgba(162,179,202,1);
+}
+.zr3-cls-17 {
+animation:zr3-ani-7 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-18:hover {
+cursor:pointer;
+fill:rgba(246,90,90,1);
+}
+.zr3-cls-19 {
+animation:zr3-ani-8 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-20 {
+animation:zr3-ani-9 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-21 {
+animation:zr3-ani-10 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-22 {
+animation:zr3-ani-11 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-23 {
+animation:zr3-ani-12 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+.zr3-cls-24 {
+animation:zr3-ani-13 1s cubic-bezier(0.65,0,0.35,1) both;
+}
+@keyframes zr3-ani-0 {
+0% {
+d:path("M531.3 75.1l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 75.1l171.6 0l0 16.5l-171.6 0Z");
+}
+}
+@keyframes zr3-ani-1 {
+0% {
+d:path("M531.3 101.7l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 101.7l171.6 0l0 16.5l-171.6 0Z");
+}
+}
+@keyframes zr3-ani-2 {
+0% {
+d:path("M532.5 129.6l0 0l0 14l0 0Z");
+}
+100% {
+d:path("M532.5 129.6l169.1 0l0 14l-169.1 0Z");
+}
+}
+@keyframes zr3-ani-3 {
+0% {
+d:path("M531.3 155.1l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 155.1l171.6 0l0 16.5l-171.6 0Z");
+}
+}
+@keyframes zr3-ani-4 {
+0% {
+d:path("M532.5 183l0 0l0 14l0 0Z");
+}
+100% {
+d:path("M532.5 183l111.9 0l0 14l-111.9 0Z");
+}
+}
+@keyframes zr3-ani-5 {
+0% {
+d:path("M532.5 209.7l0 0l0 14l0 0Z");
+}
+100% {
+d:path("M532.5 209.7l54.7 0l0 14l-54.7 0Z");
+}
+}
+@keyframes zr3-ani-6 {
+0% {
+d:path("M532.5 236.3l0 0l0 14l0 0Z");
+}
+100% {
+d:path("M532.5 236.3l54.7 0l0 14l-54.7 0Z");
+}
+}
+@keyframes zr3-ani-7 {
+0% {
+d:path("M530 289.7l0 0l0 14l0 0Z");
+}
+100% {
+d:path("M530 289.7l-54.7 0l0 14l54.7 0Z");
+}
+}
+@keyframes zr3-ani-8 {
+0% {
+d:path("M530 316.3l0 0l0 14l0 0Z");
+}
+100% {
+d:path("M530 316.3l-54.7 0l0 14l54.7 0Z");
+}
+}
+@keyframes zr3-ani-9 {
+0% {
+d:path("M531.3 341.7l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 341.7l-95.3 0l0 16.5l95.3 0Z");
+}
+}
+@keyframes zr3-ani-10 {
+0% {
+d:path("M531.3 368.4l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 368.4l-228.7 0l0 16.5l228.8 0Z");
+}
+}
+@keyframes zr3-ani-11 {
+0% {
+d:path("M531.3 395.1l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 395.1l-228.7 0l0 16.5l228.8 0Z");
+}
+}
+@keyframes zr3-ani-12 {
+0% {
+d:path("M531.3 421.7l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 421.7l-343.1 0l0 16.5l343.1 0Z");
+}
+}
+@keyframes zr3-ani-13 {
+0% {
+d:path("M531.3 448.4l0 0l0 16.5l0 0Z");
+}
+100% {
+d:path("M531.3 448.4l-343.1 0l0 16.5l343.1 0Z");
+}
+}
+]]>
+
+</style>
+<g opacity="0.9"><g transform="translate(648,12) scale(0.1)"><path fill="#1860fb" d="m118.8 111.3l47.7 28.7-83.4 50-50.1-28.6z"/><path fill="#1860fb" d="m33 60.6l51.8 28.7v100.7l-51.8-28.7z"/><path fill="#1860fb" d="m118.8 11.2l47.7 28.8v100.9l-47.7-28.8z"/><path fill="#1860fb" d="m118 11.5l47.2 28.6-82.6 50.1-49.6-28.6z"/></g><text x="674" y="22" dominant-baseline="central" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#1860fb">CoderScreen</text></g></svg>
