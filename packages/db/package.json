@@ -10,8 +10,8 @@
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
-    "db:push": "drizzle-kit push"
+    "db:check": "drizzle-kit check",
+    "db:studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",

@@ -63,9 +63,9 @@ export function ensureTestDatabase() {
     }
   }
 
-  // Same schema push as `pnpm db:push`, against the test database only.
+  // The same migrations production runs, so a broken migration fails here first.
   const dbPackage = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/db');
-  execFileSync(`${dbPackage}/node_modules/.bin/drizzle-kit`, ['push', '--force'], {
+  execFileSync(`${dbPackage}/node_modules/.bin/drizzle-kit`, ['migrate'], {
     cwd: dbPackage,
     env: { ...process.env, DATABASE_URL: testDatabaseUrl },
     stdio: ['ignore', 'pipe', 'inherit'],
@@ -75,5 +75,5 @@ export function ensureTestDatabase() {
   const source = process.env.TEST_DATABASE_URL
     ? 'TEST_DATABASE_URL'
     : `Docker container ${CONTAINER}`;
-  console.log(`[api tests] Postgres at ${hostname}:${port || 5432} (${source}), schema pushed`);
+  console.log(`[api tests] Postgres at ${hostname}:${port || 5432} (${source}), migrated`);
 }

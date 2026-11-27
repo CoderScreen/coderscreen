@@ -52,6 +52,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Fails when a *.db.ts schema change has no generated migration with it.
+      - name: Check migrations match the schema
+        working-directory: packages/db
+        env:
+          DATABASE_URL: postgres://unused@localhost:1/unused
+        run: |
+          pnpm exec drizzle-kit check
+          pnpm exec drizzle-kit generate --name ci_check
+          if [ -n "$(git status --porcelain drizzle)" ]; then
+            echo "::error::The schema changed without a migration. Run 'pnpm --filter @coderscreen/db db:generate' and commit packages/db/drizzle."
+            git status --porcelain drizzle
+            exit 1
+          fi
+
       - name: Test
         run: pnpm test
         env:

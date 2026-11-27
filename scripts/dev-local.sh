@@ -11,6 +11,7 @@
 #
 # What it does differently from `pnpm dev`:
 # - DATABASE + Hyperdrive point at the local container, never .dev.vars' DB
+# - the schema comes from the same migrations production runs
 # - NODE_ENV=development, so emails are logged instead of sent
 # - the plan and subscription are seeded, so nothing calls Stripe
 # - the code-run sandbox container is off (running candidate code won't work)
@@ -96,9 +97,9 @@ for _ in $(seq 1 30); do
 done
 docker exec "$PG_CONTAINER" pg_isready -q -U postgres || fail "Postgres didn't start."
 
-log "Syncing the schema..."
-(cd "$ROOT/packages/db" && DATABASE_URL="$DB_URL" pnpm exec drizzle-kit push --force >/dev/null) \
-  || fail "Schema push failed. Run it by hand to see why: cd packages/db && DATABASE_URL=$DB_URL pnpm exec drizzle-kit push"
+log "Running migrations..."
+(cd "$ROOT/packages/db" && DATABASE_URL="$DB_URL" pnpm exec drizzle-kit migrate >/dev/null) \
+  || fail "Migrations failed. If your local DB predates migrations, run: pnpm dev:local --reset"
 
 # --- API ---------------------------------------------------------------------
 
