@@ -248,12 +248,14 @@ const SubmissionRowActions = ({
           <Button variant='icon' icon={RiMore2Line} isLoading={isLoading} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuItem onClick={handleCopyLink}>
-            <DropdownMenuIconWrapper>
-              <RiFileCopyLine className='size-4' />
-            </DropdownMenuIconWrapper>
-            Copy Invite Link
-          </DropdownMenuItem>
+          {!isArchived && (
+            <DropdownMenuItem onClick={handleCopyLink}>
+              <DropdownMenuIconWrapper>
+                <RiFileCopyLine className='size-4' />
+              </DropdownMenuIconWrapper>
+              Copy Invite Link
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onClick={() => {
               archiveSubmission({ subId, archived: !isArchived }).catch(() => {});
