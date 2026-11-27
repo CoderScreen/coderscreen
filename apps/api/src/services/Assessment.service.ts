@@ -2,6 +2,7 @@ import { generateId, Id } from '@coderscreen/common/id';
 import type { Parameter, TypeString } from '@coderscreen/common/types';
 import { assessmentTable } from '@coderscreen/db/assessment.db';
 import { assessmentQuestionTable } from '@coderscreen/db/assessmentQuestion.db';
+import { assessmentSubmissionTable } from '@coderscreen/db/assessmentSubmission.db';
 import { QuestionLibraryEntity, questionLibraryTable } from '@coderscreen/db/questionLibrary.db';
 import {
   QuestionLibraryTestCaseEntity,
@@ -28,6 +29,7 @@ import {
   UpdateQuestionSchema,
   UpdateTestCaseSchema,
 } from '@/schema/assessment.zod';
+import { AssessmentSubmissionService } from '@/services/AssessmentSubmission.service';
 import { getQuestionUsage, usageFor } from '@/services/questionUsage';
 
 export class AssessmentService {
@@ -178,6 +180,8 @@ export class AssessmentService {
 
   async listAssessments(pagination: PaginationQuery) {
     const { orgId } = getSession(this.ctx);
+    // The counts below would show abandoned attempts as still in progress.
+    await new AssessmentSubmissionService(this.ctx).expireOverdueInOrg(orgId);
     const { limit, offset } = paginateQuery(pagination);
 
     const [data, countResult] = await Promise.all([
@@ -195,7 +199,31 @@ export class AssessmentService {
         .then((r) => r[0]?.count ?? 0),
     ]);
 
-    return buildPaginatedResponse(data, countResult, pagination);
+    const counts = await this.submissionCounts(data.map((a) => a.id));
+    const empty = { invited: 0, inProgress: 0, needsReview: 0, reviewed: 0 };
+    return buildPaginatedResponse(
+      data.map((a) => ({ ...a, submissionCounts: counts.get(a.id) ?? empty })),
+      countResult,
+      pagination
+    );
+  }
+
+  /** How many candidates sit in each review state, per assessment. Archived ones are left out. */
+  private async submissionCounts(assessmentIds: Id<'assessment'>[]) {
+    if (assessmentIds.length === 0) return new Map();
+    const s = assessmentSubmissionTable;
+    const rows = await this.db
+      .select({
+        assessmentId: s.assessmentId,
+        invited: sql<number>`count(*) filter (where ${s.status} = 'not_started')::int`,
+        inProgress: sql<number>`count(*) filter (where ${s.status} = 'in_progress')::int`,
+        needsReview: sql<number>`count(*) filter (where ${s.status} in ('submitted', 'expired') and ${s.decision} is null)::int`,
+        reviewed: sql<number>`count(*) filter (where ${s.decision} is not null or ${s.status} = 'graded')::int`,
+      })
+      .from(s)
+      .where(and(inArray(s.assessmentId, assessmentIds), eq(s.isArchived, false)))
+      .groupBy(s.assessmentId);
+    return new Map(rows.map(({ assessmentId, ...c }) => [assessmentId, c]));
   }
 
   async updateAssessment(id: Id<'assessment'>, values: UpdateAssessmentSchema) {

@@ -44,6 +44,30 @@ const StatusBadge = ({ status }: { status: AssessmentSchema['status'] }) => {
   }
 };
 
+type SubmissionCounts = {
+  invited: number;
+  inProgress: number;
+  needsReview: number;
+  reviewed: number;
+};
+
+const CandidateCounts = ({ counts }: { counts?: SubmissionCounts }) => {
+  if (!counts) return null;
+  const total = counts.invited + counts.inProgress + counts.needsReview + counts.reviewed;
+  if (total === 0) return <MutedText>No candidates yet</MutedText>;
+  const parts = [
+    counts.inProgress > 0 && `${counts.inProgress} in progress`,
+    counts.invited > 0 && `${counts.invited} invited`,
+    counts.reviewed > 0 && `${counts.reviewed} reviewed`,
+  ].filter(Boolean);
+  return (
+    <div className='flex items-center gap-2'>
+      {counts.needsReview > 0 && <Badge variant='default'>{counts.needsReview} need review</Badge>}
+      {parts.length > 0 && <MutedText className='text-sm'>{parts.join(' · ')}</MutedText>}
+    </div>
+  );
+};
+
 const RowActions = ({ assessment }: { assessment: AssessmentSchema }) => {
   const { deleteAssessment, isLoading } = useDeleteAssessment();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -99,12 +123,13 @@ export function AssessmentTable() {
             <TableRow>
               <TableHeaderCell>Title</TableHeaderCell>
               <TableHeaderCell>Status</TableHeaderCell>
+              <TableHeaderCell>Candidates</TableHeaderCell>
               <TableHeaderCell>Created</TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
-              <TableSkeleton numRows={10} numCols={3} />
+              <TableSkeleton numRows={10} numCols={4} />
             ) : !assessments || assessments.length === 0 ? (
               <EmptyTable noAssessments={!!noAssessments} />
             ) : (
@@ -122,6 +147,9 @@ export function AssessmentTable() {
                   <TableCell>{assessment.title}</TableCell>
                   <TableCell>
                     <StatusBadge status={assessment.status} />
+                  </TableCell>
+                  <TableCell>
+                    <CandidateCounts counts={assessment.submissionCounts} />
                   </TableCell>
                   <TableCell className='flex justify-between items-center gap-2 mr-4'>
                     <Tooltip content={formatDatetime(assessment.createdAt)}>
@@ -153,7 +181,7 @@ const EmptyTable = ({ noAssessments }: { noAssessments: boolean }) => {
     return (
       <>
         <TableRow>
-          <TableCell colSpan={3}>
+          <TableCell colSpan={4}>
             <div className='flex flex-col items-center justify-center py-16 px-4'>
               <EmptyStateIcon icon={RiAddLine} />
               <SmallHeader className='mt-4'>No assessments yet</SmallHeader>
@@ -176,7 +204,7 @@ const EmptyTable = ({ noAssessments }: { noAssessments: boolean }) => {
 
   return (
     <TableRow>
-      <TableCell colSpan={3}>
+      <TableCell colSpan={4}>
         <div className='flex flex-col items-center justify-center py-16 px-4'>
           <EmptyStateIcon icon={RiListCheck3} />
           <SmallHeader className='mt-4'>No assessments match your filters</SmallHeader>

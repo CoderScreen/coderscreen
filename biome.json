@@ -10,6 +10,7 @@
       },
       "a11y": {
         "useSemanticElements": "off"
+
       }
     }
   },
@@ -31,8 +32,5 @@
       "bracketSameLine": false,
       "quoteProperties": "asNeeded"
     }
-  },
-  "files": {
-    "includes": ["**", "!packages/db/drizzle"]
   }
 }
