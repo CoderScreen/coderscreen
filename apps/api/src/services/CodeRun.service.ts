@@ -3,6 +3,7 @@ import { Id } from '@coderscreen/common/id';
 import { RoomEntity } from '@coderscreen/db/room.db';
 import { Context } from 'hono';
 import { getServerByName } from 'partyserver';
+import { reportError } from '@/lib/report';
 import { FormattedOutput, getSandboxId } from '@/lib/sandbox';
 import { LANGUAGE_CONFIG } from '@/sandbox/languageCommands';
 import { AppContext } from '..';
@@ -58,6 +59,7 @@ export class CodeRunService {
       });
     } catch (error) {
       console.error('Error streaming code:', error);
+      reportError(error, { tags: { feature: 'code-run', op: 'stream' } });
       return this.sseErrorStream(error instanceof Error ? error.message : 'Error running code');
     }
   }
@@ -77,6 +79,7 @@ export class CodeRunService {
       await roomStub.ensureWorkspaceSynced();
     } catch (error) {
       console.error('Failed to ensure workspace synced before run:', error);
+      reportError(error, { level: 'warning', tags: { feature: 'code-run', op: 'sync', roomId } });
     }
   }
 
@@ -160,6 +163,7 @@ export class CodeRunService {
       };
     } catch (error) {
       console.error('Error running code:', error);
+      reportError(error, { tags: { feature: 'code-run', op: 'run' } });
       return {
         success: false,
         timestamp: new Date().toISOString(),

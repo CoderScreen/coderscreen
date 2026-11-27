@@ -8,6 +8,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
+import { reportError } from '@/lib/report';
 import { retryable } from '@/lib/utils';
 import { BillingService } from '@/services/billing/Billing.service';
 import { UsageService } from '@/services/billing/Usage.service';
@@ -57,7 +58,10 @@ export const useAuth: (
             // Schedule feedback email for 7 days after signup
             resendService
               .sendScheduledFeedbackEmail(user.email, { user_name: user.name })
-              .catch((err) => console.error('Failed to schedule feedback email:', err));
+              .catch((err) => {
+                console.error('Failed to schedule feedback email:', err);
+                reportError(err, { tags: { feature: 'email', email: 'feedback' } });
+              });
           },
         },
       },

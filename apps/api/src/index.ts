@@ -6,10 +6,14 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Hono } from 'hono';
 import { except } from 'hono/combine';
 import { cors } from 'hono/cors';
-import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { openAPISpecs } from 'hono-openapi';
+import { runScheduled } from '@/cron/canary';
 import { useAuth } from '@/lib/auth';
+import { classifyError } from '@/lib/errorResponse';
+import { checkHealth, pingPostgres } from '@/lib/health';
+import { reportError } from '@/lib/report';
 import { getSentryOptions } from '@/lib/sentry';
 import { getBilling } from '@/lib/session';
 import { CoderScreenMcp } from '@/mcp/agent';
@@ -70,8 +74,11 @@ const app = new Hono<AppContext>()
       200
     );
   })
-  .get('/health', (ctx) => {
-    return ctx.text('ok', 200);
+  .get('/health', async (ctx) => {
+    const { ok } = await checkHealth(() =>
+      pingPostgres(ctx.env.HYPERDRIVE?.connectionString ?? ctx.env.INFISCAL_DATABASE_URL)
+    );
+    return ctx.text(ok ? 'ok' : 'unhealthy', ok ? 200 : 503);
   })
   .use((ctx, next) => {
     return cors({
@@ -125,41 +132,19 @@ const app = new Hono<AppContext>()
   .route('/support', supportRouter)
   .onError((err, ctx) => {
     const cfRayId = ctx.req.header('cf-ray') ?? crypto.randomUUID();
+    const { status, message, report } = classifyError(err);
 
-    if (err instanceof HTTPException) {
-      // Intentional HTTP errors (4xx/expected 5xx) — don't report to Sentry.
-      return ctx.json(
-        {
-          id: cfRayId,
-          timestamp: new Date().toISOString(),
-          message: err.message,
-        },
-        err.status
-      );
-    } else if (err instanceof Error) {
-      // Unexpected error: Hono handles it here (so the Worker never sees it as
-      // unhandled), so report it explicitly. `cfRayId` is echoed to the client
-      // and tagged here so support requests can be traced back to the event.
-      Sentry.captureException(err, { tags: { cfRayId } });
-      return ctx.json(
-        {
-          id: cfRayId,
-          timestamp: new Date().toISOString(),
-          message: err.message,
-        },
-        500
-      );
-    } else {
-      Sentry.captureException(err, { tags: { cfRayId } });
-      return ctx.json(
-        {
-          id: cfRayId,
-          timestamp: new Date().toISOString(),
-          message: 'Unknown server error',
-        },
-        500
-      );
+    // Hono handles the error here, so the Worker never sees it as unhandled.
+    // `cfRayId` is echoed to the client and tagged so support requests can be
+    // traced back to the event.
+    if (report) {
+      reportError(err, { tags: { cfRayId } });
     }
+
+    return ctx.json(
+      { id: cfRayId, timestamp: new Date().toISOString(), message },
+      status as ContentfulStatusCode
+    );
   });
 
 app.get(
@@ -220,6 +205,7 @@ async function proxyToSandbox(request: Request, env: Env): Promise<Response | nu
     return await sandbox.containerFetch(proxyRequest, port);
   } catch (error) {
     console.error('[preview-proxy] error:', error);
+    reportError(error, { tags: { feature: 'preview-proxy' } });
     return new Response('Preview proxy error', { status: 502 });
   }
 }
@@ -230,6 +216,7 @@ export default Sentry.withSentry(getSentryOptions, {
     if (previewResponse) return previewResponse;
     return app.fetch(request, env, ctx);
   },
+  scheduled: (controller: ScheduledController, env: Env) => runScheduled(controller, env),
 });
 
 export type AppRouter = typeof app;

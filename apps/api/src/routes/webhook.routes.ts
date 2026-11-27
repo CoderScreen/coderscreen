@@ -4,6 +4,7 @@ import { validator as zValidator } from 'hono-openapi/zod';
 import Stripe from 'stripe';
 import z from 'zod';
 import { AppContext } from '@/index';
+import { reportError } from '@/lib/report';
 import { BillingService } from '@/services/billing/Billing.service';
 import { StripeService } from '@/services/third-party/Stripe.service';
 
@@ -47,7 +48,10 @@ export const webhookRouter = new Hono<AppContext>().post(
       const errorMessage = `⚠️ Webhook signature verification failed. ${
         err instanceof Error ? err.message : 'Internal server error'
       }`;
-      console.log(errorMessage);
+      console.warn(errorMessage);
+      // Usually junk traffic, but a rotated webhook secret looks the same and
+      // means every real event is rejected. A warning lands in triage only.
+      reportError(err, { level: 'warning', tags: { webhook: 'stripe', reason: 'signature' } });
       return ctx.text(errorMessage, 400);
     }
 
@@ -63,15 +67,19 @@ export const webhookRouter = new Hono<AppContext>().post(
           await billingService.upsertSubscriptionFromEvent(event);
           break;
         default:
-          return ctx.text(`Unsupported event ${event.id} of type ${event.type}.`, 400);
+          // A 4xx makes Stripe retry for days and eventually disable the
+          // endpoint, so acknowledge event types we don't use.
+          return ctx.text(`Ignored event ${event.id} of type ${event.type}.`, 200);
       }
       return ctx.text(`Handled event ${event.id} of type ${event.type} successfully`, 200);
     } catch (err) {
-      const errorMessage = `Webhook handling failed. ${
-        err instanceof Error ? err.message : 'Internal server error'
-      }`;
-      console.error(errorMessage);
-      return ctx.text(errorMessage, 400);
+      console.error(`Webhook handling failed for ${event.id} (${event.type}):`, err);
+      reportError(err, {
+        tags: { webhook: 'stripe', stripeEventType: event.type },
+        extra: { stripeEventId: event.id },
+      });
+      // 5xx so Stripe retries once the bug is fixed.
+      return ctx.text(`Webhook handling failed for event ${event.id}.`, 500);
     }
   }
 );

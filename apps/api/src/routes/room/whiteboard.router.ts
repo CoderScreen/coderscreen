@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator as zValidator } from 'hono-openapi/zod';
 import { z } from 'zod';
+import { reportError } from '@/lib/report';
 import { AppContext } from '../..';
 
 // Schema definitions for OpenAPI
@@ -44,6 +45,9 @@ export const whiteboardRouter = new Hono<AppContext>()
       // Note: WHITEBOARD_DO needs to be added to the environment bindings
       const whiteboardDo = ctx.env.WHITEBOARD_DO;
       if (!whiteboardDo) {
+        reportError(new Error('WHITEBOARD_DO binding missing'), {
+          tags: { feature: 'whiteboard' },
+        });
         return ctx.json({ error: 'Whiteboard service not available' }, 503);
       }
 
@@ -108,6 +112,7 @@ export const whiteboardRouter = new Hono<AppContext>()
         return ctx.json({ success: true, url });
       } catch (error) {
         console.error('Error uploading asset:', error);
+        reportError(error, { tags: { feature: 'whiteboard', op: 'upload' } });
         return ctx.json({ success: false, error: 'Upload failed' }, 500);
       }
     }
@@ -164,6 +169,7 @@ export const whiteboardRouter = new Hono<AppContext>()
         });
       } catch (error) {
         console.error('Error downloading asset:', error);
+        reportError(error, { tags: { feature: 'whiteboard', op: 'download' } });
         return ctx.json({ error: 'Download failed' }, 500);
       }
     }

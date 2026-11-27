@@ -169,7 +169,7 @@ export class ResendService {
     });
 
     if (error) {
-      console.error('Failed to schedule feedback email:', error);
+      throw new Error(`Failed to schedule feedback email: ${error.message}`);
     }
   }
 }
