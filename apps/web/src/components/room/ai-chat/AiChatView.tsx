@@ -36,14 +36,20 @@ const MODEL_OPTIONS: {
   value: SupportedModels;
   icon: RemixiconComponentType;
 }[] = [
-  { label: 'Claude Haiku 4.5', value: 'anthropic/claude-haiku-4.5', icon: RiClaudeLine },
-  { label: 'Claude Sonnet 4.5', value: 'anthropic/claude-sonnet-4.5', icon: RiClaudeLine },
-  { label: 'GPT-5 Mini', value: 'openai/gpt-5-mini', icon: RiOpenaiFill },
-  { label: 'GPT-5', value: 'openai/gpt-5', icon: RiOpenaiFill },
-  { label: 'Gemini 2.5 Flash', value: 'google/gemini-2.5-flash', icon: RiGoogleLine },
-  { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro', icon: RiGoogleLine },
-  { label: 'DeepSeek Chat V3', value: 'deepseek/deepseek-chat-v3-0324', icon: RiAiGenerate2 },
+  { label: 'Claude Haiku 5.5', value: 'anthropic/claude-haiku-5.5', icon: RiClaudeLine },
+  { label: 'Claude Sonnet 5.5', value: 'anthropic/claude-sonnet-5.5', icon: RiClaudeLine },
+  { label: 'GPT-6 Luna', value: 'openai/gpt-6-luna', icon: RiOpenaiFill },
+  { label: 'GPT-6.2 Sol', value: 'openai/gpt-6.2-sol', icon: RiOpenaiFill },
+  { label: 'Gemini 3.8 Flash', value: 'google/gemini-3.8-flash', icon: RiGoogleLine },
+  { label: 'Gemini 4 Hydrogen', value: 'google/gemini-4-hydrogen', icon: RiGoogleLine },
+  { label: 'DeepSeek V4 Flash', value: 'deepseek/deepseek-v4-flash-0731', icon: RiAiGenerate2 },
+  { label: 'DeepSeek V4.1 Flash', value: 'deepseek/deepseek-v4.1-flash', icon: RiAiGenerate2 },
+  { label: 'DeepSeek V4 Pro', value: 'deepseek/deepseek-v4-pro-0813', icon: RiAiGenerate2 },
+  { label: 'Kimi K3.1 Pro', value: 'moonshotai/kimi-k3.1-pro', icon: RiAiGenerate2 },
+  { label: 'Kimi K2.7 Code', value: 'moonshotai/kimi-k2.7-code', icon: RiAiGenerate2 },
 ];
+
+const DEFAULT_MODEL: SupportedModels = 'deepseek/deepseek-v4-flash-0731';
 
 export const AiChatView = ({ role }: AiChatViewProps) => {
   const { user } = useSession();
@@ -112,6 +118,10 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
     }
   };
 
+  const selectedModel = MODEL_OPTIONS.some((option) => option.value === config.model)
+    ? config.model
+    : DEFAULT_MODEL;
+
   const handleModelChange = (value: SupportedModels) => {
     updateConfig({ model: value });
   };
@@ -172,7 +182,7 @@ export const AiChatView = ({ role }: AiChatViewProps) => {
   return (
     <div className='h-full flex flex-col bg-white'>
       <div className='border-b py-1 px-2 flex items-center justify-between'>
-        <Select value={config.model} onValueChange={handleModelChange} disabled={isReadOnly}>
+        <Select value={selectedModel} onValueChange={handleModelChange} disabled={isReadOnly}>
           <SelectTrigger className='w-fit'>
             <SelectValue />
           </SelectTrigger>

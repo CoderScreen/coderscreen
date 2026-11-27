@@ -7,7 +7,7 @@ import postgres from 'postgres';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
 import { reportError } from '@/lib/report';
-import { SupportedModels } from '@/schema/ai.zod';
+import { DEFAULT_MODEL, resolveModel, SupportedModels } from '@/schema/ai.zod';
 
 export interface User {
   id: string;
@@ -55,7 +55,11 @@ Your role is to:
 
 Be encouraging but thorough in your evaluation. Focus on understanding their thought process and helping them demonstrate their best work.`;
   static TEMPERATURE = 0.7;
-  static MAX_TOKENS = 1000;
+  // Every model we offer reasons, and OpenRouter counts reasoning against
+  // max_tokens, so a small limit can be spent entirely on thinking and leave
+  // an empty reply.
+  static MAX_TOKENS = 4000;
+  static REASONING = { effort: 'low', exclude: true } as const;
   static STREAM_UPDATE_INTERVAL_MS = 250;
 
   static messagesKey = 'ai_chat_messages';
@@ -87,8 +91,7 @@ Be encouraging but thorough in your evaluation. Focus on understanding their tho
      */
 
     const aiConfig = this.document.getMap(AIService.configKey);
-    const defaultModel: SupportedModels = 'openai/gpt-5-mini';
-    aiConfig.set(AIService.configKeys.model, defaultModel);
+    aiConfig.set(AIService.configKeys.model, DEFAULT_MODEL);
 
     const conversationId = this.document.getText(AIService.conversationIdKey);
     conversationId.delete(0, conversationId.length);
@@ -163,6 +166,8 @@ User's question: ${userMessage.content}
         temperature: AIService.TEMPERATURE,
         max_tokens: AIService.MAX_TOKENS,
         stream: true,
+        // OpenRouter field, not in the OpenAI SDK types
+        ...({ reasoning: AIService.REASONING } as object),
       });
 
       let accumulatedContent = '';
@@ -172,7 +177,10 @@ User's question: ${userMessage.content}
       let lastUpdateAt = 0;
       let hasPendingUpdate = false;
 
+      let finishReason: string | null | undefined;
+
       for await (const chunk of stream) {
+        finishReason = chunk.choices[0]?.finish_reason ?? finishReason;
         const content = chunk.choices[0]?.delta?.content;
         if (content) {
           accumulatedContent += content;
@@ -187,6 +195,10 @@ User's question: ${userMessage.content}
 
       if (hasPendingUpdate) {
         this.updateStreamingMessage(baseResponseMsg.id, accumulatedContent);
+      }
+
+      if (!accumulatedContent) {
+        throw new Error(`${model} returned no content (finish_reason: ${finishReason ?? 'none'})`);
       }
 
       result.push({
@@ -355,13 +367,7 @@ User's question: ${userMessage.content}
   getModel(): SupportedModels {
     const aiConfig = this.document.getMap<string>(AIService.configKey);
 
-    const model = aiConfig.get(AIService.configKeys.model) as SupportedModels | undefined;
-
-    if (!model) {
-      throw new Error('Model not found');
-    }
-
-    return model;
+    return resolveModel(aiConfig.get(AIService.configKeys.model));
   }
 
   private getDb() {
