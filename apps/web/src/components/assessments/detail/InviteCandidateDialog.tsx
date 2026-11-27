@@ -54,7 +54,10 @@ export const InviteCandidateDialog = ({
   const { usage } = useUsage('assessment_invite');
 
   const hasCandidates = (candidates?.length ?? 0) > 0;
-  const [mode, setMode] = useState<Mode>(hasCandidates ? 'existing' : 'new');
+  // null until the user picks a tab, so the default can follow the candidate
+  // list as it loads without overriding an explicit choice.
+  const [pickedMode, setMode] = useState<Mode | null>(null);
+  const mode: Mode = pickedMode ?? (hasCandidates ? 'existing' : 'new');
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -68,13 +71,6 @@ export const InviteCandidateDialog = ({
   const [emailSent, setEmailSent] = useState<boolean | null>(null);
   const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
   const [alreadyInvited, setAlreadyInvited] = useState(false);
-
-  // Re-default mode when candidate list loads after the dialog opens
-  useEffect(() => {
-    if (open && hasCandidates && mode === 'new' && !name && !email) {
-      setMode('existing');
-    }
-  }, [hasCandidates, open, email, mode, name]);
 
   const filteredCandidates = useMemo(() => {
     const list = candidates ?? [];
@@ -109,7 +105,7 @@ export const InviteCandidateDialog = ({
     setEmailSent(null);
     setInvitedEmail(null);
     setAlreadyInvited(false);
-    setMode(hasCandidates ? 'existing' : 'new');
+    setMode(null);
     resetInvite();
   };
 

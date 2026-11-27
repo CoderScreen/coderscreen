@@ -11,7 +11,7 @@ import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTes
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { TestCaseResultEntity, testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { member, organization, user } from '@coderscreen/db/user.db';
-import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, lt, SQL, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -325,6 +325,13 @@ export class AssessmentSubmissionService {
   async listSubmissions(assessmentId: Id<'assessment'>) {
     const { orgId } = getSession(this.ctx);
 
+    await this.expireOverdue(
+      and(
+        eq(assessmentSubmissionTable.assessmentId, assessmentId),
+        eq(assessmentSubmissionTable.organizationId, orgId)
+      )
+    );
+
     const submissions = await this.db
       .select()
       .from(assessmentSubmissionTable)
@@ -357,6 +364,13 @@ export class AssessmentSubmissionService {
 
   async getSubmissionDetails(submissionId: Id<'assessmentSubmission'>) {
     const { orgId } = getSession(this.ctx);
+
+    await this.expireOverdue(
+      and(
+        eq(assessmentSubmissionTable.id, submissionId),
+        eq(assessmentSubmissionTable.organizationId, orgId)
+      )
+    );
 
     const submission = await this.db
       .select()
@@ -698,11 +712,17 @@ export class AssessmentSubmissionService {
 
   // === Candidate-Facing Methods (token-authenticated, no session required) ===
 
+  // Archiving an invite revokes its link; unarchiving restores it.
   async getSubmissionForToken(token: string): Promise<AssessmentSubmissionEntity | null> {
     return this.db
       .select()
       .from(assessmentSubmissionTable)
-      .where(eq(assessmentSubmissionTable.accessToken, token))
+      .where(
+        and(
+          eq(assessmentSubmissionTable.accessToken, token),
+          eq(assessmentSubmissionTable.isArchived, false)
+        )
+      )
       .then((r) => (r.length > 0 ? r[0] : null));
   }
 
@@ -1138,6 +1158,28 @@ export class AssessmentSubmissionService {
       .where(eq(assessmentSubmissionTable.id, submissionId))
       .returning()
       .then((r) => r[0]);
+  }
+
+  /**
+   * checkExpiration only runs on candidate requests, so an attempt the candidate
+   * walked away from would read as in progress forever. Recruiter-facing reads
+   * call this first to expire (and score) any overdue attempts in scope.
+   */
+  private async expireOverdue(scope: SQL | undefined) {
+    const overdue = await this.db
+      .select({ id: assessmentSubmissionTable.id })
+      .from(assessmentSubmissionTable)
+      .where(
+        and(
+          scope,
+          eq(assessmentSubmissionTable.status, 'in_progress'),
+          lt(assessmentSubmissionTable.expiresAt, sql`now()`)
+        )
+      );
+
+    for (const { id } of overdue) {
+      await this.checkExpiration(id as Id<'assessmentSubmission'>);
+    }
   }
 
   async checkExpiration(submissionId: Id<'assessmentSubmission'>): Promise<boolean> {
