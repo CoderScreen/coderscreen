@@ -5,6 +5,7 @@ import { AssessmentLanguage } from '@coderscreen/db/assessment.db';
 import { QuestionLibraryTestCaseEntity } from '@coderscreen/db/questionLibraryTestCase.db';
 import type { TestCaseFailureReason } from '@coderscreen/db/testCaseResult.db';
 import { Context } from 'hono';
+import { reportError } from '@/lib/report';
 import { getHarness, preprocessCandidateCode } from '@/sandbox/harnesses';
 import { LANGUAGE_CONFIG } from '@/sandbox/languageCommands';
 import { AppContext } from '..';
@@ -212,6 +213,11 @@ export class AssessmentCodeRunService {
         const message = error instanceof Error ? error.message : 'Execution error';
         const looksLikeTimeout =
           executionTimeMs >= EXECUTION_TIMEOUT_MS - 250 || /timeout/i.test(message);
+        // The sandbox itself threw (not the candidate's code exiting non-zero),
+        // which the candidate sees as a crashed test.
+        if (!looksLikeTimeout) {
+          reportError(error, { tags: { feature: 'code-run', op: 'assessment-test' } });
+        }
         results.push({
           testCaseId: tc.id,
           passed: false,

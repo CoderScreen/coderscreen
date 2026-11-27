@@ -6,6 +6,7 @@ import { OpenAI } from 'openai';
 import postgres from 'postgres';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
+import { reportError } from '@/lib/report';
 import { SupportedModels } from '@/schema/ai.zod';
 
 export interface User {
@@ -200,6 +201,15 @@ User's question: ${userMessage.content}
       });
     } catch (error) {
       console.error('Error streaming AI response:', error);
+      // The candidate only sees "Ran into an error", so this is the only signal
+      // that the provider is failing (a revoked key failed every reply for weeks).
+      reportError(error, {
+        tags: {
+          feature: 'ai',
+          roomId: this.room.id,
+          providerStatus: String((error as { status?: unknown }).status ?? 'none'),
+        },
+      });
       const errorMessage = this.handleStreamingError(baseResponseMsg.id, error as Error);
 
       if (errorMessage) {

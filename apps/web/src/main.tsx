@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { createRouter, type ErrorComponentProps, RouterProvider } from '@tanstack/react-router';
 import { Agentation } from 'agentation';
 import { StrictMode, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
@@ -12,6 +12,7 @@ import NotFound from '@/components/common/NotFound.tsx';
 import { PendingView } from '@/components/common/PendingView.tsx';
 import { AuthContext, AuthProvider, useAuth } from '@/contexts/AuthContext.tsx';
 import { initPostHog, isPostHogEnabled, posthog } from '@/lib/posthog.ts';
+import { beforeSend } from '@/lib/sentryFilter.ts';
 import { TanstackQueryClient } from '@/query/client.ts';
 import reportWebVitals from './reportWebVitals.ts';
 
@@ -28,6 +29,9 @@ const router = createRouter({
   defaultPreloadStaleTime: 0,
   defaultNotFoundComponent: () => <NotFound />,
   defaultPendingComponent: () => <PendingView />,
+  // Route render and loader errors stop at the router's own boundary, so they
+  // never reach Sentry.ErrorBoundary. Report them here.
+  defaultErrorComponent: RouteError,
 });
 
 // Register the router instance for type safety
@@ -43,10 +47,12 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
   enabled: import.meta.env.MODE !== 'development' && Boolean(import.meta.env.VITE_SENTRY_DSN),
+  release: import.meta.env.VITE_SENTRY_RELEASE || undefined,
   integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
-  // Performance tracing sample rate. Tune as needed.
   tracesSampleRate: 0.1,
-  sendDefaultPii: true,
+  // Users are identified by opaque id only: no emails, IPs or cookies.
+  sendDefaultPii: false,
+  beforeSend,
 });
 
 // Initialize PostHog analytics + session replay. Disabled in local dev and when
@@ -64,7 +70,8 @@ function InnerApp() {
     }
 
     // Tie Sentry events to the current user (cleared on sign-out).
-    Sentry.setUser(auth.user ? { id: auth.user.id, email: auth.user.email } : null);
+    Sentry.setUser(auth.user ? { id: auth.user.id } : null);
+    Sentry.setTag('organizationId', auth.session?.activeOrganizationId ?? undefined);
 
     // Tie PostHog events + session replays to the current user (reset on sign-out).
     if (isPostHogEnabled) {
@@ -112,6 +119,13 @@ function ErrorFallback() {
       </button>
     </div>
   );
+}
+
+function RouteError({ error }: ErrorComponentProps) {
+  useEffect(() => {
+    Sentry.captureException(error, { tags: { boundary: 'router' } });
+  }, [error]);
+  return <ErrorFallback />;
 }
 
 // Render the app

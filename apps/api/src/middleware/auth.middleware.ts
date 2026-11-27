@@ -24,9 +24,12 @@ export const authMiddleware = createMiddleware<AppContext>(async (ctx, next) => 
   // @ts-ignore since better auth type inference broke
   ctx.set('session', session.session);
 
-  // Attach the authenticated user to the current request's Sentry scope so
-  // reported errors are tied to who hit them.
-  Sentry.setUser({ id: session.user.id, email: session.user.email });
+  // Tie reported errors to who hit them by opaque id only (no email or IP).
+  Sentry.setUser({ id: session.user.id });
+  const orgId = (session.session as { activeOrganizationId?: string | null }).activeOrganizationId;
+  if (orgId) {
+    Sentry.setTag('organizationId', orgId);
+  }
 
   return next();
 });

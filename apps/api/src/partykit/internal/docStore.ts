@@ -95,6 +95,14 @@ export class DocStore {
     await this.storage.put(KEYS.exportFailures, failures);
     if (failures <= MAX_EXPORT_RETRIES) {
       await this.storage.setAlarm(Date.now() + EXPORT_RETRY_DELAY_MS);
+    } else if (failures === MAX_EXPORT_RETRIES + 1) {
+      // Each failure was already reported by persistWithRetry; this marks the
+      // point where Postgres stops getting copies until the next edit.
+      Sentry.captureMessage(`Gave up exporting ${this.label.party} document to Postgres`, {
+        level: 'error',
+        tags: this.label,
+        extra: { failures },
+      });
     }
   }
 

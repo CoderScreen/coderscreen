@@ -1,4 +1,5 @@
 import { Id, idString } from '@coderscreen/common/id';
+import * as Sentry from '@sentry/cloudflare';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { describeRoute } from 'hono-openapi';
@@ -22,6 +23,9 @@ async function validateToken(
   if (!submission || submission.id !== subId) {
     throw new HTTPException(401, { message: 'Invalid token or submission' });
   }
+  // Candidates aren't users, so tag the submission instead of setting a user.
+  Sentry.setTag('assessmentSubmissionId', submission.id);
+  Sentry.setTag('organizationId', submission.organizationId);
   return submission;
 }
 

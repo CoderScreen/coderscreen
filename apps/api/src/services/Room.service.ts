@@ -7,6 +7,7 @@ import { HTTPException } from 'hono/http-exception';
 import { getServerByName } from 'partyserver';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
+import { reportOnFailure } from '@/lib/report';
 import { getSession } from '@/lib/session';
 import { ChatMessage, User } from '@/partykit/internal/AI.service';
 import { PublicRoomSchema } from '@/schema/room.zod';
@@ -207,7 +208,11 @@ export class RoomService {
     // Rooms hibernate, and a plain RPC doesn't load the room's document.
     const roomStub = await getServerByName(this.ctx.env.Room, params.roomId);
 
-    this.ctx.executionCtx.waitUntil(roomStub.handleAiChat(params));
+    this.ctx.executionCtx.waitUntil(
+      reportOnFailure(roomStub.handleAiChat(params), {
+        tags: { feature: 'ai', roomId: params.roomId },
+      })
+    );
   }
 
   // async addRoomUser(params: { roomId: Id<'room'>; user: RoomEntity['usersJoined'][number] }) {

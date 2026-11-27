@@ -9,6 +9,7 @@ import postgres from 'postgres';
 import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
 import { AppContext } from '@/index';
+import { reportOnFailure } from '@/lib/report';
 import { getSandboxId } from '@/lib/sandbox';
 import { getWorkspaceTemplate } from '@/lib/templates/languageTemplate';
 import { FileSyncService } from '@/sandbox/FileSyncService';
@@ -632,7 +633,11 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     const room = this.getRoom();
     const roomId = room.id;
 
-    this.ctx.waitUntil(this.getSandbox().startSandbox({ roomId }));
+    this.ctx.waitUntil(
+      reportOnFailure(this.getSandbox().startSandbox({ roomId }), {
+        tags: { feature: 'sandbox', op: 'start', roomId },
+      })
+    );
   }
 
   // AI Chat Methods
@@ -647,7 +652,11 @@ export class RoomServer extends YServer<AppContext['Bindings']> {
     // Start streaming AI response
     const messages = await this.aiService.streamResponse(params);
 
-    this.ctx.waitUntil(this.aiService.onComplete(messages));
+    this.ctx.waitUntil(
+      reportOnFailure(this.aiService.onComplete(messages), {
+        tags: { feature: 'ai', op: 'save-messages', roomId: this.getRoom().id },
+      })
+    );
   }
 
   private async handleUserJoin(user: (User | undefined)[]) {

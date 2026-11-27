@@ -3,6 +3,7 @@ import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core';
 import { createTLSchema, defaultShapeSchemas, TLRecord } from '@tldraw/tlschema';
 import { Context, Hono } from 'hono';
 import throttle from 'lodash.throttle';
+import { reportError } from '@/lib/report';
 
 const schema = createTLSchema({
   shapes: { ...defaultShapeSchemas },
@@ -36,6 +37,13 @@ export class WhiteboardDurableObject {
         });
       }
       return this.handleConnect(c);
+    });
+
+    // Without this Hono answers 500 itself and the Sentry DO wrapper never
+    // sees the error.
+    this.app.onError((err, c) => {
+      reportError(err, { tags: { feature: 'whiteboard', roomId: this.roomId ?? 'unknown' } });
+      return c.json({ error: 'Whiteboard error' }, 500);
     });
   }
 
@@ -86,9 +94,13 @@ export class WhiteboardDurableObject {
     if (!this.roomPromise || !this.roomId) return;
     const room = await this.getRoom();
 
-    // convert the room to JSON and upload it to R2
-    const snapshot = JSON.stringify(room.getCurrentSnapshot());
-    await this.r2.put(`rooms/${this.roomId}`, snapshot);
+    try {
+      const snapshot = JSON.stringify(room.getCurrentSnapshot());
+      await this.r2.put(`rooms/${this.roomId}`, snapshot);
+    } catch (err) {
+      console.error(`[whiteboard] failed to persist ${this.roomId}:`, err);
+      reportError(err, { tags: { feature: 'whiteboard', op: 'persist', roomId: this.roomId } });
+    }
 
     return;
   }, WhiteboardDurableObject.PERSIST_INTERVAL);

@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "npx nx run-many --target=lint",
     "build": "npx nx run-many --target=build",
+    "test": "npx nx run-many --target=test",
     "build:marketing": "npx nx build @coderscreen/marketing",
     "build:web": "npx nx build @coderscreen/web",
     "build:api": "npx nx build @coderscreen/api",

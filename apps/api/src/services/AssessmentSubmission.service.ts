@@ -17,6 +17,7 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { useDb } from '@/db/client';
 import { AppContext } from '@/index';
+import { reportError } from '@/lib/report';
 import { getSession } from '@/lib/session';
 import { resolveStarterCode } from '@/sandbox/harnesses';
 import {
@@ -316,6 +317,7 @@ export class AssessmentSubmissionService {
         submissionId: params.submissionId,
         error: err,
       });
+      reportError(err, { tags: { feature: 'email', email: 'assessment_invitation' } });
       return false;
     }
   }
@@ -1328,6 +1330,7 @@ export class AssessmentSubmissionService {
               submissionId,
               error: err,
             });
+            reportError(err, { tags: { feature: 'email', email: 'submission_confirmation' } });
           })
       );
 
@@ -1357,6 +1360,7 @@ export class AssessmentSubmissionService {
                 submissionId,
                 error: err,
               });
+              reportError(err, { tags: { feature: 'email', email: 'assessment_submission' } });
             })
         );
       }
@@ -1367,6 +1371,7 @@ export class AssessmentSubmissionService {
         submissionId,
         error: err,
       });
+      reportError(err, { tags: { feature: 'email', email: 'submission_dispatch' } });
     }
   }
 }

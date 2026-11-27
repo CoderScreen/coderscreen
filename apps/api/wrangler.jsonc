@@ -9,7 +9,11 @@
 	],
 	"observability": {
 		"enabled": true,
-		// "traces": true,
+		// Cloudflare Observability is the log and trace store until Grafana
+		// Cloud. Alerts come from Sentry.
+		"traces": {
+			"enabled": true,
+		},
 	},
 	"dev": {
 		"port": 8000,

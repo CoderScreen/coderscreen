@@ -1,4 +1,5 @@
 import { Id } from '@coderscreen/common/id';
+import * as Sentry from '@sentry/cloudflare';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import { AppContext } from '@/index';
@@ -22,6 +23,8 @@ export const publicRoomMiddleware = createMiddleware<AppContext>(async (ctx, nex
   }
 
   ctx.set('publicRoom', room);
+  Sentry.setTag('roomId', room.id);
+  Sentry.setTag('organizationId', room.organizationId);
 
   // Check if this is a GET request to the root route (/:roomId)
   const isGetRootRoute = ctx.req.method === 'GET' && ctx.req.path.endsWith(`/${roomId}/public`);
