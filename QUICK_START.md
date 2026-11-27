@@ -4,6 +4,16 @@
 > 
 > This quick start guide is currently being built and constantly updated. Please join our [Discord](https://discord.gg/THxVTKtcZy) for live support and updates.
 
+## Fastest way to try it locally
+
+With Docker running and `pnpm install` done:
+
+```bash
+pnpm dev:local          # add --reset to wipe and reseed
+```
+
+This starts a throwaway Postgres in Docker, syncs the schema, seeds a demo org and assessment, and runs the API (`localhost:8000`) and web app (`localhost:3000`). Sign in with `dev@coderscreen.test` / `localdev-password`. It doesn't need Stripe, Resend or OAuth keys, and it never uses the database in `.dev.vars`. Emails are printed in the terminal. Running candidate code needs the sandbox container, which this mode skips. For that, follow the full setup below.
+
 ## Prerequisites
 
 - Node.js 24.0.0 and pnpm

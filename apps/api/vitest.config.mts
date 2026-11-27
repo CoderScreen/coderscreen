@@ -11,5 +11,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['test/**/*.spec.ts'],
+    // API tests run in workerd with their own config (vitest.api.config.mts).
+    exclude: ['test/api/**', '**/node_modules/**'],
   },
 });

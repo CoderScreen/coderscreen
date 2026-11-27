@@ -39,6 +39,7 @@ type TransactionEmailParams = {
       max_score: number | null;
       submitted_at: string;
       view_link: string;
+      ended_by?: 'submitted' | 'expired';
     };
   };
   assessment_invitation: {

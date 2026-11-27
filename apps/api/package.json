@@ -9,7 +9,9 @@
 		"build": "tsc",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"test": "vitest run",
+		"test": "vitest run && vitest run -c vitest.api.config.mts",
+		"test:unit": "vitest run",
+		"test:api": "vitest run -c vitest.api.config.mts",
 		"cf-deploy": "scripts/deploy.sh",
 		"cf-deploy:staging": "scripts/deploy.sh --env staging",
 		"cf-deploy:branch": "echo 'Per-branch deployments are not supported yet'",
@@ -18,7 +20,7 @@
 		"stripe:listen": "stripe listen --forward-to localhost:8000/webhook/stripe"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.8.36",
+		"@cloudflare/vitest-pool-workers": "^0.12.21",
 		"@sentry/cli": "^3.8.2",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/node": "^24.0.3",

@@ -9,6 +9,13 @@ import {
 } from '@coderscreen/ui/dropdown';
 import { SmallHeader } from '@coderscreen/ui/heading';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@coderscreen/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -18,7 +25,7 @@ import {
   TableRow,
   TableSkeleton,
 } from '@coderscreen/ui/table';
-import { Tooltip } from '@coderscreen/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger } from '@coderscreen/ui/tabs';
 import { MutedText } from '@coderscreen/ui/typography';
 import {
   RiAddLine,
@@ -29,34 +36,46 @@ import {
   RiMore2Line,
 } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
-import { formatDatetime, formatRelativeDatetime } from '@/lib/dateUtils';
+import { formatDatetime } from '@/lib/dateUtils';
 import { useArchiveSubmission, useSubmissions } from '@/query/assessment.query';
 import { InviteCandidateDialog } from './InviteCandidateDialog';
-
-const SubmissionStatusBadge = ({ status }: { status: string }) => {
-  switch (status) {
-    case 'not_started':
-      return <Badge variant='neutral'>Not Started</Badge>;
-    case 'in_progress':
-      return <Badge variant='warning'>In Progress</Badge>;
-    case 'submitted':
-      return <Badge variant='success'>Submitted</Badge>;
-    case 'expired':
-      return <Badge variant='error'>Expired</Badge>;
-    case 'graded':
-      return <Badge variant='success'>Graded</Badge>;
-    default:
-      return <Badge variant='neutral'>{status}</Badge>;
-  }
-};
+import {
+  getFinishedAt,
+  getTimeLeft,
+  getTimeTaken,
+  matchesFilter,
+  type ReviewableSubmission,
+  ReviewStateBadge,
+  type SubmissionFilter,
+  type SubmissionSort,
+  sortSubmissions,
+} from './submissionReview';
 
 interface AssessmentSubmissionsTabProps {
   assessmentId: string;
   assessmentStatus?: 'draft' | 'active' | 'archived';
+  filter: SubmissionFilter;
+  sort: SubmissionSort;
+  onListChange: (next: { filter?: SubmissionFilter; sort?: SubmissionSort }) => void;
 }
+
+type SubmissionRow = ReviewableSubmission & {
+  accessToken: string;
+  candidate: { name: string; email: string } | null;
+};
+
+type Filter = SubmissionFilter;
+
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'needs_review', label: 'Needs review' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'invited', label: 'Invited' },
+  { value: 'reviewed', label: 'Reviewed' },
+];
 
 // The API only accepts invites for active assessments.
 const inviteBlockedReason = (status: AssessmentSubmissionsTabProps['assessmentStatus']) => {
@@ -69,6 +88,9 @@ const inviteBlockedReason = (status: AssessmentSubmissionsTabProps['assessmentSt
 export const AssessmentSubmissionsTab = ({
   assessmentId,
   assessmentStatus,
+  filter,
+  sort,
+  onListChange,
 }: AssessmentSubmissionsTabProps) => {
   const { submissions, isLoading } = useSubmissions(assessmentId);
   const navigate = useNavigate();
@@ -76,19 +98,54 @@ export const AssessmentSubmissionsTab = ({
   const [showArchived, setShowArchived] = useState(false);
   const blockedReason = inviteBlockedReason(assessmentStatus);
 
-  const allSubmissions = (submissions ?? []) as Record<string, unknown>[];
+  const allSubmissions = (submissions ?? []) as unknown as SubmissionRow[];
   const archivedCount = allSubmissions.filter((s) => s.isArchived === true).length;
-  const visibleSubmissions = showArchived
-    ? allSubmissions
-    : allSubmissions.filter((s) => s.isArchived !== true);
+  const inScope = showArchived ? allSubmissions : allSubmissions.filter((s) => !s.isArchived);
+
+  const counts = useMemo(() => {
+    const result = {} as Record<Filter, number>;
+    for (const f of FILTERS)
+      result[f.value] = inScope.filter((s) => matchesFilter(s, f.value)).length;
+    return result;
+  }, [inScope]);
+
+  const visibleSubmissions = sortSubmissions(
+    inScope.filter((s) => matchesFilter(s, filter)),
+    sort
+  );
+
+  const openSubmission = (subId: string) =>
+    navigate({
+      to: '/assessments/$assessmentId/submissions/$subId',
+      params: { assessmentId, subId },
+      search: { filter, sort },
+    });
+
+  const hasAny = allSubmissions.length > 0;
 
   return (
     <div className='py-6'>
-      <div className='flex items-center justify-between mb-4'>
-        <MutedText>
-          {visibleSubmissions.length} submission{visibleSubmissions.length !== 1 ? 's' : ''}
-        </MutedText>
+      <div className='flex items-center justify-between gap-4 mb-4'>
+        <Tabs value={filter} onValueChange={(v) => onListChange({ filter: v as Filter })}>
+          <TabsList variant='solid'>
+            {FILTERS.map((f) => (
+              <TabsTrigger key={f.value} value={f.value}>
+                {f.label}
+                <span className='ml-1.5 text-gray-500'>{counts[f.value] ?? 0}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <div className='flex items-center gap-2'>
+          <Select value={sort} onValueChange={(v) => onListChange({ sort: v as SubmissionSort })}>
+            <SelectTrigger className='w-44'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='recent'>Most recent</SelectItem>
+              <SelectItem value='score'>Highest score</SelectItem>
+            </SelectContent>
+          </Select>
           {archivedCount > 0 && (
             <Button variant='secondary' onClick={() => setShowArchived((v) => !v)}>
               {showArchived ? 'Hide archived' : `Show archived (${archivedCount})`}
@@ -115,18 +172,18 @@ export const AssessmentSubmissionsTab = ({
           <TableHead>
             <TableRow>
               <TableHeaderCell>Candidate</TableHeaderCell>
-              <TableHeaderCell>Email</TableHeaderCell>
               <TableHeaderCell>Status</TableHeaderCell>
               <TableHeaderCell>Score</TableHeaderCell>
+              <TableHeaderCell>Time taken</TableHeaderCell>
               <TableHeaderCell>Started</TableHeaderCell>
-              <TableHeaderCell>Submitted</TableHeaderCell>
+              <TableHeaderCell>Finished</TableHeaderCell>
               <TableHeaderCell className='w-20' />
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableSkeleton numRows={5} numCols={7} />
-            ) : visibleSubmissions.length === 0 ? (
+            ) : !hasAny ? (
               <TableRow>
                 <TableCell colSpan={7}>
                   <div className='flex flex-col items-center justify-center py-12 px-4'>
@@ -145,59 +202,54 @@ export const AssessmentSubmissionsTab = ({
                   </div>
                 </TableCell>
               </TableRow>
+            ) : visibleSubmissions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7}>
+                  <div className='py-10 text-center'>
+                    <MutedText>No candidates match this filter.</MutedText>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : (
-              visibleSubmissions.map((sub: Record<string, unknown>) => {
-                const candidate = sub.candidate as Record<string, unknown>;
+              visibleSubmissions.map((sub) => {
                 const isArchived = sub.isArchived === true;
+                const finishedAt = getFinishedAt(sub);
+                const timeLeft = getTimeLeft(sub);
                 return (
                   <TableRow
-                    key={sub.id as string}
+                    key={sub.id}
                     className={`cursor-pointer hover:bg-gray-50 ${isArchived ? 'opacity-60' : ''}`}
-                    onClick={() =>
-                      navigate({
-                        to: '/assessments/$assessmentId/submissions/$subId',
-                        params: { assessmentId, subId: sub.id as string },
-                      })
-                    }
+                    onClick={() => openSubmission(sub.id)}
                   >
                     <TableCell>
-                      <span className='inline-flex items-center gap-2'>
-                        {candidate.name as string}
+                      <div className='flex items-center gap-2'>
+                        <span className='font-medium text-gray-900'>{sub.candidate?.name}</span>
                         {isArchived && <Badge variant='neutral'>Archived</Badge>}
-                      </span>
+                      </div>
+                      <MutedText className='text-xs'>{sub.candidate?.email}</MutedText>
                     </TableCell>
-                    <TableCell>{candidate.email as string}</TableCell>
                     <TableCell>
-                      <SubmissionStatusBadge status={sub.status as string} />
+                      <div className='flex flex-col items-start gap-0.5'>
+                        <ReviewStateBadge sub={sub} />
+                        {sub.status === 'expired' && (
+                          <MutedText className='text-xs'>Time ran out</MutedText>
+                        )}
+                        {timeLeft && <MutedText className='text-xs'>{timeLeft}</MutedText>}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {sub.totalScore != null && sub.maxScore != null
                         ? `${sub.totalScore}/${sub.maxScore}`
                         : '-'}
                     </TableCell>
-                    <TableCell>
-                      {sub.startedAt ? (
-                        <Tooltip content={formatDatetime(sub.startedAt as string)}>
-                          {formatRelativeDatetime(sub.startedAt as string)}
-                        </Tooltip>
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {sub.submittedAt ? (
-                        <Tooltip content={formatDatetime(sub.submittedAt as string)}>
-                          {formatRelativeDatetime(sub.submittedAt as string)}
-                        </Tooltip>
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
+                    <TableCell>{getTimeTaken(sub) ?? '-'}</TableCell>
+                    <TableCell>{sub.startedAt ? formatDatetime(sub.startedAt) : '-'}</TableCell>
+                    <TableCell>{finishedAt ? formatDatetime(finishedAt) : '-'}</TableCell>
                     <TableCell>
                       <SubmissionRowActions
                         assessmentId={assessmentId}
-                        subId={sub.id as string}
-                        accessToken={sub.accessToken as string}
+                        subId={sub.id}
+                        accessToken={sub.accessToken}
                         isArchived={isArchived}
                       />
                     </TableCell>

@@ -19,6 +19,10 @@
 		"port": 8000,
 	},
 	"upload_source_maps": true,
+	// Expires assessment attempts that ran out of time and emails the team.
+	"triggers": {
+		"crons": ["*/10 * * * *"],
+	},
 	"routes": [
 		{
 			"pattern": "api.coderscreen.com",
