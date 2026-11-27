@@ -6,5 +6,5 @@
   },
   "include": ["./**/*.ts", "../worker-configuration.d.ts"],
   "exclude": ["api"],
-  "files": ["./api/globalSetup.ts", "./api/testDatabase.ts"]
+  "files": ["./api/testDatabase.ts"]
 }

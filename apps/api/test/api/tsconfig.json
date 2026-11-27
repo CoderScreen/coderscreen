@@ -5,5 +5,5 @@
     "types": ["@cloudflare/vitest-pool-workers", "../../worker-configuration.d.ts"]
   },
   "include": ["./**/*.ts", "../../worker-configuration.d.ts"],
-  "exclude": ["./globalSetup.ts", "./testDatabase.ts"]
+  "exclude": ["./testDatabase.ts"]
 }

@@ -2,9 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Node-side helpers for the API test database. Shared by the vitest config
-// (which needs the URL up front for the Hyperdrive binding) and global setup
-// (which makes sure the database exists and has the current schema).
+// Node-side setup for the API test database, run from vitest.api.config.mts
+// before any test: make sure Postgres is up and has the current schema.
 
 const CONTAINER = 'coderscreen-test-pg';
 const PORT = 55434;
@@ -71,4 +70,10 @@ export function ensureTestDatabase() {
     env: { ...process.env, DATABASE_URL: testDatabaseUrl },
     stdio: ['ignore', 'pipe', 'inherit'],
   });
+
+  const { hostname, port } = new URL(testDatabaseUrl);
+  const source = process.env.TEST_DATABASE_URL
+    ? 'TEST_DATABASE_URL'
+    : `Docker container ${CONTAINER}`;
+  console.log(`[api tests] Postgres at ${hostname}:${port || 5432} (${source}), schema pushed`);
 }
