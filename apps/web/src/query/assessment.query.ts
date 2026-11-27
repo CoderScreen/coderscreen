@@ -729,6 +729,28 @@ export const useArchiveSubmission = (assessmentId: string) => {
 // Candidates
 // ============================================================
 
+export const useCandidate = (candidateId: string) => {
+  const query = useQuery({
+    queryKey: ['candidates', candidateId],
+    queryFn: async () => {
+      const response = await apiClient.candidates[':id'].$get({ param: { id: candidateId } });
+      if (!response.ok) {
+        throw new Error('Failed to fetch candidate');
+      }
+      return response.json();
+    },
+    enabled: !!candidateId,
+    meta: {
+      ERROR_MESSAGE: 'Failed to fetch candidate',
+    },
+  });
+
+  return {
+    candidate: query.data,
+    ...query,
+  };
+};
+
 export const useCandidates = () => {
   const query = useQuery({
     queryKey: ['candidates'],

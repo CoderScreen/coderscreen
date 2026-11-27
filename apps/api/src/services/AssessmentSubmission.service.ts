@@ -11,7 +11,19 @@ import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTes
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { TestCaseResultEntity, testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { member, organization, user } from '@coderscreen/db/user.db';
-import { and, asc, desc, eq, inArray, isNull, lt, ne, SQL, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNull,
+  lt,
+  ne,
+  SQL,
+  sql,
+} from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -82,6 +94,7 @@ export class AssessmentSubmissionService {
 
   async getCandidate(id: Id<'candidate'>) {
     const { orgId } = getSession(this.ctx);
+    await this.expireOverdueInOrg(orgId);
 
     const candidate = await this.db
       .select()
@@ -91,23 +104,54 @@ export class AssessmentSubmissionService {
 
     if (!candidate) return null;
 
-    const submissions = await this.db
-      .select()
-      .from(assessmentSubmissionTable)
-      .where(eq(assessmentSubmissionTable.candidateId, id))
-      .orderBy(desc(assessmentSubmissionTable.createdAt));
-
+    const submissions = await this.candidateSubmissions(orgId, [id]);
     return { ...candidate, submissions };
   }
 
+  /** Every candidate, with how many assessments they've been sent and their most recent one. */
   async listCandidates() {
     const { orgId } = getSession(this.ctx);
+    await this.expireOverdueInOrg(orgId);
 
-    return this.db
+    const candidates = await this.db
       .select()
       .from(candidateTable)
       .where(eq(candidateTable.organizationId, orgId))
       .orderBy(desc(candidateTable.createdAt));
+
+    const submissions = await this.candidateSubmissions(
+      orgId,
+      candidates.map((c) => c.id)
+    );
+    const byCandidate = new Map<string, typeof submissions>();
+    for (const sub of submissions) {
+      if (sub.isArchived) continue;
+      byCandidate.set(sub.candidateId, [...(byCandidate.get(sub.candidateId) ?? []), sub]);
+    }
+
+    return candidates.map((c) => {
+      const own = byCandidate.get(c.id) ?? [];
+      return { ...c, assessmentCount: own.length, latestSubmission: own[0] ?? null };
+    });
+  }
+
+  /** Submissions for these candidates with their assessment's title, newest first. */
+  private async candidateSubmissions(orgId: string, candidateIds: Id<'candidate'>[]) {
+    if (candidateIds.length === 0) return [];
+    return this.db
+      .select({
+        ...getTableColumns(assessmentSubmissionTable),
+        assessmentTitle: assessmentTable.title,
+      })
+      .from(assessmentSubmissionTable)
+      .innerJoin(assessmentTable, eq(assessmentTable.id, assessmentSubmissionTable.assessmentId))
+      .where(
+        and(
+          inArray(assessmentSubmissionTable.candidateId, candidateIds),
+          eq(assessmentSubmissionTable.organizationId, orgId)
+        )
+      )
+      .orderBy(desc(assessmentSubmissionTable.createdAt));
   }
 
   // === Submission Management (org-side) ===
@@ -1216,6 +1260,11 @@ export class AssessmentSubmissionService {
   /** Expires every overdue attempt across all orgs. Run from the cron. */
   async expireAllOverdue() {
     await this.expireOverdue(undefined);
+  }
+
+  /** Expires overdue attempts in one org, for pages that show attempt status. */
+  async expireOverdueInOrg(orgId: string) {
+    await this.expireOverdue(eq(assessmentSubmissionTable.organizationId, orgId));
   }
 
   /**
