@@ -173,6 +173,8 @@ export const SubmissionStatusSchema = z.enum([
   'graded',
 ]);
 
+export const SubmissionDecisionSchema = z.enum(['advance', 'reject']);
+
 export const SubmissionSchema = z.object({
   id: idString('assessmentSubmission'),
   createdAt: z.string(),
@@ -187,6 +189,8 @@ export const SubmissionSchema = z.object({
   totalScore: z.number().int().nullable(),
   maxScore: z.number().int().nullable(),
   gradingNotes: z.string(),
+  decision: SubmissionDecisionSchema.nullable(),
+  reviewedAt: z.string().nullable(),
   accessToken: z.string(),
   isArchived: z.boolean(),
 });
@@ -203,6 +207,8 @@ export const CreateSubmissionSchema = z.union([
 
 export const GradeSubmissionSchema = z.object({
   gradingNotes: z.string().optional(),
+  // null clears a previous decision.
+  decision: SubmissionDecisionSchema.nullable().optional(),
   questionScores: z
     .array(
       z.object({

@@ -9,6 +9,7 @@ interface AssessmentSubmissionEmailParams {
   max_score: number | null;
   submitted_at: string;
   view_link: string;
+  ended_by?: 'submitted' | 'expired';
 }
 
 const formatScore = (score: number | null, maxScore: number | null): string => {
@@ -33,18 +34,34 @@ const formatDate = (iso: string): string => {
 export function buildAssessmentSubmissionEmail(params: AssessmentSubmissionEmailParams) {
   const score = formatScore(params.score, params.max_score);
   const submitted = formatDate(params.submitted_at);
+  const expired = params.ended_by === 'expired';
+  const copy = expired
+    ? {
+        subject: `${params.candidate_name} ran out of time on ${params.assessment_title}`,
+        heading: 'Assessment time ran out',
+        verb: 'ran out of time on',
+        endedLabel: 'Time ran out',
+        note: '<p style="margin:12px 0 0;font-size:14px;line-height:22px;color:#726b65;">The score counts the answers they submitted before the timer ended.</p>',
+      }
+    : {
+        subject: `${params.candidate_name} submitted ${params.assessment_title}`,
+        heading: 'New assessment submission',
+        verb: 'just submitted',
+        endedLabel: 'Submitted',
+        note: '',
+      };
 
   return {
-    subject: `${params.candidate_name} submitted ${params.assessment_title}`,
+    subject: copy.subject,
     html: emailLayout(`
           <tr>
             <td style="padding:36px 36px 8px;">
-              <h1 style="margin:0;font-size:20px;font-weight:600;color:#0a0806;">New assessment submission</h1>
+              <h1 style="margin:0;font-size:20px;font-weight:600;color:#0a0806;">${copy.heading}</h1>
             </td>
           </tr>
           <tr>
             <td style="padding:0 36px 24px;">
-              <p style="margin:0;font-size:14px;line-height:22px;color:#726b65;"><strong style="color:#0a0806;">${params.candidate_name}</strong> just submitted <strong style="color:#0a0806;">${params.assessment_title}</strong>.</p>
+              <p style="margin:0;font-size:14px;line-height:22px;color:#726b65;"><strong style="color:#0a0806;">${params.candidate_name}</strong> ${copy.verb} <strong style="color:#0a0806;">${params.assessment_title}</strong>.</p>${copy.note}
             </td>
           </tr>
           <tr>
@@ -64,7 +81,7 @@ export function buildAssessmentSubmissionEmail(params: AssessmentSubmissionEmail
                 </tr>
                 <tr>
                   <td style="padding:14px 18px;">
-                    <p style="margin:0;font-size:12px;color:#726b65;text-transform:uppercase;letter-spacing:0.04em;">Submitted</p>
+                    <p style="margin:0;font-size:12px;color:#726b65;text-transform:uppercase;letter-spacing:0.04em;">${copy.endedLabel}</p>
                     <p style="margin:4px 0 0;font-size:14px;color:#0a0806;">${submitted}</p>
                   </td>
                 </tr>

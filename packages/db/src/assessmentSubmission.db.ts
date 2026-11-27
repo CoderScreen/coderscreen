@@ -5,7 +5,10 @@ import { assessmentTable } from './assessment.db';
 import { candidateTable } from './candidate.db';
 import { organization } from './user.db';
 
+// 'graded' is no longer written; older reviewed rows still carry it.
 export type SubmissionStatus = 'not_started' | 'in_progress' | 'submitted' | 'expired' | 'graded';
+
+export type SubmissionDecision = 'advance' | 'reject';
 
 export const assessmentSubmissionTable = pgTable(
   'assessment_submissions',
@@ -35,6 +38,9 @@ export const assessmentSubmissionTable = pgTable(
     totalScore: integer('total_score'),
     maxScore: integer('max_score'),
     gradingNotes: text('grading_notes').notNull().default(''),
+    // Set when a reviewer records a decision; status keeps how the attempt ended.
+    decision: text('decision').$type<SubmissionDecision>(),
+    reviewedAt: timestamp('reviewed_at', { mode: 'string', withTimezone: true }),
     accessToken: text('access_token').notNull().unique(),
     isArchived: boolean('is_archived').notNull().default(false),
   },

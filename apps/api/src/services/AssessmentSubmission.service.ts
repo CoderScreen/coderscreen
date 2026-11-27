@@ -11,7 +11,7 @@ import { questionLibraryTestCaseTable } from '@coderscreen/db/questionLibraryTes
 import { questionSubmissionTable } from '@coderscreen/db/questionSubmission.db';
 import { TestCaseResultEntity, testCaseResultTable } from '@coderscreen/db/testCaseResult.db';
 import { member, organization, user } from '@coderscreen/db/user.db';
-import { and, asc, desc, eq, inArray, isNull, lt, SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, lt, ne, SQL, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -29,6 +29,8 @@ import {
 } from '@/schema/assessment.zod';
 import { AssessmentCodeRunService } from '@/services/AssessmentCodeRun.service';
 import { UsageService } from '@/services/billing/Usage.service';
+
+const EXPIRY_NOTIFY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export class AssessmentSubmissionService {
   private readonly db: PostgresJsDatabase;
@@ -522,6 +524,7 @@ export class AssessmentSubmissionService {
         status: best ? 'submitted' : draft?.code ? 'draft' : 'not_attempted',
         code: chosen?.code ?? '',
         language: best?.language ?? draft?.language ?? submission.selectedLanguage ?? null,
+        questionSubmissionId: best?.id ?? null,
         score: best?.score ?? null,
         maxScore: best?.maxScore ?? null,
         testCaseResults,
@@ -555,32 +558,82 @@ export class AssessmentSubmissionService {
       throw new HTTPException(404, { message: 'Submission not found' });
     }
 
-    // Update individual question scores if provided
+    const attemptEnded = ['submitted', 'expired', 'graded'].includes(submission.status);
+    if (!attemptEnded && (grades.decision || grades.questionScores?.length)) {
+      throw new HTTPException(400, {
+        message: 'Scores and decisions can only be set after the candidate finishes',
+      });
+    }
+
     let weightedTotal: number | null = null;
     let weightedMax: number | null = null;
-    if (grades.questionScores) {
-      // Apply manual score overrides to each question submission
+    if (grades.questionScores?.length) {
+      // Only rows from this attempt can be overridden, never another org's.
+      const ids = grades.questionScores.map((qs) => qs.questionSubmissionId);
+      const rows = await this.db
+        .select()
+        .from(questionSubmissionTable)
+        .where(
+          and(
+            inArray(questionSubmissionTable.id, ids),
+            eq(questionSubmissionTable.submissionId, submissionId)
+          )
+        );
+      const rowById = new Map(rows.map((r) => [r.id, r]));
+
       for (const qs of grades.questionScores) {
+        const row = rowById.get(qs.questionSubmissionId);
+        if (!row) {
+          throw new HTTPException(404, { message: 'Question submission not found' });
+        }
+        if (row.maxScore != null && qs.score > row.maxScore) {
+          throw new HTTPException(400, {
+            message: `Score can't be higher than ${row.maxScore}`,
+          });
+        }
+      }
+
+      for (const qs of grades.questionScores) {
+        const row = rowById.get(qs.questionSubmissionId) as (typeof rows)[number];
         await this.db
           .update(questionSubmissionTable)
           .set({ score: qs.score, updatedAt: new Date().toISOString() })
-          .where(eq(questionSubmissionTable.id, qs.questionSubmissionId));
+          .where(eq(questionSubmissionTable.id, row.id));
+
+        // Scoring uses the best submit per question, so a lowered score would
+        // let an earlier, higher-scoring submit take over. Cap those too.
+        await this.db
+          .update(questionSubmissionTable)
+          .set({ score: sql`least(${questionSubmissionTable.score}, ${qs.score})` })
+          .where(
+            and(
+              eq(questionSubmissionTable.submissionId, submissionId),
+              eq(questionSubmissionTable.questionId, row.questionId),
+              eq(questionSubmissionTable.isDraft, false),
+              ne(questionSubmissionTable.id, row.id)
+            )
+          );
       }
 
-      // Recompute weighted aggregate using the assessment-question points weights
       const aggregate = await this.computeWeightedAggregate(submissionId);
       weightedTotal = aggregate.totalScore;
       weightedMax = aggregate.maxScore;
     }
 
+    const now = new Date().toISOString();
+    const decisionUpdate =
+      grades.decision === undefined
+        ? {}
+        : { decision: grades.decision, reviewedAt: grades.decision ? now : null };
+
     return this.db
       .update(assessmentSubmissionTable)
       .set({
-        status: 'graded',
         totalScore: weightedTotal ?? submission.totalScore,
         maxScore: weightedMax ?? submission.maxScore,
         gradingNotes: grades.gradingNotes ?? submission.gradingNotes,
-        updatedAt: new Date().toISOString(),
+        ...decisionUpdate,
+        updatedAt: now,
       })
       .where(eq(assessmentSubmissionTable.id, submissionId))
       .returning()
@@ -1160,6 +1213,11 @@ export class AssessmentSubmissionService {
       .then((r) => r[0]);
   }
 
+  /** Expires every overdue attempt across all orgs. Run from the cron. */
+  async expireAllOverdue() {
+    await this.expireOverdue(undefined);
+  }
+
   /**
    * checkExpiration only runs on candidate requests, so an attempt the candidate
    * walked away from would read as in progress forever. Recruiter-facing reads
@@ -1204,7 +1262,7 @@ export class AssessmentSubmissionService {
       // Every candidate route calls this, so concurrent requests can race here.
       // Gating the update on the status still being 'in_progress' means exactly
       // one of them wins and the rest no-op.
-      await this.db
+      const won = await this.db
         .update(assessmentSubmissionTable)
         .set({
           status: 'expired',
@@ -1217,7 +1275,19 @@ export class AssessmentSubmissionService {
             eq(assessmentSubmissionTable.id, submissionId),
             eq(assessmentSubmissionTable.status, 'in_progress')
           )
+        )
+        .returning({ id: assessmentSubmissionTable.id })
+        .then((r) => r.length > 0);
+
+      // Attempts that ran out long ago (before this sweep existed) are marked
+      // expired quietly rather than emailing the team about stale history.
+      const expiredRecently =
+        Date.now() - new Date(submission.expiresAt).getTime() < EXPIRY_NOTIFY_WINDOW_MS;
+      if (won && expiredRecently) {
+        this.ctx.executionCtx.waitUntil(
+          this.dispatchSubmissionNotifications(submissionId, 'expired')
         );
+      }
       return true;
     }
 
@@ -1311,7 +1381,7 @@ export class AssessmentSubmissionService {
       .returning()
       .then((r) => r[0]);
 
-    this.ctx.executionCtx.waitUntil(this.dispatchSubmissionNotifications(updated.id));
+    this.ctx.executionCtx.waitUntil(this.dispatchSubmissionNotifications(updated.id, 'submitted'));
 
     return {
       ...updated,
@@ -1321,7 +1391,8 @@ export class AssessmentSubmissionService {
   }
 
   private async dispatchSubmissionNotifications(
-    submissionId: Id<'assessmentSubmission'>
+    submissionId: Id<'assessmentSubmission'>,
+    endedBy: 'submitted' | 'expired'
   ): Promise<void> {
     try {
       const submission = await this.db
@@ -1358,23 +1429,25 @@ export class AssessmentSubmissionService {
       const sends: Promise<void>[] = [];
 
       // Receipt confirmation to the candidate (no score — results stay private
-      // to the org).
-      sends.push(
-        resendService
-          .sendTransactionalEmail('submission_confirmation', candidate.email, {
-            candidate_name: candidate.name,
-            assessment_title: assessment.title,
-            org_name: org.name,
-          })
-          .catch((err) => {
-            console.error('Failed to send submission confirmation email', {
-              recipient: candidate.email,
-              submissionId,
-              error: err,
-            });
-            reportError(err, { tags: { feature: 'email', email: 'submission_confirmation' } });
-          })
-      );
+      // to the org). Skipped on expiry: they never pressed Submit.
+      if (endedBy === 'submitted') {
+        sends.push(
+          resendService
+            .sendTransactionalEmail('submission_confirmation', candidate.email, {
+              candidate_name: candidate.name,
+              assessment_title: assessment.title,
+              org_name: org.name,
+            })
+            .catch((err) => {
+              console.error('Failed to send submission confirmation email', {
+                recipient: candidate.email,
+                submissionId,
+                error: err,
+              });
+              reportError(err, { tags: { feature: 'email', email: 'submission_confirmation' } });
+            })
+        );
+      }
 
       // Notify each org member that a submission came in.
       const recipients = await this.db
@@ -1393,8 +1466,10 @@ export class AssessmentSubmissionService {
               assessment_title: assessment.title,
               score: submission.totalScore,
               max_score: submission.maxScore,
-              submitted_at: submission.submittedAt ?? new Date().toISOString(),
+              submitted_at:
+                submission.submittedAt ?? submission.expiresAt ?? new Date().toISOString(),
               view_link: viewLink,
+              ended_by: endedBy,
             })
             .catch((err) => {
               console.error('Failed to send assessment submission email', {

@@ -52,6 +52,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Push schema to the scratch database
+        run: pnpm --filter @coderscreen/db exec drizzle-kit push --force
+        env:
+          DATABASE_URL: postgres://postgres:test@127.0.0.1:5432/postgres
+
       - name: Test
         run: pnpm test
         env:

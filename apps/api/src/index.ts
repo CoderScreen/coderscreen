@@ -9,6 +9,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { openAPISpecs } from 'hono-openapi';
+import { runScheduled } from '@/cron';
 import { useAuth } from '@/lib/auth';
 import { classifyError } from '@/lib/errorResponse';
 import { checkHealth, pingPostgres } from '@/lib/health';
@@ -214,6 +215,9 @@ export default Sentry.withSentry(getSentryOptions, {
     const previewResponse = await proxyToSandbox(request, env);
     if (previewResponse) return previewResponse;
     return app.fetch(request, env, ctx);
+  },
+  scheduled: async (_controller: ScheduledController, env: Env, ctx: ExecutionContext) => {
+    await runScheduled(env, ctx);
   },
 });
 

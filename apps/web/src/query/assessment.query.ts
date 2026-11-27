@@ -679,8 +679,8 @@ export const useGradeSubmission = (assessmentId: string) => {
       });
     },
     meta: {
-      SUCCESS_MESSAGE: 'Submission graded',
-      ERROR_MESSAGE: 'Failed to grade submission',
+      SUCCESS_MESSAGE: 'Review saved',
+      ERROR_MESSAGE: 'Failed to save review',
     },
   });
 
