@@ -13,7 +13,7 @@ import { db } from './utils/db';
  * nothing to copy and are left null; the detail view shows them without
  * inputs, same as before.
  *
- * Run after `db:push` has added the snapshot columns. Safe to re-run: it only
+ * Run after the migration that adds the snapshot columns. Safe to re-run: it only
  * touches rows that are still missing a snapshot.
  * Dry run by default: bun run src/backfill-test-result-snapshots.ts --apply
  */

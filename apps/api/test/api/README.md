@@ -11,7 +11,7 @@ pnpm --filter @coderscreen/api test       # unit tests, then these
 ```
 
 With Docker running, the suite starts its own Postgres (`coderscreen-test-pg`,
-port 55434) and pushes the current schema before every run. CI sets
+port 55434) and runs the migrations in `packages/db/drizzle` before every run. CI sets
 `TEST_DATABASE_URL` to its Postgres service instead.
 
 ## Writing a test

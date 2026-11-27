@@ -37,12 +37,13 @@ Create a `.env` file in the `packages/db` directory with the following variables
 DATABASE_URL=your-database-url
 ```
 
-Run the following commands to generate and push the migrations:
+Create the tables by running the migrations:
 
 ```bash
-# this will be updated to use actual migrations in the future
-pnpm db:push
+pnpm --filter @coderscreen/db db:migrate
 ```
+
+See `packages/db/README.md` for how to change the schema.
 
 Now, we have scripts to seed our database with the following data:
 - plans
