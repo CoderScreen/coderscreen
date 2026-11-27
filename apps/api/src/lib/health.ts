@@ -27,20 +27,6 @@ export async function pingPostgres(connectionString: string, timeoutMs = 2000): 
 }
 
 /**
- * `GET /api/v1/key` describes the key without spending credits, and answers
- * 401 once the key is revoked or its account is gone.
- */
-export async function checkOpenRouterKey(apiKey: string, fetchImpl: typeof fetch = fetch) {
-  const res = await fetchImpl('https://openrouter.ai/api/v1/key', {
-    headers: { Authorization: `Bearer ${apiKey}` },
-    signal: AbortSignal.timeout(5000),
-  });
-  if (!res.ok) {
-    throw new Error(`OpenRouter key check failed: HTTP ${res.status}`);
-  }
-}
-
-/**
  * Backs `GET /health`. Never throws; the details go to the logs, not the
  * public response body.
  */

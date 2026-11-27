@@ -9,7 +9,6 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { openAPISpecs } from 'hono-openapi';
-import { runScheduled } from '@/cron/canary';
 import { useAuth } from '@/lib/auth';
 import { classifyError } from '@/lib/errorResponse';
 import { checkHealth, pingPostgres } from '@/lib/health';
@@ -216,7 +215,6 @@ export default Sentry.withSentry(getSentryOptions, {
     if (previewResponse) return previewResponse;
     return app.fetch(request, env, ctx);
   },
-  scheduled: (controller: ScheduledController, env: Env) => runScheduled(controller, env),
 });
 
 export type AppRouter = typeof app;

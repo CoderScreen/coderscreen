@@ -177,7 +177,6 @@ All Sentry rules are scoped to `environment:production`.
 | --- | --- | --- | --- | --- | --- |
 | U1 | API down | Uptime check on `https://api.coderscreen.com/health`, which now runs `SELECT 1` through Hyperdrive with a 2 s timeout | 60 s interval, 3 failures in a row (3 min), recover after 2 OKs. Baseline: there's never been a failing check because /health was static. 3 in a row rides out a single blip | Sentry uptime (+$1/mo) | Cloudflare Workers dashboard for `coderscreen-api`, then Railway Postgres status, then `railway logs --service Postgres` |
 | U2 | One issue bursting | Any single `coderscreen-api` issue gets 10 or more events in 15 min | Baseline outside incidents: at most 1 event per issue per day. Nov 17 ran at about 125 per 15 min, so it would have fired within minutes. Notify at most once an hour per issue | Sentry issue alert | Issue page: user count and room id tags, then the last deploy (`release`), then whether it's one client looping |
-| U3 | Room DB path broken | Canary cron check-in `canary-room-db` fails or is missed (`SELECT 1` over `INFISCAL_DATABASE_URL`, the path room DOs use) | Every 5 min, open an issue after 2 failures (10 min). This would have caught the Oct 23 password rotation, which took rooms down for 5 days | Sentry cron monitor (1 included) | Compare `INFISCAL_DATABASE_URL` with the Railway `DATABASE_URL` (see the Oct 23 memory note) |
 | U4 | Stripe webhook handler failed | Any event tagged `webhook:stripe` at level error (handler threw, after Phase 1) | Any one event. With 3 paying customers every failure means wrong billing state, and the expected rate after the fix is 0 | Sentry issue alert | Stripe dashboard, then Webhooks, then the failed event, then replay it once fixed |
 | U5 | 5xx backstop | Count of API transactions with `http.response.status_code:>=500` is 20 or more in 15 min | Baseline 0 to 1 a day. This catches 5xx that never throw (DO responses, proxy 502s) and so never become issues. Needs HTTP traces at 100% (Phase 1) | Sentry metric monitor (spans) | Group the spans by `transaction`, then open one trace |
 
@@ -189,7 +188,6 @@ Expected urgent volume at baseline: about 0 a week. The last 14 days would have 
 | --- | --- | --- | --- | --- | --- |
 | T1 | New or regressed backend issue | `coderscreen-api` issue first seen, or regressed | 1 event. Baseline is about 6 new API issues per 14 days, so about 3 a week | Sentry issue alert | Stack trace, `cfRayId` tag, then search Workers Logs for that ray id |
 | T2 | Frontend error spreading | `coderscreen-web` issue seen by 3 or more unique users in 1 h | The busiest web issue (WEB-C) reached 24 users over 6 weeks, so it wouldn't fire. Alert once a day per issue at most | Sentry issue alert | Source-mapped frame (needs Phase 1), browser and release tags |
-| T3 | Third-party provider broken | Canary cron check-in `canary-providers` fails: OpenRouter `GET /api/v1/key` returns non-200, and later Resend and Stripe key checks | Every 15 min, 2 failures. Would have flagged the OpenRouter key on Oct 26 instead of never | Sentry cron monitor (+$0.78/mo) | The provider dashboard for that key, then rotate the secret with `wrangler secret put` |
 | T4 | Slow API | p95 of HTTP transactions (excluding `webSocket*` and `*/connect/*`) above 3 s over 1 h | Baseline p95 is 1.19 s and the slowest normal routes are 2.5 to 2.9 s, so 3 s means something regressed. Needs HTTP traces at 100% | Sentry metric monitor (spans) | Group p95 by `transaction`, then open the slowest trace and look at the DB spans |
 
 U6 and T5 are not separate rules.
@@ -236,10 +234,9 @@ API:
   - Handler failures capture (tag `webhook:stripe`) and return 500 so Stripe retries.
   - Bad signature stays 400 with a warning-level capture.
 - [x] `/health`: `SELECT 1` through Hyperdrive with a 2 s timeout. Return 200 `ok` or 503, and don't put error details in the body.
-- [x] Canary cron: add `triggers.crons` with `*/5 * * * *` and `*/15 * * * *`, plus a `scheduled` handler.
-  - The 5-minute check is `canary-room-db`: `SELECT 1` over `INFISCAL_DATABASE_URL`.
-  - The 15-minute check is `canary-providers`: OpenRouter key check.
-  - Both wrap their work in `Sentry.withMonitor(slug, fn, monitorConfig)`. This is the only "critical schedule" we have; there are no existing cron jobs.
+- [x] ~~Canary crons~~ Dropped (Kuba, 2026-11-26): no separate checks that track env vars. The two silent outages now surface through normal requests:
+  - Room DB credentials: room DOs are Sentry-instrumented, so an `onLoad` DB failure becomes an issue on the first room open and bursts into U2.
+  - OpenRouter key: `AI.service` now reports every failed reply (tag `feature:ai`), so the first failure is a new issue (T1) and repeats hit U2.
 - [x] User context:
   - `setUser({ id })` only, with `sendDefaultPii: false` in both apps.
   - Add an `organizationId` tag.
@@ -258,7 +255,7 @@ Web:
 Tests and CI:
 - [x] Replace the stale API test. Add tests for the `onError` reporting rule, webhook status codes, `/health` and the `beforeSend` filter.
 - [x] Add `pnpm nx run-many -t test` to `ci.yaml` (it currently runs only lint and build).
-- [x] Integration tests for `/health` and the canary against a local scratch Postgres (`docker run postgres:16`), **never prod**.
+- [x] Integration tests for `/health` against a local scratch Postgres (`docker run postgres:16`), **never prod**.
 - [x] Before opening the PR, run `pnpm lint`, `pnpm build` (which typechecks) and the tests, the same way CI does.
 
 Left out of the Phase 1 PR, on purpose:
@@ -275,7 +272,6 @@ Left out of the Phase 1 PR, on purpose:
 - [ ] U2: issue burst, 10 or more in 15 min → urgent.
 - [ ] T2: web issue reaching 3 or more users in 1 h → triage.
 - [ ] U4: Stripe webhook error → urgent.
-- [ ] U3 and T3: cron monitors (slugs must match the code), connected to the right alert.
 - [ ] Send a test notification for each one, then disable `Notify #coderscreen via Slack`.
 
 ### Phase 3: log and trace alerts
@@ -300,7 +296,6 @@ Left out of the Phase 1 PR, on purpose:
 
 ## Open questions for review
 
-1. **Canary cron:** OK to add `triggers.crons` to the API Worker? It's new scheduled work. The alternative is one uptime check per DB path, but `/health` can't easily test the DO credential path without opening a direct Postgres connection every minute.
-2. **Source map upload:** deploys run from a laptop (`pnpm deploy:api` / `deploy:web`). Is web also built by Cloudflare Workers Builds (the comment in `apps/web/wrangler.jsonc:24` suggests it)? If so, `SENTRY_AUTH_TOKEN` must go there too.
-3. ~~Channel names~~ Decided: `#coderscreen-alerts` / `#coderscreen-errors`, the same pattern as `#sfx-*` and `#mediaorca-*`.
-4. **Should AI failures be urgent?** I've put them in triage, since interviews still work without the assistant.
+1. **Source map upload:** deploys run from a laptop (`pnpm deploy:api` / `deploy:web`). Is web also built by Cloudflare Workers Builds (the comment in `apps/web/wrangler.jsonc:24` suggests it)? If so, `SENTRY_AUTH_TOKEN` must go there too.
+2. ~~Channel names~~ Decided: `#coderscreen-alerts` / `#coderscreen-errors`, the same pattern as `#sfx-*` and `#mediaorca-*`.
+3. **Should AI failures be urgent?** I've put them in triage, since interviews still work without the assistant.

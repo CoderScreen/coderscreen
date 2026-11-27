@@ -9,7 +9,6 @@ Context: [docs/plans/2026-11-error-tracking-and-alerting.md](../plans/2026-11-er
 - **Sentry** (org `boreal-labs`, projects `coderscreen-api` and `coderscreen-web`) owns errors and every Slack alert:
   - issue alerts
   - uptime
-  - cron check-ins
   - the span-based 5xx and latency monitors
 - **Cloudflare Workers Observability** is the log and trace store for now. Turn on Workers traces, which are off today.
   - It's where we search raw logs by `cfRayId` while debugging.
@@ -32,7 +31,7 @@ Slack follows the same pattern as SFX and MediaOrca: `#coderscreen-alerts` for u
 
 | Piece | Monthly cost | Notes |
 | --- | --- | --- |
-| Sentry | About **$1.78** extra on the existing Team plan: $1.00 for one more uptime monitor, $0.78 for the second cron monitor | Errors (5.6k of 50k) and spans (about 3.1M of 5M) stay in the included quota. Slack is already connected |
+| Sentry | About **$1.00** extra on the existing Team plan, for one more uptime monitor | Errors (5.6k of 50k) and spans (about 3.1M of 5M) stay in the included quota. Slack is already connected |
 | Cloudflare Workers Logs and Traces | $0 | Until Nov 30 the allowance is 20M events a month; from Dec 1 it's 50 GB per cycle. We're at an estimated 1 to 2 GB |
 | Axiom (not chosen) | $0 Personal / $25 Cloud | The Personal tier has no Slack notifier, and either tier needs log shipping. Skipped |
 

@@ -15,11 +15,6 @@
 			"enabled": true,
 		},
 	},
-	// Canary checks with Sentry cron check-ins (src/cron/canary.ts). Must match
-	// CANARY_CRONS. They only run when NODE_ENV is production.
-	"triggers": {
-		"crons": ["*/5 * * * *", "*/15 * * * *"],
-	},
 	"dev": {
 		"port": 8000,
 	},
