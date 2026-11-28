@@ -24,6 +24,12 @@ const sub = (overrides: Partial<ReviewableSubmission>): ReviewableSubmission => 
 describe('getReviewState', () => {
   it('maps each attempt to what the reviewer has to do next', () => {
     expect(getReviewState(sub({ status: 'not_started' }))).toBe('invited');
+    expect(getReviewState(sub({ status: 'not_started', startBy: '2026-01-01 00:00:00+00' }))).toBe(
+      'invite_expired'
+    );
+    expect(getReviewState(sub({ status: 'not_started', startBy: '2999-01-01 00:00:00+00' }))).toBe(
+      'invited'
+    );
     expect(getReviewState(sub({ status: 'in_progress' }))).toBe('in_progress');
     expect(getReviewState(sub({ status: 'submitted' }))).toBe('needs_review');
     expect(getReviewState(sub({ status: 'expired' }))).toBe('needs_review');
@@ -37,6 +43,9 @@ describe('getReviewState', () => {
     expect(matchesFilter(sub({ status: 'graded' }), 'reviewed')).toBe(true);
     expect(matchesFilter(sub({}), 'reviewed')).toBe(false);
     expect(matchesFilter(sub({}), 'needs_review')).toBe(true);
+    expect(
+      matchesFilter(sub({ status: 'not_started', startBy: '2026-01-01 00:00:00+00' }), 'invited')
+    ).toBe(true);
   });
 });
 

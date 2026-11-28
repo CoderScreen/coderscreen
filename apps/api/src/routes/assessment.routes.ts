@@ -7,12 +7,14 @@ import { PaginationQuerySchema } from '@/lib/pagination';
 import {
   AssessmentQuestionSchema,
   AssessmentSchema,
+  BulkInviteSchema,
   CandidateSchema,
   CreateAssessmentSchema,
   CreateCandidateSchema,
   CreateQuestionSchema,
   CreateSubmissionSchema,
   CreateTestCaseSchema,
+  ExtendSubmissionSchema,
   GradeSubmissionSchema,
   LinkQuestionSchema,
   ReorderQuestionsSchema,
@@ -517,6 +519,56 @@ export const assessmentRouter = new Hono<AppContext>()
       const body = ctx.req.valid('json');
       const result = await service.gradeSubmission(subId, body);
       return ctx.json(result);
+    }
+  )
+  // POST /assessments/:id/submissions/bulk - Invite several candidates at once
+  .post(
+    '/:id/submissions/bulk',
+    describeRoute({
+      description: 'Invite several candidates, with an optional start deadline and message',
+      responses: { 200: { description: 'One result per candidate' } },
+    }),
+    zValidator('param', z.object({ id: idString('assessment') })),
+    zValidator('json', BulkInviteSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { id } = ctx.req.valid('param');
+      return ctx.json(await service.bulkInvite(id, ctx.req.valid('json')));
+    }
+  )
+  // POST /assessments/:id/submissions/:subId/resend - Email the invite again
+  .post(
+    '/:id/submissions/:subId/resend',
+    describeRoute({
+      description: 'Resend the invite email to a candidate who has not started',
+      responses: { 200: { description: 'Whether the email was sent' } },
+    }),
+    zValidator(
+      'param',
+      z.object({ id: idString('assessment'), subId: idString('assessmentSubmission') })
+    ),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      return ctx.json(await service.resendInvite(subId));
+    }
+  )
+  // POST /assessments/:id/submissions/:subId/extend - Give more time
+  .post(
+    '/:id/submissions/:subId/extend',
+    describeRoute({
+      description: 'Add time to finish (in progress) or to start (invite with a deadline)',
+      responses: { 200: { description: 'Updated submission' } },
+    }),
+    zValidator(
+      'param',
+      z.object({ id: idString('assessment'), subId: idString('assessmentSubmission') })
+    ),
+    zValidator('json', ExtendSubmissionSchema),
+    async (ctx) => {
+      const service = new AssessmentSubmissionService(ctx);
+      const { subId } = ctx.req.valid('param');
+      return ctx.json(await service.extendSubmission(subId, ctx.req.valid('json').minutes));
     }
   )
   // POST /assessments/:id/submissions/:subId/archive - Archive a submission

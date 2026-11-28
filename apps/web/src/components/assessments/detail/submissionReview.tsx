@@ -16,6 +16,7 @@ export interface ReviewableSubmission {
   startedAt: string | null;
   submittedAt: string | null;
   expiresAt: string | null;
+  startBy?: string | null;
   totalScore: number | null;
   maxScore: number | null;
   isArchived?: boolean;
@@ -23,6 +24,7 @@ export interface ReviewableSubmission {
 
 export type ReviewState =
   | 'invited'
+  | 'invite_expired'
   | 'in_progress'
   | 'needs_review'
   | 'advanced'
@@ -30,7 +32,9 @@ export type ReviewState =
   | 'reviewed';
 
 export const getReviewState = (sub: ReviewableSubmission): ReviewState => {
-  if (sub.status === 'not_started') return 'invited';
+  if (sub.status === 'not_started') {
+    return sub.startBy && parse(sub.startBy).isBefore(dayjs()) ? 'invite_expired' : 'invited';
+  }
   if (sub.status === 'in_progress') return 'in_progress';
   if (sub.decision === 'advance') return 'advanced';
   if (sub.decision === 'reject') return 'rejected';
@@ -95,7 +99,9 @@ export const submissionListSearchSchema = z.object({
 export const matchesFilter = (sub: ReviewableSubmission, filter: SubmissionFilter) => {
   if (filter === 'all') return true;
   const state = getReviewState(sub);
-  return filter === 'reviewed' ? isReviewed(state) : state === filter;
+  if (filter === 'reviewed') return isReviewed(state);
+  if (filter === 'invited') return state === 'invited' || state === 'invite_expired';
+  return state === filter;
 };
 
 export const sortSubmissions = <T extends ReviewableSubmission>(subs: T[], sort: SubmissionSort) =>
@@ -113,6 +119,8 @@ export const ReviewStateBadge = ({ sub }: { sub: ReviewableSubmission }) => {
   switch (state) {
     case 'invited':
       return <Badge variant='neutral'>Invited</Badge>;
+    case 'invite_expired':
+      return <Badge variant='neutral'>Invite expired</Badge>;
     case 'in_progress':
       return <Badge variant='warning'>In progress</Badge>;
     case 'needs_review':

@@ -48,6 +48,8 @@ type TransactionEmailParams = {
       candidate_name: string;
       assessment_title: string;
       take_link: string;
+      start_by?: string | null;
+      message?: string | null;
     };
   };
   submission_confirmation: {

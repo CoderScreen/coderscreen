@@ -1,8 +1,8 @@
 import type {
+  BulkInviteSchema,
   CreateAssessmentSchema,
   CreateCandidateSchema,
   CreateQuestionSchema,
-  CreateSubmissionSchema,
   CreateTestCaseSchema,
   GradeSubmissionSchema,
   UpdateAssessmentSchema,
@@ -243,8 +243,8 @@ export const useArchiveAssessment = () => {
       queryClient.invalidateQueries({ queryKey: ['assessments'] });
     },
     meta: {
-      SUCCESS_MESSAGE: 'Assessment archived',
-      ERROR_MESSAGE: 'Failed to archive assessment',
+      SUCCESS_MESSAGE: 'Assessment closed',
+      ERROR_MESSAGE: 'Failed to close assessment',
     },
   });
 
@@ -623,12 +623,12 @@ export const useSubmission = (assessmentId: string, subId: string) => {
   };
 };
 
-export const useInviteCandidate = (assessmentId: string) => {
+export const useBulkInvite = (assessmentId: string) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (data: CreateSubmissionSchema) => {
-      const response = await apiClient.assessments[':id'].submissions.$post({
+    mutationFn: async (data: BulkInviteSchema) => {
+      const response = await apiClient.assessments[':id'].submissions.bulk.$post({
         param: { id: assessmentId },
         json: data,
       });
@@ -638,19 +638,74 @@ export const useInviteCandidate = (assessmentId: string) => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['assessments', assessmentId, 'submissions'],
-      });
+      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId, 'submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['assessments'] });
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
       queryClient.invalidateQueries({ queryKey: ['billing', 'usage'] });
     },
     meta: {
-      SUCCESS_MESSAGE: 'Candidate invited',
-      ERROR_MESSAGE: 'Failed to invite candidate',
+      ERROR_MESSAGE: 'Failed to send invites',
     },
   });
 
   return {
-    inviteCandidate: mutation.mutateAsync,
+    bulkInvite: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+export const useResendInvite = (assessmentId: string) => {
+  const mutation = useMutation({
+    mutationFn: async (subId: string) => {
+      const response = await apiClient.assessments[':id'].submissions[':subId'].resend.$post({
+        param: { id: assessmentId, subId },
+      });
+      if (!response.ok) {
+        await throwApiError(response);
+      }
+      return response.json();
+    },
+    meta: {
+      ERROR_MESSAGE: 'Failed to resend invite',
+    },
+  });
+
+  return {
+    resendInvite: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    ...mutation,
+  };
+};
+
+export const useExtendSubmission = (assessmentId: string) => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ subId, minutes }: { subId: string; minutes: number }) => {
+      const response = await apiClient.assessments[':id'].submissions[':subId'].extend.$post({
+        param: { id: assessmentId, subId },
+        json: { minutes },
+      });
+      if (!response.ok) {
+        await throwApiError(response);
+      }
+      return response.json();
+    },
+    onSuccess: (_, { subId }) => {
+      queryClient.invalidateQueries({ queryKey: ['assessments', assessmentId, 'submissions'] });
+      queryClient.invalidateQueries({
+        queryKey: ['assessments', assessmentId, 'submissions', subId],
+      });
+    },
+    meta: {
+      SUCCESS_MESSAGE: 'Time added',
+      ERROR_MESSAGE: 'Failed to add time',
+    },
+  });
+
+  return {
+    extendSubmission: mutation.mutateAsync,
     isLoading: mutation.isPending,
     ...mutation,
   };

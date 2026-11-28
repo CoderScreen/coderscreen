@@ -42,6 +42,10 @@ export const assessmentSubmissionTable = pgTable(
     decision: text('decision').$type<SubmissionDecision>(),
     reviewedAt: timestamp('reviewed_at', { mode: 'string', withTimezone: true }),
     accessToken: text('access_token').notNull().unique(),
+    // The invite stops working if not started by then. Null means no deadline.
+    startBy: timestamp('start_by', { mode: 'string', withTimezone: true }),
+    // Optional note from the team, shown in the invite email (and resends).
+    inviteMessage: text('invite_message'),
     isArchived: boolean('is_archived').notNull().default(false),
   },
   (t) => [

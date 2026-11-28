@@ -34,16 +34,23 @@ import {
   RiInboxUnarchiveLine,
   RiMailSendLine,
   RiMore2Line,
+  RiTimeLine,
 } from '@remixicon/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { EmptyStateIcon } from '@/components/common/EmptyStateIcon';
 import { formatDatetime } from '@/lib/dateUtils';
-import { useArchiveSubmission, useSubmissions } from '@/query/assessment.query';
+import {
+  useArchiveSubmission,
+  useExtendSubmission,
+  useResendInvite,
+  useSubmissions,
+} from '@/query/assessment.query';
 import { InviteCandidateDialog } from './InviteCandidateDialog';
 import {
   getFinishedAt,
+  getReviewState,
   getTimeLeft,
   getTimeTaken,
   matchesFilter,
@@ -151,21 +158,8 @@ export const AssessmentSubmissionsTab = ({
               {showArchived ? 'Hide archived' : `Show archived (${archivedCount})`}
             </Button>
           )}
-          <Button
-            icon={RiMailSendLine}
-            onClick={() => setInviteDialogOpen(true)}
-            disabled={!!blockedReason}
-          >
-            Invite Candidate
-          </Button>
         </div>
       </div>
-
-      {blockedReason && (
-        <div className='mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800'>
-          {blockedReason}
-        </div>
-      )}
 
       <TableRoot>
         <Table>
@@ -235,6 +229,12 @@ export const AssessmentSubmissionsTab = ({
                           <MutedText className='text-xs'>Time ran out</MutedText>
                         )}
                         {timeLeft && <MutedText className='text-xs'>{timeLeft}</MutedText>}
+                        {sub.status === 'not_started' && sub.startBy && (
+                          <MutedText className='text-xs'>
+                            {getReviewState(sub) === 'invite_expired' ? 'Expired' : 'Start by'}{' '}
+                            {formatDatetime(sub.startBy)}
+                          </MutedText>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -248,9 +248,8 @@ export const AssessmentSubmissionsTab = ({
                     <TableCell>
                       <SubmissionRowActions
                         assessmentId={assessmentId}
-                        subId={sub.id}
-                        accessToken={sub.accessToken}
-                        isArchived={isArchived}
+                        sub={sub}
+                        assessmentClosed={assessmentStatus !== 'active'}
                       />
                     </TableCell>
                   </TableRow>
@@ -270,26 +269,37 @@ export const AssessmentSubmissionsTab = ({
   );
 };
 
-interface SubmissionRowActionsProps {
-  assessmentId: string;
-  subId: string;
-  accessToken: string;
-  isArchived: boolean;
-}
-
 const SubmissionRowActions = ({
   assessmentId,
-  subId,
-  accessToken,
-  isArchived,
-}: SubmissionRowActionsProps) => {
+  sub,
+  assessmentClosed,
+}: {
+  assessmentId: string;
+  sub: SubmissionRow;
+  assessmentClosed: boolean;
+}) => {
   const { archiveSubmission, isLoading } = useArchiveSubmission(assessmentId);
+  const { resendInvite, isLoading: isResending } = useResendInvite(assessmentId);
+  const { extendSubmission, isLoading: isExtending } = useExtendSubmission(assessmentId);
 
-  const handleCopyLink = () => {
-    const link = `${window.location.origin}/take/${subId}?token=${accessToken}`;
-    navigator.clipboard.writeText(link);
-    toast.success('Invite link copied to clipboard');
+  const isArchived = sub.isArchived === true;
+  const state = getReviewState(sub);
+  // A closed assessment can't be started, so invite actions would only send dead links.
+  const notStarted = sub.status === 'not_started' && !isArchived && !assessmentClosed;
+  const canAddTime = sub.status === 'in_progress' && !!sub.expiresAt && !isArchived;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(
+      `${window.location.origin}/take/${sub.id}?token=${sub.accessToken}`
+    );
+    toast.success('Invite link copied');
   };
+  const resend = async () => {
+    const { emailSent } = await resendInvite(sub.id);
+    if (emailSent) toast.success(`Invite sent again to ${sub.candidate?.email}`);
+    else toast.error("Couldn't send the email. Copy the link and share it directly.");
+  };
+  const extend = (minutes: number) => extendSubmission({ subId: sub.id, minutes }).catch(() => {});
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: wrapper only stops the parent row's click from firing; it is not itself an interactive control
@@ -297,21 +307,50 @@ const SubmissionRowActions = ({
     <div className='flex items-center gap-1' onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant='icon' icon={RiMore2Line} isLoading={isLoading} />
+          <Button
+            variant='icon'
+            icon={RiMore2Line}
+            isLoading={isLoading || isResending || isExtending}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          {!isArchived && (
-            <DropdownMenuItem onClick={handleCopyLink}>
+          {(notStarted || canAddTime) && (
+            <DropdownMenuItem onClick={copyLink}>
               <DropdownMenuIconWrapper>
                 <RiFileCopyLine className='size-4' />
               </DropdownMenuIconWrapper>
-              Copy Invite Link
+              Copy invite link
             </DropdownMenuItem>
           )}
+          {notStarted && state !== 'invite_expired' && (
+            <DropdownMenuItem onClick={() => resend().catch(() => {})}>
+              <DropdownMenuIconWrapper>
+                <RiMailSendLine className='size-4' />
+              </DropdownMenuIconWrapper>
+              Resend invite
+            </DropdownMenuItem>
+          )}
+          {notStarted && sub.startBy && (
+            <DropdownMenuItem onClick={() => extend(3 * 24 * 60)}>
+              <DropdownMenuIconWrapper>
+                <RiTimeLine className='size-4' />
+              </DropdownMenuIconWrapper>
+              {state === 'invite_expired' ? 'Reopen for 3 more days' : 'Extend deadline 3 days'}
+            </DropdownMenuItem>
+          )}
+          {canAddTime &&
+            [15, 30, 60].map((minutes) => (
+              <DropdownMenuItem key={minutes} onClick={() => extend(minutes)}>
+                <DropdownMenuIconWrapper>
+                  <RiTimeLine className='size-4' />
+                </DropdownMenuIconWrapper>
+                Add {minutes} minutes
+              </DropdownMenuItem>
+            ))}
           <DropdownMenuItem
-            onClick={() => {
-              archiveSubmission({ subId, archived: !isArchived }).catch(() => {});
-            }}
+            onClick={() =>
+              archiveSubmission({ subId: sub.id, archived: !isArchived }).catch(() => {})
+            }
           >
             <DropdownMenuIconWrapper>
               {isArchived ? (
@@ -320,7 +359,7 @@ const SubmissionRowActions = ({
                 <RiArchiveLine className='size-4' />
               )}
             </DropdownMenuIconWrapper>
-            {isArchived ? 'Unarchive' : 'Archive'}
+            {isArchived ? 'Unarchive' : notStarted ? 'Cancel invite' : 'Archive'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
