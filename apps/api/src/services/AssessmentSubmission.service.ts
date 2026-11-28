@@ -33,6 +33,7 @@ import { reportError } from '@/lib/report';
 import { getSession } from '@/lib/session';
 import { resolveStarterCode } from '@/sandbox/harnesses';
 import {
+  BulkInviteSchema,
   ChangeLanguageSchema,
   CreateSubmissionSchema,
   GradeSubmissionSchema,
@@ -43,6 +44,15 @@ import { AssessmentCodeRunService } from '@/services/AssessmentCodeRun.service';
 import { UsageService } from '@/services/billing/Usage.service';
 
 const EXPIRY_NOTIFY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/** "ada.park@acme.com" -> "Ada Park", for invites pasted as bare emails. */
+const nameFromEmail = (email: string) =>
+  email
+    .split('@')[0]
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(' ') || email;
 
 export class AssessmentSubmissionService {
   private readonly db: PostgresJsDatabase;
@@ -156,7 +166,11 @@ export class AssessmentSubmissionService {
 
   // === Submission Management (org-side) ===
 
-  async inviteCandidate(assessmentId: Id<'assessment'>, params: CreateSubmissionSchema) {
+  async inviteCandidate(
+    assessmentId: Id<'assessment'>,
+    params: CreateSubmissionSchema,
+    options: { startBy?: string | null; message?: string | null } = {}
+  ) {
     const { orgId } = getSession(this.ctx);
 
     // Verify assessment exists and is active
@@ -221,7 +235,7 @@ export class AssessmentSubmissionService {
       const openSubmission = priorSubmissions.find(
         (s) =>
           !s.isArchived &&
-          (s.status === 'not_started' ||
+          ((s.status === 'not_started' && (!s.startBy || new Date(s.startBy).getTime() > now)) ||
             (s.status === 'in_progress' && (!s.expiresAt || new Date(s.expiresAt).getTime() > now)))
       );
 
@@ -264,6 +278,8 @@ export class AssessmentSubmissionService {
           candidateId: candidate.id,
           status: 'not_started',
           accessToken: crypto.randomUUID(),
+          startBy: options.startBy ?? null,
+          inviteMessage: options.message || null,
         })
         .returning()
         .then((r) => r[0]);
@@ -320,6 +336,8 @@ export class AssessmentSubmissionService {
       assessmentTitle: assessment.title,
       submissionId: submission.id,
       accessToken: submission.accessToken,
+      startBy: submission.startBy,
+      message: submission.inviteMessage,
     });
 
     return {
@@ -338,6 +356,8 @@ export class AssessmentSubmissionService {
     assessmentTitle: string;
     submissionId: string;
     accessToken: string;
+    startBy: string | null;
+    message: string | null;
   }): Promise<boolean> {
     try {
       const org = await this.db
@@ -355,6 +375,8 @@ export class AssessmentSubmissionService {
         candidate_name: params.candidateName,
         assessment_title: params.assessmentTitle,
         take_link: takeLink,
+        start_by: params.startBy,
+        message: params.message,
       });
 
       return true;
@@ -366,6 +388,145 @@ export class AssessmentSubmissionService {
       reportError(err, { tags: { feature: 'email', email: 'assessment_invitation' } });
       return false;
     }
+  }
+
+  /**
+   * Invites several candidates at once. Each one succeeds or fails on its own,
+   * so one bad address or a plan limit partway through doesn't lose the rest.
+   */
+  async bulkInvite(assessmentId: Id<'assessment'>, body: BulkInviteSchema) {
+    const startBy = body.startByDays
+      ? new Date(Date.now() + body.startByDays * 86_400_000).toISOString()
+      : null;
+    const options = { startBy, message: body.message || null };
+
+    const seen = new Set<string>();
+    const results = [];
+    for (const entry of body.candidates) {
+      const key = 'candidateId' in entry ? entry.candidateId : entry.email.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const params: CreateSubmissionSchema =
+        'candidateId' in entry
+          ? { candidateId: entry.candidateId }
+          : {
+              candidateName: entry.name ?? nameFromEmail(entry.email),
+              candidateEmail: entry.email,
+            };
+      try {
+        const invite = await this.inviteCandidate(assessmentId, params, options);
+        results.push({
+          status: invite.alreadyInvited ? ('already_invited' as const) : ('invited' as const),
+          candidateId: invite.candidate.id,
+          name: invite.candidate.name,
+          email: invite.candidate.email,
+          submissionId: invite.id,
+          accessToken: invite.accessToken,
+          emailSent: invite.emailSent ?? null,
+        });
+      } catch (err) {
+        if (!(err instanceof HTTPException)) reportError(err, { tags: { feature: 'bulk_invite' } });
+        results.push({
+          status: 'failed' as const,
+          name: 'name' in entry ? (entry.name ?? null) : null,
+          email: 'email' in entry ? entry.email : null,
+          error: err instanceof HTTPException ? err.message : 'Something went wrong',
+        });
+      }
+    }
+    return { results };
+  }
+
+  /** Loads a submission in the current org with its assessment and candidate. */
+  private async loadForTeam(submissionId: Id<'assessmentSubmission'>) {
+    const { orgId } = getSession(this.ctx);
+    const row = await this.db
+      .select({
+        submission: assessmentSubmissionTable,
+        assessment: assessmentTable,
+        candidate: candidateTable,
+      })
+      .from(assessmentSubmissionTable)
+      .innerJoin(assessmentTable, eq(assessmentTable.id, assessmentSubmissionTable.assessmentId))
+      .innerJoin(candidateTable, eq(candidateTable.id, assessmentSubmissionTable.candidateId))
+      .where(
+        and(
+          eq(assessmentSubmissionTable.id, submissionId),
+          eq(assessmentSubmissionTable.organizationId, orgId)
+        )
+      )
+      .then((r) => r[0]);
+    if (!row) throw new HTTPException(404, { message: 'Submission not found' });
+    return { orgId, ...row };
+  }
+
+  /** Sends the invite email again, with the same link, deadline and message. */
+  async resendInvite(submissionId: Id<'assessmentSubmission'>) {
+    const { orgId, submission, assessment, candidate } = await this.loadForTeam(submissionId);
+
+    if (submission.isArchived) {
+      throw new HTTPException(400, { message: 'This invite was cancelled' });
+    }
+    if (assessment.status !== 'active') {
+      throw new HTTPException(400, { message: 'This assessment is closed' });
+    }
+    if (submission.status !== 'not_started') {
+      throw new HTTPException(400, { message: 'The candidate has already started' });
+    }
+    if (submission.startBy && new Date(submission.startBy) < new Date()) {
+      throw new HTTPException(400, {
+        message: 'This invite has expired. Extend the deadline before resending.',
+      });
+    }
+
+    const emailSent = await this.notifyCandidateOfInvitation({
+      orgId,
+      candidateName: candidate.name,
+      candidateEmail: candidate.email,
+      assessmentTitle: assessment.title,
+      submissionId: submission.id,
+      accessToken: submission.accessToken,
+      startBy: submission.startBy,
+      message: submission.inviteMessage,
+    });
+    return { emailSent };
+  }
+
+  /**
+   * Gives a candidate more time: to finish, if they're mid-attempt, or to
+   * start, if their invite has a deadline. Counts from now if it already passed.
+   */
+  async extendSubmission(submissionId: Id<'assessmentSubmission'>, minutes: number) {
+    const { submission } = await this.loadForTeam(submissionId);
+    const later = (from: string) =>
+      new Date(Math.max(new Date(from).getTime(), Date.now()) + minutes * 60_000).toISOString();
+
+    if (submission.isArchived) {
+      throw new HTTPException(400, { message: 'This invite was cancelled' });
+    }
+
+    let update: { expiresAt: string } | { startBy: string };
+    if (submission.status === 'in_progress') {
+      if (!submission.expiresAt) {
+        throw new HTTPException(400, { message: 'This assessment has no time limit' });
+      }
+      update = { expiresAt: later(submission.expiresAt) };
+    } else if (submission.status === 'not_started') {
+      if (!submission.startBy) {
+        throw new HTTPException(400, { message: 'This invite has no deadline' });
+      }
+      update = { startBy: later(submission.startBy) };
+    } else {
+      throw new HTTPException(400, { message: 'This attempt has already ended' });
+    }
+
+    return this.db
+      .update(assessmentSubmissionTable)
+      .set({ ...update, updatedAt: new Date().toISOString() })
+      .where(eq(assessmentSubmissionTable.id, submissionId))
+      .returning()
+      .then((r) => r[0]);
   }
 
   async listSubmissions(assessmentId: Id<'assessment'>) {
@@ -964,6 +1125,7 @@ export class AssessmentSubmissionService {
         startedAt: submission.startedAt,
         submittedAt: submission.submittedAt,
         expiresAt: submission.expiresAt,
+        startBy: submission.startBy,
         candidateEmail: candidate.email,
         candidateName: candidate.name,
       },
@@ -971,6 +1133,7 @@ export class AssessmentSubmissionService {
         id: assessment.id,
         title: assessment.title,
         description: assessment.description,
+        status: assessment.status,
         mode: assessment.mode,
         allowedLanguages: assessment.allowedLanguages,
         timeLimitSeconds: assessment.timeLimitSeconds,
@@ -1003,6 +1166,14 @@ export class AssessmentSubmissionService {
 
     if (!assessment) {
       throw new HTTPException(404, { message: 'Assessment not found' });
+    }
+
+    if (assessment.status !== 'active') {
+      throw new HTTPException(400, { message: 'This assessment is closed' });
+    }
+
+    if (submission.startBy && new Date(submission.startBy) < new Date()) {
+      throw new HTTPException(400, { message: 'This invite has expired' });
     }
 
     if (!assessment.allowedLanguages.includes(params.selectedLanguage)) {
@@ -1238,6 +1409,14 @@ export class AssessmentSubmissionService {
 
     if (!assessment) {
       throw new HTTPException(404, { message: 'Assessment not found' });
+    }
+
+    if (assessment.status !== 'active') {
+      throw new HTTPException(400, { message: 'This assessment is closed' });
+    }
+
+    if (submission.startBy && new Date(submission.startBy) < new Date()) {
+      throw new HTTPException(400, { message: 'This invite has expired' });
     }
 
     if (!assessment.allowedLanguages.includes(params.selectedLanguage)) {

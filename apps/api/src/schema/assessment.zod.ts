@@ -193,6 +193,8 @@ export const SubmissionSchema = z.object({
   reviewedAt: z.string().nullable(),
   accessToken: z.string(),
   isArchived: z.boolean(),
+  startBy: z.string().nullable(),
+  inviteMessage: z.string().nullable(),
 });
 
 export const CreateSubmissionSchema = z.union([
@@ -204,6 +206,29 @@ export const CreateSubmissionSchema = z.union([
     candidateEmail: z.string().email(),
   }),
 ]);
+
+export const BulkInviteSchema = z.object({
+  candidates: z
+    .array(
+      z.union([
+        z.object({ candidateId: idString('candidate') }),
+        z.object({ name: z.string().trim().min(1).optional(), email: z.string().trim().email() }),
+      ])
+    )
+    .min(1)
+    .max(100),
+  // Days the candidate has to start. Null or missing means no deadline.
+  startByDays: z.number().int().min(1).max(90).nullable().optional(),
+  message: z.string().trim().max(2000).optional(),
+});
+
+export const ExtendSubmissionSchema = z.object({
+  minutes: z
+    .number()
+    .int()
+    .min(1)
+    .max(60 * 24 * 30),
+});
 
 export const GradeSubmissionSchema = z.object({
   gradingNotes: z.string().optional(),
@@ -274,3 +299,5 @@ export type CreateCandidateSchema = z.infer<typeof CreateCandidateSchema>;
 export type SubmissionSchema = z.infer<typeof SubmissionSchema>;
 export type CreateSubmissionSchema = z.infer<typeof CreateSubmissionSchema>;
 export type GradeSubmissionSchema = z.infer<typeof GradeSubmissionSchema>;
+export type BulkInviteSchema = z.infer<typeof BulkInviteSchema>;
+export type ExtendSubmissionSchema = z.infer<typeof ExtendSubmissionSchema>;

@@ -39,6 +39,13 @@ insert into assessment_questions (id, created_at, updated_at, assessment_id, org
 values ('aq_two', now(), now(), 'as_local', 'org_local', 'ql_two', 0, 100),
        ('aq_paren', now(), now(), 'as_local', 'org_local', 'ql_paren', 1, 100);
 
+-- Publishing (and reopening) requires a test case on every question.
+insert into question_library_test_cases (id, created_at, updated_at, question_id, label, args, expected_return, is_hidden, position) values
+  ('qltc_two_1', now(), now(), 'ql_two', 'Basic', '[[2, 7, 11, 15], 9]', '[0, 1]', false, 0),
+  ('qltc_two_2', now(), now(), 'ql_two', 'Negatives', '[[-3, 4, 3, 90], 0]', '[0, 2]', true, 1),
+  ('qltc_paren_1', now(), now(), 'ql_paren', 'Simple', '["()"]', 'true', false, 0),
+  ('qltc_paren_2', now(), now(), 'ql_paren', 'Unclosed', '["(("]', 'false', true, 1);
+
 insert into candidates (id, created_at, updated_at, organization_id, name, email) values
   ('cand_ada', now(), now(), 'org_local', 'Ada Park', 'ada@candidate.test'),
   ('cand_ben', now(), now(), 'org_local', 'Ben Ortiz', 'ben@candidate.test'),

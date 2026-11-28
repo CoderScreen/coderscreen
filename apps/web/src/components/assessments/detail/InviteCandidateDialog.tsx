@@ -6,25 +6,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@coderscreen/ui/dialog';
-import { Input } from '@coderscreen/ui/input';
 import { Label } from '@coderscreen/ui/label';
-import { Tabs, TabsList, TabsTrigger } from '@coderscreen/ui/tabs';
 import {
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@coderscreen/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@coderscreen/ui/tabs';
+import { Textarea } from '@coderscreen/ui/textarea';
+import {
   RiCheckboxCircleLine,
   RiCloseLine,
   RiErrorWarningLine,
   RiFileCopyLine,
   RiMailSendLine,
   RiSearchLine,
-  RiUserAddLine,
 } from '@remixicon/react';
 import { Link } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { siteConfig } from '@/lib/siteConfig';
-import { useCandidates, useInviteCandidate } from '@/query/assessment.query';
+import { useBulkInvite, useCandidates } from '@/query/assessment.query';
 import { useUsage } from '@/query/billing.query';
 import { parseApiError } from '@/query/error.query';
 
@@ -37,232 +41,151 @@ interface InviteCandidateDialogProps {
 type Mode = 'existing' | 'new';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PAGE_SIZE = 8;
+
+const DEADLINES = [
+  { value: 'none', label: 'No deadline' },
+  { value: '3', label: 'Within 3 days' },
+  { value: '7', label: 'Within 7 days' },
+  { value: '14', label: 'Within 14 days' },
+];
+
+type Parsed = { name?: string; email: string } | { error: string };
+
+/** One candidate per line: "Ada Park <ada@acme.com>", "Ada Park, ada@acme.com" or "ada@acme.com". */
+export const parseCandidateLines = (text: string): Parsed[] =>
+  text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^(.*?)[\s,;]*<?([^\s<>,;]+@[^\s<>,;]+)>?$/);
+      const email = match?.[2];
+      if (!email || !EMAIL_RE.test(email)) return { error: line };
+      const name = match[1].replace(/^["']|["']$/g, '').trim();
+      return name ? { name, email } : { email };
+    });
+
+type InviteResult = {
+  status: 'invited' | 'already_invited' | 'failed';
+  name: string | null;
+  email: string | null;
+  submissionId?: string;
+  accessToken?: string;
+  emailSent?: boolean | null;
+  error?: string;
+};
 
 export const InviteCandidateDialog = ({
   assessmentId,
   open,
   onOpenChange,
 }: InviteCandidateDialogProps) => {
-  const {
-    inviteCandidate,
-    isLoading,
-    error: inviteError,
-    reset: resetInvite,
-  } = useInviteCandidate(assessmentId);
+  const { bulkInvite, isLoading, error: inviteError, reset } = useBulkInvite(assessmentId);
   const { candidates } = useCandidates();
   const { usage } = useUsage('assessment_invite');
 
-  const hasCandidates = (candidates?.length ?? 0) > 0;
-  // null until the user picks a tab, so the default can follow the candidate
-  // list as it loads without overriding an explicit choice.
+  const list = (candidates ?? []) as { id: string; name: string; email: string }[];
   const [pickedMode, setMode] = useState<Mode | null>(null);
-  const mode: Mode = pickedMode ?? (hasCandidates ? 'existing' : 'new');
+  const mode: Mode = pickedMode ?? (list.length > 0 ? 'existing' : 'new');
 
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [errors, setErrors] = useState<{ name?: string; email?: string; pick?: string }>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [pasted, setPasted] = useState('');
+  const [deadline, setDeadline] = useState('7');
+  const [message, setMessage] = useState('');
+  const [results, setResults] = useState<InviteResult[] | null>(null);
 
-  const [accessLink, setAccessLink] = useState<string | null>(null);
-  // null = the API didn't report a delivery result (older response shape).
-  const [emailSent, setEmailSent] = useState<boolean | null>(null);
-  const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
-  const [alreadyInvited, setAlreadyInvited] = useState(false);
+  const parsed = useMemo(() => parseCandidateLines(pasted), [pasted]);
+  const invalid = parsed.filter((p): p is { error: string } => 'error' in p);
+  const valid = parsed.filter((p): p is { name?: string; email: string } => !('error' in p));
 
-  const filteredCandidates = useMemo(() => {
-    const list = candidates ?? [];
+  const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return list;
     return list.filter(
       (c) => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
     );
-  }, [candidates, search]);
+  }, [list, search]);
 
-  const pageCount = Math.max(1, Math.ceil(filteredCandidates.length / PAGE_SIZE));
-  const safePage = Math.min(page, pageCount);
-  const pagedCandidates = useMemo(
-    () => filteredCandidates.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-    [filteredCandidates, safePage]
-  );
-
-  // Reset to page 1 whenever the search changes
-  // biome-ignore lint/correctness/useExhaustiveDependencies: search is the trigger; the effect resets pagination as a side-effect of it changing even though it doesn't read it.
-  useEffect(() => {
-    setPage(1);
-  }, [search]);
-
-  const resetState = () => {
-    setSearch('');
-    setPage(1);
-    setSelectedCandidateId('');
-    setName('');
-    setEmail('');
-    setErrors({});
-    setAccessLink(null);
-    setEmailSent(null);
-    setInvitedEmail(null);
-    setAlreadyInvited(false);
+  const resetForm = () => {
     setMode(null);
-    resetInvite();
+    setSearch('');
+    setSelected(new Set());
+    setPasted('');
+    setDeadline('7');
+    setMessage('');
+    setResults(null);
+    reset();
   };
 
-  const handleClose = (openState: boolean) => {
-    if (!openState) resetState();
-    onOpenChange(openState);
+  const handleClose = (next: boolean) => {
+    if (!next) resetForm();
+    onOpenChange(next);
   };
+
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const count = mode === 'existing' ? selected.size : valid.length;
+  const submitDisabled = usage?.exceeded || count === 0 || (mode === 'new' && invalid.length > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (mode === 'existing') {
-      if (!selectedCandidateId) {
-        setErrors({ pick: 'Select a candidate from the list' });
-        return;
-      }
-      setErrors({});
-      try {
-        const result = await inviteCandidate({
-          candidateId: selectedCandidateId as `cand_${string}`,
-        });
-        handleSuccess(result);
-      } catch {
-        // Rendered inline from `inviteError`.
-      }
-      return;
-    }
-
-    const nextErrors: typeof errors = {};
-    if (!name.trim()) nextErrors.name = 'Name is required';
-    if (!email.trim()) nextErrors.email = 'Email is required';
-    else if (!EMAIL_RE.test(email.trim())) nextErrors.email = 'Invalid email address';
-    if (nextErrors.name || nextErrors.email) {
-      setErrors(nextErrors);
-      return;
-    }
-    setErrors({});
+    const people =
+      mode === 'existing'
+        ? [...selected].map((id) => ({ candidateId: id as `cand_${string}` }))
+        : valid;
     try {
-      const result = await inviteCandidate({
-        candidateName: name.trim(),
-        candidateEmail: email.trim(),
+      const res = await bulkInvite({
+        candidates: people,
+        startByDays: deadline === 'none' ? null : Number(deadline),
+        message: message.trim() || undefined,
       });
-      handleSuccess(result);
+      setResults(res.results as InviteResult[]);
     } catch {
       // Rendered inline from `inviteError`.
     }
   };
 
-  const handleSuccess = (result: unknown) => {
-    if (result && typeof result === 'object' && 'accessToken' in result) {
-      const {
-        id,
-        accessToken,
-        emailSent: sent,
-        alreadyInvited: existing,
-        candidate,
-      } = result as {
-        id: string;
-        accessToken: string;
-        emailSent?: boolean;
-        alreadyInvited?: boolean;
-        candidate?: { email?: string } | null;
-      };
-      setAccessLink(`${window.location.origin}/take/${id}?token=${accessToken}`);
-      setEmailSent(sent ?? null);
-      setInvitedEmail(candidate?.email ?? null);
-      setAlreadyInvited(existing ?? false);
-    }
-  };
-
-  const handleCopyLink = () => {
-    if (accessLink) {
-      navigator.clipboard.writeText(accessLink);
-      toast.success('Link copied to clipboard');
-    }
-  };
-
-  // After invite is successful, show the link
-  if (accessLink) {
+  if (results) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className='sm:max-w-md'>
-          <div className='text-center py-4'>
-            <div
-              className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                emailSent === false ? 'bg-amber-50' : 'bg-green-50'
-              }`}
-            >
-              {emailSent === false ? (
-                <RiErrorWarningLine className='w-6 h-6 text-amber-600' />
-              ) : (
-                <RiCheckboxCircleLine className='w-6 h-6 text-green-600' />
-              )}
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-1'>
-              {alreadyInvited ? 'Already Invited' : 'Invitation Created'}
-            </h3>
-            {alreadyInvited ? (
-              <p className='text-sm text-gray-500 mb-6'>
-                {invitedEmail ?? 'This candidate'} already has an open invite for this assessment,
-                so no new email was sent. Share this link if they need it again.
-              </p>
-            ) : emailSent === false ? (
-              <p className='text-sm text-amber-700 mb-6'>
-                We could not email {invitedEmail ?? 'the candidate'}. Nothing has been sent to them,
-                so share this link directly.
-              </p>
-            ) : emailSent ? (
-              <p className='text-sm text-gray-500 mb-6'>
-                We emailed this link to {invitedEmail ?? 'the candidate'}. They still need to open
-                it and press Start before the timer begins.
-              </p>
-            ) : (
-              <p className='text-sm text-gray-500 mb-6'>
-                Share this link with the candidate to start the assessment.
-              </p>
-            )}
-
-            <div className='bg-gray-50 rounded-lg p-3 mb-4'>
-              <Input value={accessLink} readOnly className='text-xs font-mono bg-white' />
-            </div>
-
-            <div className='flex gap-2 justify-center'>
-              <Button variant='secondary' icon={RiFileCopyLine} onClick={handleCopyLink}>
-                Copy Link
-              </Button>
-              <Button onClick={() => handleClose(false)}>Done</Button>
-            </div>
+        <DialogContent className='sm:max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>Invites</DialogTitle>
+            <DialogDescription>{summarize(results)}</DialogDescription>
+          </DialogHeader>
+          <ul className='mt-4 divide-y divide-gray-100 border border-gray-200 rounded-md max-h-80 overflow-y-auto'>
+            {results.map((r, i) => (
+              <ResultRow key={r.submissionId ?? `${r.email}-${i}`} result={r} />
+            ))}
+          </ul>
+          <div className='flex justify-end pt-4'>
+            <Button onClick={() => handleClose(false)}>Done</Button>
           </div>
         </DialogContent>
       </Dialog>
     );
   }
 
-  const submitDisabled =
-    usage?.exceeded || (mode === 'existing' ? !selectedCandidateId : !name.trim() || !email.trim());
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader>
-          <DialogTitle>Invite Candidate</DialogTitle>
+          <DialogTitle>Invite candidates</DialogTitle>
           <DialogDescription>
-            Send an assessment invitation to a new or existing candidate.
+            Each candidate gets an email with their own link to the assessment.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={mode}
-          onValueChange={(v) => {
-            setMode(v as Mode);
-            setErrors({});
-          }}
-          className='mt-4'
-        >
+        <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)} className='mt-4'>
           <TabsList variant='solid' className='w-full'>
-            <TabsTrigger value='existing' className='flex-1' disabled={!hasCandidates}>
+            <TabsTrigger value='existing' className='flex-1' disabled={list.length === 0}>
               Existing
             </TabsTrigger>
             <TabsTrigger value='new' className='flex-1'>
@@ -271,165 +194,115 @@ export const InviteCandidateDialog = ({
           </TabsList>
         </Tabs>
 
-        <form onSubmit={handleSubmit} className='space-y-4 mt-6'>
+        <form onSubmit={handleSubmit} className='space-y-4 mt-4'>
           {mode === 'existing' ? (
             <div>
-              <div className='relative mb-3 group'>
-                <RiSearchLine className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none transition-colors group-focus-within:text-blue-500' />
+              <div className='relative mb-3'>
+                <RiSearchLine className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none' />
                 <input
                   type='text'
                   placeholder='Search candidates by name or email'
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  autoFocus
-                  className='w-full h-10 pl-9 pr-9 bg-gray-50 border border-gray-200 rounded-md text-sm placeholder:text-gray-400 outline-none transition-all focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
+                  className='w-full h-10 pl-9 pr-9 bg-gray-50 border border-gray-200 rounded-md text-sm placeholder:text-gray-400 outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 />
                 {search && (
                   <button
                     type='button'
                     onClick={() => setSearch('')}
-                    className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer'
+                    className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-gray-400 hover:text-gray-600 cursor-pointer'
                     aria-label='Clear search'
                   >
                     <RiCloseLine className='size-4' />
                   </button>
                 )}
               </div>
-
-              <div className='border border-gray-200 rounded-md overflow-hidden'>
-                {filteredCandidates.length === 0 ? (
-                  <div className='flex flex-col items-center justify-center text-center py-8 px-4 gap-2'>
-                    <p className='text-sm text-gray-500'>
-                      {search.trim()
-                        ? `No candidates match "${search.trim()}"`
-                        : 'No candidates yet'}
-                    </p>
-                    <Button
-                      type='button'
-                      variant='secondary'
-                      icon={RiUserAddLine}
-                      onClick={() => {
-                        const guess = search.trim();
-                        if (guess) {
-                          if (EMAIL_RE.test(guess)) setEmail(guess);
-                          else setName(guess);
-                        }
-                        setMode('new');
-                        setErrors({});
-                      }}
-                    >
-                      Create new candidate
-                    </Button>
-                  </div>
+              <ul className='border border-gray-200 rounded-md divide-y divide-gray-100 max-h-60 overflow-y-auto'>
+                {filtered.length === 0 ? (
+                  <li className='py-6 text-center text-sm text-gray-500'>No candidates match</li>
                 ) : (
-                  <>
-                    <ul className='divide-y divide-gray-100'>
-                      {pagedCandidates.map((c) => {
-                        const isSelected = selectedCandidateId === c.id;
-                        return (
-                          <li key={c.id}>
-                            <button
-                              type='button'
-                              onClick={() => {
-                                setSelectedCandidateId(c.id);
-                                setErrors({});
-                              }}
-                              className={`w-full text-left px-3 py-2.5 cursor-pointer flex items-center justify-between gap-3 transition-colors ${
-                                isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
-                              }`}
-                            >
-                              <div className='min-w-0'>
-                                <div className='text-sm font-medium text-gray-900 truncate'>
-                                  {c.name}
-                                </div>
-                                <div className='text-xs text-gray-500 truncate'>{c.email}</div>
-                              </div>
-                              {isSelected && (
-                                <RiCheckboxCircleLine className='size-5 text-blue-600 shrink-0' />
-                              )}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-
-                    {pageCount > 1 && (
-                      <div className='flex items-center justify-between border-t border-gray-100 px-3 py-2 bg-gray-50'>
-                        <span className='text-xs text-gray-500'>
-                          {(safePage - 1) * PAGE_SIZE + 1}–
-                          {Math.min(safePage * PAGE_SIZE, filteredCandidates.length)} of{' '}
-                          {filteredCandidates.length}
-                        </span>
-                        <div className='flex items-center gap-1'>
-                          <button
-                            type='button'
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            disabled={safePage === 1}
-                            className='p-1 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-200 disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer'
-                            aria-label='Previous page'
-                          >
-                            <RiArrowLeftSLine className='size-4' />
-                          </button>
-                          <span className='text-xs text-gray-600 tabular-nums px-1'>
-                            {safePage} / {pageCount}
-                          </span>
-                          <button
-                            type='button'
-                            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                            disabled={safePage === pageCount}
-                            className='p-1 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-200 disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer'
-                            aria-label='Next page'
-                          >
-                            <RiArrowRightSLine className='size-4' />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                  filtered.map((c) => {
+                    const isSelected = selected.has(c.id);
+                    return (
+                      <li key={c.id}>
+                        <button
+                          type='button'
+                          onClick={() => toggle(c.id)}
+                          className={`w-full text-left px-3 py-2.5 cursor-pointer flex items-center justify-between gap-3 ${
+                            isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className='min-w-0'>
+                            <div className='text-sm font-medium text-gray-900 truncate'>
+                              {c.name}
+                            </div>
+                            <div className='text-xs text-gray-500 truncate'>{c.email}</div>
+                          </div>
+                          {isSelected && (
+                            <RiCheckboxCircleLine className='size-5 text-blue-600 shrink-0' />
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })
                 )}
-              </div>
-
-              {errors.pick && <p className='text-sm text-red-600 mt-2'>{errors.pick}</p>}
+              </ul>
             </div>
           ) : (
-            <>
-              <div>
-                <Label
-                  htmlFor='candidateName'
-                  className='block text-sm font-medium text-gray-700 mb-2'
-                >
-                  Name
-                </Label>
-                <Input
-                  id='candidateName'
-                  placeholder='John Doe'
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  hasError={!!errors.name}
-                  autoFocus
-                />
-                {errors.name && <p className='text-sm text-red-600 mt-1'>{errors.name}</p>}
-              </div>
-
-              <div>
-                <Label
-                  htmlFor='candidateEmail'
-                  className='block text-sm font-medium text-gray-700 mb-2'
-                >
-                  Email
-                </Label>
-                <Input
-                  id='candidateEmail'
-                  type='email'
-                  placeholder='john@example.com'
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  hasError={!!errors.email}
-                />
-                {errors.email && <p className='text-sm text-red-600 mt-1'>{errors.email}</p>}
-              </div>
-            </>
+            <div>
+              <Label htmlFor='pasted' className='block text-sm font-medium text-gray-700 mb-2'>
+                One candidate per line
+              </Label>
+              <Textarea
+                id='pasted'
+                rows={5}
+                value={pasted}
+                onChange={(e) => setPasted(e.target.value)}
+                placeholder={'Ada Park <ada@acme.com>\nben@acme.com'}
+                hasError={invalid.length > 0}
+                autoFocus
+              />
+              {invalid.length > 0 ? (
+                <p className='text-sm text-red-600 mt-1'>
+                  No email found in: {invalid.map((i) => `"${i.error}"`).join(', ')}
+                </p>
+              ) : (
+                <p className='text-xs text-gray-500 mt-1'>
+                  A name is optional. Without one, we use the part before the @.
+                </p>
+              )}
+            </div>
           )}
+
+          <div>
+            <Label className='block text-sm font-medium text-gray-700 mb-2'>Must start</Label>
+            <Select value={deadline} onValueChange={setDeadline}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DEADLINES.map((d) => (
+                  <SelectItem key={d.value} value={d.value}>
+                    {d.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor='message' className='block text-sm font-medium text-gray-700 mb-2'>
+              Personal message <span className='font-normal text-gray-400'>(optional)</span>
+            </Label>
+            <Textarea
+              id='message'
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder='Added to the invite email.'
+              maxLength={2000}
+            />
+          </div>
 
           {usage?.exceeded && (
             <div className='px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg'>
@@ -450,7 +323,7 @@ export const InviteCandidateDialog = ({
             </div>
           )}
 
-          <div className='flex justify-end gap-3 pt-4'>
+          <div className='flex justify-end gap-3 pt-2'>
             <Button type='button' variant='secondary' onClick={() => handleClose(false)}>
               Cancel
             </Button>
@@ -461,11 +334,69 @@ export const InviteCandidateDialog = ({
               iconPosition='right'
               disabled={submitDisabled}
             >
-              Invite
+              {count > 1 ? `Invite ${count}` : 'Invite'}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const summarize = (results: InviteResult[]) => {
+  const n = (status: InviteResult['status']) => results.filter((r) => r.status === status).length;
+  const notEmailed = results.filter((r) => r.status === 'invited' && r.emailSent === false).length;
+  const parts = [
+    n('invited') > 0 && `${n('invited')} invited`,
+    n('already_invited') > 0 && `${n('already_invited')} already had an open invite (no new email)`,
+    n('failed') > 0 && `${n('failed')} failed`,
+    notEmailed > 0 && `${notEmailed} couldn't be emailed, so share their link`,
+  ].filter(Boolean);
+  return `${parts.join(', ')}.`;
+};
+
+const ResultRow = ({ result }: { result: InviteResult }) => {
+  const link =
+    result.submissionId && result.accessToken
+      ? `${window.location.origin}/take/${result.submissionId}?token=${result.accessToken}`
+      : null;
+  const ok = result.status !== 'failed' && result.emailSent !== false;
+
+  return (
+    <li className='flex items-center justify-between gap-3 px-3 py-2.5'>
+      <div className='flex items-center gap-2 min-w-0'>
+        {ok ? (
+          <RiCheckboxCircleLine className='size-4 text-green-600 shrink-0' />
+        ) : (
+          <RiErrorWarningLine className='size-4 text-amber-600 shrink-0' />
+        )}
+        <div className='min-w-0'>
+          <div className='text-sm text-gray-900 truncate'>
+            {result.name ?? result.email ?? 'Candidate'}
+          </div>
+          <div className='text-xs text-gray-500 truncate'>
+            {result.status === 'failed'
+              ? result.error
+              : result.status === 'already_invited'
+                ? 'Already invited'
+                : result.emailSent === false
+                  ? "Couldn't email them"
+                  : result.email}
+          </div>
+        </div>
+      </div>
+      {link && (
+        <Button
+          variant='secondary'
+          icon={RiFileCopyLine}
+          onClick={() => {
+            navigator.clipboard.writeText(link);
+            toast.success('Link copied');
+          }}
+        >
+          Copy link
+        </Button>
+      )}
+    </li>
   );
 };
